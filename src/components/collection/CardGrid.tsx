@@ -333,6 +333,20 @@ function VariantSelector({
   );
 }
 
+// Sparkle icon component for "NEW" badge
+function SparkleStarIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M12 0L13.5 8.5L22 10L13.5 11.5L12 20L10.5 11.5L2 10L10.5 8.5L12 0Z" />
+    </svg>
+  );
+}
+
 interface CardGridProps {
   cards: PokemonCard[];
   setId: string;
@@ -356,6 +370,11 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
   const wishlist = useQuery(
     api.wishlist.getWishlist,
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+  );
+  // Query for newly added cards (last 7 days)
+  const newlyAddedCardsData = useQuery(
+    api.collections.getNewlyAddedCards,
+    profileId ? { profileId: profileId as Id<'profiles'>, days: 7 } : 'skip'
   );
   const addCard = useMutation(api.collections.addCard);
   const removeCard = useMutation(api.collections.removeCard);
@@ -402,6 +421,17 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
     }
     return map;
   }, [wishlist]);
+
+  // Build a Set of newly added card IDs (last 7 days) for quick lookup
+  const newlyAddedCardIds = useMemo(() => {
+    const set = new Set<string>();
+    if (newlyAddedCardsData?.cards) {
+      newlyAddedCardsData.cards.forEach((card) => {
+        set.add(card.cardId);
+      });
+    }
+    return set;
+  }, [newlyAddedCardsData]);
 
   // Open variant selector when clicking on a card
   const handleCardClick = useCallback(
@@ -598,18 +628,20 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
           const isPriority = wishlistedCards.get(card.id) ?? false;
           const canAddPriority = (priorityCount?.remaining ?? 0) > 0;
           const marketPrice = getCardMarketPrice(card);
+          const isNewlyAdded = isOwned && newlyAddedCardIds.has(card.id);
 
           return (
             <div
               key={card.id}
               role="button"
               tabIndex={0}
-              aria-label={`${card.name}, ${isOwned ? `owned ${quantity} copies` : 'not owned'}${isWishlisted ? ', on wishlist' : ''}. Click to ${isOwned ? 'manage' : 'add to collection'}`}
+              aria-label={`${card.name}, ${isOwned ? `owned ${quantity} copies` : 'not owned'}${isNewlyAdded ? ', newly added' : ''}${isWishlisted ? ', on wishlist' : ''}. Click to ${isOwned ? 'manage' : 'add to collection'}`}
               className={cn(
                 'group relative cursor-pointer rounded-xl bg-white p-2 shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2',
                 isOwned
                   ? 'ring-2 ring-kid-success ring-offset-2'
-                  : 'opacity-60 hover:opacity-100 hover:shadow-md'
+                  : 'opacity-60 hover:opacity-100 hover:shadow-md',
+                isNewlyAdded && 'animate-new-card-glow'
               )}
               onClick={(e) => handleCardClick(card, e)}
               onKeyDown={(e) => {
@@ -619,8 +651,30 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                 }
               }}
             >
+              {/* "NEW" Badge for recently added cards */}
+              {isNewlyAdded && (
+                <div
+                  className="new-badge-shimmer absolute -right-1 -top-1 z-10 flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-bold text-white shadow-lg"
+                  title="Added in the last 7 days"
+                >
+                  <SparkleStarIcon className="animate-sparkle h-3 w-3" aria-hidden="true" />
+                  <span>NEW</span>
+                  <SparkleStarIcon
+                    className="animate-sparkle h-3 w-3"
+                    aria-hidden="true"
+                    style={{ animationDelay: '0.5s' }}
+                  />
+                </div>
+              )}
+
               {/* Card Image */}
               <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg">
+                {/* Shimmer overlay for newly added cards */}
+                {isNewlyAdded && (
+                  <div className="pointer-events-none absolute inset-0 z-[1] overflow-hidden rounded-lg">
+                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_3s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-cyan-200/30 to-transparent" />
+                  </div>
+                )}
                 <Image
                   src={card.images.small}
                   alt={card.name}

@@ -135,6 +135,79 @@ body {
   animation: glow-pulse 2s ease-in-out infinite;
 }
 
+/* New in collection sparkle effect */
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes new-card-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes sparkle-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* New card glow effect - cyan/teal theme for "fresh" feel */
+@keyframes new-card-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 4px rgba(6, 182, 212, 0.4),
+      0 0 8px rgba(6, 182, 212, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 8px rgba(6, 182, 212, 0.6),
+      0 0 16px rgba(6, 182, 212, 0.4),
+      0 0 24px rgba(6, 182, 212, 0.2);
+  }
+}
+
+.animate-new-card-glow {
+  animation: new-card-glow 2s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.animate-sparkle-rotate {
+  animation: sparkle-rotate 3s linear infinite;
+}
+
+/* New badge shimmer background */
+.new-badge-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(6, 182, 212, 1) 0%,
+    rgba(34, 211, 238, 1) 25%,
+    rgba(6, 182, 212, 1) 50%,
+    rgba(34, 211, 238, 1) 75%,
+    rgba(6, 182, 212, 1) 100%
+  );
+  background-size: 200% 100%;
+  animation: new-card-shimmer 2s ease-in-out infinite;
+}
+
 /* Accessibility: Focus styles for keyboard navigation */
 @layer base {
   /* Focus-visible ring for interactive elements */
@@ -184,7 +257,11 @@ body {
 
   .animate-confetti,
   .animate-badge-entrance,
-  .animate-glow-pulse {
+  .animate-glow-pulse,
+  .animate-new-card-glow,
+  .animate-sparkle,
+  .animate-sparkle-rotate,
+  .new-badge-shimmer {
     animation: none !important;
   }
 }
