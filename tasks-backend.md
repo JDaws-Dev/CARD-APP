@@ -109,7 +109,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 
 ### Launch Prep
 
-- [ ] Free tier limitations - Enforce 3 sets max, 1 child profile for free tier
+- [x] Free tier limitations - Enforce 3 sets max, 1 child profile for free tier
 - [ ] Subscription validation - Check subscription status before premium features
 - [ ] TCGPlayer affiliate link generation - Add affiliate tracking to wishlist share links
 - [ ] Stripe subscription integration - Payment processing for Family tier ($4.99/mo or $39.99/yr)
@@ -1587,3 +1587,38 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Query optimization helpers (batch size calculation, complexity estimation)
   - Integration scenarios: full collection processing pipeline, filtering and pagination pipeline
 - All 3551 tests pass, linter clean
+
+### 2026-01-16: Free tier limitations - Enforce 3 sets max, 1 child profile
+
+- Created `convex/subscriptionLimits.ts` with Convex queries and mutations:
+  - `getSubscriptionLimits`: Get limits based on subscription tier and expiration status
+  - `getSetUsage`: Get current set usage for a profile (setsUsed, setsRemaining, isAtLimit)
+  - `getProfileUsage`: Get profile usage for a family (child profiles used/remaining)
+  - `canAddCardFromSet`: Check if card from a new set can be added (respects limits)
+  - `canAddChildProfileQuery`: Check if family can add another child profile
+  - `getUpgradePrompts`: Get upgrade prompts when user is near/at limits
+  - `addCardWithLimitCheck`: Add card mutation with set limit enforcement
+  - `createChildProfileWithLimitCheck`: Create child profile with limit enforcement
+- Created `src/lib/subscriptionLimits.ts` with pure utility functions:
+  - Constants: `FREE_TIER_MAX_SETS` (3), `FREE_TIER_MAX_CHILD_PROFILES` (1), `FAMILY_TIER_MAX_CHILD_PROFILES` (3), `MAX_TOTAL_PROFILES` (4)
+  - Subscription status: `isSubscriptionActive`, `isSubscriptionExpired`, `getEffectiveTier`, `getDaysUntilExpiration`, `getSubscriptionStatus`
+  - Tier limits: `getLimitsForTier`, `getLimitsForSubscription`
+  - Set limit checking: `canAddSet`, `canAddCardFromSet`, `getSetUsage`, `categorizeSetsByLimit`
+  - Profile limit checking: `canAddChildProfile`, `canAddParentProfile`, `getProfileUsage`, `countProfiles`
+  - Upgrade prompts: `getSetLimitUpgradePrompt`, `getProfileLimitUpgradePrompt`
+  - Display helpers: `getTierDisplayName`, `getTierFeatures`, `formatSetUsage`, `formatProfileUsage`, `getUsageColorClass`, `formatSubscriptionStatus`
+  - Validation: `isValidTier`, `createSubscriptionInfo`, `isFeatureAvailable`
+  - Set ID extraction: `extractSetIdFromCardId`, `getUniqueSetIds`, `countSetsFromCardIds`
+  - Types: `SubscriptionTier`, `SubscriptionInfo`, `LimitCheckResult`, `SubscriptionLimits`, `ProfileCounts`, `SetUsage`, `ProfileUsage`, `SubscriptionStatus`, `UpgradePrompt`
+- Added 111 tests in `src/lib/__tests__/subscriptionLimits.test.ts` covering:
+  - Constants validation (tier limits, display names, features)
+  - Subscription status functions (active, expired, effective tier, days until expiration)
+  - Tier limit functions (free vs family limits)
+  - Set limit checking (add set, add card from set, usage calculation, categorization)
+  - Profile limit checking (child profiles, parent profiles, usage calculation)
+  - Upgrade prompts (set limits, profile limits)
+  - Display helpers (formatting, color classes, status messages)
+  - Validation helpers (tier validation, subscription info creation, feature availability)
+  - Set ID extraction utilities
+  - Integration scenarios: New Free User Journey, Upgrade Flow, Subscription Expiration, Profile Limit Progression
+- All 3723 tests pass, linter clean
