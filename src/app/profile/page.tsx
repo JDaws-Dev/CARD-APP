@@ -3,6 +3,10 @@
 import Link from 'next/link';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { AvatarCustomizer, AvatarCustomizerSkeleton } from '@/components/profile/AvatarCustomizer';
+import {
+  GameSettingsToggle,
+  GameSettingsToggleSkeleton,
+} from '@/components/settings/GameSettingsToggle';
 import { ArrowLeftIcon, UserCircleIcon, SparklesIcon } from '@heroicons/react/24/solid';
 
 export default function ProfilePage() {
@@ -26,9 +30,9 @@ export default function ProfilePage() {
               <UserCircleIcon className="h-6 w-6 text-white" aria-hidden="true" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Profile & Avatar</h1>
+              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Profile & Settings</h1>
               <p className="text-sm text-gray-500 sm:text-base">
-                Customize your avatar with unlocked items
+                Customize your avatar and manage your game settings
               </p>
             </div>
           </div>
@@ -56,6 +60,13 @@ export default function ProfilePage() {
             </Link>
           </div>
         )}
+
+        {/* Game Settings Section */}
+        <div className="mt-10">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            {isLoading ? <GameSettingsToggleSkeleton /> : <GameSettingsToggle />}
+          </div>
+        </div>
       </div>
     </main>
   );

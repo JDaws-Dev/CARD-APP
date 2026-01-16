@@ -192,13 +192,22 @@ export default defineSchema({
     .index('by_game_and_release', ['gameSlug', 'releaseDate']),
 
   cachedCards: defineTable({
-    cardId: v.string(), // Pokemon TCG API card ID (e.g., "sv1-1")
+    cardId: v.string(), // TCG API card ID (e.g., "sv1-1" for Pokemon, "LOB-001" for Yu-Gi-Oh!)
+    gameSlug: v.union(
+      v.literal('pokemon'),
+      v.literal('yugioh'),
+      v.literal('mtg'),
+      v.literal('onepiece'),
+      v.literal('lorcana'),
+      v.literal('digimon'),
+      v.literal('dragonball')
+    ), // Links card to its game
     setId: v.string(),
     name: v.string(),
     number: v.string(),
-    supertype: v.string(), // Pokemon, Trainer, Energy
-    subtypes: v.array(v.string()), // Basic, Stage 1, etc.
-    types: v.array(v.string()), // Fire, Water, etc.
+    supertype: v.string(), // Pokemon, Trainer, Energy (game-specific supertypes)
+    subtypes: v.array(v.string()), // Basic, Stage 1, etc. (game-specific subtypes)
+    types: v.array(v.string()), // Fire, Water, etc. (game-specific types/attributes)
     rarity: v.optional(v.string()),
     imageSmall: v.string(),
     imageLarge: v.string(),
@@ -206,7 +215,9 @@ export default defineSchema({
     priceMarket: v.optional(v.number()), // Optional pricing for parent view
   })
     .index('by_card_id', ['cardId'])
-    .index('by_set', ['setId']),
+    .index('by_set', ['setId'])
+    .index('by_game', ['gameSlug'])
+    .index('by_game_and_set', ['gameSlug', 'setId']),
 
   // ============================================================================
   // AVATAR CUSTOMIZATION
