@@ -1,9 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { cn } from '@/lib/utils';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
+import type { Id } from '../../../convex/_generated/dataModel';
 
 interface CardGridProps {
   cards: PokemonCard[];
@@ -11,38 +15,67 @@ interface CardGridProps {
 }
 
 export function CardGrid({ cards, setId }: CardGridProps) {
-  // Local state for demo - will be replaced with Convex
-  const [ownedCards, setOwnedCards] = useState<Map<string, number>>(new Map());
+  const { profileId, isLoading: profileLoading } = useCurrentProfile();
 
-  const toggleCard = (cardId: string) => {
-    setOwnedCards((prev) => {
-      const newMap = new Map(prev);
-      if (newMap.has(cardId)) {
-        newMap.delete(cardId);
-      } else {
-        newMap.set(cardId, 1);
-      }
-      return newMap;
+  // Convex queries and mutations
+  const collection = useQuery(
+    api.collections.getCollectionBySet,
+    profileId ? { profileId: profileId as Id<'profiles'>, setId } : 'skip'
+  );
+  const addCard = useMutation(api.collections.addCard);
+  const removeCard = useMutation(api.collections.removeCard);
+  const updateQuantity = useMutation(api.collections.updateQuantity);
+
+  // Build a map of owned cards for quick lookup
+  const ownedCards = new Map<string, number>();
+  if (collection) {
+    collection.forEach((card) => {
+      ownedCards.set(card.cardId, card.quantity);
     });
+  }
+
+  const handleToggleCard = async (cardId: string) => {
+    if (!profileId) return;
+
+    if (ownedCards.has(cardId)) {
+      await removeCard({ profileId: profileId as Id<'profiles'>, cardId });
+    } else {
+      await addCard({ profileId: profileId as Id<'profiles'>, cardId });
+    }
   };
 
-  const updateQuantity = (cardId: string, delta: number) => {
-    setOwnedCards((prev) => {
-      const newMap = new Map(prev);
-      const current = newMap.get(cardId) || 0;
-      const newQty = Math.max(0, current + delta);
-      if (newQty === 0) {
-        newMap.delete(cardId);
-      } else {
-        newMap.set(cardId, newQty);
-      }
-      return newMap;
-    });
+  const handleUpdateQuantity = async (cardId: string, delta: number) => {
+    if (!profileId) return;
+
+    const current = ownedCards.get(cardId) || 0;
+    const newQty = Math.max(0, current + delta);
+
+    if (newQty === 0) {
+      await removeCard({ profileId: profileId as Id<'profiles'>, cardId });
+    } else {
+      await updateQuantity({
+        profileId: profileId as Id<'profiles'>,
+        cardId,
+        quantity: newQty,
+      });
+    }
   };
 
   const ownedCount = ownedCards.size;
   const totalCount = cards.length;
   const progressPercent = totalCount > 0 ? Math.round((ownedCount / totalCount) * 100) : 0;
+
+  // Loading state
+  if (profileLoading || collection === undefined) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="mb-4 text-4xl animate-bounce">🎴</div>
+          <p className="text-gray-500">Loading your collection...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -99,7 +132,7 @@ export function CardGrid({ cards, setId }: CardGridProps) {
                   ? 'ring-2 ring-kid-success ring-offset-2'
                   : 'opacity-60 hover:opacity-100 hover:shadow-md'
               )}
-              onClick={() => toggleCard(card.id)}
+              onClick={() => handleToggleCard(card.id)}
             >
               {/* Card Image */}
               <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg">
@@ -142,14 +175,14 @@ export function CardGrid({ cards, setId }: CardGridProps) {
                 >
                   <button
                     className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    onClick={() => updateQuantity(card.id, -1)}
+                    onClick={() => handleUpdateQuantity(card.id, -1)}
                   >
                     −
                   </button>
                   <span className="min-w-[1.5rem] text-center text-sm font-medium">{quantity}</span>
                   <button
                     className="flex h-6 w-6 items-center justify-center rounded-full bg-kid-primary text-white hover:bg-kid-primary/90"
-                    onClick={() => updateQuantity(card.id, 1)}
+                    onClick={() => handleUpdateQuantity(card.id, 1)}
                   >
                     +
                   </button>
@@ -159,18 +192,6 @@ export function CardGrid({ cards, setId }: CardGridProps) {
           );
         })}
       </div>
-
-      {/* Celebration Toast */}
-      {progressPercent > 0 && progressPercent % 25 === 0 && (
-        <div className="fixed bottom-4 right-4 animate-celebrate rounded-xl bg-kid-primary p-4 text-white shadow-xl">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🎉</span>
-            <span className="font-medium">
-              {progressPercent}% Complete!
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

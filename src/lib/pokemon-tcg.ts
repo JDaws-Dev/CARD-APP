@@ -92,8 +92,10 @@ interface APIResponse<T> {
  * Get all Scarlet & Violet era sets
  */
 export async function getScarletVioletSets(): Promise<PokemonSet[]> {
+  // URL encode the query to handle special characters like &
+  const query = encodeURIComponent('series:"Scarlet & Violet"');
   const response = await fetchFromAPI<APIResponse<PokemonSet[]>>(
-    '/sets?q=series:"Scarlet & Violet"&orderBy=-releaseDate',
+    `/sets?q=${query}&orderBy=-releaseDate`,
     { next: { revalidate: 86400 } } // Cache for 24 hours
   );
   return response.data;
