@@ -89,9 +89,9 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 
 ### Gamification Backend
 
-- [ ] Level-up system - Add XP field to profiles, XP tracking mutations, level calculation logic (XP for adding cards/completing sets/daily logins)
+- [x] Level-up system - Add XP field to profiles, XP tracking mutations, level calculation logic (XP for adding cards/completing sets/daily logins)
 - [ ] Unlockable avatar items - Schema for avatar items (hats, frames, badges), earned items tracking, avatar customization queries
-- [ ] Collection milestones tracking - Detect first 10, 50, 100, 500 cards and return milestone data for celebrations
+- [x] Collection milestones tracking - Detect first 10, 50, 100, 500 cards and return milestone data for celebrations
 
 ### Educational Content
 
@@ -631,3 +631,79 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Dashboard routing by profile type
   - Integration scenarios for parent/child/guest flows
 - All 1130 tests pass, linter clean
+
+### 2026-01-16: Collection milestones tracking for celebrations
+
+- Added `collectionMilestones` table to Convex schema:
+  - Fields: profileId, milestoneKey, threshold, cardCountAtReach, celebratedAt
+  - Indexes: by_profile, by_profile_and_key
+- Created `convex/milestones.ts` with queries and mutations:
+  - `getCelebratedMilestones`: Get all celebrated milestones for a profile
+  - `hasCelebratedMilestone`: Check if specific milestone was celebrated
+  - `getMilestoneProgress`: Get milestone progress with current count, milestones array, next milestone info
+  - `getUncelebratedMilestones`: Find milestones reached but not yet celebrated (for UI trigger)
+  - `markMilestoneCelebrated`: Mark a milestone as celebrated by UI (logs achievement_earned activity)
+  - `checkMilestoneAfterCardAdd`: Check for milestone crossing after card add (returns celebration data with confetti type, message, icon, duration)
+  - `markMultipleMilestonesCelebrated`: Batch mark multiple milestones for catch-up
+  - `resetMilestones`: Reset milestones for testing/development
+- Created `src/lib/milestones.ts` with pure utility functions:
+  - Constants: `COLLECTION_MILESTONES` (10=Getting Started, 50=Rising Collector, 100=Century Club, 500=Master Collector)
+  - Types: `MilestoneDefinition`, `MilestoneReachedData`, `MilestoneProgress`, `CelebrationData`
+  - Detection: `checkMilestoneReached`, `getAllMilestonesCrossed`, `createMilestoneReachedData`
+  - Progress: `getCurrentMilestone`, `getNextMilestone`, `getMilestoneByKey`, `getMilestoneByThreshold`
+  - Progress helpers: `cardsToNextMilestone`, `percentToNextMilestone`, `getMilestoneProgress`
+  - Celebration: `createCelebrationData`, `getCelebrationMessage`
+  - Validation: `isValidMilestoneKey`, `getMilestoneThresholds`, `getMilestoneKeys`
+  - Tracking: `getReachedMilestones`, `getUnreachedMilestones`, `hasReachedAllMilestones`, `countReachedMilestones`
+  - UI helpers: `formatMilestoneProgress`, `getCurrentProgressIcon`, `getMotivationalMessage`, `getMilestoneSummary`
+- Added 85 tests in `src/lib/__tests__/milestones.test.ts` covering:
+  - COLLECTION_MILESTONES constant validation (length, thresholds, unique keys, sorted order)
+  - checkMilestoneReached (no crossing, single crossing, multiple crossings, already past threshold)
+  - getAllMilestonesCrossed (bulk card addition scenarios)
+  - createMilestoneReachedData (isFirstTime tracking)
+  - getCurrentMilestone and getNextMilestone boundary conditions
+  - getMilestoneByKey and getMilestoneByThreshold lookups
+  - cardsToNextMilestone and percentToNextMilestone calculations
+  - getMilestoneProgress with celebrated milestones
+  - createCelebrationData (confetti types, durations by milestone level)
+  - getCelebrationMessage with context-aware messages
+  - All validation and tracking helpers
+  - UI helper functions
+  - Integration scenarios: New collector journey, Bulk card addition, Master collector
+- All 1237 tests pass, linter clean
+
+### 2026-01-16: Level-up system with XP tracking
+
+- Added `xp` and `level` fields to profiles schema in `convex/schema.ts`
+- Created `convex/levelSystem.ts` with Convex queries and mutations:
+  - `getXPProgress`: Get XP and level progress for a profile (current level, title, XP to next level, %)
+  - `getLevelThresholds`: Get all 15 level thresholds for UI display
+  - `getXPRewards`: Get XP rewards configuration for transparency
+  - `awardXP`: Generic mutation to award XP for any action with level up detection
+  - `awardCardXP`: Award XP for adding cards (10 XP normal, 15 holofoil, 20 1st edition, 2 duplicate)
+  - `awardAchievementXP`: Award XP for earning achievements (25-50 XP based on type)
+  - `awardSetCompletionXP`: Award XP for set milestones (50/100/200/500 XP for 25/50/75/100%)
+  - `awardDailyLoginXP`: Award XP for daily activity with streak bonus (5 + 2 per streak day)
+  - `resetXP`: Reset XP for testing/admin purposes
+- Created `src/lib/levelSystem.ts` with pure utility functions:
+  - Constants: `LEVEL_THRESHOLDS` (15 levels), `MAX_LEVEL`, `XP_REWARDS` (all action rewards)
+  - Level progression: Rookie Collector (0 XP) → Collection Legend (11200 XP)
+  - Level calculation: `calculateLevelFromXP`, `getLevelInfo`, `getLevelTitle`, `getXPForLevel`
+  - Progress tracking: `getXPProgress`, `getLevelProgress`, `getNextLevelInfo`
+  - Level up detection: `willLevelUp`, `calculateLevelUp`, `getLevelsEarnedBetween`
+  - XP calculation: `getXPReward`, `calculateCardXP`, `calculateSetCompletionXP`, `calculateDailyLoginXP`
+  - Validation: `isValidXP`, `isValidLevel`
+  - Display helpers: `formatXP`, `formatLevel`, `getLevelProgressMessage`, `getXPRewardDescription`
+  - Analytics: `summarizeXPGains`, `xpNeededForLevel`, `getAllLevelThresholds`
+- Added 68 tests in `src/lib/__tests__/levelSystem.test.ts` covering:
+  - LEVEL_THRESHOLDS constant validation (count, ascending, unique titles)
+  - XP_REWARDS constant validation (positive values, rarity ordering)
+  - calculateLevelFromXP (exact thresholds, between thresholds, boundaries, max level cap)
+  - getLevelInfo, getLevelTitle, getXPForLevel, getNextLevelInfo
+  - getXPProgress (progress within level, at boundary, max level)
+  - getLevelProgress (complete progress info, max level indication)
+  - willLevelUp and calculateLevelUp (single/multiple level ups)
+  - All XP calculation functions with variant handling
+  - All validation and utility functions
+  - Integration scenarios: New User Journey, Max Level Achievement, Multiple Level Ups
+- All 1349 tests pass, linter clean
