@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowRightOnRectangleIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { UserPlusIcon } from '@heroicons/react/24/solid';
 import { useState, useCallback } from 'react';
+import { DarkModeToggle } from '@/components/layout/DarkModeToggle';
 
 // Custom card stack icon for logo (shared with Header)
 function CardStackIcon({ className }: { className?: string }) {
@@ -52,7 +53,7 @@ export function MarketingHeader() {
 
   return (
     <header
-      className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm"
+      className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95"
       role="banner"
     >
       <nav
@@ -78,7 +79,7 @@ export function MarketingHeader() {
               key={link.href}
               href={link.href}
               onClick={(e) => handleAnchorClick(e, link.href)}
-              className="rounded-md px-2 py-1 text-sm font-medium text-gray-600 transition-colors hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+              className="rounded-md px-2 py-1 text-sm font-medium text-gray-600 transition-colors hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:text-kid-primary"
               role="menuitem"
             >
               {link.label}
@@ -88,9 +89,10 @@ export function MarketingHeader() {
 
         {/* Auth Buttons - Desktop */}
         <div className="hidden items-center gap-3 md:flex">
+          <DarkModeToggle compact />
           <Link
             href="/login"
-            className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+            className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <ArrowRightOnRectangleIcon className="h-4 w-4" aria-hidden="true" />
             Log In
@@ -107,7 +109,7 @@ export function MarketingHeader() {
         {/* Mobile Menu Button */}
         <button
           type="button"
-          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 md:hidden"
+          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800 md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           aria-expanded={mobileMenuOpen}
@@ -125,7 +127,7 @@ export function MarketingHeader() {
       {mobileMenuOpen && (
         <div
           id="marketing-mobile-menu"
-          className="border-t border-gray-200 bg-white md:hidden"
+          className="border-t border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900 md:hidden"
           role="menu"
           aria-label="Mobile marketing navigation"
         >
@@ -135,18 +137,22 @@ export function MarketingHeader() {
                 key={link.href}
                 href={link.href}
                 onClick={(e) => handleAnchorClick(e, link.href)}
-                className="block rounded-lg px-3 py-2 text-base font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+                className="block rounded-lg px-3 py-2 text-base font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-200 dark:hover:bg-slate-800"
                 role="menuitem"
               >
                 {link.label}
               </a>
             ))}
           </div>
-          <div className="border-t border-gray-200 px-4 py-3">
+          <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
+            {/* Dark mode toggle for mobile */}
+            <div className="mb-3 flex justify-center">
+              <DarkModeToggle />
+            </div>
             <div className="flex flex-col gap-2">
               <Link
                 href="/login"
-                className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+                className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <ArrowRightOnRectangleIcon className="h-4 w-4" aria-hidden="true" />

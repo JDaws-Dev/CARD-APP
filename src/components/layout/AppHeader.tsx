@@ -21,6 +21,7 @@ import { hasParentAccess } from '@/lib/profiles';
 import { StreakCounter } from '@/components/gamification/StreakCounter';
 import { LevelDisplay } from '@/components/gamification/LevelSystem';
 import { KidModeToggle } from '@/components/layout/KidModeToggle';
+import { DarkModeToggle } from '@/components/layout/DarkModeToggle';
 
 // Custom card stack icon for logo (shared across all headers)
 function CardStackIcon({ className }: { className?: string }) {
@@ -72,7 +73,7 @@ export function AppHeader() {
 
   return (
     <header
-      className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm"
+      className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95"
       role="banner"
     >
       <nav
@@ -100,8 +101,10 @@ export function AppHeader() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
-                  isActive ? 'bg-kid-primary/10 text-kid-primary' : 'text-gray-600'
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:hover:bg-slate-800 ${
+                  isActive
+                    ? 'bg-kid-primary/10 text-kid-primary'
+                    : 'text-gray-600 dark:text-slate-300'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
                 role="menuitem"
@@ -113,19 +116,20 @@ export function AppHeader() {
           })}
         </div>
 
-        {/* Right side: Level, Streak, Kid Mode, Profile Menu */}
+        {/* Right side: Level, Streak, Kid Mode, Dark Mode, Profile Menu */}
         <div className="hidden items-center gap-2 lg:flex">
           <LevelDisplay />
           <StreakCounter />
           <KidModeToggle />
-          <div className="h-6 w-px bg-gray-200" aria-hidden="true" />
+          <DarkModeToggle compact />
+          <div className="h-6 w-px bg-gray-200 dark:bg-slate-600" aria-hidden="true" />
 
           {/* Profile Menu Dropdown */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800"
               aria-label="Profile menu"
               aria-expanded={profileMenuOpen}
               aria-haspopup="true"
@@ -145,14 +149,14 @@ export function AppHeader() {
                 />
                 <div
                   id="profile-menu"
-                  className="absolute right-0 top-full z-20 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                  className="absolute right-0 top-full z-20 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
                   role="menu"
                   aria-label="Profile options"
                 >
                   <Link
                     href="/profile"
                     onClick={() => setProfileMenuOpen(false)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary ${
+                    className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary dark:text-slate-200 dark:hover:bg-slate-700 ${
                       pathname === '/profile' ? 'bg-kid-primary/10 text-kid-primary' : ''
                     }`}
                     role="menuitem"
@@ -163,7 +167,7 @@ export function AppHeader() {
                   <Link
                     href="/learn"
                     onClick={() => setProfileMenuOpen(false)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary ${
+                    className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary dark:text-slate-200 dark:hover:bg-slate-700 ${
                       pathname === '/learn' ? 'bg-kid-primary/10 text-kid-primary' : ''
                     }`}
                     role="menuitem"
@@ -175,7 +179,7 @@ export function AppHeader() {
                     <Link
                       href="/parent-dashboard"
                       onClick={() => setProfileMenuOpen(false)}
-                      className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary ${
+                      className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary dark:text-slate-200 dark:hover:bg-slate-700 ${
                         pathname === '/parent-dashboard' ? 'bg-kid-primary/10 text-kid-primary' : ''
                       }`}
                       role="menuitem"
@@ -184,10 +188,13 @@ export function AppHeader() {
                       Parent Dashboard
                     </Link>
                   )}
-                  <div className="my-1 border-t border-gray-100" aria-hidden="true" />
+                  <div
+                    className="my-1 border-t border-gray-100 dark:border-slate-700"
+                    aria-hidden="true"
+                  />
                   <button
                     onClick={handleSignOut}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary"
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary dark:text-slate-200 dark:hover:bg-slate-700"
                     role="menuitem"
                   >
                     <ArrowRightOnRectangleIcon className="h-4 w-4" aria-hidden="true" />
@@ -202,7 +209,7 @@ export function AppHeader() {
         {/* Mobile Menu Button */}
         <button
           type="button"
-          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 lg:hidden"
+          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           aria-expanded={mobileMenuOpen}
@@ -220,7 +227,7 @@ export function AppHeader() {
       {mobileMenuOpen && (
         <div
           id="app-mobile-menu"
-          className="border-t border-gray-200 bg-white lg:hidden"
+          className="border-t border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900 lg:hidden"
           role="menu"
           aria-label="Mobile app navigation"
         >
@@ -235,7 +242,7 @@ export function AppHeader() {
                   className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
                     isActive
                       ? 'bg-kid-primary/10 text-kid-primary'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800'
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                   aria-current={isActive ? 'page' : undefined}
@@ -249,14 +256,14 @@ export function AppHeader() {
           </div>
 
           {/* Mobile profile links */}
-          <div className="border-t border-gray-200 px-4 py-3">
+          <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
             <Link
               href="/profile"
               onClick={() => setMobileMenuOpen(false)}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
                 pathname === '/profile'
                   ? 'bg-kid-primary/10 text-kid-primary'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800'
               }`}
               role="menuitem"
             >
@@ -269,7 +276,7 @@ export function AppHeader() {
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
                 pathname === '/learn'
                   ? 'bg-kid-primary/10 text-kid-primary'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800'
               }`}
               role="menuitem"
             >
@@ -283,7 +290,7 @@ export function AppHeader() {
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
                   pathname === '/parent-dashboard'
                     ? 'bg-kid-primary/10 text-kid-primary'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800'
                 }`}
                 role="menuitem"
               >
@@ -293,23 +300,24 @@ export function AppHeader() {
             )}
           </div>
 
-          {/* Mobile level, streak, and kid mode */}
-          <div className="border-t border-gray-200 px-4 py-3">
+          {/* Mobile level, streak, kid mode, and dark mode */}
+          <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
             <div className="mb-3 flex items-center justify-center gap-3">
               <LevelDisplay />
               <StreakCounter />
               <KidModeToggle />
+              <DarkModeToggle compact />
             </div>
           </div>
 
           {/* Sign out button */}
-          <div className="border-t border-gray-200 px-4 py-3">
+          <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 signOut();
               }}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
               role="menuitem"
             >
               <ArrowRightOnRectangleIcon className="h-4 w-4" aria-hidden="true" />

@@ -76,11 +76,74 @@
   --game-mtg-border: #fbbf24;
 }
 
+/* Dark mode styles - applied when .dark class is on html element */
+.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 15, 23, 42;
+  --background-end-rgb: 30, 41, 59;
+
+  /* Dark mode game theming - slightly muted for dark backgrounds */
+  --game-primary: #facc15;
+  --game-primary-rgb: 250, 204, 21;
+  --game-secondary: #f87171;
+  --game-secondary-rgb: 248, 113, 113;
+  --game-accent: #422006;
+  --game-accent-rgb: 66, 32, 6;
+  --game-text: #fef3c7;
+  --game-text-rgb: 254, 243, 199;
+  --game-border: #fcd34d;
+  --game-border-rgb: 252, 211, 77;
+
+  /* Dark mode static game colors */
+  --game-pokemon-primary: #facc15;
+  --game-pokemon-secondary: #f87171;
+  --game-pokemon-accent: #422006;
+  --game-pokemon-text: #fef3c7;
+  --game-pokemon-border: #fcd34d;
+
+  --game-yugioh-primary: #a78bfa;
+  --game-yugioh-secondary: #818cf8;
+  --game-yugioh-accent: #1e1b4b;
+  --game-yugioh-text: #ede9fe;
+  --game-yugioh-border: #a78bfa;
+
+  --game-onepiece-primary: #f87171;
+  --game-onepiece-secondary: #fb923c;
+  --game-onepiece-accent: #450a0a;
+  --game-onepiece-text: #fef2f2;
+  --game-onepiece-border: #fca5a5;
+
+  --game-dragonball-primary: #fb923c;
+  --game-dragonball-secondary: #facc15;
+  --game-dragonball-accent: #431407;
+  --game-dragonball-text: #fff7ed;
+  --game-dragonball-border: #fdba74;
+
+  --game-lorcana-primary: #60a5fa;
+  --game-lorcana-secondary: #22d3ee;
+  --game-lorcana-accent: #172554;
+  --game-lorcana-text: #eff6ff;
+  --game-lorcana-border: #93c5fd;
+
+  --game-digimon-primary: #22d3ee;
+  --game-digimon-secondary: #3b82f6;
+  --game-digimon-accent: #083344;
+  --game-digimon-text: #ecfeff;
+  --game-digimon-border: #67e8f9;
+
+  --game-mtg-primary: #fbbf24;
+  --game-mtg-secondary: #eab308;
+  --game-mtg-accent: #451a03;
+  --game-mtg-text: #fffbeb;
+  --game-mtg-border: #fbbf24;
+}
+
+/* System preference fallback - only applies if no .dark class and system prefers dark */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.dark):not([style*='color-scheme: light']) {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 15, 15, 30;
-    --background-end-rgb: 25, 25, 50;
+    --background-start-rgb: 15, 23, 42;
+    --background-end-rgb: 30, 41, 59;
   }
 }
 

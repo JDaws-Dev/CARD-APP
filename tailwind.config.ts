@@ -6,6 +6,7 @@ const config: Config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -31,14 +32,14 @@ const config: Config = {
       animation: {
         'bounce-slow': 'bounce 2s infinite',
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-        'celebrate': 'celebrate 0.5s ease-out',
+        celebrate: 'celebrate 0.5s ease-out',
       },
       keyframes: {
         'pulse-glow': {
           '0%, 100%': { boxShadow: '0 0 0 0 rgba(99, 102, 241, 0.4)' },
           '50%': { boxShadow: '0 0 0 10px rgba(99, 102, 241, 0)' },
         },
-        'celebrate': {
+        celebrate: {
           '0%': { transform: 'scale(1)' },
           '50%': { transform: 'scale(1.2)' },
           '100%': { transform: 'scale(1)' },
