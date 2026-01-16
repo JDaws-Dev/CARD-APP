@@ -110,7 +110,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ### Launch Prep
 
 - [x] Free tier limitations - Enforce 3 sets max, 1 child profile for free tier
-- [ ] Subscription validation - Check subscription status before premium features
+- [x] Subscription validation - Check subscription status before premium features
 - [ ] TCGPlayer affiliate link generation - Add affiliate tracking to wishlist share links
 - [ ] Stripe subscription integration - Payment processing for Family tier ($4.99/mo or $39.99/yr)
 - [ ] Set up production environment - Vercel deployment configuration
@@ -1622,3 +1622,43 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Set ID extraction utilities
   - Integration scenarios: New Free User Journey, Upgrade Flow, Subscription Expiration, Profile Limit Progression
 - All 3723 tests pass, linter clean
+
+### 2026-01-16: Subscription validation - Check subscription status before premium features
+
+- Created `convex/subscriptionValidation.ts` with Convex queries and mutations:
+  - `checkFeatureAccess`: Check if a specific premium feature is available for a profile
+  - `checkMultipleFeatureAccess`: Batch check multiple features at once for UI initialization
+  - `getSubscriptionStatus`: Get complete subscription status with limits, feature access, and upgrade info
+  - `getSubscriptionStatusByProfile`: Convenience wrapper for profile ID lookup
+  - `getPremiumFeaturesWithAccess`: Get all features grouped by category with access status
+  - `validatePremiumAccess`: Query to validate access before premium UI actions
+  - `getSubscriptionComparison`: Get tier comparison data for upgrade page
+  - `requirePremiumFeature`: Mutation helper that throws error if feature not available
+  - `recordFeatureAccessAttempt`: Analytics mutation for tracking blocked feature attempts
+- Defined 14 premium features across 7 categories:
+  - Collection: `unlimited_sets` (Free plan: 3 sets max)
+  - Profiles: `multiple_children` (Free plan: 1 profile max)
+  - Trading: `trade_calculator`, `trade_history`
+  - Wishlist: `unlimited_wishlist`, `priority_items` (free), `shareable_wishlist` (free)
+  - Analytics: `collection_value`, `price_history`
+  - Parent: `family_dashboard`, `duplicate_finder`
+  - Advanced: `multi_tcg`, `export_data`, `import_data`
+- Created `src/lib/subscriptionValidation.ts` with pure utility functions:
+  - Constants: `PREMIUM_FEATURES` (14 features), `FREE_TIER_FEATURE_IDS`, `FREE_TIER_LIMITS`, `FAMILY_TIER_LIMITS`, `PRICING`, `EXPIRATION_WARNING_DAYS`
+  - Types: `SubscriptionTier`, `FeatureCategory`, `PremiumFeature`, `SubscriptionInfo`, `SubscriptionStatus`, `TierLimits`, `FeatureAccessResult`
+  - Subscription status: `isSubscriptionActive`, `getEffectiveTier`, `getDaysUntilExpiration`, `isExpiringSoon`, `isSubscriptionExpired`, `getSubscriptionStatus`
+  - Tier limits: `getLimitsForTier`, `getEffectiveLimits`, `isUnlimited`, `formatLimit`, `isAtLimit`, `isNearLimit`, `getRemainingSlots`
+  - Feature access: `isFreeTierFeature`, `isFeatureAvailableForTier`, `checkFeatureAccess`, `getFeaturesForTier`, `getFeatureIdsForTier`, `getLockedFeatures`
+  - Feature lookup: `getFeatureById`, `getAllFeatures`, `getFeaturesByCategory`, `getAllCategories`, `groupFeaturesByCategory`, `isValidFeatureId`
+  - Upgrade helpers: `canUpgrade`, `getUpgradeInfo`, `calculateAnnualSavings`, `getUpgradeHighlights`, `getSubscriptionComparison`
+  - Display helpers: `getTierDisplayName`, `getTierShortName`, `formatExpirationDate`, `getStatusMessage`, `getExpirationWarning`, `getCategoryDisplayName`, `formatPrice`, `getPricingDisplay`
+- Added 129 tests in `src/lib/__tests__/subscriptionValidation.test.ts` covering:
+  - Constants validation (PREMIUM_FEATURES uniqueness, FREE_TIER_FEATURE_IDS validity, tier limits, pricing)
+  - Subscription status functions (active, expired, effective tier, days until expiration, expiring soon)
+  - Tier limit functions (free vs family limits, unlimited handling, at/near limit detection)
+  - Feature access functions (free tier features, family-only features, feature access checking)
+  - Feature lookup functions (by ID, by category, grouping, validation)
+  - Upgrade helpers (can upgrade, upgrade info, savings calculation, comparison)
+  - Display helpers (tier names, date formatting, status messages, expiration warnings)
+  - Integration scenarios: Free User Upgrade Journey, Family User Experience, Subscription Expiration Flow, Limit Checking Workflow
+- All 3852 tests pass, linter clean
