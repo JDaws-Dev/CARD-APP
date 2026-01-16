@@ -7,6 +7,9 @@ import {
   StarIcon,
   HeartIcon,
   RocketLaunchIcon,
+  RectangleStackIcon,
+  HandRaisedIcon,
+  ShareIcon,
 } from '@heroicons/react/24/solid';
 
 // Decorative floating card component
@@ -128,8 +131,72 @@ export default function Home() {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="bg-white px-4 py-16 sm:px-8 sm:py-20">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">How It Works</h2>
+            <p className="mx-auto max-w-2xl text-gray-600">
+              Getting started is super easy! Just three simple steps.
+            </p>
+          </div>
+
+          <div className="relative">
+            {/* Connecting line for desktop */}
+            <div className="absolute left-0 right-0 top-16 hidden h-1 bg-gradient-to-r from-kid-primary via-purple-500 to-kid-secondary md:block" />
+
+            <div className="grid gap-8 md:grid-cols-3">
+              {/* Step 1 */}
+              <div className="relative flex flex-col items-center text-center">
+                <div className="relative z-10 mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-kid-primary to-purple-600 shadow-lg shadow-kid-primary/30">
+                  <RectangleStackIcon className="h-14 w-14 text-white" />
+                  <div className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-bold text-kid-primary shadow-md">
+                    1
+                  </div>
+                </div>
+                <h3 className="mb-2 text-xl font-bold text-gray-900">Pick Your Sets</h3>
+                <p className="text-gray-600">
+                  Browse through all Pokemon card sets and choose which ones you want to track.
+                </p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="relative flex flex-col items-center text-center">
+                <div className="relative z-10 mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-kid-secondary shadow-lg shadow-purple-500/30">
+                  <HandRaisedIcon className="h-14 w-14 text-white" />
+                  <div className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-bold text-purple-500 shadow-md">
+                    2
+                  </div>
+                </div>
+                <h3 className="mb-2 text-xl font-bold text-gray-900">Tap Cards You Own</h3>
+                <p className="text-gray-600">
+                  Just tap on any card to add it to your collection. Tap again to add more copies!
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="relative flex flex-col items-center text-center">
+                <div className="relative z-10 mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-kid-secondary to-pink-500 shadow-lg shadow-kid-secondary/30">
+                  <div className="flex items-center gap-1">
+                    <TrophyIcon className="h-10 w-10 text-white" />
+                    <ShareIcon className="h-8 w-8 text-white" />
+                  </div>
+                  <div className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-bold text-kid-secondary shadow-md">
+                    3
+                  </div>
+                </div>
+                <h3 className="mb-2 text-xl font-bold text-gray-900">Earn Badges & Share</h3>
+                <p className="text-gray-600">
+                  Unlock cool badges as you collect, and share your wishlist with family for gifts!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Feature Cards Section */}
-      <section className="bg-white px-4 py-16 sm:px-8 sm:py-24">
+      <section className="bg-gradient-to-b from-white to-gray-50 px-4 py-16 sm:px-8 sm:py-24">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
             <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">
