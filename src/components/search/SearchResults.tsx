@@ -8,7 +8,7 @@ import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { cn } from '@/lib/utils';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, MinusIcon, PlusIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { SearchResultsSkeleton } from '@/components/ui/Skeleton';
 
 interface SearchResultsProps {
@@ -113,14 +113,7 @@ export function SearchResults({ cards, isLoading }: SearchResultsProps) {
                 {/* Owned Checkmark */}
                 {isOwned && (
                   <div className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-kid-success text-white shadow-md">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={3}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                    <CheckIcon className="h-4 w-4" strokeWidth={3} />
                   </div>
                 )}
 
@@ -154,14 +147,14 @@ export function SearchResults({ cards, isLoading }: SearchResultsProps) {
                     className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
                     onClick={() => handleUpdateQuantity(card.id, -1)}
                   >
-                    −
+                    <MinusIcon className="h-4 w-4" />
                   </button>
                   <span className="min-w-[1.5rem] text-center text-sm font-medium">{quantity}</span>
                   <button
                     className="flex h-6 w-6 items-center justify-center rounded-full bg-kid-primary text-white hover:bg-kid-primary/90"
                     onClick={() => handleUpdateQuantity(card.id, 1)}
                   >
-                    +
+                    <PlusIcon className="h-4 w-4" />
                   </button>
                 </div>
               )}

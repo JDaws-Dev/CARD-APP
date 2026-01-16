@@ -6,7 +6,13 @@ import Link from 'next/link';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import { CollectionGroupSkeleton, Skeleton } from '@/components/ui/Skeleton';
 import { ErrorFallback } from '@/components/ui/ErrorBoundary';
-import { CurrencyDollarIcon, SparklesIcon, TrophyIcon, FireIcon } from '@heroicons/react/24/solid';
+import {
+  CurrencyDollarIcon,
+  SparklesIcon,
+  TrophyIcon,
+  FireIcon,
+  ArrowRightIcon,
+} from '@heroicons/react/24/solid';
 
 // Helper function to get the best market price from a card's TCGPlayer prices
 function getCardMarketPrice(card: PokemonCard): number | null {
@@ -353,9 +359,10 @@ export function CollectionView({ collection }: CollectionViewProps) {
             </div>
             <Link
               href={`/sets/${group.setId}`}
-              className="rounded-lg bg-gray-100 px-3 py-1 text-sm text-gray-600 hover:bg-gray-200"
+              className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1 text-sm text-gray-600 hover:bg-gray-200"
             >
-              View Set →
+              View Set
+              <ArrowRightIcon className="h-3 w-3" />
             </Link>
           </div>
 

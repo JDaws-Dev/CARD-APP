@@ -14,6 +14,7 @@ import {
   XMarkIcon,
   PlusIcon,
   MinusIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline';
 import {
   HeartIcon as HeartIconSolid,
@@ -25,6 +26,7 @@ import {
 } from '@heroicons/react/24/solid';
 import { MapIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { CardGridSkeleton, StatsBarSkeleton } from '@/components/ui/Skeleton';
+import { IconLegend } from './IconLegend';
 
 // Variant type definition
 type CardVariant =
@@ -554,6 +556,9 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
               </span>
             </div>
           )}
+
+          {/* Icon Help Legend */}
+          <IconLegend />
         </div>
       </div>
 
@@ -591,14 +596,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                 {/* Owned Checkmark */}
                 {isOwned && (
                   <div className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-kid-success text-white shadow-md">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={3}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                    <CheckIcon className="h-4 w-4" strokeWidth={3} />
                   </div>
                 )}
 

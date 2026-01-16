@@ -6,7 +6,13 @@ import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { CollectionView } from '@/components/collection/CollectionView';
 import Link from 'next/link';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { Square3Stack3DIcon, ArrowsRightLeftIcon, TrophyIcon } from '@heroicons/react/24/outline';
+import {
+  Square3Stack3DIcon,
+  ArrowsRightLeftIcon,
+  TrophyIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+} from '@heroicons/react/24/outline';
 import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
 
@@ -78,7 +84,8 @@ export default function MyCollectionPage() {
             href="/"
             className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
           >
-            ← Back to Home
+            <ArrowLeftIcon className="h-4 w-4" />
+            Back to Home
           </Link>
 
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -144,7 +151,8 @@ export default function MyCollectionPage() {
                   href="/sets"
                   className="inline-flex items-center gap-2 rounded-full bg-kid-primary px-6 py-3 font-semibold text-white transition hover:bg-kid-primary/90"
                 >
-                  Browse Sets →
+                  Browse Sets
+                  <ArrowRightIcon className="h-4 w-4" />
                 </Link>
               </div>
             ) : (

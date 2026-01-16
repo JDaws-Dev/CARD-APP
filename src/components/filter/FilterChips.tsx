@@ -1,5 +1,7 @@
 'use client';
 
+import { XMarkIcon } from '@heroicons/react/24/outline';
+
 interface FilterChipsProps {
   selectedSetName: string | null;
   selectedType: string | null;
@@ -31,14 +33,7 @@ export function FilterChips({
             className="ml-1 rounded-full p-0.5 hover:bg-kid-primary/20"
             aria-label="Clear name filter"
           >
-            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <XMarkIcon className="h-3 w-3" />
           </button>
         </span>
       )}
@@ -50,14 +45,7 @@ export function FilterChips({
             className="ml-1 rounded-full p-0.5 hover:bg-kid-secondary/20"
             aria-label="Clear set filter"
           >
-            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <XMarkIcon className="h-3 w-3" />
           </button>
         </span>
       )}
@@ -69,14 +57,7 @@ export function FilterChips({
             className="hover:bg-kid-accent/20 ml-1 rounded-full p-0.5"
             aria-label="Clear type filter"
           >
-            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <XMarkIcon className="h-3 w-3" />
           </button>
         </span>
       )}
