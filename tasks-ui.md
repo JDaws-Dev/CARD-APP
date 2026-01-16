@@ -20,8 +20,8 @@
 | **Financial Literacy**               | 0        | **4**     |
 | **Educational Mini-Games**           | 0        | **5**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
-| **Engagement & Retention**           | 2        | **2**     |
-| **TOTAL**                            | **83**   | **27**    |
+| **Engagement & Retention**           | 3        | **1**     |
+| **TOTAL**                            | **84**   | **26**    |
 
 ### Priority Order for Remaining Tasks
 
@@ -212,7 +212,7 @@
 
 - [x] Daily stamp collection - Non-consecutive stamp system (collect 5 stamps in a week for reward, doesn't need to be consecutive)
 - [x] Weekly challenges - "Add 3 water-type cards this week" with themed rewards
-- [ ] Comeback rewards - Special welcome back celebration and bonus XP for returning after absence
+- [x] Comeback rewards - Special welcome back celebration and bonus XP for returning after absence
 - [ ] Collection snapshot sharing - Generate shareable image of collection stats/highlights for social media
 
 ---
@@ -297,3 +297,4 @@
 - **2026-01-16**: Added streak repair with XP - Created comprehensive streak repair system (src/lib/streakRepair.ts, src/components/gamification/StreakRepair.tsx) allowing users to spend accumulated XP to repair a recently broken streak. Features: 48-hour repair window after streak breaks; cost formula scales with streak length (base cost + streak bonus); cost breakdown display showing base cost and streak multiplier; urgency indicators (critical/high styling when time running low); StreakRepairStatus card with XP cost, time remaining, repair button; RepairSuccessModal with celebration animation when streak restored; StreakRepairIndicator compact version for inline display; localStorage persistence for repair state and history. Integrated into /streak page below calendar, updated info card and tips section to mention repair feature. Uses Heroicons (WrenchScrewdriverIcon, BoltIcon, ClockIcon, FireIcon, ExclamationTriangleIcon, CheckCircleIcon, SparklesIcon). Commit: cd9db31
 - **2026-01-16**: Added daily stamp collection system - Created non-consecutive stamp system where users collect 5 stamps in any week for bonus XP reward. Features: dailyStamps.ts utility library with stamp tracking, week boundaries, and progress calculations; DailyStampProvider context for app-wide state management; DailyStampCollection component with weekly 7-day stamp grid, interactive collect-today cells with pulse animation, progress bar with smooth transitions, reward claim modal with celebration animation; stamp milestones at 10/25/50/100 total stamps with progress indicators; localStorage persistence with automatic cleanup of old data (>8 weeks); integrated into /streak page with skeleton loading states; added tip about daily stamps to tips section. Uses Heroicons (CalendarDaysIcon, GiftIcon, SparklesIcon, CheckCircleIcon, StarIcon, FireIcon, BoltIcon). Commit: fb6ee0d
 - **2026-01-16**: Added weekly challenges system - Created themed weekly challenges like "Add 3 Water-type cards this week" with XP rewards. Features: weeklyChallenges.ts library with 14 challenge templates covering type collection (fire, water, grass, lightning, psychic, fighting, dragon), rarity hunts (rare, ultra rare), variant collection (holofoil, reverse holo), and general challenges (set explorer, variety collector, card enthusiast); deterministic weekly selection using seeded random based on week start date; WeeklyChallenges component with ChallengeCard displaying progress bars, status indicators, and claim buttons; reward modal with celebration animation; tracks all-time completed challenges and total XP earned; localStorage persistence with auto-cleanup of old data; integrated into /streak page below daily stamps with skeleton loading state; added tip about weekly challenges. Uses Heroicons (TrophyIcon, SparklesIcon, CheckCircleIcon, ClockIcon, GiftIcon, BoltIcon, FireIcon, GlobeAltIcon, StarIcon, ShieldCheckIcon, HeartIcon, RocketLaunchIcon). Commit: 266caa9
+- **2026-01-16**: Added comeback rewards system - Special welcome back celebration with bonus XP for users returning after absence. Features: comebackRewards.ts utility library with 4 reward tiers (3 days = 5 XP, 7 days = 15 XP, 14 days = 30 XP, 30 days = 50 XP); ComebackProvider context that detects absence and shows celebration modal on return; ComebackCelebration modal with animated background rings, tier-specific gradients (bronze/silver/gold/platinum), gift icon, XP reward display, and claim button; ComebackStatus compact display showing total comebacks earned and bonus XP history; localStorage persistence with visit tracking and claim deduplication; integrated into /streak page with skeleton loading state; added tip about comeback rewards. Uses Heroicons (GiftIcon, SparklesIcon, BoltIcon, HeartIcon, XMarkIcon, CheckCircleIcon). Commit: 8358a8f
