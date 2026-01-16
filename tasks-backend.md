@@ -37,7 +37,7 @@
 - [x] Implement set completion badge awarding logic (check on card add, award at 25/50/75/100%)
 - [x] Create collector milestone badge awarding (trigger on card count thresholds)
 - [x] Build type specialist badge logic (count cards by type, award at 10+)
-- [ ] Add Pokemon fan badge logic (count specific Pokemon across sets)
+- [x] Add Pokemon fan badge logic (count specific Pokemon across sets)
 - [ ] Implement streak tracking system (track daily activity, award streak badges)
 - [ ] Add badge earned date tracking to schema and mutations
 
@@ -230,3 +230,43 @@
   - countCardsByType with multi-type cards
   - Progressive badge collection journey integration test
 - All 538 tests pass, linter clean
+
+### 2026-01-16: Add Pokemon fan badge logic (count specific Pokemon across sets)
+- Added `checkPokemonFanAchievements` mutation to `convex/achievements.ts`:
+  - Counts unique cards by Pokemon name from `cachedCards` table
+  - Awards badges for specific Pokemon: Pikachu Fan (5+), Eevee Fan (5+), Charizard Fan (3+), Mewtwo Fan (3+), Legendary Fan (10+)
+  - Matches card names with variants (V, VMAX, ex, GX, VSTAR, etc.)
+  - Eevee badge counts all 9 Eeveelutions (Eevee, Vaporeon, Jolteon, Flareon, Espeon, Umbreon, Leafeon, Glaceon, Sylveon)
+  - Legendary badge covers 90+ legendary/mythical Pokemon across all generations
+  - Logs `achievement_earned` activity with badge name, pokemon, count, and threshold
+  - Returns awarded badges, pokemon counts, progress for all categories, and nearby badges
+- Added `getPokemonFanProgress` query for UI display:
+  - Shows progress for all 5 Pokemon categories with earned status and earnedAt timestamp
+  - Sorts by progress (earned first, then closest to earning)
+  - Identifies nearby badges (Pokemon with cards but not yet earned) sorted by remaining count
+  - Returns summary stats: totalPokemonFanBadgesEarned, totalPokemonFanBadgesAvailable
+- Added Pokemon fan badge utilities to `src/lib/achievements.ts`:
+  - `POKEMON_FAN_BADGE_DEFINITIONS`: Pokemon categories, keys, names, and thresholds constant
+  - `EEVEELUTIONS`: List of Eevee and all 8 evolutions
+  - `LEGENDARY_POKEMON`: List of 90+ legendary/mythical Pokemon from Gen 1-9
+  - `matchesPokemonName`: Check if card name matches a target Pokemon (handles variants)
+  - `isEeveelution`, `isLegendaryPokemon`: Category checking helpers
+  - `countPokemonByCategory`: Count cards by Pokemon category from card names
+  - `getPokemonFanBadgesToAward`: Determine badges to award (excludes already earned)
+  - `getPokemonFanProgressSummary`: Full progress summary for UI
+  - `getPokemonFanBadgeDefinition`, `getPokemonFanBadgeForPokemon`: Get single badge definition
+  - `cardsNeededForPokemonFan`, `getPokemonFanPercentProgress`: Progress helpers
+  - `hasPokemonFanBeenEarned`, `getAllEarnedPokemonFanKeys`, `countEarnedPokemonFanBadges`
+  - `getNearbyPokemonFanBadges`: Get Pokemon closest to earning badge
+  - `getPokemonWithFanBadges`: Get all Pokemon categories with badges
+- Added 92 tests in `src/lib/__tests__/achievements.test.ts` covering:
+  - POKEMON_FAN_BADGE_DEFINITIONS, EEVEELUTIONS, LEGENDARY_POKEMON constant validation
+  - matchesPokemonName logic (exact match, variants, case insensitivity)
+  - isEeveelution, isLegendaryPokemon helper functions
+  - countPokemonByCategory (all categories, overlapping counts for Mewtwo/Legendary)
+  - getPokemonFanBadgesToAward logic (all thresholds, exclusions)
+  - getPokemonFanProgressSummary (progress tracking, sorting, nearby badges)
+  - All individual utility functions
+  - Progressive badge collection journey integration test
+  - Mewtwo/Legendary overlap handling test
+- All 630 tests pass, linter clean
