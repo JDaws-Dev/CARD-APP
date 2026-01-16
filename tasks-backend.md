@@ -90,7 +90,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ### Gamification Backend
 
 - [x] Level-up system - Add XP field to profiles, XP tracking mutations, level calculation logic (XP for adding cards/completing sets/daily logins)
-- [ ] Unlockable avatar items - Schema for avatar items (hats, frames, badges), earned items tracking, avatar customization queries
+- [x] Unlockable avatar items - Schema for avatar items (hats, frames, badges), earned items tracking, avatar customization queries
 - [x] Collection milestones tracking - Detect first 10, 50, 100, 500 cards and return milestone data for celebrations
 
 ### Educational Content
@@ -789,3 +789,65 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Educational content helpers
   - Integration scenarios: grading a new card, comparing cards for trade, collection condition analysis, card progression
 - All 1706 tests pass, linter clean
+
+### 2026-01-16: Unlockable avatar items system with schema and queries
+
+- Added 3 new tables to Convex schema (`convex/schema.ts`):
+  - `avatarItems`: Available avatar items with category, rarity, unlock requirements, and metadata
+    - Categories: hat, frame, badge, background, accessory
+    - Rarities: common, uncommon, rare, epic, legendary
+    - Unlock types: achievement, level, milestone, special, default
+    - Indexes: by_item_id, by_category, by_rarity
+  - `profileAvatarItems`: Items earned/unlocked by each profile
+    - Fields: profileId, itemId, earnedAt, earnedBy
+    - Indexes: by_profile, by_profile_and_item
+  - `profileAvatarConfig`: Current avatar configuration for each profile
+    - Fields for each category: equippedHat, equippedFrame, equippedBadge, equippedBackground, equippedAccessory
+    - Index: by_profile
+- Created `convex/avatarItems.ts` with Convex queries and mutations:
+  - Queries:
+    - `getAllItems`: Get all available items with earned status for a profile
+    - `getItemsByCategory`: Get items filtered by category with earned status
+    - `getItemById`: Get single item by ID
+    - `getEarnedItems`: Get all earned items for a profile with item details
+    - `getAvatarConfig`: Get current avatar configuration for a profile
+    - `getAvatarDisplay`: Get full avatar display data with equipped item details
+    - `getAvatarStats`: Get avatar collection statistics (earned count, by category, by rarity)
+  - Mutations:
+    - `awardItem`: Award single item to profile (validates item exists and not already earned)
+    - `awardItems`: Batch award multiple items
+    - `equipItem`: Equip an item (validates earned or default)
+    - `unequipItem`: Unequip an item from a category
+    - `checkAndAwardItems`: Check achievements/level and award eligible items
+    - `createItem`: Admin function to add new items
+    - `seedAvatarItems`: Seed table with 23 predefined avatar items
+- Predefined 23 avatar items linked to achievements and levels:
+  - Default items: Basic Frame, Default Background
+  - Milestone badges: First Catch, Starter Collector, Rising Trainer, Pokemon Trainer, Elite Collector, Pokemon Master, Legendary Collector
+  - Streak rewards: Flame Aura (3 days), Week Warrior (7 days), Monthly Master Crown (30 days)
+  - Type specialist: Fire Trainer Cap, Ocean Background, Electric Spark, Dragon Frame
+  - Pokemon fan: Pikachu Ears, Charizard Wings, Legendary Background
+  - Level rewards: Apprentice Frame (L5), Expert Cap (L10), Champion Arena (L15)
+- Created `src/lib/avatarItemsBackend.ts` with pure utility functions:
+  - Validation: `isValidCategory`, `isValidRarity`, `isValidUnlockRequirement`, `isValidItemId`, `validateAvatarItem`
+  - Item lookup: `filterItemsByCategory`, `filterItemsByRarity`, `filterActiveItems`, `findItemById`, `getDefaultItems`, `getItemsForAchievement`, `getItemsForLevel`
+  - Earned items: `hasEarnedItem`, `getEarnedItemDetails`, `getEarnedItemsInCategory`, `countEarnedItemsByRarity`, `getRecentlyEarnedItems`, `getOldestEarnedItem`
+  - Config management: `getEquippedItem`, `setEquippedItem`, `isItemEquipped`, `getEquippedItemIds`, `countEquippedItems`, `createEmptyConfig`
+  - Unlock checking: `canUnlockWithAchievement`, `canUnlockWithLevel`, `isDefaultItem`, `isUnlockable`, `getNewlyUnlockableItems`, `getItemsToAwardForAchievement`, `getItemsToAwardForLevel`
+  - Enrichment: `enrichItemsWithStatus`, `getCategorySummaries`
+  - Sorting: `sortByRarityDesc`, `sortByRarityAsc`, `sortBySortOrder`, `sortItemsForDisplay`
+  - Display helpers: `getCategoryDisplayName`, `getRarityDisplayName`, `getRarityColor`, `getCategoryIcon`, `formatEarnedDate`, `formatRelativeEarnedDate`, `getUnlockDescription`
+  - Statistics: `calculateAvatarStats`, `getCompletionByCategory`, `getRarestEarnedItem`
+- Added 110 tests in `src/lib/__tests__/avatarItemsBackend.test.ts` covering:
+  - Constants validation (categories, rarities, unlock requirements, sort orders)
+  - All validation functions
+  - Item lookup with filtering and finding
+  - Earned items logic with counting and recency
+  - Avatar config management (get/set/count equipped items)
+  - Unlock checking for achievements and levels
+  - Enrichment and category summaries
+  - All sorting functions (non-mutating verified)
+  - Display helpers including date formatting
+  - Statistics calculations
+  - Integration scenarios: New User Journey, Achievement Unlocks Item, Level Up Awards Items, Display Enrichment
+- All 1905 tests pass, linter clean
