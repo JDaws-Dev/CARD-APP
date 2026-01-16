@@ -1,0 +1,635 @@
+/**
+ * Tutorial Content - Educational guides for young collectors
+ * Provides kid-friendly interactive content for card organization, binder setup, and card care.
+ *
+ * This module contains structured tutorial data that can be used throughout the app
+ * for educational features like the "Learn to Collect" tutorials.
+ */
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export interface TutorialStep {
+  /** Unique step identifier */
+  id: string;
+  /** Step title */
+  title: string;
+  /** Detailed description of this step */
+  description: string;
+  /** Short summary for quick reference */
+  summary: string;
+  /** Kid-friendly tip for this step */
+  tip: string;
+  /** Image or illustration key (for future use) */
+  illustrationKey?: string;
+}
+
+export interface TutorialGuide {
+  /** Unique guide identifier */
+  id: string;
+  /** Guide title */
+  title: string;
+  /** Short description for cards/lists */
+  shortDescription: string;
+  /** Full description for the guide intro */
+  fullDescription: string;
+  /** The category of this guide */
+  category: 'organization' | 'storage' | 'care' | 'basics';
+  /** Difficulty level for kids */
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  /** Estimated time to complete (e.g., "5 min") */
+  estimatedTime: string;
+  /** The steps in this guide */
+  steps: TutorialStep[];
+  /** Tips for the entire guide */
+  tips: string[];
+  /** Fun facts related to this topic */
+  funFacts: string[];
+  /** Badge ID earned upon completion (if any) */
+  completionBadgeId?: string;
+  /** Gradient colors for styling */
+  gradientFrom: string;
+  gradientTo: string;
+  /** Icon color class */
+  iconColorClass: string;
+}
+
+export interface TutorialCategory {
+  id: string;
+  name: string;
+  description: string;
+  iconName: string;
+  guides: string[]; // guide IDs
+}
+
+// ============================================================================
+// TUTORIAL GUIDES CONTENT
+// ============================================================================
+
+/**
+ * Comprehensive tutorial guides for young collectors.
+ */
+export const TUTORIAL_GUIDES: readonly TutorialGuide[] = [
+  // ---- CARD ORGANIZATION ----
+  {
+    id: 'organizing-by-set',
+    title: 'Organizing by Set',
+    shortDescription: 'Learn to sort your cards by their Pokemon set',
+    fullDescription:
+      "Every Pokemon card belongs to a set - like Scarlet & Violet or Sword & Shield. Organizing by set makes it easy to track your collection and see which cards you're missing!",
+    category: 'organization',
+    difficulty: 'beginner',
+    estimatedTime: '5 min',
+    gradientFrom: 'from-blue-500',
+    gradientTo: 'to-cyan-500',
+    iconColorClass: 'text-blue-500',
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Find the Set Symbol',
+        description:
+          "Look at the bottom of your card. You'll see a small symbol - this is the set symbol! It tells you which set the card belongs to.",
+        summary: 'Locate the set symbol on your card',
+        tip: 'The set symbol is usually near the card number, like "151/165".',
+      },
+      {
+        id: 'step-2',
+        title: 'Group Cards Together',
+        description:
+          'Put all cards with the same set symbol in one pile. This creates groups of cards from the same set.',
+        summary: 'Create piles for each set',
+        tip: 'Use small containers or rubber bands to keep set piles separate.',
+      },
+      {
+        id: 'step-3',
+        title: 'Sort by Card Number',
+        description:
+          'Within each set, arrange cards from lowest to highest number. Card #1 goes first, then #2, #3, and so on!',
+        summary: 'Arrange cards numerically within each set',
+        tip: 'This makes it super easy to spot missing cards in your collection!',
+      },
+      {
+        id: 'step-4',
+        title: 'Store Your Sets',
+        description:
+          "Put each organized set into its own section of your binder, or in separate boxes. Label them so you know what's inside!",
+        summary: 'Store each set separately with labels',
+        tip: 'You can use colored tabs or dividers to mark where each set starts.',
+      },
+    ],
+    tips: [
+      "Start with your newest cards - they're usually easiest to identify!",
+      'Keep a "To Sort" box for new cards until you have time to organize them.',
+      'The set symbol on your card matches the logo on the booster pack it came from.',
+    ],
+    funFacts: [
+      'The first Pokemon TCG set, Base Set, was released in 1999!',
+      'Some special sets have over 200 cards to collect.',
+      'Secret Rare cards have numbers higher than the set size, like "205/198".',
+    ],
+    completionBadgeId: 'organization-basics',
+  },
+  {
+    id: 'organizing-by-type',
+    title: 'Organizing by Type',
+    shortDescription: 'Sort cards by Pokemon type like Fire, Water, or Electric',
+    fullDescription:
+      'Pokemon have different types, shown by their energy symbol. Organizing by type is a fun way to see all your Fire Pokemon together, or compare your Water collection!',
+    category: 'organization',
+    difficulty: 'beginner',
+    estimatedTime: '5 min',
+    gradientFrom: 'from-orange-500',
+    gradientTo: 'to-red-500',
+    iconColorClass: 'text-orange-500',
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Identify the Type',
+        description:
+          "Look at the top right of your Pokemon card. You'll see an energy symbol - this shows the Pokemon's type! Fire types have a flame, Water types have a droplet.",
+        summary: 'Find the energy type symbol',
+        tip: 'Trainer and Energy cards have their own categories!',
+      },
+      {
+        id: 'step-2',
+        title: 'Create Type Piles',
+        description:
+          'Make separate piles for each type: Fire, Water, Grass, Electric, Psychic, Fighting, Dark, Steel, Dragon, Fairy, Colorless, and Trainer cards.',
+        summary: 'Sort cards into type groups',
+        tip: 'Colorless Pokemon can be any type in battle!',
+      },
+      {
+        id: 'step-3',
+        title: 'Arrange Within Types',
+        description:
+          'Inside each type pile, you can sort alphabetically by Pokemon name, or by evolution family (like all Charmander, Charmeleon, Charizard together).',
+        summary: 'Organize cards within each type',
+        tip: 'Keeping evolution lines together makes building decks easier!',
+      },
+    ],
+    tips: [
+      'Dragon-type Pokemon often need two different energy types to attack.',
+      'Some Pokemon have changed types over the years as new sets come out.',
+      'Dual-type cards show the main type - sort by that one!',
+    ],
+    funFacts: [
+      'There are 11 different Pokemon types in the card game!',
+      'Fairy-type was added in 2013 and removed in 2021, making those cards special.',
+      'Charizard has been printed as both Fire-type and Dragon-type!',
+    ],
+  },
+
+  // ---- BINDER SETUP ----
+  {
+    id: 'binder-setup-basics',
+    title: 'Setting Up Your Binder',
+    shortDescription: 'Create the perfect home for your card collection',
+    fullDescription:
+      'A binder is one of the best ways to store and display your cards! Learn how to set up your binder so your cards stay safe and look amazing.',
+    category: 'storage',
+    difficulty: 'beginner',
+    estimatedTime: '10 min',
+    gradientFrom: 'from-purple-500',
+    gradientTo: 'to-violet-500',
+    iconColorClass: 'text-purple-500',
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Choose the Right Binder',
+        description:
+          'Get a binder with D-ring or O-ring design. D-rings are better because pages turn easier. Make sure it fits 9-pocket pages!',
+        summary: 'Select a quality card binder',
+        tip: 'Look for binders that say "Trading Card" or "Pokemon" on them.',
+      },
+      {
+        id: 'step-2',
+        title: 'Get Binder Pages',
+        description:
+          "Buy 9-pocket pages made for trading cards. Each page holds 18 cards (9 on each side). Make sure they're side-loading to keep cards secure!",
+        summary: 'Add 9-pocket trading card pages',
+        tip: 'Side-loading pages prevent cards from falling out when you flip pages.',
+      },
+      {
+        id: 'step-3',
+        title: 'Plan Your Layout',
+        description:
+          'Decide how you want to organize your binder. You could do one set per section, or group by favorite Pokemon, or by rarity!',
+        summary: 'Decide on your organization system',
+        tip: "Leave some empty pages at the end for new cards you'll get!",
+      },
+      {
+        id: 'step-4',
+        title: 'Add Dividers',
+        description:
+          'Use tab dividers or cardstock to separate sections in your binder. Label each section so you can find cards quickly!',
+        summary: 'Create labeled sections',
+        tip: 'You can make custom dividers with your favorite Pokemon on them!',
+      },
+      {
+        id: 'step-5',
+        title: 'Insert Your Cards',
+        description:
+          'Gently slide each card into a pocket. The card should fit snugly but not be bent. Put rare cards in penny sleeves first for extra protection!',
+        summary: 'Carefully place cards in pockets',
+        tip: 'Wash your hands before handling cards to keep them clean!',
+      },
+    ],
+    tips: [
+      "Don't overfill your binder - the rings should close easily.",
+      'Store your binder standing up, not flat, to prevent page warping.',
+      'Keep your binder away from direct sunlight to protect card colors.',
+    ],
+    funFacts: [
+      'Professional collectors often have dozens of binders!',
+      "Some rare cards are worth more than the binder they're stored in.",
+      'The first Pokemon binders came out the same year as the original cards in 1999.',
+    ],
+    completionBadgeId: 'binder-master',
+  },
+
+  // ---- CARD CARE ----
+  {
+    id: 'card-handling',
+    title: 'Handling Cards Safely',
+    shortDescription: 'Learn how to touch and move cards without damage',
+    fullDescription:
+      'Your Pokemon cards can last forever if you handle them carefully! Learn the right way to pick up, hold, and move your cards.',
+    category: 'care',
+    difficulty: 'beginner',
+    estimatedTime: '3 min',
+    gradientFrom: 'from-emerald-500',
+    gradientTo: 'to-green-500',
+    iconColorClass: 'text-emerald-500',
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Clean Hands First',
+        description:
+          'Always wash and dry your hands before touching your cards. Oils from your skin can damage cards over time and make them look dirty.',
+        summary: 'Wash and dry your hands',
+        tip: 'Avoid touching the card face - hold cards by the edges instead!',
+      },
+      {
+        id: 'step-2',
+        title: 'Hold by the Edges',
+        description:
+          'Pick up cards by their edges, not the middle. This keeps fingerprints off the beautiful artwork and prevents bending.',
+        summary: 'Grip cards on the sides',
+        tip: "Imagine the card is a delicate cookie you don't want to break!",
+      },
+      {
+        id: 'step-3',
+        title: 'Use a Clean Surface',
+        description:
+          'When looking at or sorting cards, use a clean, flat surface. A playmat or clean table works great!',
+        summary: 'Work on clean, flat surfaces',
+        tip: 'A felt or cloth playmat is perfect - it protects cards and looks cool!',
+      },
+      {
+        id: 'step-4',
+        title: 'No Food or Drinks',
+        description:
+          'Keep snacks and drinks away from your cards. One spill can ruin your whole collection! Have a snack break, then come back to your cards.',
+        summary: 'Keep food and drinks away',
+        tip: "Chocolate and sticky fingers are a card's worst enemy!",
+      },
+    ],
+    tips: [
+      'If your hands are sweaty, wait until they dry before handling cards.',
+      "Never bend or flex a card to see if it's real - this can damage it!",
+      'When showing friends your cards, let them look while you hold the card.',
+    ],
+    funFacts: [
+      'A mint condition Base Set Charizard sold for over $400,000!',
+      'Cards are graded on condition from 1-10, with 10 being perfect.',
+      "Even small scratches can lower a card's grade and value.",
+    ],
+    completionBadgeId: 'card-care-basics',
+  },
+  {
+    id: 'card-storage',
+    title: 'Storing Cards Properly',
+    shortDescription: 'Keep your cards safe when not in use',
+    fullDescription:
+      "Even when you're not looking at your cards, they need protection! Learn about sleeves, toploaders, and storage boxes to keep your collection safe.",
+    category: 'care',
+    difficulty: 'intermediate',
+    estimatedTime: '7 min',
+    gradientFrom: 'from-amber-500',
+    gradientTo: 'to-yellow-500',
+    iconColorClass: 'text-amber-500',
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Penny Sleeves',
+        description:
+          "These thin plastic sleeves are your first line of defense. They're cheap and protect cards from scratches and dust. Put valuable cards in penny sleeves!",
+        summary: 'Use penny sleeves for basic protection',
+        tip: "Penny sleeves cost about 1 cent each - that's why they're called penny sleeves!",
+      },
+      {
+        id: 'step-2',
+        title: 'Card Sleeves',
+        description:
+          'Thicker sleeves (like Dragon Shield or Ultra Pro) are perfect for cards you use in decks. They shuffle better and provide more protection.',
+        summary: 'Use deck sleeves for cards you play with',
+        tip: 'Match your sleeve color to your favorite Pokemon type!',
+      },
+      {
+        id: 'step-3',
+        title: 'Toploaders',
+        description:
+          'Hard plastic toploaders are like armor for your best cards! Put the card in a penny sleeve first, then into the toploader for maximum protection.',
+        summary: 'Double-protect valuable cards with toploaders',
+        tip: 'Toploaders are perfect for ultra rares and secret rares.',
+      },
+      {
+        id: 'step-4',
+        title: 'Storage Boxes',
+        description:
+          'Keep bulk cards (commons and uncommons) in cardboard storage boxes. You can fit hundreds of cards in one box!',
+        summary: 'Use storage boxes for bulk cards',
+        tip: 'Add dividers to your storage box to separate different sets.',
+      },
+      {
+        id: 'step-5',
+        title: 'Climate Control',
+        description:
+          'Store cards in a cool, dry place away from sunlight. Heat and humidity can warp cards, and sun can fade the colors!',
+        summary: 'Keep cards in a cool, dry location',
+        tip: 'Your closet is usually a great place - dark and temperature-controlled!',
+      },
+    ],
+    tips: [
+      'Never store cards in an attic or garage - temperature changes damage them.',
+      'If you notice cards getting sticky, the humidity might be too high.',
+      'For super valuable cards, consider getting them professionally graded.',
+    ],
+    funFacts: [
+      'PSA, BGS, and CGC are the most popular card grading companies.',
+      'A PSA 10 (gem mint) card can be worth 10x more than an ungraded one!',
+      'Some collectors use temperature-controlled safes for their rarest cards.',
+    ],
+  },
+  {
+    id: 'card-condition',
+    title: 'Understanding Card Condition',
+    shortDescription: 'Learn what makes a card Near Mint vs Played',
+    fullDescription:
+      'Card condition matters! Learn the differences between Near Mint, Lightly Played, and other grades so you know what your cards are worth.',
+    category: 'care',
+    difficulty: 'intermediate',
+    estimatedTime: '5 min',
+    gradientFrom: 'from-rose-500',
+    gradientTo: 'to-pink-500',
+    iconColorClass: 'text-rose-500',
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Near Mint (NM)',
+        description:
+          'A Near Mint card looks almost perfect! It might have very tiny imperfections only visible up close. This is the best condition for played cards.',
+        summary: 'Nearly perfect condition',
+        tip: 'Cards straight from a pack are usually Near Mint.',
+      },
+      {
+        id: 'step-2',
+        title: 'Lightly Played (LP)',
+        description:
+          'Lightly Played cards have minor wear - small scratches, light whitening on edges, or slight corner bends. Still very collectible!',
+        summary: 'Minor visible wear',
+        tip: 'Most cards from used decks become Lightly Played over time.',
+      },
+      {
+        id: 'step-3',
+        title: 'Moderately Played (MP)',
+        description:
+          'Moderately Played cards have noticeable wear - creases, edge wear, or scratches you can see easily. Good for playing, less for collecting.',
+        summary: 'Clear signs of use',
+        tip: 'These cards are often cheaper to buy if you just want to play!',
+      },
+      {
+        id: 'step-4',
+        title: 'Heavily Played (HP)',
+        description:
+          'Heavily Played cards have significant damage - large creases, missing pieces of edge, water damage, or heavy scratches. Still legal to play!',
+        summary: 'Major damage visible',
+        tip: 'HP cards can still be fun to have in a casual collection.',
+      },
+    ],
+    tips: [
+      'Check card edges for "whitening" - this is a common sign of wear.',
+      'Hold cards at an angle under light to spot scratches on the surface.',
+      'Centering matters too - is the border even on all sides?',
+    ],
+    funFacts: [
+      'Professional graders look at centering, corners, edges, and surface.',
+      "A tiny print line from the factory can lower a card's grade.",
+      'Some "damaged" cards become famous - like error cards with misprints!',
+    ],
+  },
+
+  // ---- BASICS ----
+  {
+    id: 'first-collection',
+    title: 'Starting Your Collection',
+    shortDescription: 'Tips for beginning collectors',
+    fullDescription:
+      "Just starting out? Awesome! Here's everything you need to know to begin your Pokemon card collecting journey.",
+    category: 'basics',
+    difficulty: 'beginner',
+    estimatedTime: '5 min',
+    gradientFrom: 'from-indigo-500',
+    gradientTo: 'to-purple-500',
+    iconColorClass: 'text-indigo-500',
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Pick Your Focus',
+        description:
+          'There are thousands of Pokemon cards! Start by collecting what YOU love - your favorite Pokemon, a specific set, or the coolest artwork.',
+        summary: 'Choose what you want to collect',
+        tip: "You don't have to collect everything - focus on what makes you happy!",
+      },
+      {
+        id: 'step-2',
+        title: 'Get Basic Supplies',
+        description:
+          "You'll need: a binder with 9-pocket pages, some penny sleeves for rare cards, and a storage box for extras. That's it to start!",
+        summary: 'Gather essential supplies',
+        tip: 'You can find all these supplies at most stores that sell cards.',
+      },
+      {
+        id: 'step-3',
+        title: 'Open Packs Carefully',
+        description:
+          'When opening new packs, be gentle! Tear along the top edge, not through the middle. Take cards out slowly to avoid bending.',
+        summary: 'Open packs without damaging cards',
+        tip: 'Save your pack wrappers if they have cool art!',
+      },
+      {
+        id: 'step-4',
+        title: 'Track Your Cards',
+        description:
+          'Use an app like CardDex to track what you have! It helps you see your progress and know which cards you still need.',
+        summary: 'Use an app to track your collection',
+        tip: 'Marking cards as "owned" right away prevents buying duplicates!',
+      },
+    ],
+    tips: [
+      "Don't spend all your money at once - collecting is a marathon, not a sprint!",
+      'Trading with friends is a great way to grow your collection.',
+      'Every collector started with just one card - your collection will grow!',
+    ],
+    funFacts: [
+      'Over 30 billion Pokemon cards have been produced worldwide!',
+      'The most expensive Pokemon card ever sold went for over $5 million.',
+      'New Pokemon sets come out about 4 times per year.',
+    ],
+    completionBadgeId: 'first-steps',
+  },
+] as const;
+
+// ============================================================================
+// TUTORIAL CATEGORIES
+// ============================================================================
+
+export const TUTORIAL_CATEGORIES: readonly TutorialCategory[] = [
+  {
+    id: 'basics',
+    name: 'Getting Started',
+    description: 'Essential knowledge for new collectors',
+    iconName: 'RocketLaunchIcon',
+    guides: ['first-collection'],
+  },
+  {
+    id: 'organization',
+    name: 'Card Organization',
+    description: 'Learn different ways to sort and organize your cards',
+    iconName: 'RectangleStackIcon',
+    guides: ['organizing-by-set', 'organizing-by-type'],
+  },
+  {
+    id: 'storage',
+    name: 'Binder & Storage',
+    description: 'Set up the perfect home for your collection',
+    iconName: 'ArchiveBoxIcon',
+    guides: ['binder-setup-basics'],
+  },
+  {
+    id: 'care',
+    name: 'Card Care',
+    description: 'Keep your cards safe and in great condition',
+    iconName: 'ShieldCheckIcon',
+    guides: ['card-handling', 'card-storage', 'card-condition'],
+  },
+] as const;
+
+// ============================================================================
+// LOOKUP FUNCTIONS
+// ============================================================================
+
+/**
+ * Get a tutorial guide by ID.
+ */
+export function getTutorialGuide(guideId: string): TutorialGuide | null {
+  return TUTORIAL_GUIDES.find((g) => g.id === guideId) ?? null;
+}
+
+/**
+ * Get all guides in a category.
+ */
+export function getGuidesByCategory(categoryId: string): TutorialGuide[] {
+  const category = TUTORIAL_CATEGORIES.find((c) => c.id === categoryId);
+  if (!category) return [];
+  return category.guides
+    .map((id) => getTutorialGuide(id))
+    .filter((g): g is TutorialGuide => g !== null);
+}
+
+/**
+ * Get a tutorial category by ID.
+ */
+export function getTutorialCategory(categoryId: string): TutorialCategory | null {
+  return TUTORIAL_CATEGORIES.find((c) => c.id === categoryId) ?? null;
+}
+
+/**
+ * Get all tutorial guides.
+ */
+export function getAllTutorialGuides(): readonly TutorialGuide[] {
+  return TUTORIAL_GUIDES;
+}
+
+/**
+ * Get all tutorial categories.
+ */
+export function getAllTutorialCategories(): readonly TutorialCategory[] {
+  return TUTORIAL_CATEGORIES;
+}
+
+/**
+ * Get guides by difficulty.
+ */
+export function getGuidesByDifficulty(difficulty: TutorialGuide['difficulty']): TutorialGuide[] {
+  return TUTORIAL_GUIDES.filter((g) => g.difficulty === difficulty);
+}
+
+/**
+ * Get the category for a guide.
+ */
+export function getCategoryForGuide(guideId: string): TutorialCategory | null {
+  return TUTORIAL_CATEGORIES.find((c) => c.guides.includes(guideId)) ?? null;
+}
+
+// ============================================================================
+// DISPLAY HELPERS
+// ============================================================================
+
+/**
+ * Get a difficulty label with styling info.
+ */
+export function getDifficultyInfo(difficulty: TutorialGuide['difficulty']): {
+  label: string;
+  colorClass: string;
+  bgClass: string;
+} {
+  switch (difficulty) {
+    case 'beginner':
+      return {
+        label: 'Beginner',
+        colorClass: 'text-emerald-600',
+        bgClass: 'bg-emerald-100',
+      };
+    case 'intermediate':
+      return {
+        label: 'Intermediate',
+        colorClass: 'text-amber-600',
+        bgClass: 'bg-amber-100',
+      };
+    case 'advanced':
+      return {
+        label: 'Advanced',
+        colorClass: 'text-rose-600',
+        bgClass: 'bg-rose-100',
+      };
+  }
+}
+
+/**
+ * Get total estimated time for a list of guides.
+ */
+export function getTotalEstimatedTime(guideIds: string[]): string {
+  let totalMinutes = 0;
+  for (const id of guideIds) {
+    const guide = getTutorialGuide(id);
+    if (guide) {
+      const minutes = parseInt(guide.estimatedTime, 10);
+      if (!isNaN(minutes)) {
+        totalMinutes += minutes;
+      }
+    }
+  }
+  return `${totalMinutes} min`;
+}
