@@ -8,8 +8,14 @@ import {
   StreakMilestoneRewards,
   StreakMilestoneRewardsSkeleton,
 } from '@/components/gamification/StreakMilestoneRewards';
+import { GraceDayStatus, GraceDayStatusSkeleton } from '@/components/gamification/GraceDayStatus';
 import { FireIcon, SparklesIcon, HomeIcon } from '@heroicons/react/24/solid';
-import { ArrowLeftIcon, CalendarDaysIcon, BoltIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowLeftIcon,
+  CalendarDaysIcon,
+  BoltIcon,
+  ShieldCheckIcon,
+} from '@heroicons/react/24/outline';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function StreakPage() {
@@ -33,6 +39,9 @@ export default function StreakPage() {
           </div>
 
           <StreakCalendarSkeleton />
+          <div className="mt-6">
+            <GraceDayStatusSkeleton />
+          </div>
           <div className="mt-6">
             <StreakMilestoneRewardsSkeleton />
           </div>
@@ -113,8 +122,9 @@ export default function StreakPage() {
             <div>
               <h3 className="font-semibold text-gray-800">Build Your Streak!</h3>
               <p className="text-sm text-gray-600">
-                Add at least one card every day to keep your streak going. Grace days (marked with a
-                shield) show when you missed a day but your streak was protected.
+                Add at least one card every day to keep your streak going. You get 1 free
+                &ldquo;grace day&rdquo; per week - if you miss a day, your streak is protected
+                automatically!
               </p>
             </div>
           </div>
@@ -122,6 +132,11 @@ export default function StreakPage() {
 
         {/* Streak Calendar */}
         <StreakCalendar days={30} showStats={true} showLegend={true} />
+
+        {/* Grace Day Protection Status */}
+        <div className="mt-6">
+          <GraceDayStatus showToggle={true} />
+        </div>
 
         {/* Streak Milestone Rewards */}
         <div className="mt-6">
@@ -148,6 +163,12 @@ export default function StreakPage() {
             <li className="flex items-start gap-2">
               <div className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-yellow-400" />
               <span>Check your calendar daily to see your progress and stay motivated.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-teal-400" />
+              <span>
+                Grace day protection gives you 1 free missed day per week - resets every Sunday!
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <div className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-400" />
