@@ -44,9 +44,9 @@
 - [x] Create wishlist UI - mark cards as wanted with heart icon
 - [x] Build priority starring UI for wishlist items (max 5 stars)
 - [x] Create public wishlist view page (read-only, shareable)
-- [ ] **My Wishlist page** (`/my-wishlist`) - Dedicated page to view all wishlisted cards, generate share link, manage priorities
+- [x] **My Wishlist page** (`/my-wishlist`) - Dedicated page to view all wishlisted cards, generate share link, manage priorities
 - [ ] **Export/print wishlist PDF** - Button to export wishlist as printable PDF (for sharing with family)
-- [ ] **Copy wishlist share link button** - Generate and copy shareable link from My Wishlist page
+- [x] **Copy wishlist share link button** - Generate and copy shareable link from My Wishlist page
 - [x] Build duplicate finder UI comparing sibling collections side-by-side
 - [x] Create export/print checklist PDF button and preview
 - [x] Add pricing toggle UI for parent dashboard (show/hide TCGPlayer prices)
@@ -88,12 +88,24 @@
 - [ ] **Remove app nav links from landing page** - Currently shows Browse Sets, My Collection etc. to visitors who can't use them
 - [ ] **Parent Dashboard access** - Only show Parent Dashboard link for parent accounts, not kid profiles
 
+## NEW - Multi-TCG Game Selector
+
+- [ ] **Onboarding game selector** - "What do you collect?" screen with TCG logos (Pokémon, Yu-Gi-Oh!, One Piece, Dragon Ball, Lorcana, Digimon, MTG)
+- [ ] **Settings game toggle** - Allow changing selected games anytime in profile settings
+- [ ] **Sets page game filter** - Tabs or filter: [All] [Pokémon] [Yu-Gi-Oh!] [One Piece]... Only show selected games
+- [ ] **Per-game color theming** - Subtle color theme changes when viewing each game's content
+- [ ] **Game-specific achievements** - "Pokémon Master" vs "Duelist Champion" vs cross-game "500 Total Cards"
+- [ ] **Game logos/icons** - Display appropriate TCG branding throughout app
+
 ## NEW - Polish & UX
 
 - [ ] **Dark mode toggle** - System preference detection + manual toggle (kids love it, parents appreciate for bedtime)
 - [ ] **Offline viewing indicator** - Show when viewing cached data, sync status indicator
-- [ ] **Update landing page with new tagline** - "The collection app built for kids (and the parents who love them)"
+- [ ] **Update landing page with new tagline** - "All your cards. One app." (multi-TCG focus)
 - [ ] **Add trust signals to landing page** - COPPA compliant badge, "No ads ever" shield, "Cloud backup" icon
+- [ ] **Set completion confetti** - Big celebration animation when hitting 100% on a set
+- [ ] **Optimize card grid scrolling performance** - Virtual scrolling for large collections
+- [ ] **Create onboarding flow** - New user walkthrough: pick games, create profile, add first cards
 
 ---
 
@@ -125,3 +137,4 @@
 - **2026-01-16**: Created export/print checklist PDF button and preview - Built ExportChecklistButton component (src/components/collection/ExportChecklist.tsx) with modal preview and print functionality. Features: Export Checklist button on collection page header using DocumentArrowDownIcon; modal dialog with print preview showing collection grouped by set; toggle options for showing quantities and checkboxes; proper print CSS @media rules in globals.css for clean PDF output with page breaks and margins; fetches card data when modal opens for standalone operation; loading states with skeleton screens; error handling with retry functionality; accessible with ARIA labels, role="dialog", and Escape key to close; Print/Save PDF button uses browser's native print dialog for PDF generation. Uses Heroicons throughout (DocumentArrowDownIcon, PrinterIcon, XMarkIcon, CheckIcon, Square3Stack3DIcon, ArrowPathIcon, ExclamationTriangleIcon, DocumentTextIcon). Commit: 12f2f25
 - **2026-01-16**: Added random card button feature - Created RandomCardButton component (src/components/collection/RandomCardButton.tsx) that shows a random card from the user's collection. Features: purple/pink gradient button with SparklesIcon in CollectionView; modal with shuffle animation using animated card stack with spinning cards; card reveal with glow effect and sparkle decorations around the card; displays card name, set, number, and rarity badge; "Shuffle Again" button with ArrowPathIcon for endless browsing fun. Full accessibility support with ARIA labels, keyboard navigation (Escape to close), and focus-visible states. Uses Heroicons (SparklesIcon, ArrowPathIcon, XMarkIcon, Square3Stack3DIcon). Integrated into CollectionView component above the value banner. Commit: 201a243
 - **2026-01-16**: Added responsive design for mobile-first experience - Comprehensive responsive improvements across 9 UI files. Header: reduced logo/text sizing on mobile (h-8/text-lg → h-10/text-xl at sm:). Collection page: 3-column stats grid on all screens with responsive padding (p-3 → p-6 at sm:), smaller text sizes (text-2xl → text-4xl at sm:). CardGrid: stats bar uses mobile grid layout that converts to flex at sm:, hidden dividers on mobile, responsive text sizing. FilterPanel: reduced padding/spacing on mobile. Browse page: responsive headings and layout gaps. SearchResults: smaller gaps (gap-2 → gap-4 at sm:) in card grid. SetsList: responsive card padding, logo sizing, and grid gaps. ParentDashboard: mobile-optimized family overview with 3-col grid, responsive profile cards with smaller avatars/text/padding on mobile, pricing toggle stacks vertically on mobile. Home page: responsive hero padding, smaller headings (text-3xl → text-5xl → text-6xl → text-7xl), smaller step circles (h-24 → h-32), and compact feature cards. All changes follow mobile-first pattern using sm: breakpoint. Commit: af7937e
+- **2026-01-16**: Added My Wishlist page - Created dedicated /my-wishlist page (src/app/my-wishlist/page.tsx) for managing wishlisted cards. Features: view all wishlisted cards with images fetched from Pokemon TCG API; manage priority (most wanted) items with star toggle buttons; remove cards from wishlist with trash button; generate shareable link (30-day expiry) with copy button and visual feedback; stats showing total wanted cards, priority count (with max limit), and remaining stars. Includes rose/pink gradient theme, skeleton loading states, error handling with error.tsx route file. Added My Wishlist link to Header navigation and collection page header. Also completed "Copy wishlist share link button" task as part of this implementation since share link generation with copy functionality is built into the page. Uses Heroicons (HeartIcon, StarIcon, LinkIcon, CheckIcon, TrashIcon, GiftIcon, ArrowLeftIcon, ShareIcon, SparklesIcon). Commit: c2b90e2
