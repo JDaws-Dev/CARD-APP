@@ -17,11 +17,11 @@
 | **Virtual Experience Features**      | 6        | **0**     |
 | **Collection Timeline & Story**      | 5        | **0**     |
 | **Family & Social Features**         | 5        | **0**     |
-| **Financial Literacy**               | 1        | **3**     |
+| **Financial Literacy**               | 2        | **2**     |
 | **Educational Mini-Games**           | 1        | **4**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
 | **Engagement & Retention**           | 4        | **0**     |
-| **TOTAL**                            | **99**   | **7**     |
+| **TOTAL**                            | **100**  | **6**     |
 
 ### Priority Order for Remaining Tasks
 
@@ -184,7 +184,7 @@
 
 - [x] Savings goals calculator - "Want this $50 card? Here's how long saving $5/week takes" with visual piggy bank progress
 - [x] Wishlist total tracker - Show combined estimated value of all wishlisted items
-- [ ] Budget-friendly alternatives - Suggest similar but cheaper cards when viewing expensive wishlist items
+- [x] Budget-friendly alternatives - Suggest similar but cheaper cards when viewing expensive wishlist items
 - [ ] "Is it worth it?" helper - Educational comparison showing what else you could buy for the same price
 
 ### Educational Mini-Games
@@ -215,6 +215,7 @@
 
 ## Progress
 
+- **2026-01-16**: Completed Budget-friendly alternatives - Created BudgetAlternatives component (src/components/financial/BudgetAlternatives.tsx) that suggests similar but cheaper cards when viewing expensive wishlist items. Features: searches for cards with same base Pokemon name but lower price, shows savings amount and percentage, allows adding alternatives directly to wishlist, expandable panel with lightbulb icon, BudgetAlternativesBadge compact trigger shown on wishlist cards >= $5. Integrated into My Wishlist page (/my-wishlist) with modal display and wishlist state sync. Uses Heroicons (LightBulbIcon, ArrowTrendingDownIcon, SparklesIcon, XMarkIcon, CurrencyDollarIcon, ChevronRightIcon, HeartIcon). Commit: bda63d7
 - **2026-01-16**: Completed Wishlist total tracker - Added "Est. Total Value" stat to My Wishlist page showing combined estimated market value of all wishlisted cards. Uses TCGPlayer prices (normal, holofoil, or reverseHolofoil market values). Features: loading skeleton during price fetch, formatPrice helper for compact display ($1.2k format for large values), CurrencyDollarIcon in emerald theme. Updated stats section layout to accommodate 4 stats with responsive flex-wrap. Commit: d95adcd
 - **2026-01-16**: Completed Savings Goal Calculator - Created SavingsGoalCalculator component (src/components/financial/SavingsGoalCalculator.tsx) for kid-friendly financial literacy. Features: visual piggy bank SVG that fills based on progress with color-coded fill levels, weekly savings amount selector ($1-$20/week), timeline calculation showing weeks and months to reach goal, target date display, progress milestones visualization (25%, 50%, 75%, 100%), motivational tips section, SavingsGoalButton compact modal trigger for card details. Uses Heroicons (CurrencyDollarIcon, SparklesIcon, CalendarDaysIcon, ChevronUpIcon, ChevronDownIcon, CheckCircleIcon, ClockIcon, XMarkIcon). Commit: 626632d
 - **2026-01-16**: Completed Grade Like a Pro mini-game - Created GradeLikeAProGame component (src/components/games/GradeLikeAProGame.tsx) for educational card condition grading practice. Features: intro screen explaining XP rewards (25 XP per correct, 50 bonus for perfect), 5-round gameplay showing Pokemon card images and asking user to guess condition (NM/LP/MP/HP), hint system with toggle button, instant feedback showing correct answer with explanation, progress bar and score tracking, results screen with performance summary and XP earned, play again functionality. Added prominent mini-game banner to Learn page with GradeLikeAProButton launcher. Uses Heroicons (AcademicCapIcon, StarIcon, BoltIcon, LightBulbIcon, CheckIcon, XMarkIcon, TrophyIcon, ChevronRightIcon, ArrowPathIcon, PlayIcon, SparklesIcon). Commit: 56e6704
