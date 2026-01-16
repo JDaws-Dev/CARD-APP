@@ -3,7 +3,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { SearchResults } from '@/components/search/SearchResults';
+import { InlineError } from '@/components/ui/ErrorBoundary';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
@@ -131,8 +133,14 @@ export default function SearchPage() {
 
         {/* Error State */}
         {error && (
-          <div className="mb-8 rounded-xl bg-red-50 p-4 text-center">
-            <p className="text-red-600">{error}</p>
+          <div className="mb-8">
+            <InlineError
+              message={error}
+              onRetry={() => {
+                setError(null);
+                setDebouncedQuery(query);
+              }}
+            />
           </div>
         )}
 
@@ -141,7 +149,9 @@ export default function SearchPage() {
           <SearchResults cards={results} isLoading={isLoading} />
         ) : (
           <div className="rounded-xl bg-white p-12 text-center shadow-sm">
-            <div className="mb-4 text-6xl">🔍</div>
+            <div className="mb-4 flex justify-center">
+              <MagnifyingGlassIcon className="h-16 w-16 text-kid-primary" />
+            </div>
             <h2 className="mb-2 text-xl font-bold text-gray-800">Search for Pokemon Cards</h2>
             <p className="mb-4 text-gray-500">
               Enter a Pokemon name to find cards across all sets.

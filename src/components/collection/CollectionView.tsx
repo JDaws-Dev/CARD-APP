@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import { CollectionGroupSkeleton } from '@/components/ui/Skeleton';
+import { ErrorFallback } from '@/components/ui/ErrorBoundary';
 
 interface CollectionCard {
   _id: string;
@@ -31,46 +31,52 @@ export function CollectionView({ collection }: CollectionViewProps) {
   const [cardData, setCardData] = useState<Map<string, PokemonCard>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Fetch card data from Pokemon TCG API
-  useEffect(() => {
-    async function fetchCards() {
-      if (collection.length === 0) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        const cardIds = collection.map((c) => c.cardId);
-
-        // Fetch cards from API
-        const response = await fetch('/api/cards', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cardIds }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch card data');
-        }
-
-        const cards: PokemonCard[] = await response.json();
-
-        // Build a map for quick lookup
-        const cardMap = new Map<string, PokemonCard>();
-        cards.forEach((card) => cardMap.set(card.id, card));
-        setCardData(cardMap);
-      } catch (err) {
-        console.error('Error fetching cards:', err);
-        setError('Failed to load card images. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
+  const fetchCards = useCallback(async () => {
+    if (collection.length === 0) {
+      setIsLoading(false);
+      return;
     }
 
-    fetchCards();
+    try {
+      setIsLoading(true);
+      setError(null);
+      const cardIds = collection.map((c) => c.cardId);
+
+      // Fetch cards from API
+      const response = await fetch('/api/cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch card data');
+      }
+
+      const cards: PokemonCard[] = await response.json();
+
+      // Build a map for quick lookup
+      const cardMap = new Map<string, PokemonCard>();
+      cards.forEach((card) => cardMap.set(card.id, card));
+      setCardData(cardMap);
+    } catch (err) {
+      console.error('Error fetching cards:', err);
+      setError("We couldn't load your card images. This might be a network issue.");
+    } finally {
+      setIsLoading(false);
+    }
   }, [collection]);
+
+  useEffect(() => {
+    fetchCards();
+  }, [fetchCards, retryCount]);
+
+  const handleRetry = useCallback(() => {
+    setRetryCount((prev) => prev + 1);
+  }, []);
 
   // Group cards by set
   const setGroups: SetGroup[] = [];
@@ -124,17 +130,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
   }
 
   if (error) {
-    return (
-      <div className="rounded-xl bg-red-50 p-6 text-center">
-        <p className="text-red-600">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 rounded-lg bg-red-100 px-4 py-2 text-red-700 hover:bg-red-200"
-        >
-          Retry
-        </button>
-      </div>
-    );
+    return <ErrorFallback title="Couldn't load cards" message={error} onReset={handleRetry} />;
   }
 
   return (

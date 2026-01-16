@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { FilterPanel, FilterChips } from '@/components/filter';
 import { SearchResults } from '@/components/search/SearchResults';
 import { FilterPanelSkeleton } from '@/components/ui/Skeleton';
+import { InlineError } from '@/components/ui/ErrorBoundary';
 import { FunnelIcon } from '@heroicons/react/24/outline';
 import type { PokemonCard, PokemonSet } from '@/lib/pokemon-tcg';
 
@@ -162,8 +163,14 @@ export default function BrowsePage() {
 
             {/* Error State */}
             {error && (
-              <div className="mb-4 rounded-xl bg-red-50 p-4 text-center">
-                <p className="text-red-600">{error}</p>
+              <div className="mb-4">
+                <InlineError
+                  message={error}
+                  onRetry={() => {
+                    setError(null);
+                    setDebouncedName(nameFilter);
+                  }}
+                />
               </div>
             )}
 
