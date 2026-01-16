@@ -6,6 +6,74 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 250, 250, 255;
   --background-end-rgb: 240, 240, 250;
+
+  /* ============================================================================
+   * Per-Game Color Theming - CSS Variables
+   * These variables can be overridden by the GameThemeProvider to theme the UI
+   * based on the user's primary/active TCG game.
+   * ============================================================================ */
+
+  /* Default theme (Pokémon) */
+  --game-primary: #eab308;
+  --game-primary-rgb: 234, 179, 8;
+  --game-secondary: #ef4444;
+  --game-secondary-rgb: 239, 68, 68;
+  --game-accent: #fef3c7;
+  --game-accent-rgb: 254, 243, 199;
+  --game-text: #92400e;
+  --game-text-rgb: 146, 64, 14;
+  --game-border: #fcd34d;
+  --game-border-rgb: 252, 211, 77;
+
+  /* Static game colors (for multi-game displays) */
+  /* Pokémon */
+  --game-pokemon-primary: #eab308;
+  --game-pokemon-secondary: #ef4444;
+  --game-pokemon-accent: #fef3c7;
+  --game-pokemon-text: #92400e;
+  --game-pokemon-border: #fcd34d;
+
+  /* Yu-Gi-Oh! */
+  --game-yugioh-primary: #8b5cf6;
+  --game-yugioh-secondary: #4f46e5;
+  --game-yugioh-accent: #ede9fe;
+  --game-yugioh-text: #5b21b6;
+  --game-yugioh-border: #a78bfa;
+
+  /* One Piece */
+  --game-onepiece-primary: #ef4444;
+  --game-onepiece-secondary: #f97316;
+  --game-onepiece-accent: #fef2f2;
+  --game-onepiece-text: #991b1b;
+  --game-onepiece-border: #fca5a5;
+
+  /* Dragon Ball */
+  --game-dragonball-primary: #f97316;
+  --game-dragonball-secondary: #eab308;
+  --game-dragonball-accent: #fff7ed;
+  --game-dragonball-text: #9a3412;
+  --game-dragonball-border: #fdba74;
+
+  /* Lorcana */
+  --game-lorcana-primary: #3b82f6;
+  --game-lorcana-secondary: #06b6d4;
+  --game-lorcana-accent: #eff6ff;
+  --game-lorcana-text: #1e40af;
+  --game-lorcana-border: #93c5fd;
+
+  /* Digimon */
+  --game-digimon-primary: #06b6d4;
+  --game-digimon-secondary: #2563eb;
+  --game-digimon-accent: #ecfeff;
+  --game-digimon-text: #155e75;
+  --game-digimon-border: #67e8f9;
+
+  /* Magic: The Gathering */
+  --game-mtg-primary: #d97706;
+  --game-mtg-secondary: #ca8a04;
+  --game-mtg-accent: #fffbeb;
+  --game-mtg-text: #78350f;
+  --game-mtg-border: #fbbf24;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -311,6 +379,75 @@ body {
   /* Link focus styles */
   .link-focus {
     @apply focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1;
+  }
+}
+
+/* Per-Game Theme Utility Classes */
+@layer utilities {
+  /* Game-themed background colors */
+  .bg-game-primary {
+    background-color: var(--game-primary);
+  }
+  .bg-game-secondary {
+    background-color: var(--game-secondary);
+  }
+  .bg-game-accent {
+    background-color: var(--game-accent);
+  }
+
+  /* Game-themed text colors */
+  .text-game-primary {
+    color: var(--game-primary);
+  }
+  .text-game-secondary {
+    color: var(--game-secondary);
+  }
+  .text-game-text {
+    color: var(--game-text);
+  }
+
+  /* Game-themed border colors */
+  .border-game-primary {
+    border-color: var(--game-primary);
+  }
+  .border-game-secondary {
+    border-color: var(--game-secondary);
+  }
+  .border-game-border {
+    border-color: var(--game-border);
+  }
+
+  /* Game-themed ring colors */
+  .ring-game-primary {
+    --tw-ring-color: var(--game-primary);
+  }
+  .ring-game-secondary {
+    --tw-ring-color: var(--game-secondary);
+  }
+
+  /* Game-themed gradients */
+  .bg-game-gradient {
+    background: linear-gradient(to right, var(--game-primary), var(--game-secondary));
+  }
+  .bg-game-gradient-subtle {
+    background: linear-gradient(
+      to right,
+      rgba(var(--game-primary-rgb), 0.1),
+      rgba(var(--game-secondary-rgb), 0.1)
+    );
+  }
+
+  /* Game-themed shadow */
+  .shadow-game {
+    box-shadow: 0 4px 14px 0 rgba(var(--game-primary-rgb), 0.25);
+  }
+
+  /* Focus ring using game theme */
+  .focus-game:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px white,
+      0 0 0 4px var(--game-primary);
   }
 }
 

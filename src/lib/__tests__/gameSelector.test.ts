@@ -20,6 +20,12 @@ import {
   formatEnabledGames,
   getGameGradientClasses,
   getGameThemeClasses,
+  // CSS Variable theming functions
+  getGameCssVariables,
+  getGameThemeStyles,
+  getGameCssVariableName,
+  getGameColorStyle,
+  GAME_CSS_VARIABLES,
   GAMES,
   DEFAULT_SELECTED_GAMES,
   GAME_SELECTOR_ONBOARDING,
@@ -446,6 +452,257 @@ describe('Game Selector - Data Validation', () => {
     it('should have valid gradient classes', () => {
       expect(GAME_SELECTOR_ONBOARDING.gradientFrom).toMatch(/^from-/);
       expect(GAME_SELECTOR_ONBOARDING.gradientTo).toMatch(/^to-/);
+    });
+  });
+});
+
+// ============================================================================
+// CSS VARIABLE THEMING TESTS
+// ============================================================================
+
+describe('Game Selector - CSS Variable Theming', () => {
+  describe('GAME_CSS_VARIABLES', () => {
+    it('should have CSS variables for all games', () => {
+      const gameIds: GameId[] = [
+        'pokemon',
+        'yugioh',
+        'onepiece',
+        'dragonball',
+        'lorcana',
+        'digimon',
+        'mtg',
+      ];
+      for (const id of gameIds) {
+        expect(GAME_CSS_VARIABLES[id]).toBeDefined();
+      }
+    });
+
+    it('should have all required color properties for each game', () => {
+      for (const gameId of Object.keys(GAME_CSS_VARIABLES) as GameId[]) {
+        const vars = GAME_CSS_VARIABLES[gameId];
+        expect(vars.primary).toBeDefined();
+        expect(vars.primaryRgb).toBeDefined();
+        expect(vars.secondary).toBeDefined();
+        expect(vars.secondaryRgb).toBeDefined();
+        expect(vars.accent).toBeDefined();
+        expect(vars.accentRgb).toBeDefined();
+        expect(vars.text).toBeDefined();
+        expect(vars.textRgb).toBeDefined();
+        expect(vars.border).toBeDefined();
+        expect(vars.borderRgb).toBeDefined();
+      }
+    });
+
+    it('should have valid hex color format for primary colors', () => {
+      const hexColorRegex = /^#[0-9a-fA-F]{6}$/;
+      for (const gameId of Object.keys(GAME_CSS_VARIABLES) as GameId[]) {
+        const vars = GAME_CSS_VARIABLES[gameId];
+        expect(vars.primary).toMatch(hexColorRegex);
+        expect(vars.secondary).toMatch(hexColorRegex);
+        expect(vars.accent).toMatch(hexColorRegex);
+        expect(vars.text).toMatch(hexColorRegex);
+        expect(vars.border).toMatch(hexColorRegex);
+      }
+    });
+
+    it('should have valid RGB format (comma-separated)', () => {
+      const rgbRegex = /^\d{1,3}, \d{1,3}, \d{1,3}$/;
+      for (const gameId of Object.keys(GAME_CSS_VARIABLES) as GameId[]) {
+        const vars = GAME_CSS_VARIABLES[gameId];
+        expect(vars.primaryRgb).toMatch(rgbRegex);
+        expect(vars.secondaryRgb).toMatch(rgbRegex);
+        expect(vars.accentRgb).toMatch(rgbRegex);
+        expect(vars.textRgb).toMatch(rgbRegex);
+        expect(vars.borderRgb).toMatch(rgbRegex);
+      }
+    });
+
+    it('should have distinct colors for each game', () => {
+      const primaryColors = new Set<string>();
+      for (const gameId of Object.keys(GAME_CSS_VARIABLES) as GameId[]) {
+        const primary = GAME_CSS_VARIABLES[gameId].primary;
+        expect(primaryColors.has(primary)).toBe(false);
+        primaryColors.add(primary);
+      }
+    });
+  });
+
+  describe('getGameCssVariables', () => {
+    it('should return CSS variables for valid game', () => {
+      const vars = getGameCssVariables('pokemon');
+      expect(vars.primary).toBe('#eab308');
+      expect(vars.secondary).toBe('#ef4444');
+    });
+
+    it('should return Pokemon fallback for invalid game', () => {
+      const vars = getGameCssVariables('invalid' as GameId);
+      expect(vars).toEqual(GAME_CSS_VARIABLES.pokemon);
+    });
+
+    it('should return distinct colors for different games', () => {
+      const pokemonVars = getGameCssVariables('pokemon');
+      const yugiohVars = getGameCssVariables('yugioh');
+      expect(pokemonVars.primary).not.toBe(yugiohVars.primary);
+    });
+
+    it('should return Yu-Gi-Oh! purple theme', () => {
+      const vars = getGameCssVariables('yugioh');
+      expect(vars.primary).toBe('#8b5cf6');
+    });
+
+    it('should return One Piece red theme', () => {
+      const vars = getGameCssVariables('onepiece');
+      expect(vars.primary).toBe('#ef4444');
+    });
+
+    it('should return Dragon Ball orange theme', () => {
+      const vars = getGameCssVariables('dragonball');
+      expect(vars.primary).toBe('#f97316');
+    });
+
+    it('should return Lorcana blue theme', () => {
+      const vars = getGameCssVariables('lorcana');
+      expect(vars.primary).toBe('#3b82f6');
+    });
+
+    it('should return Digimon cyan theme', () => {
+      const vars = getGameCssVariables('digimon');
+      expect(vars.primary).toBe('#06b6d4');
+    });
+
+    it('should return MTG amber theme', () => {
+      const vars = getGameCssVariables('mtg');
+      expect(vars.primary).toBe('#d97706');
+    });
+  });
+
+  describe('getGameThemeStyles', () => {
+    it('should return CSS variable assignments as style object', () => {
+      const styles = getGameThemeStyles('pokemon');
+      expect(styles['--game-primary']).toBe('#eab308');
+      expect(styles['--game-secondary']).toBe('#ef4444');
+      expect(styles['--game-primary-rgb']).toBe('234, 179, 8');
+    });
+
+    it('should include all 10 CSS variable properties', () => {
+      const styles = getGameThemeStyles('pokemon');
+      const expectedProperties = [
+        '--game-primary',
+        '--game-primary-rgb',
+        '--game-secondary',
+        '--game-secondary-rgb',
+        '--game-accent',
+        '--game-accent-rgb',
+        '--game-text',
+        '--game-text-rgb',
+        '--game-border',
+        '--game-border-rgb',
+      ];
+      for (const prop of expectedProperties) {
+        expect(styles[prop]).toBeDefined();
+      }
+    });
+
+    it('should return different styles for different games', () => {
+      const pokemonStyles = getGameThemeStyles('pokemon');
+      const yugiohStyles = getGameThemeStyles('yugioh');
+      expect(pokemonStyles['--game-primary']).not.toBe(yugiohStyles['--game-primary']);
+    });
+
+    it('should be usable as inline style object', () => {
+      const styles = getGameThemeStyles('pokemon');
+      // Style object should be a plain object
+      expect(typeof styles).toBe('object');
+      expect(Array.isArray(styles)).toBe(false);
+      // Values should be strings
+      expect(typeof styles['--game-primary']).toBe('string');
+    });
+  });
+
+  describe('getGameCssVariableName', () => {
+    it('should return correct variable name format', () => {
+      expect(getGameCssVariableName('pokemon', 'primary')).toBe('--game-pokemon-primary');
+      expect(getGameCssVariableName('yugioh', 'secondary')).toBe('--game-yugioh-secondary');
+      expect(getGameCssVariableName('mtg', 'accent')).toBe('--game-mtg-accent');
+    });
+
+    it('should support all color types', () => {
+      const colorTypes = ['primary', 'secondary', 'accent', 'text', 'border'] as const;
+      for (const colorType of colorTypes) {
+        const varName = getGameCssVariableName('pokemon', colorType);
+        expect(varName).toBe(`--game-pokemon-${colorType}`);
+      }
+    });
+
+    it('should work for all game IDs', () => {
+      const gameIds: GameId[] = [
+        'pokemon',
+        'yugioh',
+        'onepiece',
+        'dragonball',
+        'lorcana',
+        'digimon',
+        'mtg',
+      ];
+      for (const gameId of gameIds) {
+        const varName = getGameCssVariableName(gameId, 'primary');
+        expect(varName).toBe(`--game-${gameId}-primary`);
+      }
+    });
+  });
+
+  describe('getGameColorStyle', () => {
+    it('should return style object with CSS variable reference', () => {
+      const style = getGameColorStyle('pokemon', 'primary');
+      expect(style.color).toBe('var(--game-pokemon-primary)');
+    });
+
+    it('should support custom CSS property', () => {
+      const bgStyle = getGameColorStyle('yugioh', 'accent', 'backgroundColor');
+      expect(bgStyle.backgroundColor).toBe('var(--game-yugioh-accent)');
+
+      const borderStyle = getGameColorStyle('mtg', 'border', 'borderColor');
+      expect(borderStyle.borderColor).toBe('var(--game-mtg-border)');
+    });
+
+    it('should default to color property', () => {
+      const style = getGameColorStyle('lorcana', 'text');
+      expect(style.color).toBeDefined();
+      expect(Object.keys(style).length).toBe(1);
+    });
+
+    it('should work with all color types', () => {
+      const colorTypes = ['primary', 'secondary', 'accent', 'text', 'border'] as const;
+      for (const colorType of colorTypes) {
+        const style = getGameColorStyle('digimon', colorType);
+        expect(style.color).toBe(`var(--game-digimon-${colorType})`);
+      }
+    });
+  });
+
+  describe('CSS Variable Theming - Integration', () => {
+    it('should have matching colors between static vars and dynamic styles', () => {
+      for (const gameId of Object.keys(GAME_CSS_VARIABLES) as GameId[]) {
+        const staticVars = GAME_CSS_VARIABLES[gameId];
+        const dynamicStyles = getGameThemeStyles(gameId);
+
+        // Dynamic theme styles should use values from static vars
+        expect(dynamicStyles['--game-primary']).toBe(staticVars.primary);
+        expect(dynamicStyles['--game-secondary']).toBe(staticVars.secondary);
+        expect(dynamicStyles['--game-accent']).toBe(staticVars.accent);
+      }
+    });
+
+    it('should provide complete theme coverage for each game', () => {
+      for (const gameId of Object.keys(GAME_CSS_VARIABLES) as GameId[]) {
+        const info = getGameInfo(gameId);
+        const cssVars = getGameCssVariables(gameId);
+
+        // Every game with info should have CSS variables
+        expect(info).not.toBeNull();
+        expect(cssVars).toBeDefined();
+        expect(cssVars.primary).toBeTruthy();
+      }
     });
   });
 });

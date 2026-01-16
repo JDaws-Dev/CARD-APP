@@ -433,3 +433,176 @@ export function getGameThemeClasses(gameId: GameId): {
     primary: game.primaryColor,
   };
 }
+
+// ============================================================================
+// CSS VARIABLE THEMING
+// ============================================================================
+
+/**
+ * CSS variable values for each game's theme.
+ * These map to the CSS custom properties defined in globals.css.
+ */
+export interface GameCssVariables {
+  /** Primary color (hex) */
+  primary: string;
+  /** Primary color RGB values for alpha support */
+  primaryRgb: string;
+  /** Secondary color (hex) */
+  secondary: string;
+  /** Secondary color RGB values */
+  secondaryRgb: string;
+  /** Accent/background color (hex) */
+  accent: string;
+  /** Accent color RGB values */
+  accentRgb: string;
+  /** Text color (hex) */
+  text: string;
+  /** Text color RGB values */
+  textRgb: string;
+  /** Border color (hex) */
+  border: string;
+  /** Border color RGB values */
+  borderRgb: string;
+}
+
+/**
+ * CSS variable values for all supported games.
+ * Colors are chosen to be vibrant but accessible for kids.
+ */
+export const GAME_CSS_VARIABLES: Record<GameId, GameCssVariables> = {
+  pokemon: {
+    primary: '#eab308', // Yellow-500
+    primaryRgb: '234, 179, 8',
+    secondary: '#ef4444', // Red-500
+    secondaryRgb: '239, 68, 68',
+    accent: '#fef3c7', // Amber-100
+    accentRgb: '254, 243, 199',
+    text: '#92400e', // Amber-800
+    textRgb: '146, 64, 14',
+    border: '#fcd34d', // Yellow-300
+    borderRgb: '252, 211, 77',
+  },
+  yugioh: {
+    primary: '#8b5cf6', // Violet-500
+    primaryRgb: '139, 92, 246',
+    secondary: '#4f46e5', // Indigo-600
+    secondaryRgb: '79, 70, 229',
+    accent: '#ede9fe', // Violet-100
+    accentRgb: '237, 233, 254',
+    text: '#5b21b6', // Violet-800
+    textRgb: '91, 33, 182',
+    border: '#a78bfa', // Violet-400
+    borderRgb: '167, 139, 250',
+  },
+  onepiece: {
+    primary: '#ef4444', // Red-500
+    primaryRgb: '239, 68, 68',
+    secondary: '#f97316', // Orange-500
+    secondaryRgb: '249, 115, 22',
+    accent: '#fef2f2', // Red-50
+    accentRgb: '254, 242, 242',
+    text: '#991b1b', // Red-800
+    textRgb: '153, 27, 27',
+    border: '#fca5a5', // Red-300
+    borderRgb: '252, 165, 165',
+  },
+  dragonball: {
+    primary: '#f97316', // Orange-500
+    primaryRgb: '249, 115, 22',
+    secondary: '#eab308', // Yellow-500
+    secondaryRgb: '234, 179, 8',
+    accent: '#fff7ed', // Orange-50
+    accentRgb: '255, 247, 237',
+    text: '#9a3412', // Orange-800
+    textRgb: '154, 52, 18',
+    border: '#fdba74', // Orange-300
+    borderRgb: '253, 186, 116',
+  },
+  lorcana: {
+    primary: '#3b82f6', // Blue-500
+    primaryRgb: '59, 130, 246',
+    secondary: '#06b6d4', // Cyan-500
+    secondaryRgb: '6, 182, 212',
+    accent: '#eff6ff', // Blue-50
+    accentRgb: '239, 246, 255',
+    text: '#1e40af', // Blue-800
+    textRgb: '30, 64, 175',
+    border: '#93c5fd', // Blue-300
+    borderRgb: '147, 197, 253',
+  },
+  digimon: {
+    primary: '#06b6d4', // Cyan-500
+    primaryRgb: '6, 182, 212',
+    secondary: '#2563eb', // Blue-600
+    secondaryRgb: '37, 99, 235',
+    accent: '#ecfeff', // Cyan-50
+    accentRgb: '236, 254, 255',
+    text: '#155e75', // Cyan-800
+    textRgb: '21, 94, 117',
+    border: '#67e8f9', // Cyan-300
+    borderRgb: '103, 232, 249',
+  },
+  mtg: {
+    primary: '#d97706', // Amber-600
+    primaryRgb: '217, 119, 6',
+    secondary: '#ca8a04', // Yellow-600
+    secondaryRgb: '202, 138, 4',
+    accent: '#fffbeb', // Amber-50
+    accentRgb: '255, 251, 235',
+    text: '#78350f', // Amber-900
+    textRgb: '120, 53, 15',
+    border: '#fbbf24', // Amber-400
+    borderRgb: '251, 191, 36',
+  },
+};
+
+/**
+ * Get CSS variables for a specific game.
+ */
+export function getGameCssVariables(gameId: GameId): GameCssVariables {
+  return GAME_CSS_VARIABLES[gameId] ?? GAME_CSS_VARIABLES.pokemon;
+}
+
+/**
+ * Generate CSS variable assignments as a style object.
+ * Use this to set inline styles on a container element to theme its children.
+ */
+export function getGameThemeStyles(gameId: GameId): Record<string, string> {
+  const vars = getGameCssVariables(gameId);
+  return {
+    '--game-primary': vars.primary,
+    '--game-primary-rgb': vars.primaryRgb,
+    '--game-secondary': vars.secondary,
+    '--game-secondary-rgb': vars.secondaryRgb,
+    '--game-accent': vars.accent,
+    '--game-accent-rgb': vars.accentRgb,
+    '--game-text': vars.text,
+    '--game-text-rgb': vars.textRgb,
+    '--game-border': vars.border,
+    '--game-border-rgb': vars.borderRgb,
+  };
+}
+
+/**
+ * Get the CSS variable name for a game-specific color.
+ * Useful for referencing static per-game colors in multi-game displays.
+ */
+export function getGameCssVariableName(
+  gameId: GameId,
+  colorType: 'primary' | 'secondary' | 'accent' | 'text' | 'border'
+): string {
+  return `--game-${gameId}-${colorType}`;
+}
+
+/**
+ * Get inline style using a game-specific CSS variable.
+ */
+export function getGameColorStyle(
+  gameId: GameId,
+  colorType: 'primary' | 'secondary' | 'accent' | 'text' | 'border',
+  cssProperty: string = 'color'
+): Record<string, string> {
+  return {
+    [cssProperty]: `var(${getGameCssVariableName(gameId, colorType)})`,
+  };
+}
