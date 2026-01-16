@@ -81,7 +81,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [ ] Create game-agnostic API abstraction in src/lib/tcg-api.ts - Unified fetch interface that routes to correct API based on game
 - [x] API adapter for YGOPRODeck (src/lib/yugioh-api.ts) - Yu-Gi-Oh! cards, 20 req/sec rate limit
 - [x] API adapter for OPTCG API (src/lib/onepiece-api.ts) - One Piece cards, 10 req/sec rate limit (conservative)
-- [ ] API adapter for ApiTCG (src/lib/dragonball-api.ts) - Dragon Ball Fusion World cards
+- [x] API adapter for ApiTCG (src/lib/dragonball-api.ts) - Dragon Ball Fusion World cards, 10 req/sec rate limit (conservative)
 - [x] API adapter for Lorcast (src/lib/lorcana-api.ts) - Disney Lorcana cards, 10 req/sec rate limit
 - [x] API adapter for DigimonCard.io (src/lib/digimon-api.ts) - Digimon cards, 15 req/10sec rate limit
 - [x] API adapter for Scryfall (src/lib/mtg-api.ts) - Magic: The Gathering cards, 10 req/sec rate limit
@@ -1160,3 +1160,60 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Set extraction
   - Integration scenarios: Card display preparation, Evolution chain analysis, Deck building analysis, Collection filtering
 - All 2488 tests pass, linter clean
+
+### 2026-01-16: API adapter for ApiTCG (Dragon Ball Fusion World cards)
+
+- Created `src/lib/dragonball-api.ts` with full ApiTCG client for Dragon Ball Fusion World:
+  - Rate limiting: 10 req/sec (100ms minimum between requests, conservative)
+  - API key optional via `DRAGONBALL_API_KEY` env variable (sign up at https://apitcg.com/platform)
+  - Documentation: https://docs.apitcg.com
+- Defined comprehensive TypeScript types:
+  - `DragonBallCard`: Full card object with id, code, name, rarity, color, cardType, cost, specifiedCost, power, comboPower, features, effect, images, set, getIt
+  - `DragonBallCardType`: Leader, Battle, Extra, Unison
+  - `DragonBallColor`: Red, Blue, Green, Yellow, Black, Multi
+  - `DragonBallRarity`: C, UC, R, SR, SCR, SPR, PR
+  - `DragonBallFilterOptions`: Filter by id, code, rarity, name, color, cardType, cost, power, comboPower, features, effect
+  - `DragonBallCardListResponse`: Paginated response (25 cards per page)
+  - `DragonBallSet`: Set info with code, name, cardCount
+- Card API functions:
+  - `getCards`: Get cards with optional filters and pagination
+  - `getAllCards`: Get all cards (handles pagination automatically)
+  - `getCardById`, `getCardByCode`, `getCardsByCodes`: Card lookup functions
+  - `searchCards`: Search by name
+  - `getCardsByColor`, `getCardsByType`, `getCardsByRarity`, `getCardsByFeature`: Filter functions
+- Set functions:
+  - `getAllSets`: Get unique sets (extracted from card data)
+  - `getSetByCode`, `searchSets`: Set lookup functions
+  - `getCardsInSet`: Get cards in a specific set
+- Helper functions:
+  - `extractSetCode`, `extractCardNumber`: Parse card codes (e.g., "FB01" from "FB01-001")
+  - `getCardDexId`, `parseCardDexId`: Generate/parse unique identifiers (format: "dragonball-{code}")
+  - `getCardImage`: Get image URL (small/large)
+  - `isLeaderCard`, `isBattleCard`, `isExtraCard`, `isUnisonCard`: Type checking
+  - `isMultiColor`, `hasEffect`, `hasComboPower`, `hasFeatures`: Property checking
+  - `getColorInfo`, `getRarityDisplayName`, `getTypeDisplayName`: Display helpers
+  - `formatCost`, `formatPower`, `formatComboPower`: Formatting helpers
+  - `getCardSummary`: Card display summary
+  - `sortBySetAndNumber`, `sortByRarity`, `sortByPower`, `sortByCost`: Sorting functions (non-mutating)
+  - `filterByColor`, `filterByFeature`: Client-side filtering
+  - `getUniqueFeatures`, `getUniqueColors`: Extract unique values
+  - `calculateDeckStats`: Calculate deck statistics (leaders, battles, extras, unisons, avgCost, avgPower, colors)
+  - `extractSetsFromCards`: Extract sets from card list
+- Added constants:
+  - `DRAGONBALL_RARITIES`: 7 rarities with names and sort order
+  - `DRAGONBALL_COLORS`: 6 colors with hex codes
+  - `DRAGONBALL_CARD_TYPES`: 4 types with descriptions
+- Added 73 tests in `src/lib/__tests__/dragonball-api.test.ts` covering:
+  - Constants validation (rarities, colors, card types)
+  - Extract functions (set code, card number)
+  - Card ID functions (getCardDexId, parseCardDexId)
+  - Card type checking (Leader, Battle, Extra, Unison)
+  - Property checking (multiColor, effect, comboPower, features)
+  - All display and formatting functions
+  - Sorting functions (non-mutating verified)
+  - Filtering functions (by color, by feature)
+  - Unique value extraction (features, colors)
+  - Deck statistics calculation
+  - Set extraction
+  - Integration scenarios: Building a deck view, Card search and display, Collection filtering, Feature analysis
+- All tests pass, linter clean
