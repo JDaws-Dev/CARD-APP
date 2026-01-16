@@ -1623,6 +1623,277 @@ export const getStreakProgress = query({
   },
 });
 
+// ============================================================================
+// DATE TRACKING QUERIES
+// ============================================================================
+
+/**
+ * Query to get achievements with enriched date information.
+ * Returns achievements sorted by earned date (newest first) with formatted dates.
+ */
+export const getAchievementsWithDates = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    const achievements = await ctx.db
+      .query('achievements')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Sort by earned date descending (newest first)
+    const sorted = achievements.sort((a, b) => b.earnedAt - a.earnedAt);
+
+    // Enrich with badge definitions and formatted dates
+    const enriched = sorted.map((achievement) => {
+      const badgeInfo = ACHIEVEMENT_DEFINITIONS[achievement.achievementKey] ??
+        // For set-specific badges, extract the base badge key
+        (() => {
+          for (const [baseKey, def] of Object.entries(ACHIEVEMENT_DEFINITIONS)) {
+            if (achievement.achievementKey.endsWith(`_${baseKey}`)) {
+              return def;
+            }
+          }
+          return null;
+        })();
+
+      return {
+        ...achievement,
+        badgeInfo: badgeInfo
+          ? {
+              name: badgeInfo.name,
+              description: badgeInfo.description,
+              icon: badgeInfo.icon,
+              color: badgeInfo.color,
+            }
+          : null,
+        formattedDate: formatDateForDisplay(achievement.earnedAt),
+        relativeDate: formatRelativeDate(achievement.earnedAt),
+      };
+    });
+
+    return {
+      achievements: enriched,
+      totalCount: enriched.length,
+      mostRecent: enriched[0] ?? null,
+      byCategory: groupByCategory(enriched),
+    };
+  },
+});
+
+/**
+ * Query to get the most recently earned achievements (for notifications/celebrations).
+ */
+export const getRecentlyEarnedAchievements = query({
+  args: {
+    profileId: v.id('profiles'),
+    limit: v.optional(v.number()),
+    sinceDays: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 5;
+    const sinceDays = args.sinceDays ?? 7;
+    const sinceTimestamp = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
+
+    const achievements = await ctx.db
+      .query('achievements')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Filter to recent achievements and sort by date descending
+    const recent = achievements
+      .filter((a) => a.earnedAt >= sinceTimestamp)
+      .sort((a, b) => b.earnedAt - a.earnedAt)
+      .slice(0, limit);
+
+    return recent.map((achievement) => {
+      const badgeInfo = ACHIEVEMENT_DEFINITIONS[achievement.achievementKey] ??
+        (() => {
+          for (const [baseKey, def] of Object.entries(ACHIEVEMENT_DEFINITIONS)) {
+            if (achievement.achievementKey.endsWith(`_${baseKey}`)) {
+              return def;
+            }
+          }
+          return null;
+        })();
+
+      return {
+        ...achievement,
+        badgeInfo: badgeInfo
+          ? {
+              name: badgeInfo.name,
+              description: badgeInfo.description,
+              icon: badgeInfo.icon,
+              color: badgeInfo.color,
+            }
+          : null,
+        formattedDate: formatDateForDisplay(achievement.earnedAt),
+        relativeDate: formatRelativeDate(achievement.earnedAt),
+      };
+    });
+  },
+});
+
+/**
+ * Query to get the earned date for a specific achievement.
+ */
+export const getAchievementEarnedDate = query({
+  args: {
+    profileId: v.id('profiles'),
+    achievementKey: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const achievement = await ctx.db
+      .query('achievements')
+      .withIndex('by_profile_and_key', (q) =>
+        q.eq('profileId', args.profileId).eq('achievementKey', args.achievementKey)
+      )
+      .first();
+
+    if (!achievement) {
+      return null;
+    }
+
+    return {
+      earnedAt: achievement.earnedAt,
+      formattedDate: formatDateForDisplay(achievement.earnedAt),
+      relativeDate: formatRelativeDate(achievement.earnedAt),
+    };
+  },
+});
+
+/**
+ * Query to get achievement timeline (for trophy case/history view).
+ * Returns achievements grouped by date.
+ */
+export const getAchievementTimeline = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    const achievements = await ctx.db
+      .query('achievements')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Sort by earned date descending
+    const sorted = achievements.sort((a, b) => b.earnedAt - a.earnedAt);
+
+    // Group by date (YYYY-MM-DD)
+    const byDate = new Map<string, typeof sorted>();
+    for (const achievement of sorted) {
+      const dateStr = new Date(achievement.earnedAt).toISOString().split('T')[0];
+      if (!byDate.has(dateStr)) {
+        byDate.set(dateStr, []);
+      }
+      byDate.get(dateStr)!.push(achievement);
+    }
+
+    // Convert to array of date groups with enriched data
+    const timeline = Array.from(byDate.entries()).map(([dateStr, dayAchievements]) => {
+      const enrichedAchievements = dayAchievements.map((achievement) => {
+        const badgeInfo = ACHIEVEMENT_DEFINITIONS[achievement.achievementKey] ??
+          (() => {
+            for (const [baseKey, def] of Object.entries(ACHIEVEMENT_DEFINITIONS)) {
+              if (achievement.achievementKey.endsWith(`_${baseKey}`)) {
+                return def;
+              }
+            }
+            return null;
+          })();
+
+        return {
+          ...achievement,
+          badgeInfo: badgeInfo
+            ? {
+                name: badgeInfo.name,
+                description: badgeInfo.description,
+                icon: badgeInfo.icon,
+                color: badgeInfo.color,
+              }
+            : null,
+        };
+      });
+
+      return {
+        date: dateStr,
+        formattedDate: formatDateForDisplay(dayAchievements[0].earnedAt),
+        relativeDate: formatRelativeDate(dayAchievements[0].earnedAt),
+        achievements: enrichedAchievements,
+        count: enrichedAchievements.length,
+      };
+    });
+
+    return {
+      timeline,
+      totalDays: timeline.length,
+      totalAchievements: achievements.length,
+      firstEarnedDate: sorted.length > 0 ? formatDateForDisplay(sorted[sorted.length - 1].earnedAt) : null,
+      mostRecentDate: sorted.length > 0 ? formatDateForDisplay(sorted[0].earnedAt) : null,
+    };
+  },
+});
+
+// ============================================================================
+// HELPER FUNCTIONS FOR DATE FORMATTING
+// ============================================================================
+
+/**
+ * Format a timestamp for display (e.g., "Jan 15, 2026")
+ */
+function formatDateForDisplay(timestamp: number): string {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/**
+ * Format a timestamp as a relative string (e.g., "2 days ago")
+ */
+function formatRelativeDate(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp;
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 30) {
+    return formatDateForDisplay(timestamp);
+  } else if (days > 0) {
+    return days === 1 ? '1 day ago' : `${days} days ago`;
+  } else if (hours > 0) {
+    return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+  } else if (minutes > 0) {
+    return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`;
+  } else {
+    return 'Just now';
+  }
+}
+
+/**
+ * Group achievements by category
+ */
+function groupByCategory(
+  achievements: Array<{ achievementType: string }>
+): Record<string, number> {
+  const counts: Record<string, number> = {
+    set_completion: 0,
+    collector_milestone: 0,
+    type_specialist: 0,
+    pokemon_fan: 0,
+    streak: 0,
+  };
+
+  for (const achievement of achievements) {
+    if (achievement.achievementType in counts) {
+      counts[achievement.achievementType]++;
+    }
+  }
+
+  return counts;
+}
+
 // Query to get set completion progress for a profile
 export const getSetCompletionProgress = query({
   args: {

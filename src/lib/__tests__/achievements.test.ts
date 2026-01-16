@@ -3206,3 +3206,426 @@ describe('Streak Badge Integration Scenarios', () => {
     });
   });
 });
+
+// ============================================================================
+// DATE TRACKING UTILITIES
+// ============================================================================
+
+import {
+  getEarnedDateInfo,
+  enrichAchievementsWithDates,
+  groupAchievementsByDate,
+  filterAchievementsByDateRange,
+  getRecentAchievements,
+  getMostRecentAchievement,
+  getFirstEarnedAchievement,
+  getAchievementsEarnedToday,
+  getAchievementsEarnedThisWeek,
+  getAchievementsEarnedThisMonth,
+  getAverageTimeBetweenAchievements,
+  getAchievementDateStats,
+  formatDateRange,
+  getDateString,
+  isSameDay,
+  getDaysSinceEarned,
+  wasEarnedRecently,
+} from '../achievements';
+
+describe('Date Tracking Utilities', () => {
+  // Helper to create test achievements
+  const createAchievement = (key: string, type: AchievementCategory, earnedAt: number): EarnedAchievement => ({
+    achievementKey: key,
+    achievementType: type,
+    earnedAt,
+  });
+
+  // Test timestamps
+  const now = Date.now();
+  const oneHourAgo = now - 60 * 60 * 1000;
+  const oneDayAgo = now - 24 * 60 * 60 * 1000;
+  const twoDaysAgo = now - 2 * 24 * 60 * 60 * 1000;
+  const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
+  const twoWeeksAgo = now - 14 * 24 * 60 * 60 * 1000;
+  const oneMonthAgo = now - 30 * 24 * 60 * 60 * 1000;
+
+  describe('getEarnedDateInfo', () => {
+    it('should return correct info for achievement earned just now', () => {
+      const info = getEarnedDateInfo(now);
+      expect(info.earnedAt).toBe(now);
+      expect(info.isToday).toBe(true);
+      expect(info.isThisWeek).toBe(true);
+      expect(info.isThisMonth).toBe(true);
+      expect(info.daysSinceEarned).toBe(0);
+      expect(info.relativeDate).toBe('Just now');
+    });
+
+    it('should return correct info for achievement earned one hour ago', () => {
+      const info = getEarnedDateInfo(oneHourAgo);
+      // One hour ago could be yesterday if we're at the start of the day
+      // So we just check the relative date and daysSinceEarned
+      expect(info.isThisWeek).toBe(true);
+      expect(info.isThisMonth).toBe(true);
+      expect(info.daysSinceEarned).toBeLessThanOrEqual(1);
+      expect(info.relativeDate).toBe('1 hour ago');
+    });
+
+    it('should return correct info for achievement earned one day ago', () => {
+      const info = getEarnedDateInfo(oneDayAgo);
+      expect(info.isThisWeek).toBe(true);
+      expect(info.daysSinceEarned).toBe(1);
+      expect(info.relativeDate).toBe('1 day ago');
+    });
+
+    it('should return correct info for achievement earned two weeks ago', () => {
+      const info = getEarnedDateInfo(twoWeeksAgo);
+      expect(info.isThisWeek).toBe(false);
+      expect(info.daysSinceEarned).toBe(14);
+      expect(info.relativeDate).toBe('14 days ago');
+    });
+
+    it('should return correct info for achievement earned one month ago', () => {
+      const info = getEarnedDateInfo(oneMonthAgo);
+      expect(info.isThisWeek).toBe(false);
+      expect(info.daysSinceEarned).toBe(30);
+      // After 30 days, it shows formatted date instead of relative
+      expect(info.formattedDate).toBeTruthy();
+    });
+  });
+
+  describe('enrichAchievementsWithDates', () => {
+    it('should add formatted and relative dates to achievements', () => {
+      const achievements = [
+        createAchievement('first_catch', 'collector_milestone', now),
+        createAchievement('starter_collector', 'collector_milestone', oneDayAgo),
+      ];
+
+      const enriched = enrichAchievementsWithDates(achievements);
+
+      expect(enriched).toHaveLength(2);
+      expect(enriched[0].formattedDate).toBeTruthy();
+      expect(enriched[0].relativeDate).toBe('Just now');
+      expect(enriched[1].relativeDate).toBe('1 day ago');
+    });
+
+    it('should return empty array for empty input', () => {
+      const enriched = enrichAchievementsWithDates([]);
+      expect(enriched).toEqual([]);
+    });
+  });
+
+  describe('groupAchievementsByDate', () => {
+    it('should group achievements by date', () => {
+      // Create achievements on different days
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      const todayTimestamp = today.getTime();
+      const yesterdayTimestamp = yesterday.getTime();
+
+      const achievements = [
+        createAchievement('first_catch', 'collector_milestone', todayTimestamp),
+        createAchievement('starter_collector', 'collector_milestone', todayTimestamp - 1000),
+        createAchievement('fire_trainer', 'type_specialist', yesterdayTimestamp),
+      ];
+
+      const grouped = groupAchievementsByDate(achievements);
+
+      expect(grouped.length).toBe(2);
+      // First group should be today (newest first)
+      expect(grouped[0].count).toBe(2);
+      expect(grouped[1].count).toBe(1);
+    });
+
+    it('should sort groups by date descending (newest first)', () => {
+      const achievements = [
+        createAchievement('first_catch', 'collector_milestone', oneWeekAgo),
+        createAchievement('starter_collector', 'collector_milestone', now),
+      ];
+
+      const grouped = groupAchievementsByDate(achievements);
+
+      expect(grouped.length).toBe(2);
+      // First group should be today
+      expect(grouped[0].date > grouped[1].date).toBe(true);
+    });
+
+    it('should return empty array for empty input', () => {
+      const grouped = groupAchievementsByDate([]);
+      expect(grouped).toEqual([]);
+    });
+  });
+
+  describe('filterAchievementsByDateRange', () => {
+    it('should filter achievements within date range', () => {
+      const achievements = [
+        createAchievement('a', 'collector_milestone', now),
+        createAchievement('b', 'collector_milestone', oneDayAgo),
+        createAchievement('c', 'collector_milestone', oneWeekAgo),
+        createAchievement('d', 'collector_milestone', twoWeeksAgo),
+      ];
+
+      const startDate = new Date(oneWeekAgo);
+      const endDate = new Date(now);
+
+      const filtered = filterAchievementsByDateRange(achievements, startDate, endDate);
+
+      expect(filtered).toHaveLength(3);
+      expect(filtered.some((a) => a.achievementKey === 'd')).toBe(false);
+    });
+
+    it('should return empty array if no achievements in range', () => {
+      const achievements = [
+        createAchievement('a', 'collector_milestone', oneMonthAgo),
+      ];
+
+      const startDate = new Date(now);
+      const endDate = new Date(now + 1000);
+
+      const filtered = filterAchievementsByDateRange(achievements, startDate, endDate);
+      expect(filtered).toHaveLength(0);
+    });
+  });
+
+  describe('getRecentAchievements', () => {
+    it('should return achievements from last N days', () => {
+      const achievements = [
+        createAchievement('a', 'collector_milestone', now),
+        createAchievement('b', 'collector_milestone', oneDayAgo),
+        createAchievement('c', 'collector_milestone', oneWeekAgo),
+        createAchievement('d', 'collector_milestone', twoWeeksAgo),
+      ];
+
+      // Use 8 days to ensure oneWeekAgo is included (7 * 24h might miss by a few ms)
+      const recent = getRecentAchievements(achievements, 8);
+      expect(recent).toHaveLength(3);
+    });
+
+    it('should sort results by date descending', () => {
+      const achievements = [
+        createAchievement('c', 'collector_milestone', oneWeekAgo),
+        createAchievement('a', 'collector_milestone', now),
+        createAchievement('b', 'collector_milestone', oneDayAgo),
+      ];
+
+      const recent = getRecentAchievements(achievements, 10);
+      expect(recent[0].achievementKey).toBe('a');
+      expect(recent[1].achievementKey).toBe('b');
+      expect(recent[2].achievementKey).toBe('c');
+    });
+  });
+
+  describe('getMostRecentAchievement', () => {
+    it('should return the most recently earned achievement', () => {
+      const achievements = [
+        createAchievement('a', 'collector_milestone', oneDayAgo),
+        createAchievement('b', 'collector_milestone', now),
+        createAchievement('c', 'collector_milestone', oneWeekAgo),
+      ];
+
+      const mostRecent = getMostRecentAchievement(achievements);
+      expect(mostRecent?.achievementKey).toBe('b');
+    });
+
+    it('should return null for empty array', () => {
+      expect(getMostRecentAchievement([])).toBeNull();
+    });
+  });
+
+  describe('getFirstEarnedAchievement', () => {
+    it('should return the first (oldest) earned achievement', () => {
+      const achievements = [
+        createAchievement('a', 'collector_milestone', oneDayAgo),
+        createAchievement('b', 'collector_milestone', now),
+        createAchievement('c', 'collector_milestone', oneWeekAgo),
+      ];
+
+      const first = getFirstEarnedAchievement(achievements);
+      expect(first?.achievementKey).toBe('c');
+    });
+
+    it('should return null for empty array', () => {
+      expect(getFirstEarnedAchievement([])).toBeNull();
+    });
+  });
+
+  describe('getAchievementsEarnedToday', () => {
+    it('should return only achievements earned today', () => {
+      const achievements = [
+        createAchievement('a', 'collector_milestone', now),
+        createAchievement('b', 'collector_milestone', now - 1000),
+        createAchievement('c', 'collector_milestone', oneDayAgo),
+      ];
+
+      const today = getAchievementsEarnedToday(achievements);
+      expect(today).toHaveLength(2);
+      expect(today.some((a) => a.achievementKey === 'c')).toBe(false);
+    });
+  });
+
+  describe('getAchievementsEarnedThisWeek', () => {
+    it('should return achievements from the last 7 days', () => {
+      const achievements = [
+        createAchievement('a', 'collector_milestone', now),
+        createAchievement('b', 'collector_milestone', twoDaysAgo),
+        createAchievement('c', 'collector_milestone', twoWeeksAgo),
+      ];
+
+      const thisWeek = getAchievementsEarnedThisWeek(achievements);
+      expect(thisWeek).toHaveLength(2);
+    });
+  });
+
+  describe('getAchievementsEarnedThisMonth', () => {
+    it('should return achievements from the current month', () => {
+      const achievements = [
+        createAchievement('a', 'collector_milestone', now),
+        createAchievement('b', 'collector_milestone', oneDayAgo),
+      ];
+
+      const thisMonth = getAchievementsEarnedThisMonth(achievements);
+      expect(thisMonth.length).toBeGreaterThan(0);
+    });
+
+    it('should sort results by date descending', () => {
+      const achievements = [
+        createAchievement('b', 'collector_milestone', oneDayAgo),
+        createAchievement('a', 'collector_milestone', now),
+      ];
+
+      const thisMonth = getAchievementsEarnedThisMonth(achievements);
+      expect(thisMonth[0].earnedAt).toBeGreaterThan(thisMonth[1].earnedAt);
+    });
+  });
+
+  describe('getAverageTimeBetweenAchievements', () => {
+    it('should return null for fewer than 2 achievements', () => {
+      expect(getAverageTimeBetweenAchievements([])).toBeNull();
+      expect(
+        getAverageTimeBetweenAchievements([
+          createAchievement('a', 'collector_milestone', now),
+        ])
+      ).toBeNull();
+    });
+
+    it('should calculate average days between achievements', () => {
+      const achievements = [
+        createAchievement('a', 'collector_milestone', now),
+        createAchievement('b', 'collector_milestone', oneDayAgo),
+        createAchievement('c', 'collector_milestone', twoDaysAgo),
+      ];
+
+      const avg = getAverageTimeBetweenAchievements(achievements);
+      expect(avg).toBe(1);
+    });
+  });
+
+  describe('getAchievementDateStats', () => {
+    it('should return comprehensive stats for achievements', () => {
+      const achievements = [
+        createAchievement('a', 'collector_milestone', now),
+        createAchievement('b', 'collector_milestone', oneDayAgo),
+        createAchievement('c', 'type_specialist', oneWeekAgo),
+      ];
+
+      const stats = getAchievementDateStats(achievements);
+
+      expect(stats.totalAchievements).toBe(3);
+      expect(stats.firstEarnedDate).toBeTruthy();
+      expect(stats.mostRecentDate).toBeTruthy();
+      expect(stats.achievementsToday).toBeGreaterThanOrEqual(0);
+      expect(stats.achievementsThisWeek).toBeGreaterThanOrEqual(0);
+      expect(stats.uniqueDaysWithAchievements).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should return zeros for empty array', () => {
+      const stats = getAchievementDateStats([]);
+
+      expect(stats.totalAchievements).toBe(0);
+      expect(stats.firstEarnedDate).toBeNull();
+      expect(stats.mostRecentDate).toBeNull();
+      expect(stats.achievementsToday).toBe(0);
+      expect(stats.averageDaysBetween).toBeNull();
+      expect(stats.uniqueDaysWithAchievements).toBe(0);
+    });
+  });
+
+  describe('formatDateRange', () => {
+    it('should format same month range correctly', () => {
+      const start = new Date(2026, 0, 1).getTime(); // Jan 1, 2026
+      const end = new Date(2026, 0, 15).getTime(); // Jan 15, 2026
+
+      const formatted = formatDateRange(start, end);
+      expect(formatted).toBe('Jan 1-15, 2026');
+    });
+
+    it('should format different month same year range correctly', () => {
+      const start = new Date(2026, 0, 1).getTime(); // Jan 1, 2026
+      const end = new Date(2026, 1, 15).getTime(); // Feb 15, 2026
+
+      const formatted = formatDateRange(start, end);
+      expect(formatted).toBe('Jan 1 - Feb 15, 2026');
+    });
+
+    it('should format different year range correctly', () => {
+      const start = new Date(2025, 11, 1).getTime(); // Dec 1, 2025
+      const end = new Date(2026, 0, 15).getTime(); // Jan 15, 2026
+
+      const formatted = formatDateRange(start, end);
+      expect(formatted).toContain('2025');
+      expect(formatted).toContain('2026');
+    });
+  });
+
+  describe('getDateString', () => {
+    it('should return YYYY-MM-DD format', () => {
+      // Use UTC timestamp to avoid timezone issues
+      const timestamp = Date.UTC(2026, 0, 15, 12, 30, 45);
+      const dateStr = getDateString(timestamp);
+      expect(dateStr).toBe('2026-01-15');
+    });
+  });
+
+  describe('isSameDay', () => {
+    it('should return true for same day timestamps', () => {
+      // Use timestamps in UTC to avoid timezone issues
+      const ts1 = Date.UTC(2026, 0, 15, 8, 0, 0);
+      const ts2 = Date.UTC(2026, 0, 15, 20, 0, 0);
+      expect(isSameDay(ts1, ts2)).toBe(true);
+    });
+
+    it('should return false for different day timestamps', () => {
+      // Use timestamps in UTC to avoid timezone issues
+      const ts1 = Date.UTC(2026, 0, 15, 8, 0, 0);
+      const ts2 = Date.UTC(2026, 0, 16, 8, 0, 0);
+      expect(isSameDay(ts1, ts2)).toBe(false);
+    });
+  });
+
+  describe('getDaysSinceEarned', () => {
+    it('should return 0 for today', () => {
+      expect(getDaysSinceEarned(now)).toBe(0);
+    });
+
+    it('should return 1 for yesterday', () => {
+      expect(getDaysSinceEarned(oneDayAgo)).toBe(1);
+    });
+
+    it('should return 7 for one week ago', () => {
+      expect(getDaysSinceEarned(oneWeekAgo)).toBe(7);
+    });
+  });
+
+  describe('wasEarnedRecently', () => {
+    it('should return true if earned within specified days', () => {
+      expect(wasEarnedRecently(now, 7)).toBe(true);
+      expect(wasEarnedRecently(oneDayAgo, 7)).toBe(true);
+      expect(wasEarnedRecently(oneWeekAgo, 7)).toBe(true);
+    });
+
+    it('should return false if earned before specified days', () => {
+      expect(wasEarnedRecently(twoWeeksAgo, 7)).toBe(false);
+      expect(wasEarnedRecently(oneMonthAgo, 7)).toBe(false);
+    });
+  });
+});

@@ -1689,3 +1689,324 @@ export function formatStreakCount(days: number): string {
   if (days === 1) return '1 day';
   return `${days} days`;
 }
+
+// ============================================================================
+// DATE TRACKING UTILITIES
+// ============================================================================
+
+export interface AchievementWithDate extends EarnedAchievement {
+  formattedDate: string;
+  relativeDate: string;
+}
+
+export interface AchievementTimeline {
+  date: string;
+  formattedDate: string;
+  achievements: EarnedAchievement[];
+  count: number;
+}
+
+export interface EarnedDateInfo {
+  earnedAt: number;
+  formattedDate: string;
+  relativeDate: string;
+  daysSinceEarned: number;
+  isToday: boolean;
+  isThisWeek: boolean;
+  isThisMonth: boolean;
+}
+
+/**
+ * Gets detailed earned date information for an achievement.
+ */
+export function getEarnedDateInfo(earnedAt: number): EarnedDateInfo {
+  const now = Date.now();
+  const diff = now - earnedAt;
+  const daysSinceEarned = Math.floor(diff / (24 * 60 * 60 * 1000));
+
+  const earnedDate = new Date(earnedAt);
+  const today = new Date();
+
+  // Check if earned today
+  const isToday =
+    earnedDate.getFullYear() === today.getFullYear() &&
+    earnedDate.getMonth() === today.getMonth() &&
+    earnedDate.getDate() === today.getDate();
+
+  // Check if earned this week (within last 7 days)
+  const isThisWeek = daysSinceEarned < 7;
+
+  // Check if earned this month
+  const isThisMonth =
+    earnedDate.getFullYear() === today.getFullYear() &&
+    earnedDate.getMonth() === today.getMonth();
+
+  return {
+    earnedAt,
+    formattedDate: formatEarnedDate(earnedAt),
+    relativeDate: formatEarnedDateRelative(earnedAt),
+    daysSinceEarned,
+    isToday,
+    isThisWeek,
+    isThisMonth,
+  };
+}
+
+/**
+ * Enriches achievements with date information.
+ */
+export function enrichAchievementsWithDates(
+  achievements: EarnedAchievement[]
+): AchievementWithDate[] {
+  return achievements.map((achievement) => ({
+    ...achievement,
+    formattedDate: formatEarnedDate(achievement.earnedAt),
+    relativeDate: formatEarnedDateRelative(achievement.earnedAt),
+  }));
+}
+
+/**
+ * Groups achievements by the date they were earned.
+ * Returns an array of date groups sorted by date descending (newest first).
+ */
+export function groupAchievementsByDate(
+  achievements: EarnedAchievement[]
+): AchievementTimeline[] {
+  // Group by date string (YYYY-MM-DD)
+  const byDate = new Map<string, EarnedAchievement[]>();
+
+  for (const achievement of achievements) {
+    const dateStr = new Date(achievement.earnedAt).toISOString().split('T')[0];
+    if (!byDate.has(dateStr)) {
+      byDate.set(dateStr, []);
+    }
+    byDate.get(dateStr)!.push(achievement);
+  }
+
+  // Convert to array and sort by date descending
+  const timeline: AchievementTimeline[] = Array.from(byDate.entries())
+    .map(([date, dateAchievements]) => ({
+      date,
+      formattedDate: formatEarnedDate(dateAchievements[0].earnedAt),
+      achievements: dateAchievements.sort((a, b) => b.earnedAt - a.earnedAt),
+      count: dateAchievements.length,
+    }))
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  return timeline;
+}
+
+/**
+ * Gets achievements earned within a specific date range.
+ */
+export function filterAchievementsByDateRange(
+  achievements: EarnedAchievement[],
+  startDate: Date,
+  endDate: Date
+): EarnedAchievement[] {
+  const startTs = startDate.getTime();
+  const endTs = endDate.getTime();
+
+  return achievements.filter(
+    (a) => a.earnedAt >= startTs && a.earnedAt <= endTs
+  );
+}
+
+/**
+ * Gets achievements earned in the last N days.
+ */
+export function getRecentAchievements(
+  achievements: EarnedAchievement[],
+  days: number
+): EarnedAchievement[] {
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  return achievements
+    .filter((a) => a.earnedAt >= cutoff)
+    .sort((a, b) => b.earnedAt - a.earnedAt);
+}
+
+/**
+ * Gets the most recently earned achievement.
+ */
+export function getMostRecentAchievement(
+  achievements: EarnedAchievement[]
+): EarnedAchievement | null {
+  if (achievements.length === 0) return null;
+
+  return achievements.reduce((most, current) =>
+    current.earnedAt > most.earnedAt ? current : most
+  );
+}
+
+/**
+ * Gets the first (oldest) earned achievement.
+ */
+export function getFirstEarnedAchievement(
+  achievements: EarnedAchievement[]
+): EarnedAchievement | null {
+  if (achievements.length === 0) return null;
+
+  return achievements.reduce((first, current) =>
+    current.earnedAt < first.earnedAt ? current : first
+  );
+}
+
+/**
+ * Gets achievements earned today.
+ */
+export function getAchievementsEarnedToday(
+  achievements: EarnedAchievement[]
+): EarnedAchievement[] {
+  const today = new Date();
+  const startOfDay = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  ).getTime();
+  const endOfDay = startOfDay + 24 * 60 * 60 * 1000 - 1;
+
+  return achievements.filter(
+    (a) => a.earnedAt >= startOfDay && a.earnedAt <= endOfDay
+  );
+}
+
+/**
+ * Gets achievements earned this week (last 7 days).
+ */
+export function getAchievementsEarnedThisWeek(
+  achievements: EarnedAchievement[]
+): EarnedAchievement[] {
+  return getRecentAchievements(achievements, 7);
+}
+
+/**
+ * Gets achievements earned this month.
+ */
+export function getAchievementsEarnedThisMonth(
+  achievements: EarnedAchievement[]
+): EarnedAchievement[] {
+  const today = new Date();
+  const startOfMonth = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1
+  ).getTime();
+
+  return achievements
+    .filter((a) => a.earnedAt >= startOfMonth)
+    .sort((a, b) => b.earnedAt - a.earnedAt);
+}
+
+/**
+ * Calculates the average time between achievements (in days).
+ * Returns null if there are fewer than 2 achievements.
+ */
+export function getAverageTimeBetweenAchievements(
+  achievements: EarnedAchievement[]
+): number | null {
+  if (achievements.length < 2) return null;
+
+  const sorted = [...achievements].sort((a, b) => a.earnedAt - b.earnedAt);
+  let totalDiff = 0;
+
+  for (let i = 1; i < sorted.length; i++) {
+    totalDiff += sorted[i].earnedAt - sorted[i - 1].earnedAt;
+  }
+
+  const avgMs = totalDiff / (sorted.length - 1);
+  return Math.round(avgMs / (24 * 60 * 60 * 1000) * 10) / 10; // Round to 1 decimal
+}
+
+/**
+ * Gets achievement earning statistics.
+ */
+export interface AchievementDateStats {
+  totalAchievements: number;
+  firstEarnedDate: string | null;
+  mostRecentDate: string | null;
+  achievementsToday: number;
+  achievementsThisWeek: number;
+  achievementsThisMonth: number;
+  averageDaysBetween: number | null;
+  uniqueDaysWithAchievements: number;
+}
+
+export function getAchievementDateStats(
+  achievements: EarnedAchievement[]
+): AchievementDateStats {
+  const first = getFirstEarnedAchievement(achievements);
+  const mostRecent = getMostRecentAchievement(achievements);
+  const today = getAchievementsEarnedToday(achievements);
+  const thisWeek = getAchievementsEarnedThisWeek(achievements);
+  const thisMonth = getAchievementsEarnedThisMonth(achievements);
+  const avgDays = getAverageTimeBetweenAchievements(achievements);
+
+  // Count unique days
+  const uniqueDays = new Set<string>();
+  for (const a of achievements) {
+    const dateStr = new Date(a.earnedAt).toISOString().split('T')[0];
+    uniqueDays.add(dateStr);
+  }
+
+  return {
+    totalAchievements: achievements.length,
+    firstEarnedDate: first ? formatEarnedDate(first.earnedAt) : null,
+    mostRecentDate: mostRecent ? formatEarnedDate(mostRecent.earnedAt) : null,
+    achievementsToday: today.length,
+    achievementsThisWeek: thisWeek.length,
+    achievementsThisMonth: thisMonth.length,
+    averageDaysBetween: avgDays,
+    uniqueDaysWithAchievements: uniqueDays.size,
+  };
+}
+
+/**
+ * Formats a date range for display (e.g., "Jan 1 - Jan 15, 2026").
+ */
+export function formatDateRange(startTs: number, endTs: number): string {
+  const start = new Date(startTs);
+  const end = new Date(endTs);
+
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const sameMonth = sameYear && start.getMonth() === end.getMonth();
+
+  if (sameMonth) {
+    // Same month: "Jan 1-15, 2026"
+    return `${start.toLocaleDateString('en-US', { month: 'short' })} ${start.getDate()}-${end.getDate()}, ${end.getFullYear()}`;
+  } else if (sameYear) {
+    // Same year: "Jan 1 - Feb 15, 2026"
+    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${end.getFullYear()}`;
+  } else {
+    // Different years: "Dec 1, 2025 - Jan 15, 2026"
+    return `${formatEarnedDate(startTs)} - ${formatEarnedDate(endTs)}`;
+  }
+}
+
+/**
+ * Gets the date string (YYYY-MM-DD) from a timestamp.
+ */
+export function getDateString(timestamp: number): string {
+  return new Date(timestamp).toISOString().split('T')[0];
+}
+
+/**
+ * Checks if two timestamps are on the same day.
+ */
+export function isSameDay(ts1: number, ts2: number): boolean {
+  return getDateString(ts1) === getDateString(ts2);
+}
+
+/**
+ * Gets the number of days since an achievement was earned.
+ */
+export function getDaysSinceEarned(earnedAt: number): number {
+  const diff = Date.now() - earnedAt;
+  return Math.floor(diff / (24 * 60 * 60 * 1000));
+}
+
+/**
+ * Checks if an achievement was earned recently (within specified days).
+ */
+export function wasEarnedRecently(earnedAt: number, withinDays: number): boolean {
+  return getDaysSinceEarned(earnedAt) <= withinDays;
+}

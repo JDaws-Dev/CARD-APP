@@ -38,8 +38,8 @@
 - [x] Create collector milestone badge awarding (trigger on card count thresholds)
 - [x] Build type specialist badge logic (count cards by type, award at 10+)
 - [x] Add Pokemon fan badge logic (count specific Pokemon across sets)
-- [ ] Implement streak tracking system (track daily activity, award streak badges)
-- [ ] Add badge earned date tracking to schema and mutations
+- [x] Implement streak tracking system (track daily activity, award streak badges)
+- [x] Add badge earned date tracking to schema and mutations
 
 ### Wishlist & Sharing
 
@@ -270,3 +270,82 @@
   - Progressive badge collection journey integration test
   - Mewtwo/Legendary overlap handling test
 - All 630 tests pass, linter clean
+
+### 2026-01-16: Implement streak tracking system (track daily activity, award streak badges)
+- Added `checkStreakAchievements` mutation to `convex/achievements.ts`:
+  - Calculates streak from card_added activity logs (last 60 days)
+  - Awards badges at streak thresholds: streak_3 (3 days), streak_7 (7 days), streak_14 (14 days), streak_30 (30 days)
+  - Uses `calculateStreakFromDates` helper to compute current streak, longest streak, isActiveToday
+  - Logs `achievement_earned` activity with badge name, streak days, and threshold
+  - Returns awarded badges, streak info, and next badge progress
+- Added `getStreakProgress` query for UI display:
+  - Returns current streak, longest streak, isActiveToday, lastActiveDate
+  - Shows progress for all 4 streak badges with earned status and earnedAt timestamp
+  - Includes current and next badge info with days needed
+  - Returns activity dates array for calendar display
+  - Returns summary stats: totalStreakBadgesEarned, totalStreakBadgesAvailable
+- Added streak badge utilities to `src/lib/achievements.ts`:
+  - `STREAK_BADGE_DEFINITIONS`: Badge keys, names, and thresholds constant
+  - `getStreakBadgesToAward`: Determine badges to award (excludes already earned)
+  - `getStreakProgressSummary`: Full progress summary for UI
+  - `getStreakBadgeDefinition`: Get single badge definition by key
+  - `getCurrentStreakTitle`: Get friendly name for current level (e.g., "Week Warrior")
+  - `daysNeededForStreakBadge`, `getStreakPercentProgress`: Progress helpers
+  - `hasStreakBadgeBeenEarned`, `getAllEarnedStreakKeys`, `countEarnedStreakBadges`
+  - `getNextStreakBadge`, `getStreakBadgeThresholds`: Badge navigation helpers
+  - `isStreakActive`: Check if streak is still active (today or yesterday)
+  - `getStreakStatusMessage`: Get motivational message based on streak state
+  - `formatStreakCount`: Format streak count for display ("7 days", "1 day")
+- Added 82 tests in `src/lib/__tests__/achievements.test.ts` covering:
+  - STREAK_BADGE_DEFINITIONS constant validation
+  - getStreakBadgesToAward logic (all thresholds, exclusions)
+  - getStreakProgressSummary (progress tracking, current/longest streak)
+  - All individual utility functions
+  - isStreakActive with today/yesterday/older dates
+  - getStreakStatusMessage for various streak states
+  - Streak building journey integration test
+  - Edge cases: exactly at threshold, one below, very long streaks
+- All 700 tests pass, linter clean
+
+### 2026-01-16: Add badge earned date tracking to schema and mutations
+- Added new Convex queries to `convex/achievements.ts`:
+  - `getAchievementsWithDates`: Returns all achievements sorted by earnedAt (newest first) with enriched data
+    - Includes formatted date (e.g., "Jan 15, 2026") and relative date (e.g., "2 days ago")
+    - Includes badge info (name, description, icon, color) from ACHIEVEMENT_DEFINITIONS
+    - Groups by category for summary stats
+  - `getRecentlyEarnedAchievements`: Get achievements earned in last N days (configurable)
+    - Supports limit and sinceDays parameters
+    - Useful for notifications and celebration displays
+  - `getAchievementEarnedDate`: Get the earned date for a specific achievement key
+    - Returns null if not earned, or earnedAt with formatted/relative dates
+  - `getAchievementTimeline`: Returns achievements grouped by date for history view
+    - Groups by date string (YYYY-MM-DD), sorted newest first
+    - Returns timeline array with date, formattedDate, achievements, and count
+    - Includes firstEarnedDate and mostRecentDate summary
+  - Added helper functions: `formatDateForDisplay`, `formatRelativeDate`, `groupByCategory`
+- Added date tracking utilities to `src/lib/achievements.ts`:
+  - Types: `AchievementWithDate`, `AchievementTimeline`, `EarnedDateInfo`, `AchievementDateStats`
+  - `getEarnedDateInfo`: Get detailed info about earned date (isToday, isThisWeek, isThisMonth, daysSinceEarned)
+  - `enrichAchievementsWithDates`: Add formatted and relative dates to achievement list
+  - `groupAchievementsByDate`: Group achievements by date for timeline display
+  - `filterAchievementsByDateRange`: Filter achievements within a date range
+  - `getRecentAchievements`: Get achievements from last N days
+  - `getMostRecentAchievement`, `getFirstEarnedAchievement`: Find oldest/newest
+  - `getAchievementsEarnedToday`, `getAchievementsEarnedThisWeek`, `getAchievementsEarnedThisMonth`
+  - `getAverageTimeBetweenAchievements`: Calculate avg days between badge earns
+  - `getAchievementDateStats`: Comprehensive stats (total, first/most recent dates, counts by period)
+  - `formatDateRange`: Format date ranges for display (handles same month, same year, different years)
+  - `getDateString`, `isSameDay`, `getDaysSinceEarned`, `wasEarnedRecently`: Utility helpers
+- Added 53 tests in `src/lib/__tests__/achievements.test.ts` covering:
+  - getEarnedDateInfo with various time offsets (now, 1 hour, 1 day, 2 weeks, 1 month)
+  - enrichAchievementsWithDates output
+  - groupAchievementsByDate grouping and sorting
+  - filterAchievementsByDateRange with various ranges
+  - getRecentAchievements filtering and sorting
+  - getMostRecentAchievement and getFirstEarnedAchievement edge cases
+  - getAchievementsEarnedToday, getAchievementsEarnedThisWeek, getAchievementsEarnedThisMonth
+  - getAverageTimeBetweenAchievements calculation
+  - getAchievementDateStats comprehensive stats
+  - formatDateRange for same month, same year, different year scenarios
+  - getDateString, isSameDay, getDaysSinceEarned, wasEarnedRecently utilities
+- All 737 tests pass, linter clean
