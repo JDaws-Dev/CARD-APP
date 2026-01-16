@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
@@ -8,6 +7,8 @@ import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { cn } from '@/lib/utils';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import type { Id } from '../../../convex/_generated/dataModel';
+import { HeartIcon } from '@heroicons/react/24/outline';
+import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 
 interface CardGridProps {
   cards: PokemonCard[];
@@ -22,15 +23,29 @@ export function CardGrid({ cards, setId }: CardGridProps) {
     api.collections.getCollectionBySet,
     profileId ? { profileId: profileId as Id<'profiles'>, setId } : 'skip'
   );
+  const wishlist = useQuery(
+    api.wishlist.getWishlist,
+    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+  );
   const addCard = useMutation(api.collections.addCard);
   const removeCard = useMutation(api.collections.removeCard);
   const updateQuantity = useMutation(api.collections.updateQuantity);
+  const addToWishlist = useMutation(api.wishlist.addToWishlist);
+  const removeFromWishlist = useMutation(api.wishlist.removeFromWishlist);
 
   // Build a map of owned cards for quick lookup
   const ownedCards = new Map<string, number>();
   if (collection) {
     collection.forEach((card) => {
       ownedCards.set(card.cardId, card.quantity);
+    });
+  }
+
+  // Build a set of wishlisted card IDs for quick lookup
+  const wishlistedCards = new Set<string>();
+  if (wishlist) {
+    wishlist.forEach((item) => {
+      wishlistedCards.add(item.cardId);
     });
   }
 
@@ -41,6 +56,17 @@ export function CardGrid({ cards, setId }: CardGridProps) {
       await removeCard({ profileId: profileId as Id<'profiles'>, cardId });
     } else {
       await addCard({ profileId: profileId as Id<'profiles'>, cardId });
+    }
+  };
+
+  const handleToggleWishlist = async (cardId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!profileId) return;
+
+    if (wishlistedCards.has(cardId)) {
+      await removeFromWishlist({ profileId: profileId as Id<'profiles'>, cardId });
+    } else {
+      await addToWishlist({ profileId: profileId as Id<'profiles'>, cardId });
     }
   };
 
@@ -70,7 +96,7 @@ export function CardGrid({ cards, setId }: CardGridProps) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="mb-4 text-4xl animate-bounce">🎴</div>
+          <div className="mb-4 animate-bounce text-4xl">🎴</div>
           <p className="text-gray-500">Loading your collection...</p>
         </div>
       </div>
@@ -102,7 +128,13 @@ export function CardGrid({ cards, setId }: CardGridProps) {
         {progressPercent >= 25 && (
           <div className="flex items-center gap-2">
             <span className="text-xl">
-              {progressPercent >= 100 ? '👑' : progressPercent >= 75 ? '🏆' : progressPercent >= 50 ? '🗺️' : '🧭'}
+              {progressPercent >= 100
+                ? '👑'
+                : progressPercent >= 75
+                  ? '🏆'
+                  : progressPercent >= 50
+                    ? '🗺️'
+                    : '🧭'}
             </span>
             <span className="text-sm font-medium text-gray-600">
               {progressPercent >= 100
@@ -122,6 +154,7 @@ export function CardGrid({ cards, setId }: CardGridProps) {
         {cards.map((card) => {
           const isOwned = ownedCards.has(card.id);
           const quantity = ownedCards.get(card.id) || 0;
+          const isWishlisted = wishlistedCards.has(card.id);
 
           return (
             <div
@@ -148,7 +181,12 @@ export function CardGrid({ cards, setId }: CardGridProps) {
                 {isOwned && (
                   <div className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-kid-success text-white shadow-md">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   </div>
                 )}
@@ -159,6 +197,24 @@ export function CardGrid({ cards, setId }: CardGridProps) {
                     x{quantity}
                   </div>
                 )}
+
+                {/* Wishlist Heart Button */}
+                <button
+                  className={cn(
+                    'absolute bottom-1 right-1 flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all',
+                    isWishlisted
+                      ? 'bg-rose-500 text-white'
+                      : 'bg-white/90 text-gray-400 opacity-0 hover:bg-white hover:text-rose-500 group-hover:opacity-100'
+                  )}
+                  onClick={(e) => handleToggleWishlist(card.id, e)}
+                  aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                >
+                  {isWishlisted ? (
+                    <HeartIconSolid className="h-4 w-4" />
+                  ) : (
+                    <HeartIcon className="h-4 w-4" />
+                  )}
+                </button>
               </div>
 
               {/* Card Info */}
