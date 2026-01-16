@@ -21,8 +21,8 @@
 - [x] Build quantity tracking with +/- controls for duplicates
 - [x] Add progress bar component showing X of Y cards collected
 - [x] Implement set completion percentage display
-- [ ] Connect card tracking to Convex backend (persist data)
-- [ ] Create "My Collection" view aggregating all owned cards
+- [x] Connect card tracking to Convex backend (persist data)
+- [x] Create "My Collection" view aggregating all owned cards
 - [ ] Add search functionality for finding Pokemon by name
 - [ ] Create filter system (by set, type, Pokemon)
 
@@ -81,7 +81,9 @@
 ## Progress
 
 ### 2026-01-15 - Initial Project Setup
+
 **Completed tasks:**
+
 - Initialized Next.js 14 project with TypeScript, Tailwind CSS, and App Router
 - Created comprehensive Prisma schema with all required models (families, profiles, collection_cards, wishlist_cards, achievements, activity_logs, cached_sets, cached_cards)
 - Set up Pokemon TCG API integration with typed client (`src/lib/pokemon-tcg.ts`)
@@ -92,6 +94,7 @@
 - Initialized git repository with initial commit
 
 **Files created:**
+
 - `package.json` - Dependencies and scripts
 - `prisma/schema.prisma` - Database schema
 - `src/app/` - Next.js App Router pages
@@ -104,7 +107,9 @@
 **Next steps:** Implement authentication system with Supabase Auth
 
 ### 2026-01-15 - Switched to Convex
+
 **Completed tasks:**
+
 - Migrated from Prisma/PostgreSQL to Convex backend
 - Created Convex schema with all tables
 - Implemented Convex functions: collections.ts, wishlist.ts, profiles.ts, achievements.ts
@@ -112,6 +117,7 @@
 - Deployed to Convex cloud (pokemon-project)
 
 **Files created/modified:**
+
 - `convex/schema.ts` - Database schema
 - `convex/collections.ts` - Card collection mutations/queries
 - `convex/wishlist.ts` - Wishlist management
@@ -120,3 +126,25 @@
 - `src/components/providers/ConvexClientProvider.tsx` - React provider
 
 **Next steps:** Build set browser page with grid view
+
+### 2026-01-15 - My Collection View
+
+**Completed tasks:**
+
+- Created "My Collection" page at `/collection` aggregating all owned cards
+- Built CollectionView component that fetches and displays cards grouped by set
+- Added API route `/api/cards` for batch fetching cards by ID from Pokemon TCG API
+- Implemented `getCardsByIds` utility with batching support (50 cards per request)
+- Added collection stats display (total cards, unique cards, sets started)
+- Wrote unit tests for API route and utility function (9 tests passing)
+- Added "My Collection" link to home page navigation
+
+**Files created:**
+
+- `src/app/collection/page.tsx` - My Collection page
+- `src/components/collection/CollectionView.tsx` - Collection display component
+- `src/app/api/cards/route.ts` - API route for batch card fetching
+- `src/app/api/cards/__tests__/route.test.ts` - API route tests
+- `src/lib/__tests__/pokemon-tcg.test.ts` - Pokemon TCG utility tests
+
+**Next steps:** Add search functionality for finding Pokemon by name

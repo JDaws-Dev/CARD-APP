@@ -23,6 +23,13 @@ export default function Home() {
             Start Collecting
           </Link>
 
+          <Link
+            href="/collection"
+            className="touch-target rounded-full border-2 border-kid-secondary bg-white px-8 py-4 text-lg font-semibold text-kid-secondary shadow-lg transition hover:bg-kid-secondary/10 hover:shadow-xl"
+          >
+            My Collection
+          </Link>
+
           <button className="touch-target rounded-full border-2 border-kid-primary px-8 py-4 text-lg font-semibold text-kid-primary transition hover:bg-kid-primary/10">
             Parent Login
           </button>

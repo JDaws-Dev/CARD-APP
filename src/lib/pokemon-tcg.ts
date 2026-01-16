@@ -142,3 +142,35 @@ export async function searchCards(name: string, limit = 20): Promise<PokemonCard
   );
   return response.data;
 }
+
+/**
+ * Get multiple cards by their IDs
+ * Note: Pokemon TCG API supports OR queries with multiple card IDs
+ */
+export async function getCardsByIds(cardIds: string[]): Promise<PokemonCard[]> {
+  if (cardIds.length === 0) return [];
+
+  // API has a limit on query length, so batch in groups of 50
+  const batchSize = 50;
+  const batches: string[][] = [];
+
+  for (let i = 0; i < cardIds.length; i += batchSize) {
+    batches.push(cardIds.slice(i, i + batchSize));
+  }
+
+  const results: PokemonCard[] = [];
+
+  for (const batch of batches) {
+    // Build OR query: id:sv1-1 OR id:sv1-2 OR ...
+    const query = batch.map((id) => `id:${id}`).join(' OR ');
+    const encodedQuery = encodeURIComponent(query);
+
+    const response = await fetchFromAPI<APIResponse<PokemonCard[]>>(
+      `/cards?q=${encodedQuery}&pageSize=${batchSize}`,
+      { cache: 'no-store' }
+    );
+    results.push(...response.data);
+  }
+
+  return results;
+}
