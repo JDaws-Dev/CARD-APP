@@ -29,6 +29,8 @@ export interface GraceDayState {
   usageHistory: GraceDayUsage[];
   /** Maximum grace days per week */
   maxPerWeek: number;
+  /** Whether weekend pause is enabled (streak doesn't require activity on weekends) */
+  weekendPauseEnabled: boolean;
 }
 
 export interface WeekInfo {
@@ -69,6 +71,7 @@ export const DEFAULT_GRACE_DAY_STATE: GraceDayState = {
   enabled: true,
   usageHistory: [],
   maxPerWeek: 1,
+  weekendPauseEnabled: false,
 };
 
 // ============================================================================
@@ -191,6 +194,38 @@ export function isNextDay(date1: string, date2: string): boolean {
  */
 export function getDayOfWeek(dateStr: string): number {
   return new Date(dateStr + 'T00:00:00').getDay();
+}
+
+/**
+ * Check if a date is a weekend (Saturday or Sunday)
+ */
+export function isWeekend(dateStr: string): boolean {
+  const dayOfWeek = getDayOfWeek(dateStr);
+  return dayOfWeek === 0 || dayOfWeek === 6; // Sunday = 0, Saturday = 6
+}
+
+/**
+ * Get weekend info for display
+ */
+export function getWeekendDayName(dateStr: string): string | null {
+  const dayOfWeek = getDayOfWeek(dateStr);
+  if (dayOfWeek === 0) return 'Sunday';
+  if (dayOfWeek === 6) return 'Saturday';
+  return null;
+}
+
+/**
+ * Check if today is a weekend
+ */
+export function isTodayWeekend(): boolean {
+  return isWeekend(getToday());
+}
+
+/**
+ * Check if a date should be skipped due to weekend pause
+ */
+export function isWeekendPaused(dateStr: string, weekendPauseEnabled: boolean): boolean {
+  return weekendPauseEnabled && isWeekend(dateStr);
 }
 
 // ============================================================================
@@ -513,6 +548,8 @@ export function loadGraceDayState(): GraceDayState {
       enabled: typeof parsed.enabled === 'boolean' ? parsed.enabled : true,
       usageHistory: Array.isArray(parsed.usageHistory) ? parsed.usageHistory : [],
       maxPerWeek: typeof parsed.maxPerWeek === 'number' ? parsed.maxPerWeek : 1,
+      weekendPauseEnabled:
+        typeof parsed.weekendPauseEnabled === 'boolean' ? parsed.weekendPauseEnabled : false,
     };
   } catch (error) {
     console.error('Failed to load grace day state:', error);
@@ -579,4 +616,47 @@ export function getGraceDayColorClass(availability: GraceDayAvailability): strin
     return 'text-emerald-600';
   }
   return 'text-amber-600';
+}
+
+// ============================================================================
+// WEEKEND PAUSE DISPLAY HELPERS
+// ============================================================================
+
+/**
+ * Get description of weekend pause feature
+ */
+export function getWeekendPauseDescription(): string {
+  return 'Pause your streak requirements on weekends. Saturday and Sunday won\'t count toward your streak, but won\'t break it either!';
+}
+
+/**
+ * Get tooltip text for weekend pause toggle
+ */
+export function getWeekendPauseTooltip(enabled: boolean): string {
+  if (enabled) {
+    return 'Weekend pause is ON: Your streak is protected on Saturday and Sunday. You can still add cards, but missing these days won\'t break your streak.';
+  }
+  return 'Weekend pause is OFF: Weekends count toward your streak like any other day. Enable this to take weekends off without losing your streak!';
+}
+
+/**
+ * Get aria-label for weekend pause status
+ */
+export function getWeekendPauseAriaLabel(enabled: boolean): string {
+  return `Weekend pause: ${enabled ? 'Enabled - streak requirements are paused on weekends' : 'Disabled - weekends count toward streak'}`;
+}
+
+/**
+ * Get status message for weekend pause
+ */
+export function getWeekendPauseStatus(enabled: boolean): string {
+  const todayIsWeekend = isTodayWeekend();
+  if (enabled) {
+    if (todayIsWeekend) {
+      const dayName = getWeekendDayName(getToday());
+      return `Active today (${dayName}) - enjoy your break!`;
+    }
+    return 'Streak paused on weekends';
+  }
+  return 'Weekends count toward streak';
 }

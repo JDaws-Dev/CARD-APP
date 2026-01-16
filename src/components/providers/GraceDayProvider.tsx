@@ -12,6 +12,8 @@ import {
   canProtectStreakGap,
   consumeGraceDay,
   getToday,
+  isWeekendPaused,
+  isTodayWeekend,
 } from '@/lib/graceDays';
 
 // ============================================================================
@@ -23,6 +25,10 @@ interface GraceDayContextType {
   state: GraceDayState;
   /** Whether grace day protection is enabled */
   isEnabled: boolean;
+  /** Whether weekend pause is enabled */
+  isWeekendPauseEnabled: boolean;
+  /** Whether today is a weekend and pause is active */
+  isWeekendPausedToday: boolean;
   /** Whether the context is initialized */
   isInitialized: boolean;
   /** Current availability status */
@@ -37,6 +43,12 @@ interface GraceDayContextType {
   disable: () => void;
   /** Toggle grace day protection */
   toggle: () => void;
+  /** Enable weekend pause */
+  enableWeekendPause: () => void;
+  /** Disable weekend pause */
+  disableWeekendPause: () => void;
+  /** Toggle weekend pause */
+  toggleWeekendPause: () => void;
   /** Check if a streak gap can be protected */
   checkProtection: (lastActivityDate: string) => {
     canProtect: boolean;
@@ -47,6 +59,8 @@ interface GraceDayContextType {
   protectStreak: (missedDate: string, currentStreak: number) => void;
   /** Check if a specific date was protected */
   isDateProtected: (dateStr: string) => boolean;
+  /** Check if a date is weekend paused */
+  isDateWeekendPaused: (dateStr: string) => boolean;
 }
 
 const GraceDayContext = createContext<GraceDayContextType | null>(null);
@@ -66,12 +80,17 @@ export function useGraceDay() {
     return {
       state: DEFAULT_GRACE_DAY_STATE,
       isEnabled: true,
+      isWeekendPauseEnabled: false,
+      isWeekendPausedToday: false,
       isInitialized: false,
       availability: defaultAvailability,
       usageHistory: [],
       enable: () => {},
       disable: () => {},
       toggle: () => {},
+      enableWeekendPause: () => {},
+      disableWeekendPause: () => {},
+      toggleWeekendPause: () => {},
       checkProtection: () => ({
         canProtect: false,
         missedDate: null,
@@ -79,6 +98,7 @@ export function useGraceDay() {
       }),
       protectStreak: () => {},
       isDateProtected: () => false,
+      isDateWeekendPaused: () => false,
     };
   }
   return context;
@@ -124,6 +144,25 @@ export function GraceDayProvider({ children }: GraceDayProviderProps) {
     setState((prev) => ({ ...prev, enabled: !prev.enabled }));
   }, []);
 
+  const enableWeekendPause = useCallback(() => {
+    setState((prev) => ({ ...prev, weekendPauseEnabled: true }));
+  }, []);
+
+  const disableWeekendPause = useCallback(() => {
+    setState((prev) => ({ ...prev, weekendPauseEnabled: false }));
+  }, []);
+
+  const toggleWeekendPause = useCallback(() => {
+    setState((prev) => ({ ...prev, weekendPauseEnabled: !prev.weekendPauseEnabled }));
+  }, []);
+
+  const isDateWeekendPaused = useCallback(
+    (dateStr: string) => {
+      return isWeekendPaused(dateStr, state.weekendPauseEnabled);
+    },
+    [state.weekendPauseEnabled]
+  );
+
   const checkProtection = useCallback(
     (lastActivityDate: string) => {
       return canProtectStreakGap(state, lastActivityDate);
@@ -147,15 +186,21 @@ export function GraceDayProvider({ children }: GraceDayProviderProps) {
       value={{
         state,
         isEnabled: state.enabled,
+        isWeekendPauseEnabled: state.weekendPauseEnabled,
+        isWeekendPausedToday: isWeekendPaused(getToday(), state.weekendPauseEnabled),
         isInitialized,
         availability,
         usageHistory: state.usageHistory,
         enable,
         disable,
         toggle,
+        enableWeekendPause,
+        disableWeekendPause,
+        toggleWeekendPause,
         checkProtection,
         protectStreak,
         isDateProtected,
+        isDateWeekendPaused,
       }}
     >
       {children}

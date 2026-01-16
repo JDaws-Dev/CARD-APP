@@ -2,7 +2,13 @@
 
 import { useMemo } from 'react';
 import { useGraceDay } from '@/components/providers/GraceDayProvider';
-import { ShieldCheckIcon, ShieldExclamationIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import {
+  ShieldCheckIcon,
+  ShieldExclamationIcon,
+  SparklesIcon,
+  CalendarIcon,
+  SunIcon,
+} from '@heroicons/react/24/solid';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -13,6 +19,11 @@ import {
   getGraceDayDescription,
   getWeekInfo,
   getToday,
+  getWeekendPauseDescription,
+  getWeekendPauseTooltip,
+  getWeekendPauseAriaLabel,
+  getWeekendPauseStatus,
+  isTodayWeekend,
 } from '@/lib/graceDays';
 
 // ============================================================================
@@ -270,6 +281,150 @@ export function GraceDayHistory({ limit = 5, className }: GraceDayHistoryProps) 
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+// ============================================================================
+// WEEKEND PAUSE SKELETON
+// ============================================================================
+
+export function WeekendPauseStatusSkeleton() {
+  return (
+    <div className="rounded-xl bg-white p-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-10 w-10 rounded-xl" />
+        <div className="flex-1">
+          <Skeleton className="mb-1 h-5 w-32" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        <Skeleton className="h-8 w-16 rounded-lg" />
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// WEEKEND PAUSE STATUS CARD
+// ============================================================================
+
+interface WeekendPauseStatusProps {
+  /** Whether to show the toggle control */
+  showToggle?: boolean;
+  /** Additional class name */
+  className?: string;
+}
+
+export function WeekendPauseStatus({ showToggle = true, className }: WeekendPauseStatusProps) {
+  const { isInitialized, isWeekendPauseEnabled, toggleWeekendPause } = useGraceDay();
+
+  if (!isInitialized) {
+    return <WeekendPauseStatusSkeleton />;
+  }
+
+  const statusText = getWeekendPauseStatus(isWeekendPauseEnabled);
+  const tooltip = getWeekendPauseTooltip(isWeekendPauseEnabled);
+  const description = getWeekendPauseDescription();
+  const ariaLabel = getWeekendPauseAriaLabel(isWeekendPauseEnabled);
+  const todayIsWeekend = isTodayWeekend();
+
+  return (
+    <div
+      className={cn(
+        'rounded-xl bg-white p-4 shadow-sm',
+        isWeekendPauseEnabled ? 'ring-1 ring-indigo-100' : 'ring-1 ring-gray-100',
+        className
+      )}
+      role="region"
+      aria-label={ariaLabel}
+    >
+      <div className="flex items-start gap-3">
+        {/* Icon */}
+        <div
+          className={cn(
+            'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-colors',
+            isWeekendPauseEnabled && todayIsWeekend
+              ? 'bg-gradient-to-br from-amber-400 to-orange-500'
+              : isWeekendPauseEnabled
+                ? 'bg-gradient-to-br from-indigo-400 to-purple-500'
+                : 'bg-gray-200'
+          )}
+        >
+          {isWeekendPauseEnabled ? (
+            todayIsWeekend ? (
+              <SunIcon className="h-5 w-5 text-white" aria-hidden="true" />
+            ) : (
+              <CalendarIcon className="h-5 w-5 text-white" aria-hidden="true" />
+            )
+          ) : (
+            <CalendarIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h4 className="font-semibold text-gray-800">Weekend Pause</h4>
+            {isWeekendPauseEnabled && todayIsWeekend && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                <SunIcon className="h-3 w-3" aria-hidden="true" />
+                Relaxing
+              </span>
+            )}
+            {isWeekendPauseEnabled && !todayIsWeekend && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                <SparklesIcon className="h-3 w-3" aria-hidden="true" />
+                Enabled
+              </span>
+            )}
+          </div>
+
+          <p className="mt-0.5 text-sm text-gray-600" title={tooltip}>
+            {statusText}
+          </p>
+
+          {/* Weekend days info */}
+          {isWeekendPauseEnabled && (
+            <p className="mt-1 text-xs text-gray-400">
+              Paused on Saturday &amp; Sunday
+            </p>
+          )}
+        </div>
+
+        {/* Toggle */}
+        {showToggle && (
+          <button
+            onClick={toggleWeekendPause}
+            className={cn(
+              'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+              isWeekendPauseEnabled
+                ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 focus-visible:ring-indigo-500'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 focus-visible:ring-gray-500'
+            )}
+            aria-pressed={isWeekendPauseEnabled}
+            aria-label={isWeekendPauseEnabled ? 'Disable weekend pause' : 'Enable weekend pause'}
+          >
+            {isWeekendPauseEnabled ? 'On' : 'Off'}
+          </button>
+        )}
+      </div>
+
+      {/* Info box */}
+      <div
+        className={cn(
+          'mt-3 flex items-start gap-2 rounded-lg p-2.5',
+          isWeekendPauseEnabled ? 'bg-indigo-50' : 'bg-gray-50'
+        )}
+      >
+        <InformationCircleIcon
+          className={cn(
+            'mt-0.5 h-4 w-4 flex-shrink-0',
+            isWeekendPauseEnabled ? 'text-indigo-500' : 'text-gray-400'
+          )}
+          aria-hidden="true"
+        />
+        <p className="text-xs text-gray-600">{description}</p>
+      </div>
     </div>
   );
 }

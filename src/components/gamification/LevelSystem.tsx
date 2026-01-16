@@ -487,6 +487,28 @@ export function useLevelUp() {
   return context;
 }
 
+// Helper to get/set last celebrated level from localStorage
+function getLastCelebratedLevel(profileId: string): number {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const key = `carddex_celebrated_level_${profileId}`;
+    const stored = localStorage.getItem(key);
+    return stored ? parseInt(stored, 10) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function setLastCelebratedLevel(profileId: string, level: number): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = `carddex_celebrated_level_${profileId}`;
+    localStorage.setItem(key, level.toString());
+  } catch {
+    // Ignore localStorage errors
+  }
+}
+
 export function LevelUpProvider({ children }: { children: ReactNode }) {
   const { profileId } = useCurrentProfile();
   const [notifications, setNotifications] = useState<XPNotification[]>([]);
@@ -495,7 +517,7 @@ export function LevelUpProvider({ children }: { children: ReactNode }) {
     title: string;
   } | null>(null);
   const notificationIdRef = useRef(0);
-  const previousLevelRef = useRef<number | null>(null);
+  const hasInitializedRef = useRef(false);
 
   const milestoneProgress = useQuery(
     api.achievements.getMilestoneProgress,
@@ -507,17 +529,33 @@ export function LevelUpProvider({ children }: { children: ReactNode }) {
     : 0;
   const levelInfo = getLevelFromXP(totalXP);
 
-  // Check for level up
+  // Check for level up - only celebrate levels we haven't celebrated before
+  // Only runs for authenticated users with a valid profile
   useEffect(() => {
-    if (previousLevelRef.current !== null && levelInfo.level > previousLevelRef.current) {
-      // Level up occurred!
+    // Don't run for unauthenticated users or when data isn't loaded
+    if (!profileId || milestoneProgress === undefined || milestoneProgress === null) return;
+
+    // Don't run if user has no cards (not really playing yet)
+    if (milestoneProgress.totalUniqueCards === 0) return;
+
+    const lastCelebrated = getLastCelebratedLevel(profileId);
+
+    // Only show celebration if current level is higher than last celebrated
+    // and we've initialized (to avoid celebrating on first load)
+    if (hasInitializedRef.current && levelInfo.level > lastCelebrated) {
       setLevelUpDisplay({
         level: levelInfo.level,
         title: levelInfo.title,
       });
+      setLastCelebratedLevel(profileId, levelInfo.level);
+    } else if (!hasInitializedRef.current) {
+      // On first load, just record current level without celebrating
+      if (levelInfo.level > lastCelebrated) {
+        setLastCelebratedLevel(profileId, levelInfo.level);
+      }
+      hasInitializedRef.current = true;
     }
-    previousLevelRef.current = levelInfo.level;
-  }, [levelInfo.level, levelInfo.title]);
+  }, [profileId, levelInfo.level, levelInfo.title, milestoneProgress]);
 
   const showXPGain = useCallback((amount: number, reason: string = 'Card added') => {
     const id = ++notificationIdRef.current;

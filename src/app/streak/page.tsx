@@ -8,7 +8,12 @@ import {
   StreakMilestoneRewards,
   StreakMilestoneRewardsSkeleton,
 } from '@/components/gamification/StreakMilestoneRewards';
-import { GraceDayStatus, GraceDayStatusSkeleton } from '@/components/gamification/GraceDayStatus';
+import {
+  GraceDayStatus,
+  GraceDayStatusSkeleton,
+  WeekendPauseStatus,
+  WeekendPauseStatusSkeleton,
+} from '@/components/gamification/GraceDayStatus';
 import { FireIcon, SparklesIcon, HomeIcon } from '@heroicons/react/24/solid';
 import {
   ArrowLeftIcon,
@@ -39,8 +44,9 @@ export default function StreakPage() {
           </div>
 
           <StreakCalendarSkeleton />
-          <div className="mt-6">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <GraceDayStatusSkeleton />
+            <WeekendPauseStatusSkeleton />
           </div>
           <div className="mt-6">
             <StreakMilestoneRewardsSkeleton />
@@ -133,9 +139,10 @@ export default function StreakPage() {
         {/* Streak Calendar */}
         <StreakCalendar days={30} showStats={true} showLegend={true} />
 
-        {/* Grace Day Protection Status */}
-        <div className="mt-6">
+        {/* Grace Day & Weekend Pause Protection */}
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <GraceDayStatus showToggle={true} />
+          <WeekendPauseStatus showToggle={true} />
         </div>
 
         {/* Streak Milestone Rewards */}
@@ -168,6 +175,13 @@ export default function StreakPage() {
               <div className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-teal-400" />
               <span>
                 Grace day protection gives you 1 free missed day per week - resets every Sunday!
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-indigo-400" />
+              <span>
+                Enable &ldquo;Weekend Pause&rdquo; to take Saturday and Sunday off without breaking
+                your streak!
               </span>
             </li>
             <li className="flex items-start gap-2">
