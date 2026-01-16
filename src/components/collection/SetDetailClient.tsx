@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import type { PokemonCard, PokemonSet } from '@/lib/pokemon-tcg';
-import { CardGrid } from './CardGrid';
+import { VirtualCardGrid } from './VirtualCardGrid';
 import {
   RarityFilter,
   getRarityCategory,
@@ -95,8 +95,8 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
         </div>
       )}
 
-      {/* Card Grid */}
-      <CardGrid cards={filteredCards} setId={set.id} setName={set.name} />
+      {/* Card Grid with Virtual Scrolling */}
+      <VirtualCardGrid cards={filteredCards} setId={set.id} setName={set.name} />
 
       {/* Just Pulled Mode Overlay */}
       {isJustPulledMode && (
