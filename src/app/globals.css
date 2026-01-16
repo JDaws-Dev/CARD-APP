@@ -188,3 +188,56 @@ body {
     animation: none !important;
   }
 }
+
+/* Print styles for export checklist */
+@media print {
+  /* Hide everything except the checklist content */
+  body > *:not(.print-container) {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+
+  /* Ensure checklist content is visible and properly styled */
+  .checklist-content {
+    display: block !important;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white;
+    color: black;
+  }
+
+  /* Page breaks */
+  .print\\:break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Remove shadows and decorative elements */
+  * {
+    box-shadow: none !important;
+  }
+
+  /* Ensure text is readable */
+  h1,
+  h2,
+  h3,
+  p,
+  span,
+  li {
+    color: black !important;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 0.75in;
+    size: letter;
+  }
+}
