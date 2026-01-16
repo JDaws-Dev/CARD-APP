@@ -22,6 +22,7 @@ import { StreakCounter } from '@/components/gamification/StreakCounter';
 import { LevelDisplay } from '@/components/gamification/LevelSystem';
 import { KidModeToggle } from '@/components/layout/KidModeToggle';
 import { DarkModeToggle } from '@/components/layout/DarkModeToggle';
+import { OfflineIndicator } from '@/components/layout/OfflineIndicator';
 
 // Custom card stack icon for logo (shared across all headers)
 function CardStackIcon({ className }: { className?: string }) {
@@ -116,10 +117,11 @@ export function AppHeader() {
           })}
         </div>
 
-        {/* Right side: Level, Streak, Kid Mode, Dark Mode, Profile Menu */}
+        {/* Right side: Level, Streak, Offline Status, Kid Mode, Dark Mode, Profile Menu */}
         <div className="hidden items-center gap-2 lg:flex">
           <LevelDisplay />
           <StreakCounter />
+          <OfflineIndicator />
           <KidModeToggle />
           <DarkModeToggle compact />
           <div className="h-6 w-px bg-gray-200 dark:bg-slate-600" aria-hidden="true" />
@@ -300,11 +302,12 @@ export function AppHeader() {
             )}
           </div>
 
-          {/* Mobile level, streak, kid mode, and dark mode */}
+          {/* Mobile level, streak, offline status, kid mode, and dark mode */}
           <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
-            <div className="mb-3 flex items-center justify-center gap-3">
+            <div className="mb-3 flex flex-wrap items-center justify-center gap-3">
               <LevelDisplay />
               <StreakCounter />
+              <OfflineIndicator />
               <KidModeToggle />
               <DarkModeToggle compact />
             </div>
