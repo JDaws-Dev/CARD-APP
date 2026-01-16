@@ -9,3 +9,5 @@ export {
   GameSelectorOnboardingModal,
   GameSelectorOnboardingSkeleton,
 } from './GameSelectorOnboarding';
+
+export { OnboardingFlow, OnboardingFlowSkeleton } from './OnboardingFlow';
