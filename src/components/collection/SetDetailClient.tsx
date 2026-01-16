@@ -9,6 +9,8 @@ import {
   RARITY_CATEGORIES,
   type RarityCategoryId,
 } from '@/components/filter/RarityFilter';
+import { JustPulledMode } from './JustPulledMode';
+import { BoltIcon } from '@heroicons/react/24/solid';
 
 interface SetDetailClientProps {
   set: PokemonSet;
@@ -17,6 +19,7 @@ interface SetDetailClientProps {
 
 export function SetDetailClient({ set, cards }: SetDetailClientProps) {
   const [selectedRarity, setSelectedRarity] = useState<RarityCategoryId | null>(null);
+  const [isJustPulledMode, setIsJustPulledMode] = useState(false);
 
   // Calculate rarity counts for the filter badges
   const rarityCounts = useMemo(() => {
@@ -48,6 +51,24 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
 
   return (
     <div className="space-y-6">
+      {/* Just Pulled Mode Button */}
+      <div className="flex items-center justify-between gap-4">
+        <button
+          onClick={() => setIsJustPulledMode(true)}
+          className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2.5 font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:shadow-xl hover:shadow-orange-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+          aria-label="Enter Just Pulled mode for quick card adding"
+        >
+          <BoltIcon
+            className="h-5 w-5 transition-transform group-hover:scale-110"
+            aria-hidden="true"
+          />
+          <span>Just Pulled</span>
+        </button>
+        <p className="hidden text-sm text-gray-500 sm:block">
+          Opened a pack? Tap cards rapid-fire to add them!
+        </p>
+      </div>
+
       {/* Rarity Filter */}
       <RarityFilter
         selectedRarity={selectedRarity}
@@ -76,6 +97,16 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
 
       {/* Card Grid */}
       <CardGrid cards={filteredCards} setId={set.id} setName={set.name} />
+
+      {/* Just Pulled Mode Overlay */}
+      {isJustPulledMode && (
+        <JustPulledMode
+          cards={cards}
+          setId={set.id}
+          setName={set.name}
+          onClose={() => setIsJustPulledMode(false)}
+        />
+      )}
     </div>
   );
 }
