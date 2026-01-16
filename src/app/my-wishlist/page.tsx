@@ -1,0 +1,524 @@
+'use client';
+
+import { useQuery, useMutation } from 'convex/react';
+import { useCurrentProfile } from '@/hooks/useCurrentProfile';
+import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { api } from '../../../convex/_generated/api';
+import {
+  HeartIcon,
+  StarIcon,
+  LinkIcon,
+  CheckIcon,
+  TrashIcon,
+  GiftIcon,
+  ArrowLeftIcon,
+  ShareIcon,
+  SparklesIcon,
+} from '@heroicons/react/24/solid';
+import {
+  HeartIcon as HeartIconOutline,
+  StarIcon as StarIconOutline,
+} from '@heroicons/react/24/outline';
+import type { Id } from '../../../convex/_generated/dataModel';
+import type { PokemonCard } from '@/lib/pokemon-tcg';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { cn } from '@/lib/utils';
+
+interface WishlistItem {
+  _id: Id<'wishlistCards'>;
+  cardId: string;
+  isPriority: boolean;
+}
+
+/**
+ * Skeleton loader for wishlist cards
+ */
+function WishlistCardSkeleton() {
+  return (
+    <div className="rounded-xl bg-white p-3 shadow-sm">
+      <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg">
+        <Skeleton className="h-full w-full" />
+      </div>
+      <div className="mt-3 space-y-2">
+        <Skeleton className="mx-auto h-4 w-3/4" />
+        <Skeleton className="mx-auto h-3 w-1/2" />
+      </div>
+      <div className="mt-3 flex justify-center gap-2">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <Skeleton className="h-8 w-8 rounded-full" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Skeleton loader for the entire wishlist page
+ */
+function WishlistPageSkeleton() {
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-rose-50 to-pink-50 px-4 py-8">
+      <div className="mx-auto max-w-6xl">
+        {/* Header skeleton */}
+        <div className="mb-8">
+          <Skeleton className="mb-4 h-4 w-24" />
+          <Skeleton className="mb-2 h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+
+        {/* Stats skeleton */}
+        <div className="mx-auto mb-8 flex max-w-md justify-center gap-8 rounded-xl bg-white p-4 shadow-sm">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="text-center">
+              <Skeleton className="mx-auto mb-2 h-10 w-12" />
+              <Skeleton className="mx-auto h-4 w-16" />
+            </div>
+          ))}
+        </div>
+
+        {/* Share link skeleton */}
+        <div className="mx-auto mb-8 max-w-lg rounded-xl bg-white p-4 shadow-sm">
+          <Skeleton className="mx-auto mb-2 h-5 w-32" />
+          <Skeleton className="mx-auto h-10 w-full rounded-full" />
+        </div>
+
+        {/* Cards grid skeleton */}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <WishlistCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    </main>
+  );
+}
+
+/**
+ * Empty state when wishlist has no cards
+ */
+function EmptyWishlist() {
+  return (
+    <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
+      <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-rose-100">
+        <HeartIconOutline className="h-10 w-10 text-rose-400" />
+      </div>
+      <h2 className="mb-2 text-xl font-bold text-gray-800">Your wishlist is empty</h2>
+      <p className="mb-6 text-gray-500">
+        Add cards you want by clicking the heart icon on any card while browsing sets.
+      </p>
+      <Link
+        href="/sets"
+        className="inline-flex items-center gap-2 rounded-full bg-kid-primary px-6 py-3 font-semibold text-white transition hover:bg-kid-primary/90"
+      >
+        Browse Sets
+      </Link>
+    </div>
+  );
+}
+
+/**
+ * Share link generator component
+ */
+function ShareLinkSection({ profileId }: { profileId: Id<'profiles'> }) {
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const createShareLink = useMutation(api.wishlist.createShareLink);
+
+  const handleGenerateLink = async () => {
+    setIsGenerating(true);
+    try {
+      const token = await createShareLink({ profileId, expiresInDays: 30 });
+      const url = `${window.location.origin}/wishlist/${token}`;
+      setShareUrl(url);
+    } catch (err) {
+      console.error('Failed to generate share link:', err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
+  };
+
+  return (
+    <div className="mx-auto mb-8 max-w-lg">
+      <div className="rounded-xl bg-gradient-to-r from-rose-100 to-pink-100 p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-center gap-2 text-rose-700">
+          <ShareIcon className="h-5 w-5" aria-hidden="true" />
+          <span className="font-medium">Share Your Wishlist</span>
+        </div>
+
+        {!shareUrl ? (
+          <button
+            onClick={handleGenerateLink}
+            disabled={isGenerating}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 px-6 py-3 font-semibold text-white transition hover:from-rose-600 hover:to-pink-600 disabled:opacity-50"
+            aria-label="Generate shareable wishlist link"
+          >
+            <LinkIcon className="h-5 w-5" aria-hidden="true" />
+            {isGenerating ? 'Generating...' : 'Generate Share Link'}
+          </button>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2">
+              <input
+                type="text"
+                value={shareUrl}
+                readOnly
+                className="flex-1 truncate bg-transparent text-sm text-gray-600 focus:outline-none"
+                aria-label="Shareable wishlist link"
+              />
+              <button
+                onClick={handleCopy}
+                className={cn(
+                  'flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition',
+                  copied
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                )}
+                aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}
+              >
+                {copied ? (
+                  <>
+                    <CheckIcon className="h-4 w-4" aria-hidden="true" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <LinkIcon className="h-4 w-4" aria-hidden="true" />
+                    Copy
+                  </>
+                )}
+              </button>
+            </div>
+            <p className="text-center text-xs text-rose-600">
+              Link expires in 30 days. Share with family and friends!
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Wishlist card component with management actions
+ */
+function WishlistCard({
+  item,
+  cardData,
+  profileId,
+  priorityCount,
+  maxPriority,
+}: {
+  item: WishlistItem;
+  cardData?: PokemonCard;
+  profileId: Id<'profiles'>;
+  priorityCount: number;
+  maxPriority: number;
+}) {
+  const removeFromWishlist = useMutation(api.wishlist.removeFromWishlist);
+  const togglePriority = useMutation(api.wishlist.togglePriority);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [isTogglingPriority, setIsTogglingPriority] = useState(false);
+
+  const handleRemove = async () => {
+    setIsRemoving(true);
+    try {
+      await removeFromWishlist({ profileId, cardId: item.cardId });
+    } catch (err) {
+      console.error('Failed to remove from wishlist:', err);
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
+  const handleTogglePriority = async () => {
+    setIsTogglingPriority(true);
+    try {
+      await togglePriority({ profileId, cardId: item.cardId });
+    } catch (err) {
+      console.error('Failed to toggle priority:', err);
+    } finally {
+      setIsTogglingPriority(false);
+    }
+  };
+
+  const canAddPriority = item.isPriority || priorityCount < maxPriority;
+
+  if (!cardData) {
+    return <WishlistCardSkeleton />;
+  }
+
+  return (
+    <div
+      className={cn(
+        'relative rounded-xl bg-white p-3 shadow-sm transition-all',
+        item.isPriority && 'ring-2 ring-amber-400 ring-offset-2'
+      )}
+    >
+      {/* Priority Star Badge */}
+      {item.isPriority && (
+        <div className="absolute -right-2 -top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-500 shadow-md">
+          <StarIcon className="h-5 w-5 text-white" aria-hidden="true" />
+        </div>
+      )}
+
+      {/* Card Image */}
+      <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg">
+        <Image
+          src={cardData.images.small}
+          alt={cardData.name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+          className="object-contain"
+        />
+      </div>
+
+      {/* Card Info */}
+      <div className="mt-3 text-center">
+        <p className="truncate text-sm font-medium text-gray-800">{cardData.name}</p>
+        <p className="truncate text-xs text-gray-500">{cardData.set.name}</p>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="mt-3 flex justify-center gap-2">
+        <button
+          onClick={handleTogglePriority}
+          disabled={isTogglingPriority || (!item.isPriority && !canAddPriority)}
+          className={cn(
+            'flex h-9 w-9 items-center justify-center rounded-full transition',
+            item.isPriority
+              ? 'bg-amber-100 text-amber-600 hover:bg-amber-200'
+              : canAddPriority
+                ? 'bg-gray-100 text-gray-400 hover:bg-amber-100 hover:text-amber-500'
+                : 'cursor-not-allowed bg-gray-50 text-gray-300'
+          )}
+          aria-label={item.isPriority ? 'Remove from most wanted' : 'Add to most wanted'}
+          title={
+            !canAddPriority && !item.isPriority
+              ? `Max ${maxPriority} priority items`
+              : item.isPriority
+                ? 'Remove from most wanted'
+                : 'Add to most wanted'
+          }
+        >
+          {item.isPriority ? (
+            <StarIcon className="h-5 w-5" aria-hidden="true" />
+          ) : (
+            <StarIconOutline className="h-5 w-5" aria-hidden="true" />
+          )}
+        </button>
+        <button
+          onClick={handleRemove}
+          disabled={isRemoving}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition hover:bg-rose-100 hover:text-rose-500"
+          aria-label="Remove from wishlist"
+        >
+          <TrashIcon className="h-5 w-5" aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * My Wishlist page
+ * Dedicated page to view all wishlisted cards, generate share link, manage priorities
+ */
+export default function MyWishlistPage() {
+  const { profileId, isLoading: profileLoading } = useCurrentProfile();
+
+  // Fetch wishlist data
+  const wishlist = useQuery(
+    api.wishlist.getWishlist,
+    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+  );
+
+  const priorityData = useQuery(
+    api.wishlist.getPriorityCount,
+    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+  );
+
+  // State for fetched card data
+  const [cardData, setCardData] = useState<Map<string, PokemonCard>>(new Map());
+  const [isLoadingCards, setIsLoadingCards] = useState(false);
+
+  // Fetch card details from API when wishlist loads
+  useEffect(() => {
+    if (!wishlist?.length) {
+      setIsLoadingCards(false);
+      return;
+    }
+
+    const fetchCardData = async () => {
+      setIsLoadingCards(true);
+      try {
+        const cardIds = wishlist.map((item) => item.cardId);
+        const response = await fetch('/api/cards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cardIds }),
+        });
+
+        if (response.ok) {
+          const cards: PokemonCard[] = await response.json();
+          const cardMap = new Map<string, PokemonCard>();
+          cards.forEach((card) => cardMap.set(card.id, card));
+          setCardData(cardMap);
+        }
+      } catch (err) {
+        console.error('Failed to fetch card data:', err);
+      } finally {
+        setIsLoadingCards(false);
+      }
+    };
+
+    fetchCardData();
+  }, [wishlist]);
+
+  // Loading state
+  if (profileLoading || wishlist === undefined || priorityData === undefined) {
+    return <WishlistPageSkeleton />;
+  }
+
+  // Sort wishlist: priority items first, then by card ID
+  const sortedWishlist = [...(wishlist || [])].sort((a, b) => {
+    if (a.isPriority && !b.isPriority) return -1;
+    if (!a.isPriority && b.isPriority) return 1;
+    return a.cardId.localeCompare(b.cardId);
+  });
+
+  const priorityCount = wishlist?.filter((item) => item.isPriority).length || 0;
+  const totalCount = wishlist?.length || 0;
+
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-rose-50 to-pink-50 px-4 py-8">
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="mb-8">
+          <Link
+            href="/collection"
+            className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
+          >
+            <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" />
+            Back to Collection
+          </Link>
+
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500 shadow-lg sm:h-16 sm:w-16">
+              <GiftIcon className="h-7 w-7 text-white sm:h-8 sm:w-8" aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">My Wishlist</h1>
+              <p className="text-sm text-gray-500 sm:text-base">
+                Cards you want to add to your collection
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="mx-auto mb-8 flex max-w-lg justify-center gap-4 rounded-xl bg-white p-4 shadow-sm sm:gap-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1">
+              <HeartIcon className="h-5 w-5 text-rose-500" aria-hidden="true" />
+              <span className="text-2xl font-bold text-gray-800">{totalCount}</span>
+            </div>
+            <p className="text-xs text-gray-500 sm:text-sm">Wanted Cards</p>
+          </div>
+          <div className="w-px bg-gray-200" aria-hidden="true" />
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1">
+              <StarIcon className="h-5 w-5 text-amber-400" aria-hidden="true" />
+              <span className="text-2xl font-bold text-gray-800">
+                {priorityCount}/{priorityData?.max || 5}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 sm:text-sm">Most Wanted</p>
+          </div>
+          <div className="w-px bg-gray-200" aria-hidden="true" />
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1">
+              <SparklesIcon className="h-5 w-5 text-purple-500" aria-hidden="true" />
+              <span className="text-2xl font-bold text-gray-800">
+                {priorityData?.remaining || 0}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 sm:text-sm">Stars Left</p>
+          </div>
+        </div>
+
+        {/* Share Link Section */}
+        {profileId && totalCount > 0 && (
+          <ShareLinkSection profileId={profileId as Id<'profiles'>} />
+        )}
+
+        {/* Wishlist Grid */}
+        {totalCount === 0 ? (
+          <EmptyWishlist />
+        ) : (
+          <>
+            {/* Priority Section */}
+            {priorityCount > 0 && (
+              <div className="mb-8">
+                <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-800">
+                  <StarIcon className="h-5 w-5 text-amber-400" aria-hidden="true" />
+                  Most Wanted
+                </h2>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                  {sortedWishlist
+                    .filter((item) => item.isPriority)
+                    .map((item) => (
+                      <WishlistCard
+                        key={item._id}
+                        item={item}
+                        cardData={isLoadingCards ? undefined : cardData.get(item.cardId)}
+                        profileId={profileId as Id<'profiles'>}
+                        priorityCount={priorityCount}
+                        maxPriority={priorityData?.max || 5}
+                      />
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* All Items Section */}
+            {totalCount > priorityCount && (
+              <div>
+                <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-800">
+                  <HeartIcon className="h-5 w-5 text-rose-500" aria-hidden="true" />
+                  {priorityCount > 0 ? 'Also Wanted' : 'Wishlist'}
+                </h2>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                  {sortedWishlist
+                    .filter((item) => !item.isPriority)
+                    .map((item) => (
+                      <WishlistCard
+                        key={item._id}
+                        item={item}
+                        cardData={isLoadingCards ? undefined : cardData.get(item.cardId)}
+                        profileId={profileId as Id<'profiles'>}
+                        priorityCount={priorityCount}
+                        maxPriority={priorityData?.max || 5}
+                      />
+                    ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </main>
+  );
+}

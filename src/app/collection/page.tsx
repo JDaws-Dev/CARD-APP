@@ -13,6 +13,7 @@ import {
   TrophyIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
+  HeartIcon,
 } from '@heroicons/react/24/outline';
 import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
@@ -97,6 +98,13 @@ export default function MyCollectionPage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <Link
+                href="/my-wishlist"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-rose-500 hover:to-pink-600"
+              >
+                <HeartIcon className="h-5 w-5" />
+                My Wishlist
+              </Link>
               <Link
                 href="/badges"
                 className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-amber-500 hover:to-orange-600"
