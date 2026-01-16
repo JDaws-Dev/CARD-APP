@@ -11,9 +11,13 @@ import {
   HeartIcon,
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { hasParentAccess } from '@/lib/profiles';
 import { StreakCounter } from '@/components/gamification/StreakCounter';
 import { LevelDisplay } from '@/components/gamification/LevelSystem';
 import { KidModeToggle } from '@/components/layout/KidModeToggle';
@@ -56,6 +60,10 @@ export function AppHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const { signOut } = useAuthActions();
+
+  // Fetch current user's profile to check if they're a parent
+  const currentUserProfile = useQuery(api.profiles.getCurrentUserProfile, {});
+  const isParent = hasParentAccess(currentUserProfile);
 
   const handleSignOut = () => {
     setProfileMenuOpen(false);
@@ -163,6 +171,19 @@ export function AppHeader() {
                     <Square3Stack3DIcon className="h-4 w-4" aria-hidden="true" />
                     Learn to Collect
                   </Link>
+                  {isParent && (
+                    <Link
+                      href="/parent-dashboard"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary ${
+                        pathname === '/parent-dashboard' ? 'bg-kid-primary/10 text-kid-primary' : ''
+                      }`}
+                      role="menuitem"
+                    >
+                      <UserGroupIcon className="h-4 w-4" aria-hidden="true" />
+                      Parent Dashboard
+                    </Link>
+                  )}
                   <div className="my-1 border-t border-gray-100" aria-hidden="true" />
                   <button
                     onClick={handleSignOut}
@@ -255,6 +276,21 @@ export function AppHeader() {
               <Square3Stack3DIcon className="h-5 w-5" aria-hidden="true" />
               Learn to Collect
             </Link>
+            {isParent && (
+              <Link
+                href="/parent-dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
+                  pathname === '/parent-dashboard'
+                    ? 'bg-kid-primary/10 text-kid-primary'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                role="menuitem"
+              >
+                <UserGroupIcon className="h-5 w-5" aria-hidden="true" />
+                Parent Dashboard
+              </Link>
+            )}
           </div>
 
           {/* Mobile level, streak, and kid mode */}

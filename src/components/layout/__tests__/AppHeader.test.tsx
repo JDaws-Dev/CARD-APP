@@ -32,6 +32,27 @@ vi.mock('@convex-dev/auth/react', () => ({
   }),
 }));
 
+// Mock Convex useQuery - default returns null (child/no profile)
+let mockCurrentUserProfile: {
+  profile: { id: string; displayName: string; profileType: 'parent' | 'child' };
+  family: { id: string; subscriptionTier: 'free' | 'family' };
+  availableProfiles: { id: string; displayName: string; profileType: 'parent' | 'child' }[];
+  user: { id: string; email: string; emailVerified: boolean };
+} | null = null;
+
+vi.mock('convex/react', () => ({
+  useQuery: () => mockCurrentUserProfile,
+}));
+
+// Mock Convex API
+vi.mock('../../../../convex/_generated/api', () => ({
+  api: {
+    profiles: {
+      getCurrentUserProfile: 'getCurrentUserProfile',
+    },
+  },
+}));
+
 // Mock gamification components
 vi.mock('@/components/gamification/StreakCounter', () => ({
   StreakCounter: () => <div data-testid="streak-counter">Streak Counter</div>,
@@ -46,9 +67,58 @@ vi.mock('@/components/layout/KidModeToggle', () => ({
   KidModeToggle: () => <div data-testid="kid-mode-toggle">Kid Mode Toggle</div>,
 }));
 
+// Helper to create mock profile data
+function createMockParentProfile() {
+  return {
+    profile: {
+      id: 'profile-1',
+      displayName: 'Parent User',
+      profileType: 'parent' as const,
+    },
+    family: {
+      id: 'family-1',
+      subscriptionTier: 'family' as const,
+    },
+    availableProfiles: [
+      { id: 'profile-1', displayName: 'Parent User', profileType: 'parent' as const },
+      { id: 'profile-2', displayName: 'Child User', profileType: 'child' as const },
+    ],
+    user: {
+      id: 'user-1',
+      email: 'parent@example.com',
+      emailVerified: true,
+    },
+  };
+}
+
+function createMockChildProfile() {
+  return {
+    profile: {
+      id: 'profile-2',
+      displayName: 'Child User',
+      profileType: 'child' as const,
+    },
+    family: {
+      id: 'family-1',
+      subscriptionTier: 'family' as const,
+    },
+    availableProfiles: [
+      { id: 'profile-1', displayName: 'Parent User', profileType: 'parent' as const },
+      { id: 'profile-2', displayName: 'Child User', profileType: 'child' as const },
+    ],
+    user: {
+      id: 'user-1',
+      email: 'parent@example.com',
+      emailVerified: true,
+    },
+  };
+}
+
 describe('AppHeader', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset to null (no profile / child default behavior)
+    mockCurrentUserProfile = null;
   });
 
   describe('Logo and Branding', () => {
@@ -452,6 +522,127 @@ describe('AppHeader', () => {
 
       const header = screen.getByRole('banner');
       expect(header).toHaveClass('z-50');
+    });
+  });
+
+  describe('Parent Dashboard Access Control', () => {
+    describe('when user is a parent', () => {
+      beforeEach(() => {
+        mockCurrentUserProfile = createMockParentProfile();
+      });
+
+      it('shows Parent Dashboard link in profile menu', () => {
+        render(<AppHeader />);
+
+        // Open profile menu
+        const profileButton = screen.getByRole('button', { name: /Profile menu/i });
+        fireEvent.click(profileButton);
+
+        expect(screen.getByRole('menuitem', { name: /Parent Dashboard/i })).toBeInTheDocument();
+      });
+
+      it('Parent Dashboard link has correct href', () => {
+        render(<AppHeader />);
+
+        // Open profile menu
+        const profileButton = screen.getByRole('button', { name: /Profile menu/i });
+        fireEvent.click(profileButton);
+
+        const dashboardLink = screen.getByRole('menuitem', { name: /Parent Dashboard/i });
+        expect(dashboardLink).toHaveAttribute('href', '/parent-dashboard');
+      });
+
+      it('shows Parent Dashboard link in mobile menu', () => {
+        render(<AppHeader />);
+
+        // Open mobile menu
+        const menuButton = screen.getByRole('button', { name: /Open navigation menu/i });
+        fireEvent.click(menuButton);
+
+        // Find Parent Dashboard in mobile menu (there will be one in desktop dropdown and one in mobile)
+        const dashboardLinks = screen.getAllByText('Parent Dashboard');
+        expect(dashboardLinks.length).toBeGreaterThanOrEqual(1);
+      });
+
+      it('closes profile menu when Parent Dashboard link is clicked', () => {
+        render(<AppHeader />);
+
+        // Open profile menu
+        const profileButton = screen.getByRole('button', { name: /Profile menu/i });
+        fireEvent.click(profileButton);
+
+        // Click Parent Dashboard link
+        const dashboardLink = screen.getByRole('menuitem', { name: /Parent Dashboard/i });
+        fireEvent.click(dashboardLink);
+
+        // Menu should be closed
+        expect(screen.queryByRole('menu', { name: /Profile options/i })).not.toBeInTheDocument();
+      });
+
+      it('Parent Dashboard link has UserGroupIcon', () => {
+        render(<AppHeader />);
+
+        // Open profile menu
+        const profileButton = screen.getByRole('button', { name: /Profile menu/i });
+        fireEvent.click(profileButton);
+
+        const dashboardLink = screen.getByRole('menuitem', { name: /Parent Dashboard/i });
+        const icon = dashboardLink.querySelector('svg');
+        expect(icon).toBeInTheDocument();
+        expect(icon).toHaveAttribute('aria-hidden', 'true');
+      });
+    });
+
+    describe('when user is a child', () => {
+      beforeEach(() => {
+        mockCurrentUserProfile = createMockChildProfile();
+      });
+
+      it('does NOT show Parent Dashboard link in profile menu', () => {
+        render(<AppHeader />);
+
+        // Open profile menu
+        const profileButton = screen.getByRole('button', { name: /Profile menu/i });
+        fireEvent.click(profileButton);
+
+        expect(screen.queryByText('Parent Dashboard')).not.toBeInTheDocument();
+      });
+
+      it('does NOT show Parent Dashboard link in mobile menu', () => {
+        render(<AppHeader />);
+
+        // Open mobile menu
+        const menuButton = screen.getByRole('button', { name: /Open navigation menu/i });
+        fireEvent.click(menuButton);
+
+        expect(screen.queryByText('Parent Dashboard')).not.toBeInTheDocument();
+      });
+    });
+
+    describe('when profile is not loaded (null)', () => {
+      beforeEach(() => {
+        mockCurrentUserProfile = null;
+      });
+
+      it('does NOT show Parent Dashboard link in profile menu', () => {
+        render(<AppHeader />);
+
+        // Open profile menu
+        const profileButton = screen.getByRole('button', { name: /Profile menu/i });
+        fireEvent.click(profileButton);
+
+        expect(screen.queryByText('Parent Dashboard')).not.toBeInTheDocument();
+      });
+
+      it('does NOT show Parent Dashboard link in mobile menu', () => {
+        render(<AppHeader />);
+
+        // Open mobile menu
+        const menuButton = screen.getByRole('button', { name: /Open navigation menu/i });
+        fireEvent.click(menuButton);
+
+        expect(screen.queryByText('Parent Dashboard')).not.toBeInTheDocument();
+      });
     });
   });
 });

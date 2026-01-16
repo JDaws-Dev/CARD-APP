@@ -28,12 +28,24 @@ vi.mock('next/navigation', () => ({
 let mockIsAuthenticated = false;
 let mockIsLoading = false;
 
-// Mock convex/react
+// Mock convex/react - must include useQuery for AppHeader
 vi.mock('convex/react', () => ({
   useConvexAuth: () => ({
     isAuthenticated: mockIsAuthenticated,
     isLoading: mockIsLoading,
   }),
+  // AppHeader uses useQuery to fetch current user profile
+  // Return null by default (child/no profile behavior)
+  useQuery: () => null,
+}));
+
+// Mock Convex API (used by AppHeader for getCurrentUserProfile)
+vi.mock('../../../../convex/_generated/api', () => ({
+  api: {
+    profiles: {
+      getCurrentUserProfile: 'getCurrentUserProfile',
+    },
+  },
 }));
 
 // Mock @convex-dev/auth/react
