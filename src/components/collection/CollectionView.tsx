@@ -6,7 +6,7 @@ import Link from 'next/link';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import { CollectionGroupSkeleton, Skeleton } from '@/components/ui/Skeleton';
 import { ErrorFallback } from '@/components/ui/ErrorBoundary';
-import { CurrencyDollarIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { CurrencyDollarIcon, SparklesIcon, TrophyIcon, FireIcon } from '@heroicons/react/24/solid';
 
 // Helper function to get the best market price from a card's TCGPlayer prices
 function getCardMarketPrice(card: PokemonCard): number | null {
@@ -163,6 +163,24 @@ export function CollectionView({ collection }: CollectionViewProps) {
     return { total, cardsWithPrice, cardsWithoutPrice };
   }, [collection, cardData]);
 
+  // Get top 5 most valuable cards
+  const mostValuableCards = useMemo(() => {
+    const cardsWithPrices: { card: PokemonCard; price: number; quantity: number }[] = [];
+
+    collection.forEach((item) => {
+      const card = cardData.get(item.cardId);
+      if (card) {
+        const price = getCardMarketPrice(card);
+        if (price !== null && price > 0) {
+          cardsWithPrices.push({ card, price, quantity: item.quantity });
+        }
+      }
+    });
+
+    // Sort by price (highest first) and take top 5
+    return cardsWithPrices.sort((a, b) => b.price - a.price).slice(0, 5);
+  }, [collection, cardData]);
+
   if (isLoading) {
     // Show skeleton for estimated number of groups based on collection size
     const estimatedGroups = Math.min(Math.ceil(collection.length / 5), 3);
@@ -179,6 +197,23 @@ export function CollectionView({ collection }: CollectionViewProps) {
               </div>
             </div>
             <Skeleton className="h-10 w-32 rounded-full" />
+          </div>
+        </div>
+
+        {/* Most Valuable Cards Skeleton */}
+        <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <Skeleton className="h-6 w-6 rounded" />
+            <Skeleton className="h-6 w-40" />
+          </div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="rounded-lg bg-white p-3">
+                <Skeleton className="mb-2 aspect-[2.5/3.5] w-full rounded" />
+                <Skeleton className="mx-auto mb-1 h-3 w-16" />
+                <Skeleton className="mx-auto h-5 w-12" />
+              </div>
+            ))}
           </div>
         </div>
 
@@ -229,6 +264,74 @@ export function CollectionView({ collection }: CollectionViewProps) {
               {collectionValue.cardsWithoutPrice !== 1 ? 's' : ''} without price data
             </p>
           )}
+        </div>
+      )}
+
+      {/* Most Valuable Cards Section */}
+      {mostValuableCards.length > 0 && (
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 p-6 shadow-sm">
+          {/* Decorative background elements */}
+          <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-amber-200/30" />
+          <div className="absolute -bottom-4 right-1/3 h-16 w-16 rounded-full bg-orange-200/30" />
+
+          <div className="relative">
+            <div className="mb-4 flex items-center gap-2">
+              <TrophyIcon className="h-6 w-6 text-amber-500" />
+              <h2 className="text-xl font-bold text-gray-800">Most Valuable Cards</h2>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+              {mostValuableCards.map(({ card, price, quantity }, index) => (
+                <div
+                  key={card.id}
+                  className="group relative rounded-lg bg-white p-3 shadow-sm transition hover:shadow-md"
+                >
+                  {/* Rank Badge */}
+                  <div
+                    className={`absolute -left-2 -top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full font-bold text-white shadow ${
+                      index === 0
+                        ? 'bg-gradient-to-br from-amber-400 to-amber-600'
+                        : index === 1
+                          ? 'bg-gradient-to-br from-gray-300 to-gray-500'
+                          : index === 2
+                            ? 'bg-gradient-to-br from-orange-400 to-orange-600'
+                            : 'bg-gradient-to-br from-gray-400 to-gray-600'
+                    }`}
+                  >
+                    {index === 0 ? (
+                      <FireIcon className="h-4 w-4" />
+                    ) : (
+                      <span className="text-sm">{index + 1}</span>
+                    )}
+                  </div>
+
+                  {/* Card Image */}
+                  <div className="relative aspect-[2.5/3.5] overflow-hidden rounded">
+                    <Image
+                      src={card.images.small}
+                      alt={card.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                      className="object-contain"
+                    />
+
+                    {/* Quantity Badge */}
+                    {quantity > 1 && (
+                      <div className="absolute right-0.5 top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-kid-primary px-1 text-xs font-bold text-white shadow">
+                        x{quantity}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Info */}
+                  <div className="mt-2 text-center">
+                    <p className="truncate text-xs font-medium text-gray-600">{card.name}</p>
+                    <p className="mt-1 text-lg font-bold text-emerald-600">{formatPrice(price)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
