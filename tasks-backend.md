@@ -96,7 +96,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ### Educational Content
 
 - [ ] Tutorial content storage - Schema and queries for "Learn to Collect" tutorial content
-- [ ] Rarity definitions - Store rarity explanations with examples for tooltips
+- [x] Rarity definitions - Store rarity explanations with examples for tooltips
 - [ ] Card condition guide content - NM/LP/MP/HP definitions and example images
 
 ### Additional Features
@@ -707,3 +707,45 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - All validation and utility functions
   - Integration scenarios: New User Journey, Max Level Achievement, Multiple Level Ups
 - All 1349 tests pass, linter clean
+
+### 2026-01-16: Rarity definitions with Convex queries for tooltips
+
+- Created `convex/rarityDefinitions.ts` with Convex queries:
+  - `getAllRarityDefinitions`: Get all 6 rarity tiers with educational content
+  - `getRarityById`: Get single rarity by ID
+  - `getRarityByApiString`: Match API rarity strings to rarity tiers
+  - `getRarityTooltip`: Get formatted tooltip data for UI display
+  - `getRarityDistribution`: Calculate rarity distribution for card collections
+  - `getRaritySortValue`: Get sort value for ordering cards by rarity
+- Defined 6 rarity tiers with kid-friendly content:
+  - Common (C): Circle symbol, found in every pack
+  - Uncommon (U): Diamond symbol, slightly harder to find
+  - Rare (R): Star symbol, includes holo variants
+  - Ultra Rare (UR): Double star, EX/GX/V/VMAX/ex cards
+  - Secret Rare (SR): Triple star, gold/rainbow/alt art
+  - Promo (P): Special cards from events/products
+- Each rarity includes: id, name, shortName, symbol, description, examples, pullRate, collectorTip, sortOrder, colorClass, icon, apiMatches
+- Expanded `src/lib/rarityExplainer.ts` with comprehensive utilities:
+  - Core lookup: `getRarityInfo`, `getRarityInfoByName`, `getAllRarityInfo`, `getRarityBySortOrder`
+  - Keyword matching: `matchRarityByKeywords` (handles V, VMAX, shiny, legend, etc.)
+  - Validation: `isValidRarityId`, `getValidRarityIds`, `getRarityShortNames`
+  - Comparison/sorting: `compareRarities`, `isRarerThan`, `isMoreCommonThan`, `sortRaritiesCommonFirst`, `sortRaritiesRareFirst`
+  - Display helpers: `getRarityTooltipData`, `getRarityDisplayLabel`, `getRarityIcon`, `getRarityColorClass`, `getRaritySymbol`
+  - Statistics: `calculateRarityDistribution`, `getRarityStats`, `getRarePercentage`
+  - Educational: `getRarityExplanation`, `getRarityFunFacts`, `getCollectingAdvice`, `isChaseRarity`, `getRarityTier`
+- Fixed API string matching for Pokemon TCG API rarities:
+  - "Rare Holo V" → ultra-rare (endsWith ' v' pattern)
+  - "Rare Shiny" → secret-rare (shiny keyword)
+  - "Rare Shining" → secret-rare (shining keyword)
+  - "LEGEND" → secret-rare (legend keyword)
+- Added 107 tests in `src/lib/__tests__/rarityExplainer.test.ts` covering:
+  - RARITY_EXPLAINERS constant validation (6 tiers, unique IDs, ascending sort orders)
+  - All core lookup functions with edge cases
+  - Keyword matching for all supported API rarity strings
+  - Validation functions
+  - Comparison and sorting functions (non-mutating, null handling)
+  - All display helper functions
+  - Distribution and statistics calculations
+  - Educational content helpers
+  - Integration scenarios: API rarity matching, collection analysis, tooltip display, card sorting
+- All 1491 tests pass, linter clean
