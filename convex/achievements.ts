@@ -1033,6 +1033,321 @@ export const getTypeSpecialistProgress = query({
   },
 });
 
+// ============================================================================
+// POKEMON FAN ACHIEVEMENTS
+// ============================================================================
+
+// Pokemon fan badge definitions with specific Pokemon names and thresholds
+const POKEMON_FAN_BADGES = [
+  { pokemon: 'Pikachu', key: 'pikachu_fan', name: 'Pikachu Fan', threshold: 5 },
+  { pokemon: 'Eevee', key: 'eevee_fan', name: 'Eevee Fan', threshold: 5, includeEevolutions: true },
+  { pokemon: 'Charizard', key: 'charizard_fan', name: 'Charizard Fan', threshold: 3 },
+  { pokemon: 'Mewtwo', key: 'mewtwo_fan', name: 'Mewtwo Fan', threshold: 3 },
+  { pokemon: 'Legendary', key: 'legendary_fan', name: 'Legendary Fan', threshold: 10, isCategory: true },
+] as const;
+
+// Eeveelutions for the Eevee fan badge
+const EEVEELUTIONS = [
+  'Eevee',
+  'Vaporeon',
+  'Jolteon',
+  'Flareon',
+  'Espeon',
+  'Umbreon',
+  'Leafeon',
+  'Glaceon',
+  'Sylveon',
+];
+
+// Legendary Pokemon list (common legendaries and mythicals)
+const LEGENDARY_POKEMON = [
+  // Gen 1
+  'Articuno', 'Zapdos', 'Moltres', 'Mewtwo', 'Mew',
+  // Gen 2
+  'Raikou', 'Entei', 'Suicune', 'Lugia', 'Ho-Oh', 'Celebi',
+  // Gen 3
+  'Regirock', 'Regice', 'Registeel', 'Latias', 'Latios', 'Kyogre', 'Groudon', 'Rayquaza', 'Jirachi', 'Deoxys',
+  // Gen 4
+  'Uxie', 'Mesprit', 'Azelf', 'Dialga', 'Palkia', 'Heatran', 'Regigigas', 'Giratina', 'Cresselia', 'Phione', 'Manaphy', 'Darkrai', 'Shaymin', 'Arceus',
+  // Gen 5
+  'Victini', 'Cobalion', 'Terrakion', 'Virizion', 'Tornadus', 'Thundurus', 'Reshiram', 'Zekrom', 'Landorus', 'Kyurem', 'Keldeo', 'Meloetta', 'Genesect',
+  // Gen 6
+  'Xerneas', 'Yveltal', 'Zygarde', 'Diancie', 'Hoopa', 'Volcanion',
+  // Gen 7
+  'Tapu Koko', 'Tapu Lele', 'Tapu Bulu', 'Tapu Fini', 'Cosmog', 'Cosmoem', 'Solgaleo', 'Lunala', 'Nihilego', 'Buzzwole', 'Pheromosa', 'Xurkitree', 'Celesteela', 'Kartana', 'Guzzlord', 'Necrozma', 'Magearna', 'Marshadow', 'Poipole', 'Naganadel', 'Stakataka', 'Blacephalon', 'Zeraora',
+  // Gen 8
+  'Zacian', 'Zamazenta', 'Eternatus', 'Kubfu', 'Urshifu', 'Zarude', 'Regieleki', 'Regidrago', 'Glastrier', 'Spectrier', 'Calyrex',
+  // Gen 9
+  'Koraidon', 'Miraidon', 'Wo-Chien', 'Chien-Pao', 'Ting-Lu', 'Chi-Yu', 'Ogerpon', 'Terapagos', 'Pecharunt',
+];
+
+/**
+ * Helper to check if a card name matches a Pokemon for badge purposes
+ */
+function matchesPokemonName(cardName: string, targetPokemon: string): boolean {
+  // Normalize both names for comparison
+  const normalizedCard = cardName.toLowerCase();
+  const normalizedTarget = targetPokemon.toLowerCase();
+
+  // Card name should start with the Pokemon name
+  // This handles "Pikachu", "Pikachu V", "Pikachu VMAX", "Pikachu ex", etc.
+  return (
+    normalizedCard === normalizedTarget ||
+    normalizedCard.startsWith(normalizedTarget + ' ')
+  );
+}
+
+/**
+ * Helper to check if a card is an Eeveelution (Eevee or any of its evolutions)
+ */
+function isEeveelution(cardName: string): boolean {
+  return EEVEELUTIONS.some((eeveelution) => matchesPokemonName(cardName, eeveelution));
+}
+
+/**
+ * Helper to check if a card is a Legendary Pokemon
+ */
+function isLegendaryPokemon(cardName: string): boolean {
+  return LEGENDARY_POKEMON.some((legendary) => matchesPokemonName(cardName, legendary));
+}
+
+// Check and award Pokemon fan badges based on specific Pokemon counts
+export const checkPokemonFanAchievements = mutation({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Get unique cardIds
+    const uniqueCardIds = new Set<string>();
+    for (const card of collectionCards) {
+      uniqueCardIds.add(card.cardId);
+    }
+
+    // Fetch cached card data to get names
+    const pokemonCounts: Record<string, number> = {
+      Pikachu: 0,
+      Eevee: 0, // Includes all eeveelutions
+      Charizard: 0,
+      Mewtwo: 0,
+      Legendary: 0,
+    };
+
+    for (const cardId of uniqueCardIds) {
+      const cachedCard = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+        .first();
+
+      if (cachedCard) {
+        const cardName = cachedCard.name;
+
+        // Check each category
+        if (matchesPokemonName(cardName, 'Pikachu')) {
+          pokemonCounts.Pikachu++;
+        }
+        if (isEeveelution(cardName)) {
+          pokemonCounts.Eevee++;
+        }
+        if (matchesPokemonName(cardName, 'Charizard')) {
+          pokemonCounts.Charizard++;
+        }
+        if (matchesPokemonName(cardName, 'Mewtwo')) {
+          pokemonCounts.Mewtwo++;
+        }
+        if (isLegendaryPokemon(cardName)) {
+          pokemonCounts.Legendary++;
+        }
+      }
+    }
+
+    const awarded: string[] = [];
+
+    // Check each Pokemon fan badge
+    for (const badge of POKEMON_FAN_BADGES) {
+      const count = pokemonCounts[badge.pokemon] ?? 0;
+
+      if (count >= badge.threshold) {
+        // Check if already earned
+        const existing = await ctx.db
+          .query('achievements')
+          .withIndex('by_profile_and_key', (q) =>
+            q.eq('profileId', args.profileId).eq('achievementKey', badge.key)
+          )
+          .first();
+
+        if (!existing) {
+          await ctx.db.insert('achievements', {
+            profileId: args.profileId,
+            achievementType: 'pokemon_fan',
+            achievementKey: badge.key,
+            achievementData: {
+              pokemon: badge.pokemon,
+              count,
+              threshold: badge.threshold,
+            },
+            earnedAt: Date.now(),
+          });
+
+          // Log activity for achievement earned
+          await ctx.db.insert('activityLogs', {
+            profileId: args.profileId,
+            action: 'achievement_earned',
+            metadata: {
+              achievementKey: badge.key,
+              achievementName: badge.name,
+              achievementType: 'pokemon_fan',
+              pokemon: badge.pokemon,
+              count,
+              threshold: badge.threshold,
+            },
+          });
+
+          awarded.push(badge.key);
+        }
+      }
+    }
+
+    // Calculate progress for all Pokemon (for nearby badges)
+    const pokemonProgress = POKEMON_FAN_BADGES.map((badge) => {
+      const count = pokemonCounts[badge.pokemon] ?? 0;
+      return {
+        pokemon: badge.pokemon,
+        key: badge.key,
+        name: badge.name,
+        count,
+        threshold: badge.threshold,
+        earned: count >= badge.threshold,
+        remaining: Math.max(0, badge.threshold - count),
+        progress: Math.min(100, Math.round((count / badge.threshold) * 100)),
+      };
+    });
+
+    // Find Pokemon that are close to earning badge (at least 1 card)
+    const nearbyBadges = pokemonProgress
+      .filter((p) => p.count > 0 && !p.earned)
+      .sort((a, b) => a.remaining - b.remaining);
+
+    return {
+      awarded,
+      pokemonCounts,
+      pokemonProgress,
+      nearbyBadges,
+      totalPokemonFanBadgesEarned: pokemonProgress.filter((p) => p.earned).length,
+      totalPokemonFanBadgesAvailable: POKEMON_FAN_BADGES.length,
+    };
+  },
+});
+
+// Query to get Pokemon fan progress for a profile (for UI display)
+export const getPokemonFanProgress = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Get unique cardIds
+    const uniqueCardIds = new Set<string>();
+    for (const card of collectionCards) {
+      uniqueCardIds.add(card.cardId);
+    }
+
+    // Fetch cached card data to get names
+    const pokemonCounts: Record<string, number> = {
+      Pikachu: 0,
+      Eevee: 0,
+      Charizard: 0,
+      Mewtwo: 0,
+      Legendary: 0,
+    };
+
+    for (const cardId of uniqueCardIds) {
+      const cachedCard = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+        .first();
+
+      if (cachedCard) {
+        const cardName = cachedCard.name;
+
+        if (matchesPokemonName(cardName, 'Pikachu')) {
+          pokemonCounts.Pikachu++;
+        }
+        if (isEeveelution(cardName)) {
+          pokemonCounts.Eevee++;
+        }
+        if (matchesPokemonName(cardName, 'Charizard')) {
+          pokemonCounts.Charizard++;
+        }
+        if (matchesPokemonName(cardName, 'Mewtwo')) {
+          pokemonCounts.Mewtwo++;
+        }
+        if (isLegendaryPokemon(cardName)) {
+          pokemonCounts.Legendary++;
+        }
+      }
+    }
+
+    // Get earned Pokemon fan achievements
+    const earnedAchievements = await ctx.db
+      .query('achievements')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .filter((q) => q.eq(q.field('achievementType'), 'pokemon_fan'))
+      .collect();
+
+    const earnedKeys = new Set(earnedAchievements.map((a) => a.achievementKey));
+
+    // Build progress for each Pokemon
+    const pokemonProgress = POKEMON_FAN_BADGES.map((badge) => {
+      const count = pokemonCounts[badge.pokemon] ?? 0;
+      const earned = earnedKeys.has(badge.key);
+      const earnedAchievement = earned
+        ? earnedAchievements.find((a) => a.achievementKey === badge.key)
+        : null;
+
+      return {
+        pokemon: badge.pokemon,
+        key: badge.key,
+        name: badge.name,
+        count,
+        threshold: badge.threshold,
+        earned,
+        earnedAt: earnedAchievement?.earnedAt ?? null,
+        remaining: earned ? 0 : Math.max(0, badge.threshold - count),
+        progress: Math.min(100, Math.round((count / badge.threshold) * 100)),
+      };
+    });
+
+    // Sort by progress descending (closest to earning first)
+    const sortedByProgress = [...pokemonProgress].sort((a, b) => {
+      if (a.earned && !b.earned) return -1;
+      if (!a.earned && b.earned) return 1;
+      if (b.progress !== a.progress) return b.progress - a.progress;
+      return a.pokemon.localeCompare(b.pokemon);
+    });
+
+    // Find nearby badges (Pokemon with at least 1 card but not earned)
+    const nearbyBadges = pokemonProgress
+      .filter((p) => p.count > 0 && !p.earned)
+      .sort((a, b) => a.remaining - b.remaining);
+
+    return {
+      pokemonCounts,
+      pokemonProgress: sortedByProgress,
+      nearbyBadges,
+      earnedBadges: pokemonProgress.filter((p) => p.earned),
+      totalPokemonFanBadgesEarned: pokemonProgress.filter((p) => p.earned).length,
+      totalPokemonFanBadgesAvailable: POKEMON_FAN_BADGES.length,
+    };
+  },
+});
+
 // Query to get set completion progress for a profile
 export const getSetCompletionProgress = query({
   args: {

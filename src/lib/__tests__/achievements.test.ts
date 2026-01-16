@@ -1945,3 +1945,775 @@ describe('Type Specialist Badge Utilities', () => {
     });
   });
 });
+
+// Import Pokemon fan badge utilities
+import {
+  POKEMON_FAN_BADGE_DEFINITIONS,
+  EEVEELUTIONS,
+  LEGENDARY_POKEMON,
+  matchesPokemonName,
+  isEeveelution,
+  isLegendaryPokemon,
+  countPokemonByCategory,
+  getPokemonFanBadgesToAward,
+  getPokemonFanProgressSummary,
+  getPokemonFanBadgeDefinition,
+  getPokemonFanBadgeForPokemon,
+  cardsNeededForPokemonFan,
+  getPokemonFanPercentProgress,
+  hasPokemonFanBeenEarned,
+  getAllEarnedPokemonFanKeys,
+  countEarnedPokemonFanBadges,
+  getNearbyPokemonFanBadges,
+  getPokemonWithFanBadges,
+} from '../achievements';
+
+describe('Pokemon Fan Badge Utilities', () => {
+  describe('POKEMON_FAN_BADGE_DEFINITIONS', () => {
+    it('should have 5 Pokemon fan badge definitions', () => {
+      expect(POKEMON_FAN_BADGE_DEFINITIONS).toHaveLength(5);
+    });
+
+    it('should have unique keys', () => {
+      const keys = POKEMON_FAN_BADGE_DEFINITIONS.map((b) => b.key);
+      expect(new Set(keys).size).toBe(keys.length);
+    });
+
+    it('should have unique Pokemon categories', () => {
+      const pokemons = POKEMON_FAN_BADGE_DEFINITIONS.map((b) => b.pokemon);
+      expect(new Set(pokemons).size).toBe(pokemons.length);
+    });
+
+    it('should have names for all badges', () => {
+      for (const badge of POKEMON_FAN_BADGE_DEFINITIONS) {
+        expect(badge.name).toBeTruthy();
+        expect(typeof badge.name).toBe('string');
+      }
+    });
+
+    it('should have correct thresholds', () => {
+      const pikachu = POKEMON_FAN_BADGE_DEFINITIONS.find((b) => b.pokemon === 'Pikachu');
+      const eevee = POKEMON_FAN_BADGE_DEFINITIONS.find((b) => b.pokemon === 'Eevee');
+      const charizard = POKEMON_FAN_BADGE_DEFINITIONS.find((b) => b.pokemon === 'Charizard');
+      const mewtwo = POKEMON_FAN_BADGE_DEFINITIONS.find((b) => b.pokemon === 'Mewtwo');
+      const legendary = POKEMON_FAN_BADGE_DEFINITIONS.find((b) => b.pokemon === 'Legendary');
+
+      expect(pikachu?.threshold).toBe(5);
+      expect(eevee?.threshold).toBe(5);
+      expect(charizard?.threshold).toBe(3);
+      expect(mewtwo?.threshold).toBe(3);
+      expect(legendary?.threshold).toBe(10);
+    });
+
+    it('should match POKEMON_FAN_THRESHOLDS', () => {
+      expect(POKEMON_FAN_THRESHOLDS.Pikachu.threshold).toBe(5);
+      expect(POKEMON_FAN_THRESHOLDS.Eevee.threshold).toBe(5);
+      expect(POKEMON_FAN_THRESHOLDS.Charizard.threshold).toBe(3);
+      expect(POKEMON_FAN_THRESHOLDS.Mewtwo.threshold).toBe(3);
+    });
+  });
+
+  describe('EEVEELUTIONS', () => {
+    it('should have 9 Eeveelutions (Eevee + 8 evolutions)', () => {
+      expect(EEVEELUTIONS).toHaveLength(9);
+    });
+
+    it('should include Eevee and all evolutions', () => {
+      expect(EEVEELUTIONS).toContain('Eevee');
+      expect(EEVEELUTIONS).toContain('Vaporeon');
+      expect(EEVEELUTIONS).toContain('Jolteon');
+      expect(EEVEELUTIONS).toContain('Flareon');
+      expect(EEVEELUTIONS).toContain('Espeon');
+      expect(EEVEELUTIONS).toContain('Umbreon');
+      expect(EEVEELUTIONS).toContain('Leafeon');
+      expect(EEVEELUTIONS).toContain('Glaceon');
+      expect(EEVEELUTIONS).toContain('Sylveon');
+    });
+  });
+
+  describe('LEGENDARY_POKEMON', () => {
+    it('should have a significant number of legendaries', () => {
+      expect(LEGENDARY_POKEMON.length).toBeGreaterThan(50);
+    });
+
+    it('should include Gen 1 legendaries', () => {
+      expect(LEGENDARY_POKEMON).toContain('Articuno');
+      expect(LEGENDARY_POKEMON).toContain('Zapdos');
+      expect(LEGENDARY_POKEMON).toContain('Moltres');
+      expect(LEGENDARY_POKEMON).toContain('Mewtwo');
+      expect(LEGENDARY_POKEMON).toContain('Mew');
+    });
+
+    it('should include popular legendaries from later generations', () => {
+      expect(LEGENDARY_POKEMON).toContain('Rayquaza');
+      expect(LEGENDARY_POKEMON).toContain('Giratina');
+      expect(LEGENDARY_POKEMON).toContain('Arceus');
+      expect(LEGENDARY_POKEMON).toContain('Zacian');
+      expect(LEGENDARY_POKEMON).toContain('Koraidon');
+    });
+  });
+
+  describe('matchesPokemonName', () => {
+    it('should match exact Pokemon name', () => {
+      expect(matchesPokemonName('Pikachu', 'Pikachu')).toBe(true);
+      expect(matchesPokemonName('Charizard', 'Charizard')).toBe(true);
+    });
+
+    it('should match Pokemon name with suffix (V, VMAX, ex, etc.)', () => {
+      expect(matchesPokemonName('Pikachu V', 'Pikachu')).toBe(true);
+      expect(matchesPokemonName('Pikachu VMAX', 'Pikachu')).toBe(true);
+      expect(matchesPokemonName('Pikachu ex', 'Pikachu')).toBe(true);
+      expect(matchesPokemonName('Pikachu VSTAR', 'Pikachu')).toBe(true);
+      expect(matchesPokemonName('Charizard V', 'Charizard')).toBe(true);
+      expect(matchesPokemonName('Mewtwo GX', 'Mewtwo')).toBe(true);
+    });
+
+    it('should be case insensitive', () => {
+      expect(matchesPokemonName('PIKACHU', 'Pikachu')).toBe(true);
+      expect(matchesPokemonName('pikachu', 'Pikachu')).toBe(true);
+      expect(matchesPokemonName('Pikachu', 'pikachu')).toBe(true);
+    });
+
+    it('should not match partial Pokemon names', () => {
+      expect(matchesPokemonName('Pikachu', 'Pika')).toBe(false);
+      expect(matchesPokemonName('Raichu', 'Pikachu')).toBe(false);
+    });
+
+    it('should not match different Pokemon', () => {
+      expect(matchesPokemonName('Charizard', 'Pikachu')).toBe(false);
+      expect(matchesPokemonName('Charmander', 'Charizard')).toBe(false);
+    });
+  });
+
+  describe('isEeveelution', () => {
+    it('should return true for Eevee', () => {
+      expect(isEeveelution('Eevee')).toBe(true);
+      expect(isEeveelution('Eevee V')).toBe(true);
+      expect(isEeveelution('Eevee VMAX')).toBe(true);
+    });
+
+    it('should return true for all Eeveelutions', () => {
+      expect(isEeveelution('Vaporeon')).toBe(true);
+      expect(isEeveelution('Jolteon')).toBe(true);
+      expect(isEeveelution('Flareon')).toBe(true);
+      expect(isEeveelution('Espeon')).toBe(true);
+      expect(isEeveelution('Umbreon')).toBe(true);
+      expect(isEeveelution('Leafeon')).toBe(true);
+      expect(isEeveelution('Glaceon')).toBe(true);
+      expect(isEeveelution('Sylveon')).toBe(true);
+    });
+
+    it('should return true for Eeveelution variants', () => {
+      expect(isEeveelution('Vaporeon V')).toBe(true);
+      expect(isEeveelution('Sylveon VMAX')).toBe(true);
+      expect(isEeveelution('Umbreon ex')).toBe(true);
+    });
+
+    it('should return false for non-Eeveelutions', () => {
+      expect(isEeveelution('Pikachu')).toBe(false);
+      expect(isEeveelution('Charizard')).toBe(false);
+      expect(isEeveelution('Evee')).toBe(false); // typo
+    });
+  });
+
+  describe('isLegendaryPokemon', () => {
+    it('should return true for Gen 1 legendaries', () => {
+      expect(isLegendaryPokemon('Articuno')).toBe(true);
+      expect(isLegendaryPokemon('Zapdos')).toBe(true);
+      expect(isLegendaryPokemon('Moltres')).toBe(true);
+      expect(isLegendaryPokemon('Mewtwo')).toBe(true);
+      expect(isLegendaryPokemon('Mew')).toBe(true);
+    });
+
+    it('should return true for legendary variants', () => {
+      expect(isLegendaryPokemon('Mewtwo V')).toBe(true);
+      expect(isLegendaryPokemon('Rayquaza VMAX')).toBe(true);
+      expect(isLegendaryPokemon('Giratina ex')).toBe(true);
+      expect(isLegendaryPokemon('Arceus VSTAR')).toBe(true);
+    });
+
+    it('should return false for non-legendaries', () => {
+      expect(isLegendaryPokemon('Pikachu')).toBe(false);
+      expect(isLegendaryPokemon('Charizard')).toBe(false);
+      expect(isLegendaryPokemon('Dragonite')).toBe(false);
+    });
+
+    it('should handle edge cases', () => {
+      // Mewtwo is legendary, but Mewt is not
+      expect(isLegendaryPokemon('Mewt')).toBe(false);
+    });
+  });
+
+  describe('countPokemonByCategory', () => {
+    it('should return zeros for empty array', () => {
+      const counts = countPokemonByCategory([]);
+      expect(counts.Pikachu).toBe(0);
+      expect(counts.Eevee).toBe(0);
+      expect(counts.Charizard).toBe(0);
+      expect(counts.Mewtwo).toBe(0);
+      expect(counts.Legendary).toBe(0);
+    });
+
+    it('should count Pikachu cards', () => {
+      const counts = countPokemonByCategory(['Pikachu', 'Pikachu V', 'Pikachu VMAX']);
+      expect(counts.Pikachu).toBe(3);
+    });
+
+    it('should count Eevee and all Eeveelutions together', () => {
+      const counts = countPokemonByCategory([
+        'Eevee',
+        'Vaporeon',
+        'Jolteon',
+        'Flareon',
+        'Espeon',
+      ]);
+      expect(counts.Eevee).toBe(5);
+    });
+
+    it('should count Charizard cards', () => {
+      const counts = countPokemonByCategory(['Charizard', 'Charizard V', 'Charizard ex']);
+      expect(counts.Charizard).toBe(3);
+    });
+
+    it('should count Mewtwo cards', () => {
+      const counts = countPokemonByCategory(['Mewtwo', 'Mewtwo V', 'Mewtwo GX']);
+      expect(counts.Mewtwo).toBe(3);
+    });
+
+    it('should count Legendary cards', () => {
+      const counts = countPokemonByCategory([
+        'Articuno',
+        'Zapdos',
+        'Moltres',
+        'Mewtwo',
+        'Rayquaza',
+      ]);
+      expect(counts.Legendary).toBe(5);
+    });
+
+    it('should count Mewtwo as both Mewtwo and Legendary', () => {
+      const counts = countPokemonByCategory(['Mewtwo', 'Mewtwo V']);
+      expect(counts.Mewtwo).toBe(2);
+      expect(counts.Legendary).toBe(2); // Mewtwo is legendary
+    });
+
+    it('should not double count non-overlapping categories', () => {
+      const counts = countPokemonByCategory(['Pikachu', 'Charizard', 'Eevee']);
+      expect(counts.Pikachu).toBe(1);
+      expect(counts.Charizard).toBe(1);
+      expect(counts.Eevee).toBe(1);
+      expect(counts.Mewtwo).toBe(0);
+      expect(counts.Legendary).toBe(0);
+    });
+
+    it('should handle mixed collection', () => {
+      const counts = countPokemonByCategory([
+        'Pikachu',
+        'Pikachu V',
+        'Eevee',
+        'Umbreon',
+        'Charizard',
+        'Rayquaza',
+        'Zacian',
+        'Bulbasaur',
+        'Squirtle',
+      ]);
+      expect(counts.Pikachu).toBe(2);
+      expect(counts.Eevee).toBe(2);
+      expect(counts.Charizard).toBe(1);
+      expect(counts.Mewtwo).toBe(0);
+      expect(counts.Legendary).toBe(2);
+    });
+  });
+
+  describe('getPokemonFanBadgesToAward', () => {
+    it('should return no badges for empty counts', () => {
+      expect(getPokemonFanBadgesToAward({})).toEqual([]);
+    });
+
+    it('should return no badges when all counts below threshold', () => {
+      expect(getPokemonFanBadgesToAward({ Pikachu: 2, Eevee: 3, Charizard: 1 })).toEqual([]);
+    });
+
+    it('should return pikachu_fan at threshold (5)', () => {
+      const badges = getPokemonFanBadgesToAward({ Pikachu: 5 });
+      expect(badges).toEqual(['pikachu_fan']);
+    });
+
+    it('should return charizard_fan at threshold (3)', () => {
+      const badges = getPokemonFanBadgesToAward({ Charizard: 3 });
+      expect(badges).toEqual(['charizard_fan']);
+    });
+
+    it('should return mewtwo_fan at threshold (3)', () => {
+      const badges = getPokemonFanBadgesToAward({ Mewtwo: 3 });
+      expect(badges).toEqual(['mewtwo_fan']);
+    });
+
+    it('should return eevee_fan at threshold (5)', () => {
+      const badges = getPokemonFanBadgesToAward({ Eevee: 5 });
+      expect(badges).toEqual(['eevee_fan']);
+    });
+
+    it('should return legendary_fan at threshold (10)', () => {
+      const badges = getPokemonFanBadgesToAward({ Legendary: 10 });
+      expect(badges).toEqual(['legendary_fan']);
+    });
+
+    it('should return multiple badges when multiple thresholds met', () => {
+      const badges = getPokemonFanBadgesToAward({
+        Pikachu: 5,
+        Charizard: 3,
+        Eevee: 5,
+      });
+      expect(badges).toHaveLength(3);
+      expect(badges).toContain('pikachu_fan');
+      expect(badges).toContain('charizard_fan');
+      expect(badges).toContain('eevee_fan');
+    });
+
+    it('should return all 5 badges when all thresholds met', () => {
+      const badges = getPokemonFanBadgesToAward({
+        Pikachu: 5,
+        Eevee: 5,
+        Charizard: 3,
+        Mewtwo: 3,
+        Legendary: 10,
+      });
+      expect(badges).toHaveLength(5);
+    });
+
+    it('should exclude already earned badges', () => {
+      const badges = getPokemonFanBadgesToAward(
+        { Pikachu: 5, Charizard: 3 },
+        ['pikachu_fan']
+      );
+      expect(badges).toEqual(['charizard_fan']);
+    });
+
+    it('should return empty array if all eligible badges earned', () => {
+      const badges = getPokemonFanBadgesToAward(
+        { Pikachu: 5 },
+        ['pikachu_fan']
+      );
+      expect(badges).toEqual([]);
+    });
+  });
+
+  describe('getPokemonFanProgressSummary', () => {
+    it('should return correct summary for empty counts', () => {
+      const summary = getPokemonFanProgressSummary({});
+      expect(summary.totalPokemonFanBadgesEarned).toBe(0);
+      expect(summary.totalPokemonFanBadgesAvailable).toBe(5);
+      expect(summary.nearbyBadges).toHaveLength(0);
+      expect(summary.earnedBadges).toHaveLength(0);
+    });
+
+    it('should show progress for Pokemon with cards', () => {
+      const summary = getPokemonFanProgressSummary({ Pikachu: 3, Charizard: 2 });
+      const pikachuProgress = summary.pokemonProgress.find((p) => p.pokemon === 'Pikachu');
+      const charizardProgress = summary.pokemonProgress.find((p) => p.pokemon === 'Charizard');
+
+      expect(pikachuProgress?.count).toBe(3);
+      expect(pikachuProgress?.progress).toBe(60); // 3/5 = 60%
+      expect(pikachuProgress?.remaining).toBe(2);
+      expect(pikachuProgress?.earned).toBe(false);
+
+      expect(charizardProgress?.count).toBe(2);
+      expect(charizardProgress?.progress).toBe(67); // 2/3 = 67%
+      expect(charizardProgress?.remaining).toBe(1);
+    });
+
+    it('should mark earned badges correctly', () => {
+      const summary = getPokemonFanProgressSummary(
+        { Pikachu: 5, Charizard: 2 },
+        ['pikachu_fan']
+      );
+      const pikachuProgress = summary.pokemonProgress.find((p) => p.pokemon === 'Pikachu');
+      expect(pikachuProgress?.earned).toBe(true);
+      expect(pikachuProgress?.remaining).toBe(0);
+      expect(summary.totalPokemonFanBadgesEarned).toBe(1);
+    });
+
+    it('should sort pokemonProgress with earned first, then by progress', () => {
+      const summary = getPokemonFanProgressSummary(
+        { Pikachu: 5, Charizard: 2, Eevee: 1 },
+        ['pikachu_fan']
+      );
+      // Pikachu (earned) should be first, then Charizard (67%), then Eevee (20%)
+      expect(summary.pokemonProgress[0].pokemon).toBe('Pikachu');
+      expect(summary.pokemonProgress[1].pokemon).toBe('Charizard');
+    });
+
+    it('should identify nearby badges correctly', () => {
+      const summary = getPokemonFanProgressSummary({ Pikachu: 4, Charizard: 1 });
+      expect(summary.nearbyBadges).toHaveLength(2);
+      // Sorted by remaining: Pikachu (1 remaining), Charizard (2 remaining)
+      expect(summary.nearbyBadges[0].pokemon).toBe('Pikachu');
+      expect(summary.nearbyBadges[0].remaining).toBe(1);
+      expect(summary.nearbyBadges[1].pokemon).toBe('Charizard');
+      expect(summary.nearbyBadges[1].remaining).toBe(2);
+    });
+
+    it('should not include earned badges in nearbyBadges', () => {
+      const summary = getPokemonFanProgressSummary(
+        { Pikachu: 5, Charizard: 2 },
+        ['pikachu_fan']
+      );
+      expect(summary.nearbyBadges.find((b) => b.pokemon === 'Pikachu')).toBeUndefined();
+    });
+  });
+
+  describe('getPokemonFanBadgeDefinition', () => {
+    it('should return definition for valid key', () => {
+      const def = getPokemonFanBadgeDefinition('pikachu_fan');
+      expect(def?.pokemon).toBe('Pikachu');
+      expect(def?.key).toBe('pikachu_fan');
+      expect(def?.name).toBe('Pikachu Fan');
+      expect(def?.threshold).toBe(5);
+    });
+
+    it('should return null for invalid key', () => {
+      expect(getPokemonFanBadgeDefinition('invalid_key')).toBeNull();
+    });
+
+    it('should return definition for all badge keys', () => {
+      for (const badge of POKEMON_FAN_BADGE_DEFINITIONS) {
+        const def = getPokemonFanBadgeDefinition(badge.key);
+        expect(def).not.toBeNull();
+        expect(def?.key).toBe(badge.key);
+      }
+    });
+  });
+
+  describe('getPokemonFanBadgeForPokemon', () => {
+    it('should return definition for valid Pokemon', () => {
+      const def = getPokemonFanBadgeForPokemon('Pikachu');
+      expect(def?.pokemon).toBe('Pikachu');
+      expect(def?.key).toBe('pikachu_fan');
+      expect(def?.threshold).toBe(5);
+    });
+
+    it('should return null for invalid Pokemon', () => {
+      expect(getPokemonFanBadgeForPokemon('Bulbasaur')).toBeNull();
+    });
+
+    it('should return definition for all Pokemon categories', () => {
+      for (const badge of POKEMON_FAN_BADGE_DEFINITIONS) {
+        const def = getPokemonFanBadgeForPokemon(badge.pokemon);
+        expect(def).not.toBeNull();
+        expect(def?.pokemon).toBe(badge.pokemon);
+      }
+    });
+  });
+
+  describe('cardsNeededForPokemonFan', () => {
+    it('should return correct cards needed for Pikachu (threshold 5)', () => {
+      expect(cardsNeededForPokemonFan(0, 'Pikachu')).toBe(5);
+      expect(cardsNeededForPokemonFan(3, 'Pikachu')).toBe(2);
+      expect(cardsNeededForPokemonFan(5, 'Pikachu')).toBe(0);
+      expect(cardsNeededForPokemonFan(10, 'Pikachu')).toBe(0);
+    });
+
+    it('should return correct cards needed for Charizard (threshold 3)', () => {
+      expect(cardsNeededForPokemonFan(0, 'Charizard')).toBe(3);
+      expect(cardsNeededForPokemonFan(1, 'Charizard')).toBe(2);
+      expect(cardsNeededForPokemonFan(3, 'Charizard')).toBe(0);
+    });
+
+    it('should return correct cards needed for Legendary (threshold 10)', () => {
+      expect(cardsNeededForPokemonFan(0, 'Legendary')).toBe(10);
+      expect(cardsNeededForPokemonFan(5, 'Legendary')).toBe(5);
+      expect(cardsNeededForPokemonFan(10, 'Legendary')).toBe(0);
+    });
+
+    it('should return 0 for invalid Pokemon category', () => {
+      expect(cardsNeededForPokemonFan(5, 'Bulbasaur')).toBe(0);
+    });
+  });
+
+  describe('getPokemonFanPercentProgress', () => {
+    it('should return 0 for 0 cards', () => {
+      expect(getPokemonFanPercentProgress(0, 'Pikachu')).toBe(0);
+    });
+
+    it('should return correct percentage for partial progress', () => {
+      expect(getPokemonFanPercentProgress(1, 'Pikachu')).toBe(20); // 1/5 = 20%
+      expect(getPokemonFanPercentProgress(2, 'Pikachu')).toBe(40);
+      expect(getPokemonFanPercentProgress(1, 'Charizard')).toBe(33); // 1/3 = 33%
+      expect(getPokemonFanPercentProgress(5, 'Legendary')).toBe(50); // 5/10 = 50%
+    });
+
+    it('should return 100 at threshold', () => {
+      expect(getPokemonFanPercentProgress(5, 'Pikachu')).toBe(100);
+      expect(getPokemonFanPercentProgress(3, 'Charizard')).toBe(100);
+      expect(getPokemonFanPercentProgress(10, 'Legendary')).toBe(100);
+    });
+
+    it('should cap at 100% above threshold', () => {
+      expect(getPokemonFanPercentProgress(10, 'Pikachu')).toBe(100);
+      expect(getPokemonFanPercentProgress(50, 'Legendary')).toBe(100);
+    });
+
+    it('should return 0 for invalid Pokemon category', () => {
+      expect(getPokemonFanPercentProgress(50, 'Bulbasaur')).toBe(0);
+    });
+  });
+
+  describe('hasPokemonFanBeenEarned', () => {
+    it('should return false for 0 cards', () => {
+      expect(hasPokemonFanBeenEarned(0, 'Pikachu')).toBe(false);
+    });
+
+    it('should return false below threshold', () => {
+      expect(hasPokemonFanBeenEarned(4, 'Pikachu')).toBe(false);
+      expect(hasPokemonFanBeenEarned(2, 'Charizard')).toBe(false);
+      expect(hasPokemonFanBeenEarned(9, 'Legendary')).toBe(false);
+    });
+
+    it('should return true at exact threshold', () => {
+      expect(hasPokemonFanBeenEarned(5, 'Pikachu')).toBe(true);
+      expect(hasPokemonFanBeenEarned(3, 'Charizard')).toBe(true);
+      expect(hasPokemonFanBeenEarned(10, 'Legendary')).toBe(true);
+    });
+
+    it('should return true above threshold', () => {
+      expect(hasPokemonFanBeenEarned(10, 'Pikachu')).toBe(true);
+      expect(hasPokemonFanBeenEarned(5, 'Charizard')).toBe(true);
+      expect(hasPokemonFanBeenEarned(50, 'Legendary')).toBe(true);
+    });
+
+    it('should return false for invalid Pokemon category', () => {
+      expect(hasPokemonFanBeenEarned(100, 'Bulbasaur')).toBe(false);
+    });
+  });
+
+  describe('getAllEarnedPokemonFanKeys', () => {
+    it('should return empty array for empty counts', () => {
+      expect(getAllEarnedPokemonFanKeys({})).toEqual([]);
+    });
+
+    it('should return empty array when all below threshold', () => {
+      expect(getAllEarnedPokemonFanKeys({ Pikachu: 4, Charizard: 2 })).toEqual([]);
+    });
+
+    it('should return keys for Pokemon at threshold', () => {
+      const keys = getAllEarnedPokemonFanKeys({ Pikachu: 5, Charizard: 2 });
+      expect(keys).toEqual(['pikachu_fan']);
+    });
+
+    it('should return multiple keys when multiple thresholds met', () => {
+      const keys = getAllEarnedPokemonFanKeys({
+        Pikachu: 5,
+        Charizard: 3,
+        Eevee: 5,
+      });
+      expect(keys).toHaveLength(3);
+      expect(keys).toContain('pikachu_fan');
+      expect(keys).toContain('charizard_fan');
+      expect(keys).toContain('eevee_fan');
+    });
+
+    it('should return all 5 keys when all thresholds met', () => {
+      const keys = getAllEarnedPokemonFanKeys({
+        Pikachu: 5,
+        Eevee: 5,
+        Charizard: 3,
+        Mewtwo: 3,
+        Legendary: 10,
+      });
+      expect(keys).toHaveLength(5);
+    });
+  });
+
+  describe('countEarnedPokemonFanBadges', () => {
+    it('should return 0 for empty counts', () => {
+      expect(countEarnedPokemonFanBadges({})).toBe(0);
+    });
+
+    it('should return 0 when all below threshold', () => {
+      expect(countEarnedPokemonFanBadges({ Pikachu: 4, Charizard: 2 })).toBe(0);
+    });
+
+    it('should count badges at threshold', () => {
+      expect(countEarnedPokemonFanBadges({ Pikachu: 5, Charizard: 2 })).toBe(1);
+    });
+
+    it('should count multiple badges at threshold', () => {
+      expect(countEarnedPokemonFanBadges({ Pikachu: 5, Charizard: 3 })).toBe(2);
+    });
+
+    it('should return 5 when all thresholds met', () => {
+      expect(countEarnedPokemonFanBadges({
+        Pikachu: 5,
+        Eevee: 5,
+        Charizard: 3,
+        Mewtwo: 3,
+        Legendary: 10,
+      })).toBe(5);
+    });
+  });
+
+  describe('getNearbyPokemonFanBadges', () => {
+    it('should return empty array for empty counts', () => {
+      expect(getNearbyPokemonFanBadges({})).toEqual([]);
+    });
+
+    it('should return Pokemon with partial progress', () => {
+      const nearby = getNearbyPokemonFanBadges({ Pikachu: 3, Charizard: 2 });
+      expect(nearby).toHaveLength(2);
+    });
+
+    it('should sort by remaining (closest first)', () => {
+      const nearby = getNearbyPokemonFanBadges({ Pikachu: 4, Charizard: 1, Eevee: 2 });
+      // Pikachu: 1 remaining, Charizard: 2 remaining, Eevee: 3 remaining
+      expect(nearby[0].pokemon).toBe('Pikachu');
+      expect(nearby[0].remaining).toBe(1);
+      expect(nearby[1].pokemon).toBe('Charizard');
+      expect(nearby[1].remaining).toBe(2);
+      expect(nearby[2].pokemon).toBe('Eevee');
+      expect(nearby[2].remaining).toBe(3);
+    });
+
+    it('should not include Pokemon at or above threshold', () => {
+      const nearby = getNearbyPokemonFanBadges({ Pikachu: 5, Charizard: 2 });
+      expect(nearby).toHaveLength(1);
+      expect(nearby[0].pokemon).toBe('Charizard');
+    });
+
+    it('should not include Pokemon with 0 cards', () => {
+      const nearby = getNearbyPokemonFanBadges({ Pikachu: 3, Charizard: 0 });
+      expect(nearby).toHaveLength(1);
+      expect(nearby[0].pokemon).toBe('Pikachu');
+    });
+
+    it('should exclude already earned badges', () => {
+      const nearby = getNearbyPokemonFanBadges(
+        { Pikachu: 3, Charizard: 2 },
+        ['pikachu_fan']
+      );
+      expect(nearby).toHaveLength(1);
+      expect(nearby[0].pokemon).toBe('Charizard');
+    });
+
+    it('should include count and remaining in results', () => {
+      const nearby = getNearbyPokemonFanBadges({ Pikachu: 3 });
+      expect(nearby[0].count).toBe(3);
+      expect(nearby[0].remaining).toBe(2);
+      expect(nearby[0].name).toBe('Pikachu Fan');
+    });
+  });
+
+  describe('getPokemonWithFanBadges', () => {
+    it('should return all 5 Pokemon categories', () => {
+      const pokemons = getPokemonWithFanBadges();
+      expect(pokemons).toHaveLength(5);
+      expect(pokemons).toContain('Pikachu');
+      expect(pokemons).toContain('Eevee');
+      expect(pokemons).toContain('Charizard');
+      expect(pokemons).toContain('Mewtwo');
+      expect(pokemons).toContain('Legendary');
+    });
+  });
+
+  describe('Pokemon Fan Badge Awarding Journey', () => {
+    it('should track progressive badge collection', () => {
+      let earnedBadges: string[] = [];
+      let pokemonCounts: Record<string, number> = {};
+
+      // Start collecting Pikachu cards
+      pokemonCounts.Pikachu = 2;
+      let badges = getPokemonFanBadgesToAward(pokemonCounts, earnedBadges);
+      expect(badges).toHaveLength(0);
+
+      // Reach Pikachu threshold
+      pokemonCounts.Pikachu = 5;
+      badges = getPokemonFanBadgesToAward(pokemonCounts, earnedBadges);
+      expect(badges).toEqual(['pikachu_fan']);
+      earnedBadges.push(...badges);
+
+      // Add Charizard cards
+      pokemonCounts.Charizard = 3;
+      badges = getPokemonFanBadgesToAward(pokemonCounts, earnedBadges);
+      expect(badges).toEqual(['charizard_fan']);
+      earnedBadges.push(...badges);
+
+      // Pikachu badge already earned, not returned again
+      pokemonCounts.Pikachu = 10;
+      badges = getPokemonFanBadgesToAward(pokemonCounts, earnedBadges);
+      expect(badges).toHaveLength(0);
+    });
+
+    it('should handle Eevee collection correctly', () => {
+      // Count various Eeveelutions
+      const cardNames = [
+        'Eevee',
+        'Eevee V',
+        'Vaporeon',
+        'Jolteon',
+        'Umbreon ex',
+      ];
+      const counts = countPokemonByCategory(cardNames);
+      expect(counts.Eevee).toBe(5);
+
+      const badges = getPokemonFanBadgesToAward(counts);
+      expect(badges).toContain('eevee_fan');
+    });
+
+    it('should handle Legendary collection with Mewtwo overlap', () => {
+      // Mewtwo counts for both Mewtwo and Legendary badges
+      const cardNames = [
+        'Mewtwo',
+        'Mewtwo V',
+        'Mewtwo VMAX',
+        'Rayquaza',
+        'Zacian',
+        'Zamazenta',
+        'Eternatus',
+        'Articuno',
+        'Zapdos',
+        'Moltres',
+      ];
+      const counts = countPokemonByCategory(cardNames);
+      expect(counts.Mewtwo).toBe(3);
+      expect(counts.Legendary).toBe(10); // All 10 are legendaries (including 3 Mewtwo)
+
+      const badges = getPokemonFanBadgesToAward(counts);
+      expect(badges).toContain('mewtwo_fan');
+      expect(badges).toContain('legendary_fan');
+    });
+
+    it('should show correct progress summary at each stage', () => {
+      // Starting collection
+      let summary = getPokemonFanProgressSummary({ Pikachu: 3, Charizard: 1 });
+      expect(summary.totalPokemonFanBadgesEarned).toBe(0);
+      expect(summary.nearbyBadges).toHaveLength(2);
+      expect(summary.nearbyBadges[0].pokemon).toBe('Pikachu'); // 2 remaining
+      expect(summary.nearbyBadges[1].pokemon).toBe('Charizard'); // 2 remaining
+
+      // After earning Pikachu badge
+      summary = getPokemonFanProgressSummary(
+        { Pikachu: 5, Charizard: 1 },
+        ['pikachu_fan']
+      );
+      expect(summary.totalPokemonFanBadgesEarned).toBe(1);
+      expect(summary.earnedBadges).toHaveLength(1);
+      expect(summary.nearbyBadges).toHaveLength(1);
+      expect(summary.nearbyBadges[0].pokemon).toBe('Charizard');
+
+      // After earning all badges
+      summary = getPokemonFanProgressSummary(
+        {
+          Pikachu: 5,
+          Eevee: 5,
+          Charizard: 3,
+          Mewtwo: 3,
+          Legendary: 10,
+        },
+        ['pikachu_fan', 'eevee_fan', 'charizard_fan', 'mewtwo_fan', 'legendary_fan']
+      );
+      expect(summary.totalPokemonFanBadgesEarned).toBe(5);
+      expect(summary.nearbyBadges).toHaveLength(0);
+    });
+  });
+});

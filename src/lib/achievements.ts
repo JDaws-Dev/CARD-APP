@@ -1129,3 +1129,312 @@ export function getTypeDistribution(
     }))
     .sort((a, b) => b.count - a.count);
 }
+
+// ============================================================================
+// POKEMON FAN BADGE UTILITIES
+// ============================================================================
+
+export interface PokemonFanProgress {
+  pokemon: string;
+  key: string;
+  name: string;
+  count: number;
+  threshold: number;
+  earned: boolean;
+  remaining: number;
+  progress: number;
+}
+
+export interface PokemonFanProgressSummary {
+  pokemonCounts: Record<string, number>;
+  pokemonProgress: PokemonFanProgress[];
+  nearbyBadges: PokemonFanProgress[];
+  earnedBadges: PokemonFanProgress[];
+  totalPokemonFanBadgesEarned: number;
+  totalPokemonFanBadgesAvailable: number;
+}
+
+/**
+ * Pokemon fan badge definitions with names for display
+ */
+export const POKEMON_FAN_BADGE_DEFINITIONS = [
+  { pokemon: 'Pikachu', key: 'pikachu_fan', name: 'Pikachu Fan', threshold: 5 },
+  { pokemon: 'Eevee', key: 'eevee_fan', name: 'Eevee Fan', threshold: 5 },
+  { pokemon: 'Charizard', key: 'charizard_fan', name: 'Charizard Fan', threshold: 3 },
+  { pokemon: 'Mewtwo', key: 'mewtwo_fan', name: 'Mewtwo Fan', threshold: 3 },
+  { pokemon: 'Legendary', key: 'legendary_fan', name: 'Legendary Fan', threshold: 10 },
+] as const;
+
+/**
+ * Eeveelutions for the Eevee fan badge
+ */
+export const EEVEELUTIONS = [
+  'Eevee',
+  'Vaporeon',
+  'Jolteon',
+  'Flareon',
+  'Espeon',
+  'Umbreon',
+  'Leafeon',
+  'Glaceon',
+  'Sylveon',
+] as const;
+
+/**
+ * Legendary Pokemon list (common legendaries and mythicals)
+ */
+export const LEGENDARY_POKEMON = [
+  // Gen 1
+  'Articuno', 'Zapdos', 'Moltres', 'Mewtwo', 'Mew',
+  // Gen 2
+  'Raikou', 'Entei', 'Suicune', 'Lugia', 'Ho-Oh', 'Celebi',
+  // Gen 3
+  'Regirock', 'Regice', 'Registeel', 'Latias', 'Latios', 'Kyogre', 'Groudon', 'Rayquaza', 'Jirachi', 'Deoxys',
+  // Gen 4
+  'Uxie', 'Mesprit', 'Azelf', 'Dialga', 'Palkia', 'Heatran', 'Regigigas', 'Giratina', 'Cresselia', 'Phione', 'Manaphy', 'Darkrai', 'Shaymin', 'Arceus',
+  // Gen 5
+  'Victini', 'Cobalion', 'Terrakion', 'Virizion', 'Tornadus', 'Thundurus', 'Reshiram', 'Zekrom', 'Landorus', 'Kyurem', 'Keldeo', 'Meloetta', 'Genesect',
+  // Gen 6
+  'Xerneas', 'Yveltal', 'Zygarde', 'Diancie', 'Hoopa', 'Volcanion',
+  // Gen 7
+  'Tapu Koko', 'Tapu Lele', 'Tapu Bulu', 'Tapu Fini', 'Cosmog', 'Cosmoem', 'Solgaleo', 'Lunala', 'Nihilego', 'Buzzwole', 'Pheromosa', 'Xurkitree', 'Celesteela', 'Kartana', 'Guzzlord', 'Necrozma', 'Magearna', 'Marshadow', 'Poipole', 'Naganadel', 'Stakataka', 'Blacephalon', 'Zeraora',
+  // Gen 8
+  'Zacian', 'Zamazenta', 'Eternatus', 'Kubfu', 'Urshifu', 'Zarude', 'Regieleki', 'Regidrago', 'Glastrier', 'Spectrier', 'Calyrex',
+  // Gen 9
+  'Koraidon', 'Miraidon', 'Wo-Chien', 'Chien-Pao', 'Ting-Lu', 'Chi-Yu', 'Ogerpon', 'Terapagos', 'Pecharunt',
+] as const;
+
+/**
+ * Checks if a card name matches a target Pokemon name.
+ * Handles variations like "Pikachu V", "Pikachu VMAX", "Pikachu ex", etc.
+ */
+export function matchesPokemonName(cardName: string, targetPokemon: string): boolean {
+  const normalizedCard = cardName.toLowerCase();
+  const normalizedTarget = targetPokemon.toLowerCase();
+  return (
+    normalizedCard === normalizedTarget ||
+    normalizedCard.startsWith(normalizedTarget + ' ')
+  );
+}
+
+/**
+ * Checks if a card name is an Eeveelution (Eevee or any of its evolutions).
+ */
+export function isEeveelution(cardName: string): boolean {
+  return EEVEELUTIONS.some((eeveelution) => matchesPokemonName(cardName, eeveelution));
+}
+
+/**
+ * Checks if a card name is a Legendary Pokemon.
+ */
+export function isLegendaryPokemon(cardName: string): boolean {
+  return LEGENDARY_POKEMON.some((legendary) => matchesPokemonName(cardName, legendary));
+}
+
+/**
+ * Counts Pokemon cards by category from a list of card names.
+ * Returns counts for Pikachu, Eevee (including eeveelutions), Charizard, Mewtwo, and Legendary.
+ */
+export function countPokemonByCategory(cardNames: string[]): Record<string, number> {
+  const counts: Record<string, number> = {
+    Pikachu: 0,
+    Eevee: 0,
+    Charizard: 0,
+    Mewtwo: 0,
+    Legendary: 0,
+  };
+
+  for (const cardName of cardNames) {
+    if (matchesPokemonName(cardName, 'Pikachu')) {
+      counts.Pikachu++;
+    }
+    if (isEeveelution(cardName)) {
+      counts.Eevee++;
+    }
+    if (matchesPokemonName(cardName, 'Charizard')) {
+      counts.Charizard++;
+    }
+    if (matchesPokemonName(cardName, 'Mewtwo')) {
+      counts.Mewtwo++;
+    }
+    if (isLegendaryPokemon(cardName)) {
+      counts.Legendary++;
+    }
+  }
+
+  return counts;
+}
+
+/**
+ * Determines which Pokemon fan badges should be awarded based on counts.
+ * Returns badge keys to award (new badges only, excludes already earned).
+ */
+export function getPokemonFanBadgesToAward(
+  pokemonCounts: Record<string, number>,
+  alreadyEarned: string[] = []
+): string[] {
+  const earnedSet = new Set(alreadyEarned);
+  const badgesToAward: string[] = [];
+
+  for (const badge of POKEMON_FAN_BADGE_DEFINITIONS) {
+    const count = pokemonCounts[badge.pokemon] ?? 0;
+    if (count >= badge.threshold && !earnedSet.has(badge.key)) {
+      badgesToAward.push(badge.key);
+    }
+  }
+
+  return badgesToAward;
+}
+
+/**
+ * Gets Pokemon fan progress summary for display.
+ * Takes Pokemon counts and list of already earned badge keys.
+ */
+export function getPokemonFanProgressSummary(
+  pokemonCounts: Record<string, number>,
+  earnedBadgeKeys: string[] = []
+): PokemonFanProgressSummary {
+  const earnedSet = new Set(earnedBadgeKeys);
+
+  const pokemonProgress: PokemonFanProgress[] = POKEMON_FAN_BADGE_DEFINITIONS.map((badge) => {
+    const count = pokemonCounts[badge.pokemon] ?? 0;
+    const earned = earnedSet.has(badge.key);
+    return {
+      pokemon: badge.pokemon,
+      key: badge.key,
+      name: badge.name,
+      count,
+      threshold: badge.threshold,
+      earned,
+      remaining: earned ? 0 : Math.max(0, badge.threshold - count),
+      progress: Math.min(100, Math.round((count / badge.threshold) * 100)),
+    };
+  });
+
+  // Sort by progress descending (closest to earning first), then alphabetically
+  const sortedByProgress = [...pokemonProgress].sort((a, b) => {
+    if (a.earned && !b.earned) return -1;
+    if (!a.earned && b.earned) return 1;
+    if (b.progress !== a.progress) return b.progress - a.progress;
+    return a.pokemon.localeCompare(b.pokemon);
+  });
+
+  // Find nearby badges (pokemon with at least 1 card but not earned)
+  const nearbyBadges = pokemonProgress
+    .filter((p) => p.count > 0 && !p.earned)
+    .sort((a, b) => a.remaining - b.remaining);
+
+  // Find earned badges
+  const earnedBadges = pokemonProgress.filter((p) => p.earned);
+
+  return {
+    pokemonCounts,
+    pokemonProgress: sortedByProgress,
+    nearbyBadges,
+    earnedBadges,
+    totalPokemonFanBadgesEarned: earnedBadges.length,
+    totalPokemonFanBadgesAvailable: POKEMON_FAN_BADGE_DEFINITIONS.length,
+  };
+}
+
+/**
+ * Gets the Pokemon fan badge definition for a given key.
+ */
+export function getPokemonFanBadgeDefinition(
+  key: string
+): { pokemon: string; key: string; name: string; threshold: number } | null {
+  const badge = POKEMON_FAN_BADGE_DEFINITIONS.find((b) => b.key === key);
+  return badge
+    ? { pokemon: badge.pokemon, key: badge.key, name: badge.name, threshold: badge.threshold }
+    : null;
+}
+
+/**
+ * Gets the Pokemon fan badge definition for a given Pokemon category.
+ */
+export function getPokemonFanBadgeForPokemon(
+  pokemon: string
+): { pokemon: string; key: string; name: string; threshold: number } | null {
+  const badge = POKEMON_FAN_BADGE_DEFINITIONS.find((b) => b.pokemon === pokemon);
+  return badge
+    ? { pokemon: badge.pokemon, key: badge.key, name: badge.name, threshold: badge.threshold }
+    : null;
+}
+
+/**
+ * Calculates how many more cards of a Pokemon are needed to earn the badge.
+ */
+export function cardsNeededForPokemonFan(pokemonCount: number, pokemonCategory: string): number {
+  const badge = POKEMON_FAN_BADGE_DEFINITIONS.find((b) => b.pokemon === pokemonCategory);
+  if (!badge) return 0;
+  return Math.max(0, badge.threshold - pokemonCount);
+}
+
+/**
+ * Gets percentage progress toward a specific Pokemon fan badge.
+ */
+export function getPokemonFanPercentProgress(pokemonCount: number, pokemonCategory: string): number {
+  const badge = POKEMON_FAN_BADGE_DEFINITIONS.find((b) => b.pokemon === pokemonCategory);
+  if (!badge) return 0;
+  return Math.min(100, Math.round((pokemonCount / badge.threshold) * 100));
+}
+
+/**
+ * Checks if a Pokemon fan badge has been earned for a given count and category.
+ */
+export function hasPokemonFanBeenEarned(pokemonCount: number, pokemonCategory: string): boolean {
+  const badge = POKEMON_FAN_BADGE_DEFINITIONS.find((b) => b.pokemon === pokemonCategory);
+  if (!badge) return false;
+  return pokemonCount >= badge.threshold;
+}
+
+/**
+ * Gets all Pokemon fan badge keys that should be earned based on counts.
+ */
+export function getAllEarnedPokemonFanKeys(pokemonCounts: Record<string, number>): string[] {
+  return POKEMON_FAN_BADGE_DEFINITIONS.filter(
+    (badge) => (pokemonCounts[badge.pokemon] ?? 0) >= badge.threshold
+  ).map((badge) => badge.key);
+}
+
+/**
+ * Gets the number of Pokemon fan badges earned based on counts.
+ */
+export function countEarnedPokemonFanBadges(pokemonCounts: Record<string, number>): number {
+  return POKEMON_FAN_BADGE_DEFINITIONS.filter(
+    (badge) => (pokemonCounts[badge.pokemon] ?? 0) >= badge.threshold
+  ).length;
+}
+
+/**
+ * Gets the Pokemon that are closest to earning a badge (sorted by remaining count).
+ */
+export function getNearbyPokemonFanBadges(
+  pokemonCounts: Record<string, number>,
+  earnedBadgeKeys: string[] = []
+): Array<{ pokemon: string; key: string; name: string; count: number; remaining: number }> {
+  const earnedSet = new Set(earnedBadgeKeys);
+
+  return POKEMON_FAN_BADGE_DEFINITIONS.filter((badge) => {
+    const count = pokemonCounts[badge.pokemon] ?? 0;
+    return count > 0 && count < badge.threshold && !earnedSet.has(badge.key);
+  })
+    .map((badge) => {
+      const count = pokemonCounts[badge.pokemon] ?? 0;
+      return {
+        pokemon: badge.pokemon,
+        key: badge.key,
+        name: badge.name,
+        count,
+        remaining: badge.threshold - count,
+      };
+    })
+    .sort((a, b) => a.remaining - b.remaining);
+}
+
+/**
+ * Gets all Pokemon categories that have associated fan badges.
+ */
+export function getPokemonWithFanBadges(): string[] {
+  return POKEMON_FAN_BADGE_DEFINITIONS.map((b) => b.pokemon);
+}
