@@ -77,7 +77,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [x] Add `games` table to Convex schema (slug: pokemon/yugioh/onepiece/dragonball/lorcana/digimon/mtg, display_name, api_source, primary_color, is_active, release_order)
 - [x] Add `profile_games` junction table (profile_id, game_id, enabled_at) - Track which games each profile collects
 - [x] Add game_id field to cachedSets table - Link sets to games
-- [ ] Add game_id field to cachedCards table - Link cards to games
+- [x] Add game_id field to cachedCards table - Link cards to games
 - [x] Create game-agnostic API abstraction in src/lib/tcg-api.ts - Unified fetch interface that routes to correct API based on game
 - [x] API adapter for YGOPRODeck (src/lib/yugioh-api.ts) - Yu-Gi-Oh! cards, 20 req/sec rate limit
 - [x] API adapter for OPTCG API (src/lib/onepiece-api.ts) - One Piece cards, 10 req/sec rate limit (conservative)
@@ -1358,4 +1358,20 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Filtering set lists by game when displaying game-specific collections
   - Joining sets to games table for display name and branding
   - Supporting future set-caching for all 7 TCGs in a single unified table
+- Linter clean
+
+### 2026-01-16: Add gameSlug field to cachedCards table for Multi-TCG support
+
+- Updated `cachedCards` table in `convex/schema.ts`:
+  - Added `gameSlug` field as union type of all 7 supported TCGs (pokemon, yugioh, mtg, onepiece, lorcana, digimon, dragonball)
+  - Links cards to their respective games for multi-game filtering and organization
+  - Updated `cardId` comment to reflect multi-TCG usage (e.g., "sv1-1" for Pokemon, "LOB-001" for Yu-Gi-Oh!)
+  - Updated `supertype`, `subtypes`, and `types` comments to note game-specific values
+- Added new indexes for efficient querying:
+  - `by_game`: Query all cards for a specific game
+  - `by_game_and_set`: Compound index for querying cards by game and set together
+- Schema change enables:
+  - Filtering card lists by game when displaying game-specific collections
+  - Efficient queries for "all cards from set X in game Y"
+  - Supporting card-caching for all 7 TCGs in a single unified table
 - Linter clean
