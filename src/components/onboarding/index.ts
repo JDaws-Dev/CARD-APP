@@ -3,3 +3,9 @@ export {
   SetStructureIntroModal,
   SetStructureIntroSkeleton,
 } from './SetStructureIntro';
+
+export {
+  GameSelectorOnboarding,
+  GameSelectorOnboardingModal,
+  GameSelectorOnboardingSkeleton,
+} from './GameSelectorOnboarding';
