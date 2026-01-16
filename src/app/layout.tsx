@@ -5,7 +5,7 @@ import { KidModeProvider } from '@/components/providers/KidModeProvider';
 import { CelebrationProvider } from '@/components/ui/CelebrationAnimation';
 import { LevelUpProvider } from '@/components/gamification/LevelSystem';
 import { MilestoneProvider } from '@/components/gamification/MilestoneCelebration';
-import { Header } from '@/components/layout/Header';
+import { AuthAwareHeader } from '@/components/layout/AuthAwareHeader';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -37,7 +37,7 @@ export default function RootLayout({
                   >
                     Skip to main content
                   </a>
-                  <Header />
+                  <AuthAwareHeader />
                   <main id="main-content">{children}</main>
                 </MilestoneProvider>
               </LevelUpProvider>
