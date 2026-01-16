@@ -64,78 +64,60 @@
 - [ ] Implement offline collection caching strategy (service worker setup)
 - [ ] Performance optimization (index Convex queries, optimize batch fetches)
 
-## NEW - Data Persistence & Sync (from competitor research)
+### Data Persistence & Sync
 
-- [ ] **Cloud backup/sync system** - Automatic backup to prevent collection loss (major competitor complaint)
-- [ ] **Data persistence guarantee** - Never lose collection data when switching phones/devices
-- [ ] **Conflict resolution** - Handle sync conflicts when same account used on multiple devices
+- [ ] Cloud backup/sync system - Automatic backup to prevent collection loss (major competitor complaint)
+- [ ] Data persistence guarantee - Never lose collection data when switching phones/devices
+- [ ] Conflict resolution - Handle sync conflicts when same account used on multiple devices
 
-## NEW - Multi-TCG Architecture
+### Multi-TCG Architecture
 
-**Database Schema:**
+Add `games` table to Convex schema with fields: id, slug, display_name, api_source, primary_color, is_active, release_order
 
-```
-Table: games
-- id (PK)
-- slug ("pokemon", "yugioh", "onepiece", "dragonball", "lorcana", "digimon", "mtg")
-- display_name ("Pokémon TCG", "Yu-Gi-Oh!", "One Piece Card Game", etc.)
-- api_source ("pokemontcg.io", "ygoprodeck", "optcgapi", "apitcg", "lorcast", "digimoncard.io", "scryfall")
-- primary_color ("#FFCB05", "#7B5BA6", "#E31837", etc.)
-- is_active (boolean)
-- release_order (int) -- for display sorting
+- [ ] Add `games` table to Convex schema (slug: pokemon/yugioh/onepiece/dragonball/lorcana/digimon/mtg, display_name, api_source, primary_color, is_active, release_order)
+- [ ] Add `profile_games` junction table (profile_id, game_id, enabled_at) - Track which games each profile collects
+- [ ] Add game_id field to cachedSets table - Link sets to games
+- [ ] Add game_id field to cachedCards table - Link cards to games
+- [ ] Create game-agnostic API abstraction in src/lib/tcg-api.ts - Unified fetch interface that routes to correct API based on game
+- [ ] API adapter for YGOPRODeck (src/lib/yugioh-api.ts) - Yu-Gi-Oh! cards, 20 req/sec rate limit
+- [ ] API adapter for OPTCG API (src/lib/onepiece-api.ts) - One Piece cards
+- [ ] API adapter for ApiTCG (src/lib/dragonball-api.ts) - Dragon Ball Fusion World cards
+- [ ] API adapter for Lorcast (src/lib/lorcana-api.ts) - Disney Lorcana cards, 10 req/sec rate limit
+- [ ] API adapter for DigimonCard.io (src/lib/digimon-api.ts) - Digimon cards, 15 req/10sec rate limit
+- [ ] API adapter for Scryfall (src/lib/mtg-api.ts) - Magic: The Gathering cards, 10 req/sec rate limit
+- [ ] Evaluate unified APIs - Test if ApiTCG.com or JustTCG can replace multiple adapters
 
-Table: profile_games (many-to-many)
-- profile_id (FK)
-- game_id (FK)
-- enabled_at (timestamp)
-```
+### Gamification Backend
 
-**Tasks:**
+- [ ] Level-up system - Add XP field to profiles, XP tracking mutations, level calculation logic (XP for adding cards/completing sets/daily logins)
+- [ ] Unlockable avatar items - Schema for avatar items (hats, frames, badges), earned items tracking, avatar customization queries
+- [ ] Collection milestones tracking - Detect first 10, 50, 100, 500 cards and return milestone data for celebrations
 
-- [ ] **Add `games` table to Convex schema** - With all fields above
-- [ ] **Add `profile_games` junction table** - Track which games each profile collects
-- [ ] **Add game_id foreign key to sets table** - Link sets to games
-- [ ] **Add game_id foreign key to cached_cards table** - Link cards to games
-- [ ] **Create game-agnostic API abstraction** - Unified fetch interface that routes to correct API
-- [ ] **API adapter for YGOPRODeck** - Yu-Gi-Oh! cards
-- [ ] **API adapter for OPTCG API** - One Piece cards
-- [ ] **API adapter for ApiTCG** - Dragon Ball, possibly others
-- [ ] **API adapter for Lorcast** - Disney Lorcana cards
-- [ ] **API adapter for DigimonCard.io** - Digimon cards
-- [ ] **API adapter for Scryfall** - Magic: The Gathering cards
-- [ ] **Evaluate unified APIs** - Test if ApiTCG.com or JustTCG can replace multiple adapters
+### Educational Content
 
-## NEW - Gamification Backend
+- [ ] Tutorial content storage - Schema and queries for "Learn to Collect" tutorial content
+- [ ] Rarity definitions - Store rarity explanations with examples for tooltips
+- [ ] Card condition guide content - NM/LP/MP/HP definitions and example images
 
-- [ ] **Level-up system** - XP tracking, level calculation, XP awards for adding cards/completing sets/daily logins
-- [ ] **Unlockable avatar items** - Schema for avatar items (hats, frames, badges), earned items tracking
-- [ ] **Collection milestones tracking** - Detect first 10, 50, 100, 500 cards and trigger celebrations
+### Additional Features
 
-## NEW - Educational Content
+- [ ] Japanese promo support - Proper detection and categorization of Japanese promos
+- [x] "New in collection" tracking - Query for cards added in last 7 days
+- [x] Random card query - Return random card from user's collection
+- [ ] Rarity filter support - Add rarity indexing for efficient filtering
+- [ ] Fair trading calculator - Price comparison logic for "Is this trade fair?" tool
 
-- [ ] **Tutorial content storage** - Schema and queries for "Learn to Collect" tutorial content
-- [ ] **Rarity definitions** - Store rarity explanations with examples for tooltips
-- [ ] **Card condition guide content** - NM/LP/MP/HP definitions and example images
+### Launch Prep
 
-## NEW - Additional Features
-
-- [ ] **Japanese promo support** - Proper detection and categorization of Japanese promos (competitor gap)
-- [x] **"New in collection" tracking** - Query for cards added in last 7 days
-- [ ] **Random card query** - Return random card from user's collection
-- [ ] **Rarity filter support** - Add rarity indexing for efficient filtering
-- [ ] **Fair trading calculator** - Price comparison logic for "Is this trade fair?" tool
-
-## NEW - Launch Prep
-
-- [ ] **Free tier limitations** - Enforce 3 sets max, 1 child profile for free tier
-- [ ] **Subscription validation** - Check subscription status before premium features
-- [ ] **TCGPlayer affiliate link generation** - Add affiliate tracking to wishlist share links
-- [ ] **Stripe subscription integration** - Payment processing for Family tier ($4.99/mo or $39.99/yr)
-- [ ] **Set up production environment** - Vercel deployment configuration
-- [ ] **Configure environment variables** - Production secrets and API keys
-- [ ] **Set up error monitoring (Sentry)** - Error tracking and alerting
-- [ ] **Set up analytics (Plausible or PostHog)** - Usage tracking, kid-safe analytics
-- [ ] **Write E2E tests** - Critical user flows (add card, create wishlist, share link)
+- [ ] Free tier limitations - Enforce 3 sets max, 1 child profile for free tier
+- [ ] Subscription validation - Check subscription status before premium features
+- [ ] TCGPlayer affiliate link generation - Add affiliate tracking to wishlist share links
+- [ ] Stripe subscription integration - Payment processing for Family tier ($4.99/mo or $39.99/yr)
+- [ ] Set up production environment - Vercel deployment configuration
+- [ ] Configure environment variables - Production secrets and API keys
+- [ ] Set up error monitoring (Sentry) - Error tracking and alerting
+- [ ] Set up analytics (Plausible or PostHog) - Usage tracking, kid-safe analytics
+- [ ] Write E2E tests - Critical user flows (add card, create wishlist, share link)
 
 ---
 
@@ -544,3 +526,42 @@ Table: profile_games (many-to-many)
   - hasAnyNewCards boolean check
   - Integration scenarios: processing activity logs, daily activity summary, badge display, time window detection
 - All 898 tests pass, linter clean
+
+### 2026-01-16: Add random card query for collection
+
+- Added `getRandomCard` query to `convex/collections.ts`:
+  - Returns a random card from the user's collection
+  - Optionally filter by setId to get random card from specific set
+  - Optionally filter by variant (normal, holofoil, reverseHolofoil, etc.)
+  - Returns enriched data: cardId, variant, quantity, name, imageSmall, imageLarge, setId, rarity, types
+- Added `getRandomCards` query for multiple random cards:
+  - Returns N random cards (default 3) for "Featured Cards" or "Random Picks" display
+  - Uses Fisher-Yates shuffle for efficient random selection
+  - Supports allowDuplicates option (default false)
+  - Respects setId and variant filters
+- Added utility functions to `src/lib/collections.ts`:
+  - Types: `RandomCardResult`, `RandomCardOptions`
+  - `filterCollectionCards`: Filter by setId and/or variant
+  - `selectRandomItem`: Generic function to select random item from array
+  - `selectRandomCard`: Select single random card with filters
+  - `shuffleArray`, `shuffleCopy`: Fisher-Yates shuffle implementations
+  - `selectRandomCards`: Select multiple random cards
+  - `hasEnoughCards`, `maxRandomCards`: Validation helpers
+  - `validateRandomCardOptions`: Validate options before selection
+  - `enrichRandomCard`, `enrichRandomCards`: Enrich with cached card data
+  - `getRandomCardMessage`: Generate fun message for gamification (e.g., "You got a Holofoil Pikachu!")
+  - `cardSelectionProbability`: Calculate probability of selecting specific card
+  - `estimateInclusionProbability`: Monte Carlo simulation for inclusion probability
+- Added 58 tests in `src/lib/__tests__/collections.test.ts` covering:
+  - filterCollectionCards (all filters, empty collection, combined filters)
+  - selectRandomItem (empty, single, multiple items)
+  - selectRandomCard (with and without filters)
+  - shuffleArray, shuffleCopy (mutation testing, element preservation)
+  - selectRandomCards (count, duplicates, filters, uniqueness)
+  - hasEnoughCards, maxRandomCards
+  - validateRandomCardOptions (valid options, invalid count/variant)
+  - enrichRandomCard, enrichRandomCards (with and without cached data)
+  - getRandomCardMessage (normal vs special variants)
+  - cardSelectionProbability (edge cases, multiple occurrences)
+  - Integration scenarios: Featured Cards Display, Random Card from Set, Holofoil Random Selection, Empty Collection Handling, Single Card Collection
+- All 956 tests pass, linter clean
