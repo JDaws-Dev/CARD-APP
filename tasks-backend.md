@@ -1398,3 +1398,35 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - JustTCG could supplement for future cross-game pricing features
 - Added helper functions for potential future JustTCG integration
 - ESLint and Prettier clean
+
+### 2026-01-16: Add profile_games junction table queries, mutations, and utility functions
+
+- Created `convex/profileGames.ts` with full CRUD operations:
+  - Queries: `getProfileGames`, `getEnabledGameSlugs`, `isGameEnabled` - Check profile game status
+  - Queries: `getProfilesForGame`, `getProfileGameStats`, `getProfileGamesWithInfo` - Analytics and enriched data
+  - Mutations: `enableGame`, `disableGame`, `removeGame` - Single game operations
+  - Mutations: `enableMultipleGames`, `setProfileGames` - Batch operations for onboarding
+  - Mutation: `initializeDefaultGames` - Default game setup for new profiles (Pokemon)
+- Created `src/lib/profileGames.ts` with comprehensive pure utility functions:
+  - Types: `GameSlug`, `ProfileGame`, `GameInfo`, `ProfileGameWithInfo`, `ProfileGameStats`
+  - Constants: `GAME_SLUGS` (7 games), `DEFAULT_GAME` (pokemon), `GAME_DISPLAY_NAMES`, `GAME_COLORS`, `GAME_RELEASE_ORDER`
+  - Validation: `isValidGameSlug`, `validateGameSlugs`, `isProfileGameActive`
+  - Filtering: `filterActiveGames`, `filterInactiveGames`, `getEnabledSlugs`, `getDisabledSlugs`
+  - Querying: `isGameEnabled`, `findProfileGame`, `getUntrackedGames`, `getAvailableGames`
+  - Sorting: `sortByEnabledDate`, `sortByReleaseOrder`, `sortByDisplayName`, `sortSlugsByReleaseOrder`
+  - Statistics: `calculateProfileGameStats`, `countEnabledGames`, `hasAnyGamesEnabled`, `hasAllGamesEnabled`
+  - Display: `getGameDisplayName`, `getGameColor`, `getGameInfo`, `getAllGameInfoSorted`
+  - Display: `formatEnabledGamesForDisplay`, `formatEnabledDate`, `formatEnabledDateRelative`
+  - Change detection: `compareGameSelections`, `hasSelectionChanged`, `getSelectionChangeSummary`
+  - Enrichment: `enrichProfileGamesWithInfo`, `createProfileGameMap`
+  - Onboarding: `getRecommendedGamesForOnboarding`, `validateOnboardingSelection`
+- Added 86 tests in `src/lib/__tests__/profileGames.test.ts` covering:
+  - Constants validation (GAME_SLUGS, GAME_DISPLAY_NAMES, GAME_COLORS, GAME_RELEASE_ORDER)
+  - All validation functions (isValidGameSlug, validateGameSlugs, isProfileGameActive)
+  - All filtering and querying functions
+  - Sorting functions (non-mutating verified)
+  - Statistics calculations
+  - Display helpers with date formatting
+  - Change detection and enrichment
+  - Integration scenarios: New User Onboarding Flow, Adding a New Game, Disabling a Game, Viewing Game Stats
+- All 2890 tests pass, linter clean
