@@ -30,6 +30,7 @@ import { CardGridSkeleton, StatsBarSkeleton } from '@/components/ui/Skeleton';
 import { IconLegend } from './IconLegend';
 import { useLevelUp } from '@/components/gamification/LevelSystem';
 import { useKidMode } from '@/components/providers/KidModeProvider';
+import { useSetCompletionTracker } from '@/components/gamification/SetCompletionCelebration';
 
 // Variant type definition
 type CardVariant =
@@ -216,7 +217,7 @@ function VariantSelector({
       style={{
         top: position.top,
         left: position.left,
-        transform: 'translate(-50%, 8px)',
+        transform: 'translate(-50%, -50%)',
       }}
     >
       {/* Header */}
@@ -495,11 +496,22 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
         return;
       }
 
-      // Show variant selector for multi-variant cards or owned cards
-      setSelectorPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + rect.width / 2 + window.scrollX,
-      });
+      // Show variant selector - centered on mobile, over card on desktop
+      const isMobile = window.innerWidth < 640;
+
+      if (isMobile) {
+        // On mobile, show as centered modal
+        setSelectorPosition({
+          top: window.innerHeight / 2,
+          left: window.innerWidth / 2,
+        });
+      } else {
+        // On desktop, center on the card
+        setSelectorPosition({
+          top: rect.top + rect.height / 2,
+          left: rect.left + rect.width / 2,
+        });
+      }
       setSelectedCard(card);
     },
     [profileId, ownedCards, addCard, removeCard, setName, showXPGain, features.showVariantSelector]
@@ -570,6 +582,14 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
   const ownedCount = ownedCards.size;
   const totalCount = cards.length;
   const progressPercent = totalCount > 0 ? Math.round((ownedCount / totalCount) * 100) : 0;
+
+  // Track set completion and trigger celebration at 100%
+  useSetCompletionTracker({
+    setId,
+    setName: setName ?? 'Set',
+    totalCardsInSet: totalCount,
+    ownedCount,
+  });
 
   // Loading state with skeleton screens
   if (profileLoading || collection === undefined) {
@@ -889,17 +909,21 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
         })}
       </div>
 
-      {/* Variant Selector Popup */}
+      {/* Variant Selector Popup with mobile backdrop */}
       {selectedCard && selectorPosition && (
-        <VariantSelector
-          card={selectedCard}
-          ownedVariants={ownedVariantsMap.get(selectedCard.id) ?? new Map()}
-          setName={setName}
-          onAddVariant={handleAddVariant}
-          onRemoveVariant={handleRemoveVariant}
-          onClose={handleCloseSelector}
-          position={selectorPosition}
-        />
+        <>
+          {/* Backdrop for mobile */}
+          <div className="fixed inset-0 z-40 bg-black/30 sm:hidden" onClick={handleCloseSelector} />
+          <VariantSelector
+            card={selectedCard}
+            ownedVariants={ownedVariantsMap.get(selectedCard.id) ?? new Map()}
+            setName={setName}
+            onAddVariant={handleAddVariant}
+            onRemoveVariant={handleRemoveVariant}
+            onClose={handleCloseSelector}
+            position={selectorPosition}
+          />
+        </>
       )}
     </div>
   );
