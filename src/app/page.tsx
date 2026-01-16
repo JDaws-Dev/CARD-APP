@@ -36,6 +36,13 @@ export default function Home() {
           >
             Search Cards
           </Link>
+
+          <Link
+            href="/browse"
+            className="touch-target border-kid-accent text-kid-accent hover:bg-kid-accent/10 rounded-full border-2 bg-white px-8 py-4 text-lg font-semibold shadow-lg transition hover:shadow-xl"
+          >
+            Browse & Filter
+          </Link>
         </div>
 
         {/* Feature highlights */}

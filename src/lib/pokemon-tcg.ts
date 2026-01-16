@@ -144,6 +144,72 @@ export async function searchCards(name: string, limit = 20): Promise<PokemonCard
 }
 
 /**
+ * Filter options for card search
+ */
+export interface FilterOptions {
+  setId?: string;
+  type?: string;
+  name?: string;
+  limit?: number;
+}
+
+/**
+ * Available Pokemon types for filtering
+ */
+export const POKEMON_TYPES = [
+  'Colorless',
+  'Darkness',
+  'Dragon',
+  'Fairy',
+  'Fighting',
+  'Fire',
+  'Grass',
+  'Lightning',
+  'Metal',
+  'Psychic',
+  'Water',
+] as const;
+
+export type PokemonType = (typeof POKEMON_TYPES)[number];
+
+/**
+ * Filter cards by set, type, and/or name
+ */
+export async function filterCards(options: FilterOptions): Promise<PokemonCard[]> {
+  const { setId, type, name, limit = 50 } = options;
+
+  // Build query parts
+  const queryParts: string[] = [];
+
+  if (setId) {
+    queryParts.push(`set.id:${setId}`);
+  }
+
+  if (type) {
+    queryParts.push(`types:${type}`);
+  }
+
+  if (name) {
+    queryParts.push(`name:"${name}*"`);
+  }
+
+  // If no filters provided, return empty array
+  if (queryParts.length === 0) {
+    return [];
+  }
+
+  const query = queryParts.join(' ');
+  const encodedQuery = encodeURIComponent(query);
+
+  const response = await fetchFromAPI<APIResponse<PokemonCard[]>>(
+    `/cards?q=${encodedQuery}&pageSize=${limit}&orderBy=-set.releaseDate,number`,
+    { cache: 'no-store' }
+  );
+
+  return response.data;
+}
+
+/**
  * Get multiple cards by their IDs
  * Note: Pokemon TCG API supports OR queries with multiple card IDs
  */
