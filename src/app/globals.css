@@ -835,3 +835,230 @@ body {
   letter-spacing: normal;
   word-spacing: normal;
 }
+
+/* ============================================================================
+ * HIGH-CONTRAST MODE
+ * Enhanced contrast mode for users with vision accessibility needs.
+ * Provides clearer text, stronger borders, and larger focus indicators.
+ * ============================================================================ */
+
+/* Base high-contrast mode indicator */
+.high-contrast {
+  /* Transition for smooth mode changes */
+  --high-contrast-transition: 0.2s ease-out;
+}
+
+/* ============================================================================
+ * MEDIUM CONTRAST LEVEL
+ * Moderately increased contrast for better visibility
+ * ============================================================================ */
+
+.high-contrast-medium {
+  /* Enhanced text contrast */
+  --hc-text-primary: #111827;
+  --hc-text-secondary: #374151;
+  --hc-text-muted: #4b5563;
+  --hc-bg-primary: #ffffff;
+  --hc-bg-secondary: #f9fafb;
+  --hc-border: #374151;
+}
+
+/* Dark mode medium contrast */
+.dark.high-contrast-medium,
+.high-contrast-medium.dark {
+  --hc-text-primary: #f9fafb;
+  --hc-text-secondary: #e5e7eb;
+  --hc-text-muted: #d1d5db;
+  --hc-bg-primary: #030712;
+  --hc-bg-secondary: #111827;
+  --hc-border: #d1d5db;
+}
+
+/* Medium contrast - Enhanced text colors */
+.high-contrast-medium {
+  color: var(--hc-text-primary);
+}
+
+.high-contrast-medium [class*='text-gray-500'],
+.high-contrast-medium [class*='text-gray-400'] {
+  color: var(--hc-text-secondary) !important;
+}
+
+.high-contrast-medium [class*='text-gray-600'] {
+  color: var(--hc-text-primary) !important;
+}
+
+/* Medium contrast - Enhanced borders */
+.high-contrast-medium [class*='border-gray-200'],
+.high-contrast-medium [class*='border-gray-100'] {
+  border-color: #9ca3af !important;
+}
+
+.dark.high-contrast-medium [class*='border-slate-700'],
+.dark.high-contrast-medium [class*='border-slate-600'],
+.high-contrast-medium.dark [class*='border-slate-700'],
+.high-contrast-medium.dark [class*='border-slate-600'] {
+  border-color: #6b7280 !important;
+}
+
+/* Medium contrast - Enhanced focus indicators */
+.high-contrast-medium *:focus-visible {
+  outline: 3px solid currentColor !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
+
+/* ============================================================================
+ * HIGH CONTRAST LEVEL
+ * Maximum contrast with pure black/white text and strong borders
+ * ============================================================================ */
+
+.high-contrast-high {
+  /* Pure black/white text contrast */
+  --hc-text-primary: #000000;
+  --hc-text-secondary: #1f2937;
+  --hc-text-muted: #374151;
+  --hc-bg-primary: #ffffff;
+  --hc-bg-secondary: #ffffff;
+  --hc-border: #000000;
+}
+
+/* Dark mode high contrast */
+.dark.high-contrast-high,
+.high-contrast-high.dark {
+  --hc-text-primary: #ffffff;
+  --hc-text-secondary: #f3f4f6;
+  --hc-text-muted: #e5e7eb;
+  --hc-bg-primary: #000000;
+  --hc-bg-secondary: #000000;
+  --hc-border: #ffffff;
+}
+
+/* High contrast - Maximum text contrast */
+.high-contrast-high {
+  color: var(--hc-text-primary);
+}
+
+.high-contrast-high body {
+  background: var(--hc-bg-primary) !important;
+}
+
+/* Force all text to high contrast colors */
+.high-contrast-high [class*='text-gray-'],
+.high-contrast-high [class*='text-slate-'] {
+  color: var(--hc-text-primary) !important;
+}
+
+.high-contrast-high [class*='text-gray-500'],
+.high-contrast-high [class*='text-gray-400'],
+.high-contrast-high [class*='text-slate-500'],
+.high-contrast-high [class*='text-slate-400'] {
+  color: var(--hc-text-secondary) !important;
+}
+
+/* High contrast - Strong borders */
+.high-contrast-high [class*='border-gray-'],
+.high-contrast-high [class*='border-slate-'] {
+  border-color: var(--hc-border) !important;
+  border-width: 2px !important;
+}
+
+/* High contrast - Remove subtle backgrounds */
+.high-contrast-high [class*='bg-gray-50'],
+.high-contrast-high [class*='bg-gray-100'],
+.high-contrast-high [class*='bg-slate-50'],
+.high-contrast-high [class*='bg-slate-100'] {
+  background-color: var(--hc-bg-primary) !important;
+}
+
+.dark.high-contrast-high [class*='bg-slate-800'],
+.dark.high-contrast-high [class*='bg-slate-900'],
+.high-contrast-high.dark [class*='bg-slate-800'],
+.high-contrast-high.dark [class*='bg-slate-900'] {
+  background-color: var(--hc-bg-primary) !important;
+}
+
+/* High contrast - Extra large focus indicators */
+.high-contrast-high *:focus-visible {
+  outline: 4px solid var(--hc-border) !important;
+  outline-offset: 3px !important;
+  box-shadow: none !important;
+}
+
+/* High contrast - Underline all links for visibility */
+.high-contrast-high a:not([class*='btn']):not([class*='button']) {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 2px !important;
+}
+
+/* High contrast - Enhanced button borders */
+.high-contrast-high button,
+.high-contrast-high [role='button'] {
+  border: 2px solid var(--hc-border) !important;
+}
+
+/* High contrast - Input fields */
+.high-contrast-high input,
+.high-contrast-high select,
+.high-contrast-high textarea {
+  border: 2px solid var(--hc-border) !important;
+  background: var(--hc-bg-primary) !important;
+  color: var(--hc-text-primary) !important;
+}
+
+.high-contrast-high input::placeholder,
+.high-contrast-high textarea::placeholder {
+  color: var(--hc-text-muted) !important;
+}
+
+/* High contrast - Remove gradients, use solid colors */
+.high-contrast-high [class*='bg-gradient'] {
+  background: var(--hc-bg-secondary) !important;
+  border: 2px solid var(--hc-border) !important;
+}
+
+/* High contrast - Remove transparent/semi-transparent backgrounds */
+.high-contrast-high [class*='bg-white/'],
+.high-contrast-high [class*='bg-black/'] {
+  background-color: var(--hc-bg-primary) !important;
+}
+
+/* High contrast - Ensure card backgrounds are visible */
+.high-contrast-high [class*='rounded-lg'],
+.high-contrast-high [class*='rounded-xl'],
+.high-contrast-high [class*='rounded-2xl'] {
+  border: 2px solid var(--hc-border) !important;
+}
+
+/* ============================================================================
+ * HIGH-CONTRAST UTILITY CLASSES
+ * ============================================================================ */
+
+@layer utilities {
+  /* Force high-contrast text on specific elements */
+  .high-contrast .hc-text-primary {
+    color: var(--hc-text-primary) !important;
+  }
+
+  .high-contrast .hc-text-secondary {
+    color: var(--hc-text-secondary) !important;
+  }
+
+  /* Force high-contrast borders */
+  .high-contrast .hc-border {
+    border-color: var(--hc-border) !important;
+  }
+
+  /* Force high-contrast backgrounds */
+  .high-contrast .hc-bg-primary {
+    background-color: var(--hc-bg-primary) !important;
+  }
+
+  /* Override high-contrast for specific elements */
+  .high-contrast .no-high-contrast {
+    color: inherit !important;
+    border-color: inherit !important;
+    background-color: inherit !important;
+  }
+}
