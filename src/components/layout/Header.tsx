@@ -2,14 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  UserIcon,
-  ArrowRightOnRectangleIcon,
-  Bars3Icon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline';
+import { ArrowRightOnRectangleIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { UserPlusIcon } from '@heroicons/react/24/solid';
 import { useState } from 'react';
+import { StreakCounter } from '@/components/gamification/StreakCounter';
 
 // Custom card stack icon for logo
 function CardStackIcon({ className }: { className?: string }) {
@@ -80,8 +76,10 @@ export function Header() {
           ))}
         </div>
 
-        {/* Auth Buttons - Desktop */}
+        {/* Streak Counter & Auth Buttons - Desktop */}
         <div className="hidden items-center gap-3 md:flex">
+          <StreakCounter />
+          <div className="h-6 w-px bg-gray-200" aria-hidden="true" />
           <Link
             href="/login"
             className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
@@ -140,6 +138,12 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
+          </div>
+          {/* Mobile streak counter */}
+          <div className="border-t border-gray-200 px-4 py-3">
+            <div className="mb-3 flex items-center justify-center">
+              <StreakCounter />
+            </div>
           </div>
           <div className="border-t border-gray-200 px-4 py-3">
             <div className="flex flex-col gap-2">
