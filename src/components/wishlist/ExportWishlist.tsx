@@ -1,0 +1,431 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import {
+  DocumentArrowDownIcon,
+  PrinterIcon,
+  XMarkIcon,
+  Square3Stack3DIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline';
+import { HeartIcon, StarIcon, GiftIcon } from '@heroicons/react/24/solid';
+import { Skeleton } from '@/components/ui/Skeleton';
+
+interface WishlistItem {
+  cardId: string;
+  isPriority: boolean;
+}
+
+interface CardData {
+  id: string;
+  name: string;
+  number: string;
+  set: {
+    id: string;
+    name: string;
+  };
+}
+
+interface SetGroup {
+  setId: string;
+  setName: string;
+  cards: Array<{
+    cardId: string;
+    name: string;
+    number: string;
+    isPriority: boolean;
+  }>;
+}
+
+interface ExportWishlistButtonProps {
+  wishlist: WishlistItem[];
+  priorityCount: number;
+  profileName?: string;
+}
+
+export function ExportWishlistButton({
+  wishlist,
+  priorityCount,
+  profileName = 'My Wishlist',
+}: ExportWishlistButtonProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Don't show button if no cards
+  if (wishlist.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-rose-500"
+        aria-label="Export wishlist as printable PDF"
+      >
+        <DocumentArrowDownIcon className="h-5 w-5" aria-hidden="true" />
+        Export PDF
+      </button>
+
+      {isModalOpen && (
+        <ExportWishlistModal
+          wishlist={wishlist}
+          priorityCount={priorityCount}
+          profileName={profileName}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
+interface ExportWishlistModalProps {
+  wishlist: WishlistItem[];
+  priorityCount: number;
+  profileName?: string;
+  onClose: () => void;
+}
+
+function ExportWishlistModal({
+  wishlist,
+  priorityCount,
+  profileName,
+  onClose,
+}: ExportWishlistModalProps) {
+  const [cardData, setCardData] = useState<Map<string, CardData>>(new Map());
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showPriorityFirst, setShowPriorityFirst] = useState(true);
+  const [showPriorityIndicators, setShowPriorityIndicators] = useState(true);
+
+  // Fetch card data
+  const fetchCards = useCallback(async () => {
+    if (wishlist.length === 0) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      const cardIds = wishlist.map((c) => c.cardId);
+
+      const response = await fetch('/api/cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch card data');
+      }
+
+      const cards: CardData[] = await response.json();
+      const cardMap = new Map<string, CardData>();
+      cards.forEach((card) => cardMap.set(card.id, card));
+      setCardData(cardMap);
+    } catch {
+      setError("We couldn't load your wishlist data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [wishlist]);
+
+  useEffect(() => {
+    fetchCards();
+  }, [fetchCards]);
+
+  // Group cards by set
+  const setGroups: SetGroup[] = [];
+  const setMap = new Map<string, SetGroup>();
+
+  // Sort wishlist by priority first if option enabled
+  const sortedWishlist = [...wishlist].sort((a, b) => {
+    if (!showPriorityFirst) return 0;
+    if (a.isPriority && !b.isPriority) return -1;
+    if (!a.isPriority && b.isPriority) return 1;
+    return 0;
+  });
+
+  sortedWishlist.forEach((item) => {
+    const card = cardData.get(item.cardId);
+    if (card) {
+      const setId = card.set.id;
+      const setName = card.set.name;
+
+      if (!setMap.has(setId)) {
+        setMap.set(setId, {
+          setId,
+          setName,
+          cards: [],
+        });
+      }
+
+      setMap.get(setId)!.cards.push({
+        cardId: card.id,
+        name: card.name,
+        number: card.number,
+        isPriority: item.isPriority,
+      });
+    }
+  });
+
+  // Convert map to array and sort
+  setMap.forEach((group) => {
+    // Sort cards within each set: priority first (if enabled), then by number
+    group.cards.sort((a, b) => {
+      if (showPriorityFirst) {
+        if (a.isPriority && !b.isPriority) return -1;
+        if (!a.isPriority && b.isPriority) return 1;
+      }
+      const numA = parseInt(a.number) || 0;
+      const numB = parseInt(b.number) || 0;
+      return numA - numB;
+    });
+    setGroups.push(group);
+  });
+
+  setGroups.sort((a, b) => a.setName.localeCompare(b.setName));
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Close on escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 print:bg-white print:p-0"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="export-wishlist-modal-title"
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 print:hidden" onClick={onClose} aria-hidden="true" />
+
+      {/* Modal */}
+      <div className="relative flex max-h-[90vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-xl print:max-h-none print:max-w-none print:rounded-none print:shadow-none">
+        {/* Header - hidden in print */}
+        <div className="flex items-center justify-between border-b border-gray-200 p-4 print:hidden">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500">
+              <GiftIcon className="h-5 w-5 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 id="export-wishlist-modal-title" className="text-lg font-bold text-gray-800">
+                Export Wishlist PDF
+              </h2>
+              <p className="text-sm text-gray-500">
+                Preview and print your wishlist to share with family
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            aria-label="Close export modal"
+          >
+            <XMarkIcon className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Options - hidden in print */}
+        <div className="flex flex-wrap items-center gap-4 border-b border-gray-200 bg-rose-50 px-4 py-3 print:hidden">
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showPriorityFirst}
+              onChange={(e) => setShowPriorityFirst(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-rose-500 focus:ring-rose-500"
+            />
+            <span className="text-sm text-gray-700">Show most wanted first</span>
+          </label>
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showPriorityIndicators}
+              onChange={(e) => setShowPriorityIndicators(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-rose-500 focus:ring-rose-500"
+            />
+            <span className="text-sm text-gray-700">Show star icons for most wanted</span>
+          </label>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-auto p-4 print:overflow-visible print:p-0">
+          {isLoading ? (
+            <div className="mx-auto max-w-2xl space-y-4 print:hidden">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-64" />
+              <div className="space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-6 w-full" />
+                ))}
+              </div>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-12 print:hidden">
+              <ExclamationTriangleIcon className="mb-4 h-12 w-12 text-amber-500" />
+              <p className="mb-4 text-gray-600">{error}</p>
+              <button
+                onClick={fetchCards}
+                className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-600"
+              >
+                <ArrowPathIcon className="h-4 w-4" />
+                Try Again
+              </button>
+            </div>
+          ) : (
+            <div className="mx-auto max-w-2xl rounded-lg border border-gray-200 bg-white p-6 shadow-sm print:mx-0 print:max-w-none print:rounded-none print:border-none print:p-8 print:shadow-none">
+              <WishlistContent
+                profileName={profileName}
+                totalCount={wishlist.length}
+                priorityCount={priorityCount}
+                setGroups={setGroups}
+                showPriorityIndicators={showPriorityIndicators}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Footer - hidden in print */}
+        <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 p-4 print:hidden">
+          <p className="text-sm text-gray-500">
+            <Square3Stack3DIcon className="mr-1 inline h-4 w-4" aria-hidden="true" />
+            {wishlist.length} cards across {setGroups.length} sets
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handlePrint}
+              disabled={isLoading || !!error}
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-rose-500 to-pink-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-rose-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Print or save as PDF"
+            >
+              <PrinterIcon className="h-5 w-5" />
+              Print / Save PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface WishlistContentProps {
+  profileName?: string;
+  totalCount: number;
+  priorityCount: number;
+  setGroups: SetGroup[];
+  showPriorityIndicators: boolean;
+}
+
+function WishlistContent({
+  profileName,
+  totalCount,
+  priorityCount,
+  setGroups,
+  showPriorityIndicators,
+}: WishlistContentProps) {
+  const currentDate = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  return (
+    <div className="checklist-content">
+      {/* Header */}
+      <div className="mb-6 border-b border-rose-200 pb-4 print:mb-4 print:pb-2">
+        <div className="flex items-center gap-2">
+          <GiftIcon className="h-6 w-6 text-rose-500 print:h-5 print:w-5" aria-hidden="true" />
+          <h1 className="text-2xl font-bold text-gray-800 print:text-xl">{profileName}</h1>
+        </div>
+        <p className="mt-1 text-sm text-gray-500">Wishlist &bull; Generated {currentDate}</p>
+        <div className="mt-2 flex gap-4 text-sm text-gray-600">
+          <span className="flex items-center gap-1">
+            <HeartIcon className="h-4 w-4 text-rose-400" aria-hidden="true" />
+            <strong>{totalCount}</strong> wanted cards
+          </span>
+          <span className="flex items-center gap-1">
+            <StarIcon className="h-4 w-4 text-amber-400" aria-hidden="true" />
+            <strong>{priorityCount}</strong> most wanted
+          </span>
+        </div>
+      </div>
+
+      {/* Sets */}
+      {setGroups.length === 0 ? (
+        <div className="py-8 text-center text-gray-500">
+          <Square3Stack3DIcon className="mx-auto mb-2 h-12 w-12 text-gray-300" aria-hidden="true" />
+          <p>No cards in wishlist</p>
+        </div>
+      ) : (
+        <div className="space-y-6 print:space-y-4">
+          {setGroups.map((group) => (
+            <div key={group.setId} className="break-inside-avoid">
+              {/* Set header */}
+              <h2 className="mb-2 border-b border-gray-100 pb-1 text-lg font-semibold text-gray-700 print:text-base">
+                {group.setName}
+                <span className="ml-2 text-sm font-normal text-gray-400">
+                  ({group.cards.length} card{group.cards.length !== 1 ? 's' : ''})
+                </span>
+              </h2>
+
+              {/* Cards list */}
+              <ul className="grid grid-cols-1 gap-1 text-sm sm:grid-cols-2 print:grid-cols-2 print:gap-x-4 print:text-xs">
+                {group.cards.map((card) => (
+                  <li
+                    key={card.cardId}
+                    className="flex items-center gap-2 rounded px-2 py-1 print:px-0 print:py-0.5"
+                  >
+                    {showPriorityIndicators && card.isPriority && (
+                      <StarIcon
+                        className="h-4 w-4 flex-shrink-0 text-amber-400 print:h-3 print:w-3"
+                        aria-label="Most wanted"
+                      />
+                    )}
+                    {showPriorityIndicators && !card.isPriority && (
+                      <span
+                        className="h-4 w-4 flex-shrink-0 print:h-3 print:w-3"
+                        aria-hidden="true"
+                      />
+                    )}
+                    {!showPriorityIndicators && (
+                      <HeartIcon
+                        className="h-4 w-4 flex-shrink-0 text-rose-300 print:h-3 print:w-3"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <span className="flex-shrink-0 text-gray-400">#{card.number}</span>
+                    <span className="flex-1 truncate text-gray-700">{card.name}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="mt-6 border-t border-gray-200 pt-4 text-center text-xs text-gray-400 print:mt-4 print:pt-2">
+        <p className="mb-1">Share this wishlist with family and friends!</p>
+        <p>Generated by CardDex &bull; pokemon.carddex.app</p>
+      </div>
+    </div>
+  );
+}

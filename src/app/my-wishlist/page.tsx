@@ -24,6 +24,7 @@ import {
 import type { Id } from '../../../convex/_generated/dataModel';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { ExportWishlistButton } from '@/components/wishlist/ExportWishlist';
 import { cn } from '@/lib/utils';
 
 interface WishlistItem {
@@ -415,16 +416,30 @@ export default function MyWishlistPage() {
             Back to Collection
           </Link>
 
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500 shadow-lg sm:h-16 sm:w-16">
-              <GiftIcon className="h-7 w-7 text-white sm:h-8 sm:w-8" aria-hidden="true" />
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500 shadow-lg sm:h-16 sm:w-16">
+                <GiftIcon className="h-7 w-7 text-white sm:h-8 sm:w-8" aria-hidden="true" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">My Wishlist</h1>
+                <p className="text-sm text-gray-500 sm:text-base">
+                  Cards you want to add to your collection
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">My Wishlist</h1>
-              <p className="text-sm text-gray-500 sm:text-base">
-                Cards you want to add to your collection
-              </p>
-            </div>
+            {totalCount > 0 && (
+              <ExportWishlistButton
+                wishlist={
+                  wishlist?.map((item) => ({
+                    cardId: item.cardId,
+                    isPriority: item.isPriority,
+                  })) || []
+                }
+                priorityCount={priorityCount}
+                profileName="My Wishlist"
+              />
+            )}
           </div>
         </div>
 
