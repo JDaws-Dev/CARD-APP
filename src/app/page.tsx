@@ -10,6 +10,12 @@ import {
   RectangleStackIcon,
   HandRaisedIcon,
   ShareIcon,
+  UserGroupIcon,
+  CheckBadgeIcon,
+  BoltIcon,
+  CakeIcon,
+  ArrowsRightLeftIcon,
+  LockClosedIcon,
 } from '@heroicons/react/24/solid';
 
 // Decorative floating card component
@@ -245,6 +251,276 @@ export default function Home() {
                 and holidays!
               </p>
               <div className="absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-kid-secondary/5 transition-all group-hover:scale-150" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Highlights Section */}
+      <section className="bg-white px-4 py-16 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-16 text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-kid-primary/10 to-kid-secondary/10 px-4 py-2">
+              <SparklesIcon className="h-5 w-5 text-kid-primary" />
+              <span className="text-sm font-semibold text-gray-700">Powerful Features</span>
+            </div>
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">
+              Built for <span className="text-kid-primary">Collectors</span> &{' '}
+              <span className="text-kid-secondary">Families</span>
+            </h2>
+            <p className="mx-auto max-w-2xl text-gray-600">
+              KidCollect is packed with features that make collecting fun and help families stay
+              connected.
+            </p>
+          </div>
+
+          {/* Achievement System Highlight */}
+          <div className="mb-16 grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
+            <div className="order-2 lg:order-1">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1">
+                <TrophyIcon className="h-4 w-4 text-amber-600" />
+                <span className="text-sm font-medium text-amber-700">Achievement System</span>
+              </div>
+              <h3 className="mb-4 text-2xl font-bold text-gray-900 sm:text-3xl">
+                Earn Badges & Celebrate Milestones
+              </h3>
+              <p className="mb-6 text-gray-600">
+                Collecting is more fun when you have goals! Our achievement system rewards progress
+                with colorful badges that kids love to show off.
+              </p>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <CheckBadgeIcon className="mt-0.5 h-5 w-5 shrink-0 text-kid-success" />
+                  <span className="text-gray-700">
+                    <strong>Set Completion Badges</strong> — Unlock special badges when you complete
+                    an entire set
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <BoltIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                  <span className="text-gray-700">
+                    <strong>Milestone Rewards</strong> — Celebrate reaching 100, 500, or 1000+ cards
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <StarIcon className="mt-0.5 h-5 w-5 shrink-0 text-purple-500" />
+                  <span className="text-gray-700">
+                    <strong>Rare Card Badges</strong> — Special recognition for finding rare and
+                    valuable cards
+                  </span>
+                </li>
+              </ul>
+            </div>
+            <div className="order-1 lg:order-2">
+              <div className="relative rounded-3xl bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-8">
+                {/* Achievement preview cards */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="rounded-2xl bg-white p-4 text-center shadow-lg">
+                    <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
+                      <TrophyIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <p className="text-xs font-semibold text-gray-700">Set Master</p>
+                  </div>
+                  <div className="rounded-2xl bg-white p-4 text-center shadow-lg">
+                    <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-indigo-500">
+                      <StarIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <p className="text-xs font-semibold text-gray-700">Card Hunter</p>
+                  </div>
+                  <div className="rounded-2xl bg-white p-4 text-center shadow-lg">
+                    <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500">
+                      <BoltIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <p className="text-xs font-semibold text-gray-700">Speed Collector</p>
+                  </div>
+                </div>
+                <div className="mt-4 rounded-2xl bg-white/80 p-4 backdrop-blur">
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
+                      <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-kid-primary to-purple-500" />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-600">75%</span>
+                  </div>
+                  <p className="mt-2 text-center text-sm text-gray-500">
+                    Next badge: 25 more cards!
+                  </p>
+                </div>
+                {/* Decorative elements */}
+                <div className="absolute -right-3 -top-3 h-20 w-20 rounded-full bg-gradient-to-br from-amber-200 to-orange-200 opacity-50" />
+                <div className="absolute -bottom-3 -left-3 h-16 w-16 rounded-full bg-gradient-to-br from-yellow-200 to-amber-200 opacity-50" />
+              </div>
+            </div>
+          </div>
+
+          {/* Family Sharing Highlight */}
+          <div className="mb-16 grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
+            <div>
+              <div className="relative rounded-3xl bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-8">
+                {/* Family profile cards */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-lg">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-kid-primary to-purple-500">
+                      <span className="text-lg font-bold text-white">E</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-800">Emma&apos;s Collection</p>
+                      <p className="text-sm text-gray-500">247 cards across 5 sets</p>
+                    </div>
+                    <ChartBarIcon className="h-5 w-5 text-kid-primary" />
+                  </div>
+                  <div className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-lg">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-kid-secondary to-pink-500">
+                      <span className="text-lg font-bold text-white">L</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-800">Liam&apos;s Collection</p>
+                      <p className="text-sm text-gray-500">189 cards across 3 sets</p>
+                    </div>
+                    <ChartBarIcon className="h-5 w-5 text-kid-secondary" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-white/80 p-3 backdrop-blur">
+                  <ArrowsRightLeftIcon className="h-5 w-5 text-purple-500" />
+                  <span className="text-sm font-medium text-gray-600">
+                    12 cards to trade between siblings!
+                  </span>
+                </div>
+                {/* Decorative elements */}
+                <div className="absolute -left-3 -top-3 h-20 w-20 rounded-full bg-gradient-to-br from-indigo-200 to-purple-200 opacity-50" />
+                <div className="absolute -bottom-3 -right-3 h-16 w-16 rounded-full bg-gradient-to-br from-pink-200 to-rose-200 opacity-50" />
+              </div>
+            </div>
+            <div>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1">
+                <UserGroupIcon className="h-4 w-4 text-indigo-600" />
+                <span className="text-sm font-medium text-indigo-700">Family Sharing</span>
+              </div>
+              <h3 className="mb-4 text-2xl font-bold text-gray-900 sm:text-3xl">
+                Track Multiple Collections Together
+              </h3>
+              <p className="mb-6 text-gray-600">
+                Perfect for families with multiple collectors! Parents can oversee all their
+                children&apos;s collections from one account and help siblings avoid buying
+                duplicates.
+              </p>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <UserGroupIcon className="mt-0.5 h-5 w-5 shrink-0 text-kid-primary" />
+                  <span className="text-gray-700">
+                    <strong>Multiple Profiles</strong> — Create separate collections for each child
+                    in your family
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <ArrowsRightLeftIcon className="mt-0.5 h-5 w-5 shrink-0 text-purple-500" />
+                  <span className="text-gray-700">
+                    <strong>Duplicate Finder</strong> — See which cards siblings can trade with each
+                    other
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <LockClosedIcon className="mt-0.5 h-5 w-5 shrink-0 text-kid-secondary" />
+                  <span className="text-gray-700">
+                    <strong>Parent Dashboard</strong> — One place to view all collections and manage
+                    settings
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Wishlist for Gifts Highlight */}
+          <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
+            <div className="order-2 lg:order-1">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1">
+                <GiftIcon className="h-4 w-4 text-rose-600" />
+                <span className="text-sm font-medium text-rose-700">Wishlist & Gifts</span>
+              </div>
+              <h3 className="mb-4 text-2xl font-bold text-gray-900 sm:text-3xl">
+                Make Gift-Giving Easy
+              </h3>
+              <p className="mb-6 text-gray-600">
+                No more duplicate gifts or guessing what cards they need! Kids can build wishlists
+                and share them with grandparents, aunts, uncles, and friends.
+              </p>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <HeartIcon className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
+                  <span className="text-gray-700">
+                    <strong>Easy Wishlists</strong> — Tap the heart on any card to add it to your
+                    wishlist
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <StarIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                  <span className="text-gray-700">
+                    <strong>Priority Stars</strong> — Mark your most-wanted cards so family knows
+                    what you really want
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CakeIcon className="mt-0.5 h-5 w-5 shrink-0 text-kid-primary" />
+                  <span className="text-gray-700">
+                    <strong>Shareable Link</strong> — One link for birthdays, holidays, or anytime!
+                  </span>
+                </li>
+              </ul>
+              <div className="mt-6">
+                <Link
+                  href="/sets"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-lg shadow-rose-500/30 transition-all hover:scale-105 hover:shadow-xl"
+                >
+                  <GiftIcon className="h-5 w-5" />
+                  Start Your Wishlist
+                </Link>
+              </div>
+            </div>
+            <div className="order-1 lg:order-2">
+              <div className="relative rounded-3xl bg-gradient-to-br from-rose-50 via-pink-50 to-red-50 p-8">
+                {/* Wishlist preview */}
+                <div className="mb-4 flex items-center justify-between rounded-xl bg-white/80 p-3 backdrop-blur">
+                  <div className="flex items-center gap-2">
+                    <HeartIcon className="h-5 w-5 text-rose-500" />
+                    <span className="font-semibold text-gray-700">My Wishlist</span>
+                  </div>
+                  <span className="rounded-full bg-rose-100 px-2 py-0.5 text-sm font-medium text-rose-600">
+                    8 cards
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lg">
+                    <div className="h-16 w-12 rounded-lg bg-gradient-to-br from-amber-200 to-yellow-300" />
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-800">Charizard EX</p>
+                      <p className="text-sm text-gray-500">Scarlet & Violet</p>
+                    </div>
+                    <div className="flex gap-0.5">
+                      <StarIcon className="h-4 w-4 text-amber-400" />
+                      <StarIcon className="h-4 w-4 text-amber-400" />
+                      <StarIcon className="h-4 w-4 text-amber-400" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lg">
+                    <div className="h-16 w-12 rounded-lg bg-gradient-to-br from-blue-200 to-cyan-300" />
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-800">Pikachu VMAX</p>
+                      <p className="text-sm text-gray-500">Celebrations</p>
+                    </div>
+                    <div className="flex gap-0.5">
+                      <StarIcon className="h-4 w-4 text-amber-400" />
+                      <StarIcon className="h-4 w-4 text-gray-200" />
+                      <StarIcon className="h-4 w-4 text-gray-200" />
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 p-3 text-white">
+                  <ShareIcon className="h-4 w-4" />
+                  <span className="text-sm font-medium">Share with Family</span>
+                </div>
+                {/* Decorative elements */}
+                <div className="absolute -right-3 -top-3 h-20 w-20 rounded-full bg-gradient-to-br from-rose-200 to-pink-200 opacity-50" />
+                <div className="absolute -bottom-3 -left-3 h-16 w-16 rounded-full bg-gradient-to-br from-pink-200 to-red-200 opacity-50" />
+              </div>
             </div>
           </div>
         </div>
