@@ -144,4 +144,64 @@ export default defineSchema({
   })
     .index('by_card_id', ['cardId'])
     .index('by_set', ['setId']),
+
+  // ============================================================================
+  // AVATAR CUSTOMIZATION
+  // ============================================================================
+
+  // Available avatar items that can be earned
+  avatarItems: defineTable({
+    itemId: v.string(), // Unique item identifier (e.g., "hat_pikachu", "frame_gold")
+    category: v.union(
+      v.literal('hat'),
+      v.literal('frame'),
+      v.literal('badge'),
+      v.literal('background'),
+      v.literal('accessory')
+    ),
+    name: v.string(), // Display name (e.g., "Pikachu Hat")
+    description: v.string(), // Description of the item
+    imageUrl: v.string(), // URL to the item image/icon
+    rarity: v.union(
+      v.literal('common'),
+      v.literal('uncommon'),
+      v.literal('rare'),
+      v.literal('epic'),
+      v.literal('legendary')
+    ),
+    unlockRequirement: v.union(
+      v.literal('achievement'), // Earned by completing an achievement
+      v.literal('level'), // Earned by reaching a level
+      v.literal('milestone'), // Earned by reaching a collection milestone
+      v.literal('special'), // Special event or promo items
+      v.literal('default') // Available to all by default
+    ),
+    unlockValue: v.optional(v.string()), // Achievement key, level number, or milestone key
+    sortOrder: v.number(), // For display ordering within category
+    isActive: v.boolean(), // Whether this item is currently available
+  })
+    .index('by_item_id', ['itemId'])
+    .index('by_category', ['category'])
+    .index('by_rarity', ['rarity']),
+
+  // Items earned/unlocked by each profile
+  profileAvatarItems: defineTable({
+    profileId: v.id('profiles'),
+    itemId: v.string(), // References avatarItems.itemId
+    earnedAt: v.number(), // Unix timestamp when item was earned
+    earnedBy: v.optional(v.string()), // Description of how earned (achievement key, etc.)
+  })
+    .index('by_profile', ['profileId'])
+    .index('by_profile_and_item', ['profileId', 'itemId']),
+
+  // Current avatar configuration for each profile
+  profileAvatarConfig: defineTable({
+    profileId: v.id('profiles'),
+    equippedHat: v.optional(v.string()), // itemId of equipped hat
+    equippedFrame: v.optional(v.string()), // itemId of equipped frame
+    equippedBadge: v.optional(v.string()), // itemId of equipped badge
+    equippedBackground: v.optional(v.string()), // itemId of equipped background
+    equippedAccessory: v.optional(v.string()), // itemId of equipped accessory
+    lastUpdated: v.number(), // Unix timestamp
+  }).index('by_profile', ['profileId']),
 });
