@@ -26,6 +26,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
 import { FamilyLeaderboard } from '@/components/family/FamilyLeaderboard';
 import { TradeSuggestionEngine } from '@/components/family/TradeSuggestionEngine';
+import { SharedWishlistViewer } from '@/components/family/SharedWishlistViewer';
 
 // Context for pricing visibility
 const PricingVisibilityContext = createContext<boolean>(true);
@@ -425,6 +426,9 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
 
         {/* Trade Suggestion Engine */}
         <TradeSuggestionEngine familyId={familyId} maxSuggestions={10} />
+
+        {/* Shared Wishlist Viewer */}
+        <SharedWishlistViewer familyId={familyId} />
 
         {/* Pricing toggle control */}
         <div className="flex flex-col gap-3 rounded-xl bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
