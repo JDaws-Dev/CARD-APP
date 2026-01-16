@@ -1002,3 +1002,339 @@ describe('Set Completion Badge Utilities', () => {
     });
   });
 });
+
+// Import new milestone badge utilities
+import {
+  MILESTONE_BADGE_DEFINITIONS,
+  getMilestoneBadgesToAward,
+  getMilestoneProgressSummary,
+  getMilestoneBadgeDefinition,
+  getCurrentMilestoneTitle,
+  cardsNeededForMilestone,
+  getMilestonePercentProgress,
+  hasMilestoneBeenReached,
+  getAllEarnedMilestoneKeys,
+  countEarnedMilestones,
+} from '../achievements';
+
+describe('Milestone Badge Utilities', () => {
+  describe('MILESTONE_BADGE_DEFINITIONS', () => {
+    it('should have 7 milestone definitions', () => {
+      expect(MILESTONE_BADGE_DEFINITIONS).toHaveLength(7);
+    });
+
+    it('should have unique keys', () => {
+      const keys = MILESTONE_BADGE_DEFINITIONS.map((m) => m.key);
+      expect(new Set(keys).size).toBe(keys.length);
+    });
+
+    it('should be sorted by threshold ascending', () => {
+      for (let i = 1; i < MILESTONE_BADGE_DEFINITIONS.length; i++) {
+        expect(MILESTONE_BADGE_DEFINITIONS[i].threshold).toBeGreaterThan(
+          MILESTONE_BADGE_DEFINITIONS[i - 1].threshold
+        );
+      }
+    });
+
+    it('should have names for all milestones', () => {
+      for (const milestone of MILESTONE_BADGE_DEFINITIONS) {
+        expect(milestone.name).toBeTruthy();
+        expect(typeof milestone.name).toBe('string');
+      }
+    });
+
+    it('should match MILESTONE_THRESHOLDS keys', () => {
+      const defKeys = MILESTONE_BADGE_DEFINITIONS.map((m) => m.key);
+      const thresholdKeys = MILESTONE_THRESHOLDS.map((m) => m.key);
+      expect(defKeys).toEqual(thresholdKeys);
+    });
+  });
+
+  describe('getMilestoneBadgesToAward', () => {
+    it('should return no badges for 0 cards', () => {
+      expect(getMilestoneBadgesToAward(0)).toEqual([]);
+    });
+
+    it('should return first_catch for 1 card', () => {
+      const badges = getMilestoneBadgesToAward(1);
+      expect(badges).toEqual(['first_catch']);
+    });
+
+    it('should return multiple badges when crossing thresholds', () => {
+      const badges = getMilestoneBadgesToAward(50);
+      expect(badges).toContain('first_catch');
+      expect(badges).toContain('starter_collector');
+      expect(badges).toContain('rising_trainer');
+      expect(badges).toHaveLength(3);
+    });
+
+    it('should return all badges at 1000+ cards', () => {
+      const badges = getMilestoneBadgesToAward(1000);
+      expect(badges).toHaveLength(7);
+    });
+
+    it('should exclude already earned badges', () => {
+      const badges = getMilestoneBadgesToAward(50, ['first_catch', 'starter_collector']);
+      expect(badges).toEqual(['rising_trainer']);
+    });
+
+    it('should return empty array if all eligible badges earned', () => {
+      const badges = getMilestoneBadgesToAward(5, ['first_catch']);
+      expect(badges).toEqual([]);
+    });
+
+    it('should not include badges above current card count', () => {
+      const badges = getMilestoneBadgesToAward(49);
+      expect(badges).not.toContain('rising_trainer');
+    });
+  });
+
+  describe('getMilestoneProgressSummary', () => {
+    it('should return correct summary for 0 cards', () => {
+      const summary = getMilestoneProgressSummary(0);
+      expect(summary.totalUniqueCards).toBe(0);
+      expect(summary.currentMilestone).toBeNull();
+      expect(summary.nextMilestone?.key).toBe('first_catch');
+      expect(summary.totalMilestonesEarned).toBe(0);
+      expect(summary.totalMilestonesAvailable).toBe(7);
+    });
+
+    it('should return correct summary at milestone boundary', () => {
+      const summary = getMilestoneProgressSummary(10);
+      expect(summary.currentMilestone?.key).toBe('starter_collector');
+      expect(summary.nextMilestone?.key).toBe('rising_trainer');
+      expect(summary.nextMilestone?.cardsNeeded).toBe(40);
+    });
+
+    it('should calculate progress percentages correctly', () => {
+      const summary = getMilestoneProgressSummary(5);
+      const firstCatchMilestone = summary.milestones.find((m) => m.key === 'first_catch');
+      const starterMilestone = summary.milestones.find((m) => m.key === 'starter_collector');
+      expect(firstCatchMilestone?.progress).toBe(100); // 5/1 = capped at 100
+      expect(starterMilestone?.progress).toBe(50); // 5/10 = 50%
+    });
+
+    it('should show all milestones earned at 1000+ cards', () => {
+      const summary = getMilestoneProgressSummary(1500, [
+        'first_catch',
+        'starter_collector',
+        'rising_trainer',
+        'pokemon_trainer',
+        'elite_collector',
+        'pokemon_master',
+        'legendary_collector',
+      ]);
+      expect(summary.totalMilestonesEarned).toBe(7);
+      expect(summary.nextMilestone).toBeNull();
+    });
+
+    it('should correctly count earned milestones from provided keys', () => {
+      const summary = getMilestoneProgressSummary(100, ['first_catch', 'starter_collector']);
+      expect(summary.totalMilestonesEarned).toBe(2);
+    });
+
+    it('should cap progress at 100%', () => {
+      const summary = getMilestoneProgressSummary(1500);
+      for (const milestone of summary.milestones) {
+        expect(milestone.progress).toBeLessThanOrEqual(100);
+      }
+    });
+  });
+
+  describe('getMilestoneBadgeDefinition', () => {
+    it('should return definition for valid key', () => {
+      const def = getMilestoneBadgeDefinition('first_catch');
+      expect(def?.key).toBe('first_catch');
+      expect(def?.name).toBe('First Catch');
+      expect(def?.threshold).toBe(1);
+    });
+
+    it('should return null for invalid key', () => {
+      expect(getMilestoneBadgeDefinition('invalid_key')).toBeNull();
+    });
+
+    it('should return definition for all milestone keys', () => {
+      for (const milestone of MILESTONE_BADGE_DEFINITIONS) {
+        const def = getMilestoneBadgeDefinition(milestone.key);
+        expect(def).not.toBeNull();
+        expect(def?.key).toBe(milestone.key);
+      }
+    });
+  });
+
+  describe('getCurrentMilestoneTitle', () => {
+    it('should return "New Collector" for 0 cards', () => {
+      expect(getCurrentMilestoneTitle(0)).toBe('New Collector');
+    });
+
+    it('should return "First Catch" for 1-9 cards', () => {
+      expect(getCurrentMilestoneTitle(1)).toBe('First Catch');
+      expect(getCurrentMilestoneTitle(9)).toBe('First Catch');
+    });
+
+    it('should return "Starter Collector" for 10-49 cards', () => {
+      expect(getCurrentMilestoneTitle(10)).toBe('Starter Collector');
+      expect(getCurrentMilestoneTitle(49)).toBe('Starter Collector');
+    });
+
+    it('should return "Legendary Collector" for 1000+ cards', () => {
+      expect(getCurrentMilestoneTitle(1000)).toBe('Legendary Collector');
+      expect(getCurrentMilestoneTitle(5000)).toBe('Legendary Collector');
+    });
+  });
+
+  describe('cardsNeededForMilestone', () => {
+    it('should return correct cards needed for first_catch', () => {
+      expect(cardsNeededForMilestone(0, 'first_catch')).toBe(1);
+    });
+
+    it('should return 0 if milestone already reached', () => {
+      expect(cardsNeededForMilestone(10, 'first_catch')).toBe(0);
+      expect(cardsNeededForMilestone(100, 'starter_collector')).toBe(0);
+    });
+
+    it('should return correct cards needed for partially complete milestone', () => {
+      expect(cardsNeededForMilestone(45, 'rising_trainer')).toBe(5);
+      expect(cardsNeededForMilestone(95, 'pokemon_trainer')).toBe(5);
+    });
+
+    it('should return 0 for invalid milestone key', () => {
+      expect(cardsNeededForMilestone(50, 'invalid_key')).toBe(0);
+    });
+  });
+
+  describe('getMilestonePercentProgress', () => {
+    it('should return 0 for 0 cards', () => {
+      expect(getMilestonePercentProgress(0, 'first_catch')).toBe(0);
+    });
+
+    it('should return 100 when milestone reached', () => {
+      expect(getMilestonePercentProgress(1, 'first_catch')).toBe(100);
+      expect(getMilestonePercentProgress(10, 'starter_collector')).toBe(100);
+    });
+
+    it('should cap at 100%', () => {
+      expect(getMilestonePercentProgress(500, 'first_catch')).toBe(100);
+    });
+
+    it('should calculate correct percentage for partial progress', () => {
+      expect(getMilestonePercentProgress(5, 'starter_collector')).toBe(50);
+      expect(getMilestonePercentProgress(25, 'rising_trainer')).toBe(50);
+    });
+
+    it('should return 0 for invalid milestone key', () => {
+      expect(getMilestonePercentProgress(50, 'invalid_key')).toBe(0);
+    });
+  });
+
+  describe('hasMilestoneBeenReached', () => {
+    it('should return false for 0 cards', () => {
+      expect(hasMilestoneBeenReached(0, 'first_catch')).toBe(false);
+    });
+
+    it('should return true at exact threshold', () => {
+      expect(hasMilestoneBeenReached(1, 'first_catch')).toBe(true);
+      expect(hasMilestoneBeenReached(10, 'starter_collector')).toBe(true);
+      expect(hasMilestoneBeenReached(50, 'rising_trainer')).toBe(true);
+    });
+
+    it('should return true above threshold', () => {
+      expect(hasMilestoneBeenReached(5, 'first_catch')).toBe(true);
+      expect(hasMilestoneBeenReached(100, 'starter_collector')).toBe(true);
+    });
+
+    it('should return false below threshold', () => {
+      expect(hasMilestoneBeenReached(9, 'starter_collector')).toBe(false);
+      expect(hasMilestoneBeenReached(49, 'rising_trainer')).toBe(false);
+    });
+
+    it('should return false for invalid milestone key', () => {
+      expect(hasMilestoneBeenReached(1000, 'invalid_key')).toBe(false);
+    });
+  });
+
+  describe('getAllEarnedMilestoneKeys', () => {
+    it('should return empty array for 0 cards', () => {
+      expect(getAllEarnedMilestoneKeys(0)).toEqual([]);
+    });
+
+    it('should return only first_catch for 1-9 cards', () => {
+      expect(getAllEarnedMilestoneKeys(1)).toEqual(['first_catch']);
+      expect(getAllEarnedMilestoneKeys(9)).toEqual(['first_catch']);
+    });
+
+    it('should return first two for 10-49 cards', () => {
+      const keys = getAllEarnedMilestoneKeys(10);
+      expect(keys).toEqual(['first_catch', 'starter_collector']);
+    });
+
+    it('should return all keys for 1000+ cards', () => {
+      const keys = getAllEarnedMilestoneKeys(1000);
+      expect(keys).toHaveLength(7);
+      expect(keys).toContain('legendary_collector');
+    });
+  });
+
+  describe('countEarnedMilestones', () => {
+    it('should return 0 for 0 cards', () => {
+      expect(countEarnedMilestones(0)).toBe(0);
+    });
+
+    it('should return 1 for 1-9 cards', () => {
+      expect(countEarnedMilestones(1)).toBe(1);
+      expect(countEarnedMilestones(9)).toBe(1);
+    });
+
+    it('should return 3 for 50-99 cards', () => {
+      expect(countEarnedMilestones(50)).toBe(3);
+      expect(countEarnedMilestones(99)).toBe(3);
+    });
+
+    it('should return 7 for 1000+ cards', () => {
+      expect(countEarnedMilestones(1000)).toBe(7);
+      expect(countEarnedMilestones(5000)).toBe(7);
+    });
+  });
+
+  describe('Milestone Badge Awarding Journey', () => {
+    it('should track progressive badge collection', () => {
+      let earnedBadges: string[] = [];
+
+      // Start with 0 cards
+      let badges = getMilestoneBadgesToAward(0, earnedBadges);
+      expect(badges).toHaveLength(0);
+
+      // Add first card
+      badges = getMilestoneBadgesToAward(1, earnedBadges);
+      expect(badges).toEqual(['first_catch']);
+      earnedBadges.push(...badges);
+
+      // Add more cards to reach 10
+      badges = getMilestoneBadgesToAward(10, earnedBadges);
+      expect(badges).toEqual(['starter_collector']);
+      earnedBadges.push(...badges);
+
+      // Jump to 100 cards
+      badges = getMilestoneBadgesToAward(100, earnedBadges);
+      expect(badges).toContain('rising_trainer');
+      expect(badges).toContain('pokemon_trainer');
+      expect(badges).not.toContain('first_catch');
+      expect(badges).not.toContain('starter_collector');
+    });
+
+    it('should show correct progress at each stage', () => {
+      // At 45 cards (between starter_collector and rising_trainer)
+      let summary = getMilestoneProgressSummary(45);
+      expect(summary.currentMilestone?.key).toBe('starter_collector');
+      expect(summary.nextMilestone?.key).toBe('rising_trainer');
+      expect(summary.nextMilestone?.cardsNeeded).toBe(5);
+      expect(summary.nextMilestone?.percentProgress).toBe(90);
+
+      // At 250 cards (exactly at elite_collector)
+      summary = getMilestoneProgressSummary(250);
+      expect(summary.currentMilestone?.key).toBe('elite_collector');
+      expect(summary.nextMilestone?.key).toBe('pokemon_master');
+      expect(summary.nextMilestone?.cardsNeeded).toBe(250);
+    });
+  });
+});

@@ -707,3 +707,178 @@ export function getAllEarnedBadgeKeysForCompletion(
 
   return earnedKeys;
 }
+
+// ============================================================================
+// MILESTONE BADGE UTILITIES
+// ============================================================================
+
+export interface MilestoneProgress {
+  key: string;
+  name: string;
+  threshold: number;
+  earned: boolean;
+  progress: number;
+  cardsNeeded: number;
+}
+
+export interface MilestoneProgressSummary {
+  totalUniqueCards: number;
+  milestones: MilestoneProgress[];
+  currentMilestone: { key: string; name: string; threshold: number } | null;
+  nextMilestone: {
+    key: string;
+    name: string;
+    threshold: number;
+    cardsNeeded: number;
+    percentProgress: number;
+  } | null;
+  totalMilestonesEarned: number;
+  totalMilestonesAvailable: number;
+}
+
+/**
+ * Milestone badge definitions with names for display
+ */
+export const MILESTONE_BADGE_DEFINITIONS = [
+  { key: 'first_catch', threshold: 1, name: 'First Catch' },
+  { key: 'starter_collector', threshold: 10, name: 'Starter Collector' },
+  { key: 'rising_trainer', threshold: 50, name: 'Rising Trainer' },
+  { key: 'pokemon_trainer', threshold: 100, name: 'Pokemon Trainer' },
+  { key: 'elite_collector', threshold: 250, name: 'Elite Collector' },
+  { key: 'pokemon_master', threshold: 500, name: 'Pokemon Master' },
+  { key: 'legendary_collector', threshold: 1000, name: 'Legendary Collector' },
+] as const;
+
+/**
+ * Determines which milestone badges should be awarded based on card count.
+ * Returns badge keys to award (new badges only, excludes already earned).
+ */
+export function getMilestoneBadgesToAward(
+  totalUniqueCards: number,
+  alreadyEarned: string[] = []
+): string[] {
+  const earnedSet = new Set(alreadyEarned);
+  const badgesToAward: string[] = [];
+
+  for (const milestone of MILESTONE_BADGE_DEFINITIONS) {
+    if (totalUniqueCards >= milestone.threshold && !earnedSet.has(milestone.key)) {
+      badgesToAward.push(milestone.key);
+    }
+  }
+
+  return badgesToAward;
+}
+
+/**
+ * Gets milestone progress summary for display.
+ * Takes total unique cards and list of already earned badge keys.
+ */
+export function getMilestoneProgressSummary(
+  totalUniqueCards: number,
+  earnedBadgeKeys: string[] = []
+): MilestoneProgressSummary {
+  const earnedSet = new Set(earnedBadgeKeys);
+
+  const milestones: MilestoneProgress[] = MILESTONE_BADGE_DEFINITIONS.map((milestone) => {
+    const earned = earnedSet.has(milestone.key);
+    return {
+      key: milestone.key,
+      name: milestone.name,
+      threshold: milestone.threshold,
+      earned,
+      progress: Math.min(100, Math.round((totalUniqueCards / milestone.threshold) * 100)),
+      cardsNeeded: earned ? 0 : Math.max(0, milestone.threshold - totalUniqueCards),
+    };
+  });
+
+  // Find current milestone (highest earned)
+  const currentMilestone = [...MILESTONE_BADGE_DEFINITIONS]
+    .reverse()
+    .find((m) => totalUniqueCards >= m.threshold);
+
+  // Find next milestone
+  const nextMilestone = MILESTONE_BADGE_DEFINITIONS.find((m) => totalUniqueCards < m.threshold);
+
+  return {
+    totalUniqueCards,
+    milestones,
+    currentMilestone: currentMilestone
+      ? { key: currentMilestone.key, name: currentMilestone.name, threshold: currentMilestone.threshold }
+      : null,
+    nextMilestone: nextMilestone
+      ? {
+          key: nextMilestone.key,
+          name: nextMilestone.name,
+          threshold: nextMilestone.threshold,
+          cardsNeeded: nextMilestone.threshold - totalUniqueCards,
+          percentProgress: Math.round((totalUniqueCards / nextMilestone.threshold) * 100),
+        }
+      : null,
+    totalMilestonesEarned: earnedBadgeKeys.filter((k) =>
+      MILESTONE_BADGE_DEFINITIONS.some((m) => m.key === k)
+    ).length,
+    totalMilestonesAvailable: MILESTONE_BADGE_DEFINITIONS.length,
+  };
+}
+
+/**
+ * Gets the milestone badge definition for a given key.
+ */
+export function getMilestoneBadgeDefinition(
+  key: string
+): { key: string; name: string; threshold: number } | null {
+  const milestone = MILESTONE_BADGE_DEFINITIONS.find((m) => m.key === key);
+  return milestone ? { key: milestone.key, name: milestone.name, threshold: milestone.threshold } : null;
+}
+
+/**
+ * Gets the current milestone title based on card count.
+ * Returns a friendly name like "Rising Trainer" for display.
+ */
+export function getCurrentMilestoneTitle(totalUniqueCards: number): string {
+  const currentMilestone = [...MILESTONE_BADGE_DEFINITIONS]
+    .reverse()
+    .find((m) => totalUniqueCards >= m.threshold);
+  return currentMilestone?.name ?? 'New Collector';
+}
+
+/**
+ * Calculates how many more cards are needed to reach a specific milestone.
+ */
+export function cardsNeededForMilestone(totalUniqueCards: number, milestoneKey: string): number {
+  const milestone = MILESTONE_BADGE_DEFINITIONS.find((m) => m.key === milestoneKey);
+  if (!milestone) return 0;
+  return Math.max(0, milestone.threshold - totalUniqueCards);
+}
+
+/**
+ * Gets percentage progress toward a specific milestone.
+ */
+export function getMilestonePercentProgress(totalUniqueCards: number, milestoneKey: string): number {
+  const milestone = MILESTONE_BADGE_DEFINITIONS.find((m) => m.key === milestoneKey);
+  if (!milestone) return 0;
+  return Math.min(100, Math.round((totalUniqueCards / milestone.threshold) * 100));
+}
+
+/**
+ * Checks if a specific milestone has been reached.
+ */
+export function hasMilestoneBeenReached(totalUniqueCards: number, milestoneKey: string): boolean {
+  const milestone = MILESTONE_BADGE_DEFINITIONS.find((m) => m.key === milestoneKey);
+  if (!milestone) return false;
+  return totalUniqueCards >= milestone.threshold;
+}
+
+/**
+ * Gets all milestone keys that should be earned at a given card count.
+ */
+export function getAllEarnedMilestoneKeys(totalUniqueCards: number): string[] {
+  return MILESTONE_BADGE_DEFINITIONS.filter((m) => totalUniqueCards >= m.threshold).map((m) => m.key);
+}
+
+/**
+ * Gets the number of milestones earned at a given card count.
+ */
+export function countEarnedMilestones(totalUniqueCards: number): number {
+  return MILESTONE_BADGE_DEFINITIONS.filter((m) => totalUniqueCards >= m.threshold).length;
+}

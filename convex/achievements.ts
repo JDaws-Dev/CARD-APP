@@ -449,32 +449,36 @@ export const awardAchievement = mutation({
   },
 });
 
+// Milestone badge thresholds
+const MILESTONE_BADGES = [
+  { key: 'first_catch', threshold: 1, name: 'First Catch' },
+  { key: 'starter_collector', threshold: 10, name: 'Starter Collector' },
+  { key: 'rising_trainer', threshold: 50, name: 'Rising Trainer' },
+  { key: 'pokemon_trainer', threshold: 100, name: 'Pokemon Trainer' },
+  { key: 'elite_collector', threshold: 250, name: 'Elite Collector' },
+  { key: 'pokemon_master', threshold: 500, name: 'Pokemon Master' },
+  { key: 'legendary_collector', threshold: 1000, name: 'Legendary Collector' },
+] as const;
+
 // Check and award milestone achievements based on total cards
 export const checkMilestoneAchievements = mutation({
   args: { profileId: v.id('profiles') },
   handler: async (ctx, args) => {
-    // Get total unique cards
+    // Get total unique cards (count unique cardIds, regardless of variant)
     const cards = await ctx.db
       .query('collectionCards')
       .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
       .collect();
 
-    const totalCards = cards.length;
+    // Count unique cardIds
+    const uniqueCardIds = new Set(cards.map((c) => c.cardId));
+    const totalUniqueCards = uniqueCardIds.size;
+
     const awarded: string[] = [];
 
     // Check each milestone
-    const milestones = [
-      { key: 'first_catch', threshold: 1 },
-      { key: 'starter_collector', threshold: 10 },
-      { key: 'rising_trainer', threshold: 50 },
-      { key: 'pokemon_trainer', threshold: 100 },
-      { key: 'elite_collector', threshold: 250 },
-      { key: 'pokemon_master', threshold: 500 },
-      { key: 'legendary_collector', threshold: 1000 },
-    ];
-
-    for (const milestone of milestones) {
-      if (totalCards >= milestone.threshold) {
+    for (const milestone of MILESTONE_BADGES) {
+      if (totalUniqueCards >= milestone.threshold) {
         const existing = await ctx.db
           .query('achievements')
           .withIndex('by_profile_and_key', (q) =>
@@ -487,15 +491,111 @@ export const checkMilestoneAchievements = mutation({
             profileId: args.profileId,
             achievementType: 'collector_milestone',
             achievementKey: milestone.key,
-            achievementData: { totalCards },
+            achievementData: { totalCards: totalUniqueCards, threshold: milestone.threshold },
             earnedAt: Date.now(),
           });
+
+          // Log activity for achievement earned
+          await ctx.db.insert('activityLogs', {
+            profileId: args.profileId,
+            action: 'achievement_earned',
+            metadata: {
+              achievementKey: milestone.key,
+              achievementName: milestone.name,
+              achievementType: 'collector_milestone',
+              totalCards: totalUniqueCards,
+              threshold: milestone.threshold,
+            },
+          });
+
           awarded.push(milestone.key);
         }
       }
     }
 
-    return awarded;
+    // Calculate next milestone for return value
+    const nextMilestone = MILESTONE_BADGES.find((m) => totalUniqueCards < m.threshold);
+
+    return {
+      awarded,
+      totalUniqueCards,
+      nextMilestone: nextMilestone
+        ? {
+            key: nextMilestone.key,
+            name: nextMilestone.name,
+            threshold: nextMilestone.threshold,
+            cardsNeeded: nextMilestone.threshold - totalUniqueCards,
+          }
+        : null,
+    };
+  },
+});
+
+// Query to get milestone progress for a profile (for UI display)
+export const getMilestoneProgress = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get total unique cards
+    const cards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Count unique cardIds
+    const uniqueCardIds = new Set(cards.map((c) => c.cardId));
+    const totalUniqueCards = uniqueCardIds.size;
+
+    // Get earned milestone achievements
+    const earnedMilestones = await ctx.db
+      .query('achievements')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .filter((q) => q.eq(q.field('achievementType'), 'collector_milestone'))
+      .collect();
+
+    const earnedKeys = new Set(earnedMilestones.map((a) => a.achievementKey));
+
+    // Build milestone progress list
+    const milestoneProgress = MILESTONE_BADGES.map((milestone) => {
+      const earned = earnedKeys.has(milestone.key);
+      const earnedAchievement = earned
+        ? earnedMilestones.find((a) => a.achievementKey === milestone.key)
+        : null;
+
+      return {
+        key: milestone.key,
+        name: milestone.name,
+        threshold: milestone.threshold,
+        earned,
+        earnedAt: earnedAchievement?.earnedAt ?? null,
+        progress: Math.min(100, Math.round((totalUniqueCards / milestone.threshold) * 100)),
+        cardsNeeded: earned ? 0 : Math.max(0, milestone.threshold - totalUniqueCards),
+      };
+    });
+
+    // Find current and next milestone
+    const currentMilestone = [...MILESTONE_BADGES]
+      .reverse()
+      .find((m) => totalUniqueCards >= m.threshold);
+    const nextMilestone = MILESTONE_BADGES.find((m) => totalUniqueCards < m.threshold);
+
+    return {
+      totalUniqueCards,
+      milestones: milestoneProgress,
+      currentMilestone: currentMilestone
+        ? { key: currentMilestone.key, name: currentMilestone.name, threshold: currentMilestone.threshold }
+        : null,
+      nextMilestone: nextMilestone
+        ? {
+            key: nextMilestone.key,
+            name: nextMilestone.name,
+            threshold: nextMilestone.threshold,
+            cardsNeeded: nextMilestone.threshold - totalUniqueCards,
+            percentProgress: Math.round((totalUniqueCards / nextMilestone.threshold) * 100),
+          }
+        : null,
+      totalMilestonesEarned: earnedMilestones.length,
+      totalMilestonesAvailable: MILESTONE_BADGES.length,
+    };
   },
 });
 
