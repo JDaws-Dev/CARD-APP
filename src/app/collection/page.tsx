@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
+import { VirtualTrophyRoom } from '@/components/virtual/VirtualTrophyRoom';
 
 export default function MyCollectionPage() {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
@@ -124,6 +125,11 @@ export default function MyCollectionPage() {
               <ExportChecklistButton collection={collection} stats={stats} />
             </div>
           </div>
+        </div>
+
+        {/* Virtual Trophy Room */}
+        <div className="mb-6 sm:mb-8">
+          <VirtualTrophyRoom />
         </div>
 
         {/* Stats Overview */}
