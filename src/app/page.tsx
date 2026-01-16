@@ -16,6 +16,10 @@ import {
   CakeIcon,
   ArrowsRightLeftIcon,
   LockClosedIcon,
+  CheckIcon,
+  XMarkIcon,
+  CurrencyDollarIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/solid';
 
 // Decorative floating card component
@@ -540,6 +544,195 @@ export default function Home() {
           <div>
             <div className="mb-2 text-4xl font-bold">100%</div>
             <div className="text-indigo-200">Free to Use</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="bg-white px-4 py-16 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-12 text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-100 to-teal-100 px-4 py-2">
+              <CurrencyDollarIcon className="h-5 w-5 text-emerald-600" />
+              <span className="text-sm font-semibold text-emerald-700">Simple Pricing</span>
+            </div>
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">
+              Choose Your <span className="text-kid-primary">Plan</span>
+            </h2>
+            <p className="mx-auto max-w-2xl text-gray-600">
+              Start free and upgrade when your collection grows! Both plans include all the fun
+              features kids love.
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2">
+            {/* Free Plan */}
+            <div className="relative overflow-hidden rounded-3xl border-2 border-gray-200 bg-white p-8 transition-all hover:border-kid-primary hover:shadow-xl">
+              <div className="mb-6">
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1">
+                  <SparklesIcon className="h-4 w-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-600">Free Forever</span>
+                </div>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-5xl font-extrabold text-gray-900">$0</span>
+                  <span className="text-gray-500">/month</span>
+                </div>
+                <p className="mt-2 text-gray-600">Perfect for getting started!</p>
+              </div>
+
+              <ul className="mb-8 space-y-4">
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-success/10">
+                    <CheckIcon className="h-4 w-4 text-kid-success" />
+                  </div>
+                  <span className="text-gray-700">
+                    <strong>1 Collection Profile</strong>
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-success/10">
+                    <CheckIcon className="h-4 w-4 text-kid-success" />
+                  </div>
+                  <span className="text-gray-700">Unlimited card tracking</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-success/10">
+                    <CheckIcon className="h-4 w-4 text-kid-success" />
+                  </div>
+                  <span className="text-gray-700">All 500+ Pokemon sets</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-success/10">
+                    <CheckIcon className="h-4 w-4 text-kid-success" />
+                  </div>
+                  <span className="text-gray-700">Badges & achievements</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-success/10">
+                    <CheckIcon className="h-4 w-4 text-kid-success" />
+                  </div>
+                  <span className="text-gray-700">Shareable wishlist</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100">
+                    <XMarkIcon className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <span className="text-gray-400">Multiple profiles</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100">
+                    <XMarkIcon className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <span className="text-gray-400">Duplicate finder</span>
+                </li>
+              </ul>
+
+              <Link
+                href="/sets"
+                className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-kid-primary bg-white px-6 py-3 font-semibold text-kid-primary transition-all hover:bg-kid-primary hover:text-white"
+              >
+                <RocketLaunchIcon className="h-5 w-5" />
+                Get Started Free
+              </Link>
+            </div>
+
+            {/* Family Plan */}
+            <div className="relative overflow-hidden rounded-3xl border-2 border-kid-secondary bg-gradient-to-br from-pink-50 via-rose-50 to-orange-50 p-8 shadow-xl">
+              {/* Popular badge */}
+              <div className="absolute -right-12 top-6 rotate-45 bg-gradient-to-r from-kid-secondary to-pink-500 px-12 py-1 text-sm font-bold text-white shadow-lg">
+                BEST VALUE
+              </div>
+
+              <div className="mb-6">
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-kid-secondary/10 px-3 py-1">
+                  <UserGroupIcon className="h-4 w-4 text-kid-secondary" />
+                  <span className="text-sm font-medium text-kid-secondary">Family Plan</span>
+                </div>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-5xl font-extrabold text-gray-900">$4.99</span>
+                  <span className="text-gray-500">/month</span>
+                </div>
+                <p className="mt-2 text-gray-600">For families with multiple collectors!</p>
+              </div>
+
+              <ul className="mb-8 space-y-4">
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-secondary/10">
+                    <CheckIcon className="h-4 w-4 text-kid-secondary" />
+                  </div>
+                  <span className="text-gray-700">
+                    <strong>Up to 5 Collection Profiles</strong>
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-secondary/10">
+                    <CheckIcon className="h-4 w-4 text-kid-secondary" />
+                  </div>
+                  <span className="text-gray-700">Unlimited card tracking</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-secondary/10">
+                    <CheckIcon className="h-4 w-4 text-kid-secondary" />
+                  </div>
+                  <span className="text-gray-700">All 500+ Pokemon sets</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-secondary/10">
+                    <CheckIcon className="h-4 w-4 text-kid-secondary" />
+                  </div>
+                  <span className="text-gray-700">Badges & achievements</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-secondary/10">
+                    <CheckIcon className="h-4 w-4 text-kid-secondary" />
+                  </div>
+                  <span className="text-gray-700">Shareable wishlist per profile</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-secondary/10">
+                    <CheckIcon className="h-4 w-4 text-kid-secondary" />
+                  </div>
+                  <span className="text-gray-700">
+                    <strong>Parent dashboard</strong>
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-secondary/10">
+                    <CheckIcon className="h-4 w-4 text-kid-secondary" />
+                  </div>
+                  <span className="text-gray-700">
+                    <strong>Sibling duplicate finder</strong>
+                  </span>
+                </li>
+              </ul>
+
+              <Link
+                href="/sets"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-kid-secondary to-pink-500 px-6 py-3 font-semibold text-white shadow-lg shadow-kid-secondary/30 transition-all hover:scale-105 hover:shadow-xl"
+              >
+                <UserGroupIcon className="h-5 w-5" />
+                Start Family Plan
+              </Link>
+
+              {/* Decorative elements */}
+              <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-gradient-to-br from-pink-200 to-rose-200 opacity-40" />
+            </div>
+          </div>
+
+          {/* Trust badges */}
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <ShieldCheckIcon className="h-5 w-5 text-kid-success" />
+              <span>Secure & Private</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <HeartIcon className="h-5 w-5 text-rose-400" />
+              <span>Kid-Safe</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <BoltIcon className="h-5 w-5 text-amber-400" />
+              <span>Cancel Anytime</span>
+            </div>
           </div>
         </div>
       </section>
