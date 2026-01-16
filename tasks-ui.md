@@ -2,35 +2,37 @@
 
 ## Status Summary (Updated 2026-01-16)
 
-| Section                         | Complete | Remaining |
-| ------------------------------- | -------- | --------- |
-| HIGH PRIORITY - Landing Page    | 9        | 0         |
-| UI Tasks                        | 20       | 0         |
-| Core Features                   | 6        | 0         |
-| Gamification UI                 | 4        | 0         |
-| Educational Features UI         | 5        | 0         |
-| Navigation & Dashboard          | 7        | 0         |
-| Multi-TCG Game Selector         | 6        | 0         |
-| Polish & UX                     | 7        | 0         |
-| **Forgiving Streak System**     | 2        | **3**     |
-| **Virtual Experience Features** | 0        | **6**     |
-| **Collection Timeline & Story** | 0        | **5**     |
-| **Family & Social Features**    | 0        | **5**     |
-| **Financial Literacy**          | 0        | **4**     |
-| **Educational Mini-Games**      | 0        | **5**     |
-| **Enhanced Accessibility**      | 6        | **0**     |
-| **Engagement & Retention**      | 0        | **4**     |
-| **TOTAL**                       | **72**   | **32**    |
+| Section                              | Complete | Remaining |
+| ------------------------------------ | -------- | --------- |
+| HIGH PRIORITY - Landing Page         | 9        | 0         |
+| UI Tasks                             | 20       | 0         |
+| Core Features                        | 6        | 0         |
+| Gamification UI                      | 4        | 0         |
+| Educational Features UI              | 5        | 0         |
+| Navigation & Dashboard               | 7        | 0         |
+| Multi-TCG Game Selector              | 6        | 0         |
+| Polish & UX                          | 7        | 0         |
+| **UI Cleanup & Settings (PRIORITY)** | 0        | **6**     |
+| **Forgiving Streak System**          | 3        | **2**     |
+| **Virtual Experience Features**      | 0        | **6**     |
+| **Collection Timeline & Story**      | 0        | **5**     |
+| **Family & Social Features**         | 0        | **5**     |
+| **Financial Literacy**               | 0        | **4**     |
+| **Educational Mini-Games**           | 0        | **5**     |
+| **Enhanced Accessibility**           | 6        | **0**     |
+| **Engagement & Retention**           | 0        | **4**     |
+| **TOTAL**                            | **73**   | **37**    |
 
 ### Priority Order for Remaining Tasks
 
-1. **Forgiving Streak System** (3 tasks) - Grace days, weekend pause - Improves retention
-2. **Engagement & Retention** (4 tasks) - Daily stamps, weekly challenges - Key for daily active users
-3. **Virtual Experience Features** (6 tasks) - Pack opening simulator, trophy room - Fun differentiators
-4. **Family & Social Features** (5 tasks) - Family goals, trade suggestions - Multi-user value
-5. **Educational Mini-Games** (5 tasks) - Grade Like a Pro, rarity guessing - Learning through play
-6. **Financial Literacy** (4 tasks) - Savings calculator, budget alternatives - Parent-friendly
-7. **Collection Timeline & Story** (5 tasks) - Timeline view, adventure map - Nice-to-have features
+1. **UI Cleanup & Settings Consolidation** (6 tasks) - Simplify header, create settings page - Critical for usability
+2. **Forgiving Streak System** (2 tasks) - Weekend pause, XP repair - Improves retention
+3. **Engagement & Retention** (4 tasks) - Daily stamps, weekly challenges - Key for daily active users
+4. **Virtual Experience Features** (6 tasks) - Pack opening simulator, trophy room - Fun differentiators
+5. **Family & Social Features** (5 tasks) - Family goals, trade suggestions - Multi-user value
+6. **Educational Mini-Games** (5 tasks) - Grade Like a Pro, rarity guessing - Learning through play
+7. **Financial Literacy** (4 tasks) - Savings calculator, budget alternatives - Parent-friendly
+8. **Collection Timeline & Story** (5 tasks) - Timeline view, adventure map - Nice-to-have features
 
 ---
 
@@ -142,9 +144,18 @@
 - [x] Optimize card grid scrolling performance - Virtual scrolling for large collections
 - [x] Create onboarding flow - New user walkthrough: pick games, create profile, add first cards
 
+### UI Cleanup & Settings Consolidation (HIGH PRIORITY)
+
+- [ ] Create dedicated Settings page (`/settings`) - Central hub for all user preferences and accessibility options
+- [ ] Move accessibility toggles from header to Settings page - Relocate Dark Mode, Low-Stimulation, Dyslexic Font, High Contrast, Reduced Motion, Focus Mode toggles
+- [ ] Simplify header - Keep only essential items: logo, main nav, single settings gear icon, profile menu
+- [ ] Add Settings link to profile dropdown menu - Quick access from anywhere in the app
+- [ ] Create Settings page sections - Organize into: Display (dark mode, kid mode), Accessibility (low-stim, dyslexic font, high contrast, reduced motion, focus mode), Games (TCG selection), Notifications
+- [ ] Add "quick settings" popover from gear icon - Allow fast access to most-used settings (dark mode, kid mode) without leaving current page
+
 ### Forgiving Streak System (Research-based)
 
-- [ ] Grace day streak protection - 1 "grace day" per week that doesn't break streak when missed
+- [x] Grace day streak protection - 1 "grace day" per week that doesn't break streak when missed
 - [ ] Weekend pause toggle - Optional setting to pause streak requirements on weekends
 - [ ] Streak repair with XP - Spend accumulated XP to repair a recently broken streak (teaches consequence/value)
 - [x] Visual streak calendar - Show past 30 days with activity markers and grace days used
@@ -278,3 +289,4 @@
 - **2026-01-16**: Added focus mode to hide gamification elements for accessibility - Created comprehensive focus mode system allowing users who find gamification elements overwhelming to hide them. FocusModeProvider context (src/components/providers/FocusModeProvider.tsx) manages focus mode state with localStorage persistence; three preset levels: Off (all features visible), Minimal (hides header stats like streaks/levels but keeps celebrations), Full Focus (hides all gamification for pure collection experience). FocusModeToggle dropdown component (src/components/layout/FocusModeToggle.tsx) in AppHeader with EyeSlashIcon, violet color theme, and dropdown preset selector. Features: 6 individual settings (hideStreaks, hideLevels, hideAchievements, hideMilestones, hideCompletionCelebrations, hideProgressBars); convenience checks (showStreaks, showLevels, showAchievements, etc.) for conditional rendering; CSS support (globals.css) with .focus-mode class and utility classes (.hide-in-focus-mode, .show-in-focus-mode, .gamification-streak, .gamification-level, etc.) for declarative hiding. Updated AppHeader to conditionally render LevelDisplay and StreakCounter based on focus mode state. Utility library (src/lib/focusMode.ts) provides types, preset definitions, HIDDEN_GAMIFICATION_ELEMENTS list, persistence functions (saveFocusModeEnabled, loadFocusModeEnabled, saveFocusModeSettings, loadFocusModeSettings, saveFocusModePreset, loadFocusModePreset), CSS class helpers (applyFocusModeClasses, isFocusModeClassApplied), and display helpers (getFocusModeLabel, getFocusModeDescription, getFocusModeTooltip, getFocusModeAriaLabel). Integrated FocusModeProvider into root layout.tsx. 61 unit tests covering constants, utility functions, persistence, CSS helpers, display helpers, accessibility considerations, and integration scenarios. Uses Heroicons (EyeSlashIcon, ChevronDownIcon, CheckIcon). Commit: a48156f
 - **2026-01-16**: Added screen reader optimization with enhanced ARIA descriptions and live regions - Created comprehensive accessibility system for screen reader users. Core library (src/lib/screenReaderUtils.ts) provides ARIA label generators: generateCardAriaLabel() for card descriptions with ownership/wishlist/price/variant details, generateBadgeAriaLabel() for achievement badges with tier/progress info, generateStatAriaLabel() for collection statistics, generateActivityAriaLabel() for activity feed items; change description helpers: describeQuantityChange(), describeProgressUpdate(), describeStreakChange(); ARIA role constants (ARIA_ROLES) and state descriptions (STATE_DESCRIPTIONS). LiveRegionProvider context (src/components/accessibility/LiveRegion.tsx) provides global announcement system: useLiveRegion() hook with announce() function for polite/assertive announcements, LiveRegion standalone component for local announcements, DynamicContentAnnouncer for auto-announcing value changes. Enhanced components: ActivityFeed with aria-live announcements for new activities and achievement celebrations, article roles with aria-labels, aria-posinset/aria-setsize for feed items, time elements with datetime attributes; TrophyCase with role="region" and descriptive aria-labels for stats header, progress bars with role="progressbar" and aria-valuenow, CategorySection with aria-labelledby, badge grid with role="list"; CardGrid stats bar with role="region" and comprehensive collection progress labels; KidDashboard stats grid with descriptive aria-labels for each stat card. Integrated LiveRegionProvider into root layout.tsx. 38 unit tests covering all ARIA label generators, change description functions, and role/state constants. Uses semantic HTML elements (article, section, time). Commit: 7c20f98
 - **2026-01-16**: Added streak milestone rewards with special badges and avatar items at 7, 14, 30, 60, 100 day streaks - Created comprehensive streak milestone reward system. Utility library (src/lib/streakMilestones.ts) defines 5 milestone thresholds (Week Warrior at 7 days, Fortnight Champion at 14 days, Monthly Master at 30 days, Season Collector at 60 days, Legendary Collector at 100 days) with tiered rewards (bronze → silver → gold → platinum → diamond). Each milestone unlocks special avatar items: frames (Silver, Gold, Platinum, Diamond, Legendary Streak frames), badges (Monthly Master, Season Collector, Legendary Streak badges), and hats (Streak Master Crown at 60 days, Legendary Streak Crown at 100 days). Functions for progress tracking: getStreakMilestoneProgress(), getAchievedMilestones(), getNextMilestone(), getMilestoneEncouragement(), formatMilestoneDays(). StreakMilestoneRewards component (src/components/gamification/StreakMilestoneRewards.tsx) displays milestone cards with progress indicators, achieved/locked states, tier badges, reward tooltips showing unlockable items, overall progress bar with milestone markers, encouragement messages, and next rewards preview section. Updated avatarItems.ts with new streak-based items: frame_streak_diamond, frame_streak_legendary, badge_streak_30, badge_streak_60, badge_streak_100, hat_streak_master, hat_streak_legend. Integrated into /streak page below the calendar with skeleton loading state. Updated tips section to mention all 5 milestone levels. 58 unit tests covering milestone definitions, progress calculations, achievement detection, item unlocks, display helpers, and integration scenarios. Uses Heroicons (FireIcon, TrophyIcon, SparklesIcon, LockClosedIcon, CheckCircleIcon, GiftIcon, StarIcon, BoltIcon, RocketLaunchIcon). Also marked Visual streak calendar task complete as it was already fully implemented with StreakCalendar component and /streak page.
+- **2026-01-16**: Added grace day streak protection with 1 free missed day per week - Created comprehensive grace day protection system to make streaks more forgiving. Utility library (src/lib/graceDays.ts) provides: GraceDayState/GraceDayUsage/GraceDayAvailability types; week boundary calculation using ISO week standards (getISOWeekInfo, getWeekBoundaries, isSameWeek); checkGraceDayAvailability() for real-time availability status with reset countdown; canProtectStreakGap() to detect if a streak gap can be saved by grace day; consumeGraceDay() to use protection and track usage history; calculateStreakWithGraceDays() for streak calculation considering protected days; localStorage persistence with automatic cleanup of old history (>1 year). GraceDayProvider context (src/components/providers/GraceDayProvider.tsx) manages app-wide state with enable/disable/toggle actions, checkProtection/protectStreak/isDateProtected methods, and availability tracking. GraceDayStatus component (src/components/gamification/GraceDayStatus.tsx) displays status card with shield icons (emerald=available, amber=used), toggle control, week info with reset countdown, and info box explaining feature. GraceDayIndicator compact version for inline display. GraceDayHistory component shows usage history list. Updated StreakCalendar component to add 4th stat column showing grace day availability for current week. Updated /streak page with GraceDayStatus section below calendar, updated info card messaging, added tip about weekly Sunday reset. 75 unit tests covering date/week utilities, grace day logic, localStorage persistence, and display helpers. Uses Heroicons (ShieldCheckIcon, ShieldExclamationIcon, SparklesIcon, InformationCircleIcon). Commit: 7b14add
