@@ -31,6 +31,7 @@ import {
   PackOpeningButton,
 } from '@/components/virtual/PackOpeningSimulator';
 import { cn } from '@/lib/utils';
+import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
 
 // ============================================================================
 // QUICK ACTION CARDS
@@ -545,6 +546,15 @@ export function KidDashboard() {
 
           {/* Badge Progress */}
           <BadgeProgressPreview />
+
+          {/* Family Collection Goal */}
+          {profile?.familyId && (
+            <FamilyCollectionGoal
+              familyId={profile.familyId}
+              goalTarget={500}
+              variant="compact"
+            />
+          )}
 
           {/* Streak Calendar Preview */}
           <StreakCalendarPreview />

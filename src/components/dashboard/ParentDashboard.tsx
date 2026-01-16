@@ -23,6 +23,7 @@ import {
   EyeSlashIcon,
 } from '@heroicons/react/24/solid';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
 
 // Context for pricing visibility
 const PricingVisibilityContext = createContext<boolean>(true);
@@ -413,6 +414,9 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
             </div>
           </div>
         </div>
+
+        {/* Family Collection Goal */}
+        <FamilyCollectionGoal familyId={familyId} goalTarget={500} />
 
         {/* Pricing toggle control */}
         <div className="flex flex-col gap-3 rounded-xl bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
