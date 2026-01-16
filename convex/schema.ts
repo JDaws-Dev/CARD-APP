@@ -217,7 +217,10 @@ export default defineSchema({
     .index('by_card_id', ['cardId'])
     .index('by_set', ['setId'])
     .index('by_game', ['gameSlug'])
-    .index('by_game_and_set', ['gameSlug', 'setId']),
+    .index('by_game_and_set', ['gameSlug', 'setId'])
+    .index('by_rarity', ['rarity'])
+    .index('by_game_and_rarity', ['gameSlug', 'rarity'])
+    .index('by_set_and_rarity', ['setId', 'rarity']),
 
   // ============================================================================
   // AVATAR CUSTOMIZATION

@@ -104,7 +104,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [ ] Japanese promo support - Proper detection and categorization of Japanese promos
 - [x] "New in collection" tracking - Query for cards added in last 7 days
 - [x] Random card query - Return random card from user's collection
-- [ ] Rarity filter support - Add rarity indexing for efficient filtering
+- [x] Rarity filter support - Add rarity indexing for efficient filtering
 - [x] Fair trading calculator - Price comparison logic for "Is this trade fair?" tool
 
 ### Launch Prep
@@ -1462,3 +1462,46 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Summary creation (createTradeSummary, formatValueDifference)
   - Integration scenarios: Kids trading Pikachu cards, Fair trade between siblings, Trade with unpriced cards, Large quantity trade, Parent checking trade fairness
 - All 3038 tests pass, linter clean
+
+
+### 2026-01-16: Rarity filter support - Add rarity indexing for efficient filtering
+
+- Added rarity indexes to `cachedCards` table in `convex/schema.ts`:
+  - `by_rarity`: Index on `rarity` field for filtering cards by single rarity
+  - `by_game_and_rarity`: Compound index for game-specific rarity queries
+  - `by_set_and_rarity`: Compound index for set-specific rarity filtering
+- Created `src/lib/rarity.ts` with comprehensive pure utility functions:
+  - Types: `CardWithRarity`, `RarityDistribution`, `CollectionRaritySummary`, `RarityTier`, `RarityDefinition`
+  - Constants: `POKEMON_RARITIES` (24 rarities with tier, displayName, sortOrder, color)
+  - Constants: `POKEMON_RARITY_NAMES`, `RARITY_TIER_ORDER` (common→uncommon→rare→ultra_rare→secret→unknown)
+  - Lookup functions: `getRarityDefinition`, `getRarityTier`, `getRaritySortOrder`, `getRarityDisplayName`, `getRarityColor`
+  - Lookup functions: `isUltraRareOrHigher`, `isChaseRarity`, `isKnownRarity`
+  - Filtering: `filterByRarity`, `filterByRarities`, `filterByRarityTier`
+  - Filtering: `filterUltraRareOrHigher`, `filterChaseCards`, `filterCardsWithRarity`, `filterCardsWithoutRarity`
+  - Sorting: `sortByRarityAscending`, `sortByRarityDescending`, `sortBySetThenRarity`
+  - Grouping: `groupByRarity`, `countByRarity`, `countByRarityTier`, `getUniqueRarities`
+  - Distribution: `getRarityDistribution`, `getCollectionRaritySummary`
+  - Progress: `calculateRarityCompletionPercent`, `getRarityTierCounts`, `hasRarity`, `hasRarityTier`
+  - Display: `formatRarityDistribution`, `formatRarestCardsSummary`, `getAllRaritiesForDisplay`
+  - Display: `getRaritiesGroupedByTier`, `getRarityBadgeText`, `shouldHighlightRarity`
+  - Validation: `normalizeRarity`, `validateRarityFilter`
+- Added Convex queries to `convex/collections.ts`:
+  - `getCollectionByRarity`: Get collection cards filtered by single rarity
+  - `getCollectionByRarities`: Get collection cards filtered by multiple rarities
+  - `getCollectionRarityDistribution`: Get rarity distribution with counts/percentages
+  - `getCollectionRarities`: Get all unique rarities in collection (for filter dropdown)
+  - `getSetCardsByRarity`: Get set cards by rarity using `by_set_and_rarity` index
+  - `getSetRarityDistribution`: Get rarity distribution for a specific set
+  - `getSetRarityProgress`: Check progress for specific rarity within a set (owned vs total)
+- Added 77 tests in `src/lib/__tests__/rarity.test.ts` covering:
+  - Constants validation (POKEMON_RARITIES, POKEMON_RARITY_NAMES, RARITY_TIER_ORDER)
+  - All lookup functions (getRarityDefinition, getRarityTier, getRaritySortOrder, etc.)
+  - All filtering functions (filterByRarity, filterByRarities, filterByRarityTier, etc.)
+  - Sorting functions (sortByRarityAscending, sortByRarityDescending, sortBySetThenRarity)
+  - Grouping and counting functions (groupByRarity, countByRarity, countByRarityTier)
+  - Distribution functions (getUniqueRarities, getRarityDistribution, getCollectionRaritySummary)
+  - Progress tracking (calculateRarityCompletionPercent, getRarityTierCounts, hasRarity, hasRarityTier)
+  - Display helpers (formatRarityDistribution, formatRarestCardsSummary, getAllRaritiesForDisplay)
+  - Validation functions (normalizeRarity, validateRarityFilter)
+  - Integration scenarios: Collection Analysis, Filter Workflow, Display Formatting
+- All 3251 tests pass, linter clean

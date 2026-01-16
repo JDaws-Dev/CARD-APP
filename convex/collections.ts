@@ -616,9 +616,7 @@ export const getRandomCard = query({
 
     // Filter by set if specified
     if (args.setId) {
-      collectionCards = collectionCards.filter((card) =>
-        card.cardId.startsWith(args.setId + '-')
-      );
+      collectionCards = collectionCards.filter((card) => card.cardId.startsWith(args.setId + '-'));
     }
 
     // Filter by variant if specified
@@ -684,9 +682,7 @@ export const getRandomCards = query({
 
     // Filter by set if specified
     if (args.setId) {
-      collectionCards = collectionCards.filter((card) =>
-        card.cardId.startsWith(args.setId + '-')
-      );
+      collectionCards = collectionCards.filter((card) => card.cardId.startsWith(args.setId + '-'));
     }
 
     // Filter by variant if specified
@@ -1354,6 +1350,434 @@ export const getCollectionComparison = query({
         count: onlyInProfile2.size,
         cardIds: Array.from(onlyInProfile2),
       },
+    };
+  },
+});
+
+// ============================================================================
+// RARITY FILTERING - Filter collection by card rarity
+// ============================================================================
+
+/**
+ * Get all cards in a collection filtered by rarity.
+ * Uses the by_rarity index on cachedCards for efficient filtering.
+ */
+export const getCollectionByRarity = query({
+  args: {
+    profileId: v.id('profiles'),
+    rarity: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return { cards: [], totalCount: 0 };
+    }
+
+    // Get unique card IDs
+    const uniqueCardIds = Array.from(new Set(collectionCards.map((c) => c.cardId)));
+
+    // Fetch card data from cache
+    const cachedCards = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Build a map of cards that match the rarity
+    const matchingCardIds = new Set<string>();
+    const cardDataMap = new Map<
+      string,
+      { name: string; imageSmall: string; setId: string; rarity?: string; types: string[] }
+    >();
+
+    for (const cachedCard of cachedCards) {
+      if (cachedCard) {
+        cardDataMap.set(cachedCard.cardId, {
+          name: cachedCard.name,
+          imageSmall: cachedCard.imageSmall,
+          setId: cachedCard.setId,
+          rarity: cachedCard.rarity,
+          types: cachedCard.types,
+        });
+
+        if (cachedCard.rarity === args.rarity) {
+          matchingCardIds.add(cachedCard.cardId);
+        }
+      }
+    }
+
+    // Filter collection to only matching cards
+    const filteredCards = collectionCards
+      .filter((card) => matchingCardIds.has(card.cardId))
+      .map((card) => {
+        const cardData = cardDataMap.get(card.cardId);
+        return {
+          cardId: card.cardId,
+          variant: card.variant ?? 'normal',
+          quantity: card.quantity,
+          name: cardData?.name ?? card.cardId,
+          imageSmall: cardData?.imageSmall ?? '',
+          setId: cardData?.setId ?? card.cardId.split('-')[0],
+          rarity: cardData?.rarity,
+          types: cardData?.types ?? [],
+        };
+      });
+
+    return {
+      cards: filteredCards,
+      totalCount: filteredCards.length,
+    };
+  },
+});
+
+/**
+ * Get collection cards filtered by multiple rarities.
+ * Useful for filtering by rarity tier (e.g., all "ultra rare" cards).
+ */
+export const getCollectionByRarities = query({
+  args: {
+    profileId: v.id('profiles'),
+    rarities: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return { cards: [], totalCount: 0 };
+    }
+
+    // Get unique card IDs
+    const uniqueCardIds = Array.from(new Set(collectionCards.map((c) => c.cardId)));
+
+    // Fetch card data from cache
+    const cachedCards = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Build a map and filter by matching rarities
+    const raritySet = new Set(args.rarities);
+    const matchingCardIds = new Set<string>();
+    const cardDataMap = new Map<
+      string,
+      { name: string; imageSmall: string; setId: string; rarity?: string; types: string[] }
+    >();
+
+    for (const cachedCard of cachedCards) {
+      if (cachedCard) {
+        cardDataMap.set(cachedCard.cardId, {
+          name: cachedCard.name,
+          imageSmall: cachedCard.imageSmall,
+          setId: cachedCard.setId,
+          rarity: cachedCard.rarity,
+          types: cachedCard.types,
+        });
+
+        if (cachedCard.rarity && raritySet.has(cachedCard.rarity)) {
+          matchingCardIds.add(cachedCard.cardId);
+        }
+      }
+    }
+
+    // Filter collection to only matching cards
+    const filteredCards = collectionCards
+      .filter((card) => matchingCardIds.has(card.cardId))
+      .map((card) => {
+        const cardData = cardDataMap.get(card.cardId);
+        return {
+          cardId: card.cardId,
+          variant: card.variant ?? 'normal',
+          quantity: card.quantity,
+          name: cardData?.name ?? card.cardId,
+          imageSmall: cardData?.imageSmall ?? '',
+          setId: cardData?.setId ?? card.cardId.split('-')[0],
+          rarity: cardData?.rarity,
+          types: cardData?.types ?? [],
+        };
+      });
+
+    return {
+      cards: filteredCards,
+      totalCount: filteredCards.length,
+    };
+  },
+});
+
+/**
+ * Get the rarity distribution for a profile's collection.
+ * Returns counts and percentages for each rarity.
+ */
+export const getCollectionRarityDistribution = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return {
+        distribution: [],
+        totalCards: 0,
+        uniqueRarities: 0,
+        cardsWithRarity: 0,
+        cardsWithoutRarity: 0,
+      };
+    }
+
+    // Get unique card IDs
+    const uniqueCardIds = Array.from(new Set(collectionCards.map((c) => c.cardId)));
+
+    // Fetch card data from cache
+    const cachedCards = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Build rarity map
+    const rarityMap = new Map<string, string | undefined>();
+    for (const cachedCard of cachedCards) {
+      if (cachedCard) {
+        rarityMap.set(cachedCard.cardId, cachedCard.rarity);
+      }
+    }
+
+    // Count cards by rarity
+    const rarityCounts = new Map<string, number>();
+    let cardsWithRarity = 0;
+    let cardsWithoutRarity = 0;
+
+    for (const card of collectionCards) {
+      const rarity = rarityMap.get(card.cardId);
+      if (rarity) {
+        rarityCounts.set(rarity, (rarityCounts.get(rarity) ?? 0) + 1);
+        cardsWithRarity++;
+      } else {
+        cardsWithoutRarity++;
+      }
+    }
+
+    // Convert to distribution array
+    const totalCards = collectionCards.length;
+    const distribution = Array.from(rarityCounts.entries())
+      .map(([rarity, count]) => ({
+        rarity,
+        count,
+        percentage: Math.round((count / totalCards) * 100 * 100) / 100,
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      distribution,
+      totalCards,
+      uniqueRarities: distribution.length,
+      cardsWithRarity,
+      cardsWithoutRarity,
+    };
+  },
+});
+
+/**
+ * Get all unique rarities present in a collection.
+ * Useful for populating filter dropdowns.
+ */
+export const getCollectionRarities = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return { rarities: [] };
+    }
+
+    // Get unique card IDs
+    const uniqueCardIds = Array.from(new Set(collectionCards.map((c) => c.cardId)));
+
+    // Fetch card data from cache
+    const cachedCards = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Collect unique rarities
+    const rarities = new Set<string>();
+    for (const cachedCard of cachedCards) {
+      if (cachedCard?.rarity) {
+        rarities.add(cachedCard.rarity);
+      }
+    }
+
+    return {
+      rarities: Array.from(rarities).sort(),
+    };
+  },
+});
+
+/**
+ * Get cards in a specific set filtered by rarity.
+ * Uses set_and_rarity index for efficient lookup.
+ */
+export const getSetCardsByRarity = query({
+  args: {
+    setId: v.string(),
+    rarity: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Use the set_and_rarity index for efficient filtering
+    const cards = await ctx.db
+      .query('cachedCards')
+      .withIndex('by_set_and_rarity', (q) => q.eq('setId', args.setId).eq('rarity', args.rarity))
+      .collect();
+
+    return {
+      cards: cards.map((card) => ({
+        cardId: card.cardId,
+        name: card.name,
+        number: card.number,
+        rarity: card.rarity,
+        imageSmall: card.imageSmall,
+        imageLarge: card.imageLarge,
+        types: card.types,
+      })),
+      totalCount: cards.length,
+    };
+  },
+});
+
+/**
+ * Get the rarity distribution for a specific set.
+ */
+export const getSetRarityDistribution = query({
+  args: { setId: v.string() },
+  handler: async (ctx, args) => {
+    // Get all cards in the set
+    const cards = await ctx.db
+      .query('cachedCards')
+      .withIndex('by_set', (q) => q.eq('setId', args.setId))
+      .collect();
+
+    if (cards.length === 0) {
+      return {
+        distribution: [],
+        totalCards: 0,
+        uniqueRarities: 0,
+      };
+    }
+
+    // Count cards by rarity
+    const rarityCounts = new Map<string, number>();
+    for (const card of cards) {
+      const rarity = card.rarity ?? 'Unknown';
+      rarityCounts.set(rarity, (rarityCounts.get(rarity) ?? 0) + 1);
+    }
+
+    // Convert to distribution array
+    const totalCards = cards.length;
+    const distribution = Array.from(rarityCounts.entries())
+      .map(([rarity, count]) => ({
+        rarity,
+        count,
+        percentage: Math.round((count / totalCards) * 100 * 100) / 100,
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      distribution,
+      totalCards,
+      uniqueRarities: distribution.length,
+    };
+  },
+});
+
+/**
+ * Check collection progress for a specific rarity within a set.
+ * Returns how many cards of that rarity the user owns vs total in set.
+ */
+export const getSetRarityProgress = query({
+  args: {
+    profileId: v.id('profiles'),
+    setId: v.string(),
+    rarity: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Get all cards of this rarity in the set
+    const setCards = await ctx.db
+      .query('cachedCards')
+      .withIndex('by_set_and_rarity', (q) => q.eq('setId', args.setId).eq('rarity', args.rarity))
+      .collect();
+
+    const totalInSet = setCards.length;
+    if (totalInSet === 0) {
+      return {
+        owned: 0,
+        total: 0,
+        percentage: 0,
+        missing: [],
+      };
+    }
+
+    // Get user's collection for this set
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Filter to cards in this set
+    const ownedSetCards = collectionCards.filter((card) =>
+      card.cardId.startsWith(args.setId + '-')
+    );
+    const ownedCardIds = new Set(ownedSetCards.map((c) => c.cardId));
+
+    // Find which cards of this rarity are owned
+    let owned = 0;
+    const missing: Array<{ cardId: string; name: string; imageSmall: string }> = [];
+
+    for (const card of setCards) {
+      if (ownedCardIds.has(card.cardId)) {
+        owned++;
+      } else {
+        missing.push({
+          cardId: card.cardId,
+          name: card.name,
+          imageSmall: card.imageSmall,
+        });
+      }
+    }
+
+    return {
+      owned,
+      total: totalInSet,
+      percentage: Math.round((owned / totalInSet) * 100 * 100) / 100,
+      missing,
     };
   },
 });
