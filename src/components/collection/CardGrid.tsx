@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
@@ -7,15 +8,102 @@ import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { cn } from '@/lib/utils';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { HeartIcon, StarIcon as StarIconOutline } from '@heroicons/react/24/outline';
+import {
+  HeartIcon,
+  StarIcon as StarIconOutline,
+  XMarkIcon,
+  PlusIcon,
+  MinusIcon,
+} from '@heroicons/react/24/outline';
 import {
   HeartIcon as HeartIconSolid,
   TrophyIcon,
   StarIcon as StarIconSolid,
   CurrencyDollarIcon,
+  SparklesIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/solid';
 import { MapIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { CardGridSkeleton, StatsBarSkeleton } from '@/components/ui/Skeleton';
+
+// Variant type definition
+type CardVariant =
+  | 'normal'
+  | 'holofoil'
+  | 'reverseHolofoil'
+  | '1stEditionHolofoil'
+  | '1stEditionNormal';
+
+// Variant display configuration
+const VARIANT_CONFIG: Record<
+  CardVariant,
+  {
+    label: string;
+    shortLabel: string;
+    gradient: string;
+    icon?: React.ComponentType<{ className?: string }>;
+  }
+> = {
+  normal: {
+    label: 'Normal',
+    shortLabel: 'N',
+    gradient: 'from-gray-400 to-gray-500',
+  },
+  holofoil: {
+    label: 'Holofoil',
+    shortLabel: 'H',
+    gradient: 'from-purple-400 to-indigo-500',
+    icon: SparklesIcon,
+  },
+  reverseHolofoil: {
+    label: 'Reverse Holo',
+    shortLabel: 'R',
+    gradient: 'from-cyan-400 to-blue-500',
+    icon: SparklesIcon,
+  },
+  '1stEditionHolofoil': {
+    label: '1st Ed. Holo',
+    shortLabel: '1H',
+    gradient: 'from-amber-400 to-yellow-500',
+    icon: SparklesIcon,
+  },
+  '1stEditionNormal': {
+    label: '1st Edition',
+    shortLabel: '1N',
+    gradient: 'from-amber-400 to-orange-500',
+  },
+};
+
+// Get available variants from a card's tcgplayer prices
+function getAvailableVariants(card: PokemonCard): CardVariant[] {
+  const prices = card.tcgplayer?.prices;
+  if (!prices) return ['normal']; // Default to normal if no price data
+
+  const variants: CardVariant[] = [];
+  if (prices.normal) variants.push('normal');
+  if (prices.holofoil) variants.push('holofoil');
+  if (prices.reverseHolofoil) variants.push('reverseHolofoil');
+
+  // If no variants found, default to normal
+  return variants.length > 0 ? variants : ['normal'];
+}
+
+// Get price for a specific variant
+function getVariantPrice(card: PokemonCard, variant: CardVariant): number | null {
+  const prices = card.tcgplayer?.prices;
+  if (!prices) return null;
+
+  switch (variant) {
+    case 'normal':
+      return prices.normal?.market ?? null;
+    case 'holofoil':
+      return prices.holofoil?.market ?? null;
+    case 'reverseHolofoil':
+      return prices.reverseHolofoil?.market ?? null;
+    default:
+      return null;
+  }
+}
 
 // Helper function to get the best market price from a card's TCGPlayer prices
 function getCardMarketPrice(card: PokemonCard): number | null {
@@ -66,6 +154,164 @@ function CrownIcon({ className }: { className?: string }) {
   );
 }
 
+// Variant selector popup component
+interface VariantSelectorProps {
+  card: PokemonCard;
+  ownedVariants: Map<CardVariant, number>;
+  setName?: string;
+  onAddVariant: (cardId: string, cardName: string, variant: CardVariant) => Promise<void>;
+  onRemoveVariant: (cardId: string, cardName: string, variant: CardVariant) => Promise<void>;
+  onClose: () => void;
+  position: { top: number; left: number };
+}
+
+function VariantSelector({
+  card,
+  ownedVariants,
+  setName,
+  onAddVariant,
+  onRemoveVariant,
+  onClose,
+  position,
+}: VariantSelectorProps) {
+  const popupRef = useRef<HTMLDivElement>(null);
+  const availableVariants = getAvailableVariants(card);
+
+  // Close on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose]);
+
+  // Close on escape key
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    }
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
+  const totalOwned = Array.from(ownedVariants.values()).reduce((sum, qty) => sum + qty, 0);
+
+  return (
+    <div
+      ref={popupRef}
+      className="fixed z-50 w-64 rounded-xl bg-white p-3 shadow-2xl ring-1 ring-black/5"
+      style={{
+        top: position.top,
+        left: position.left,
+        transform: 'translate(-50%, 8px)',
+      }}
+    >
+      {/* Header */}
+      <div className="mb-3 flex items-start justify-between">
+        <div className="min-w-0 flex-1">
+          <h4 className="truncate text-sm font-semibold text-gray-800">{card.name}</h4>
+          <p className="text-xs text-gray-500">
+            #{card.number} {setName && `· ${setName}`}
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="ml-2 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          aria-label="Close"
+        >
+          <XMarkIcon className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Total owned indicator */}
+      {totalOwned > 0 && (
+        <div className="mb-3 flex items-center gap-2 rounded-lg bg-kid-success/10 px-3 py-2">
+          <CheckCircleIcon className="h-4 w-4 text-kid-success" />
+          <span className="text-xs font-medium text-kid-success">{totalOwned} total owned</span>
+        </div>
+      )}
+
+      {/* Variant list */}
+      <div className="space-y-2">
+        {availableVariants.map((variant) => {
+          const config = VARIANT_CONFIG[variant];
+          const quantity = ownedVariants.get(variant) ?? 0;
+          const price = getVariantPrice(card, variant);
+          const Icon = config.icon;
+
+          return (
+            <div
+              key={variant}
+              className={cn(
+                'flex items-center justify-between rounded-lg border-2 p-2 transition-colors',
+                quantity > 0 ? 'border-kid-success bg-kid-success/5' : 'border-gray-100 bg-gray-50'
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    'flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br text-white',
+                    `${config.gradient}`
+                  )}
+                >
+                  {Icon ? (
+                    <Icon className="h-4 w-4" />
+                  ) : (
+                    <span className="text-xs font-bold">{config.shortLabel}</span>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-800">{config.label}</p>
+                  {price !== null && <p className="text-xs text-gray-500">${price.toFixed(2)}</p>}
+                </div>
+              </div>
+
+              {/* Quantity controls */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => onRemoveVariant(card.id, card.name, variant)}
+                  disabled={quantity === 0}
+                  className={cn(
+                    'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
+                    quantity > 0
+                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'cursor-not-allowed bg-gray-50 text-gray-300'
+                  )}
+                  aria-label={`Remove ${config.label}`}
+                >
+                  <MinusIcon className="h-4 w-4" />
+                </button>
+                <span className="min-w-[1.5rem] text-center text-sm font-semibold text-gray-800">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => onAddVariant(card.id, card.name, variant)}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-kid-primary text-white transition-colors hover:bg-kid-primary/90"
+                  aria-label={`Add ${config.label}`}
+                >
+                  <PlusIcon className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Only 1 variant message */}
+      {availableVariants.length === 1 && (
+        <p className="mt-2 text-center text-xs text-gray-400">
+          Only one variant available for this card
+        </p>
+      )}
+    </div>
+  );
+}
+
 interface CardGridProps {
   cards: PokemonCard[];
   setId: string;
@@ -74,6 +320,12 @@ interface CardGridProps {
 
 export function CardGrid({ cards, setId, setName }: CardGridProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
+
+  // State for variant selector popup
+  const [selectedCard, setSelectedCard] = useState<PokemonCard | null>(null);
+  const [selectorPosition, setSelectorPosition] = useState<{ top: number; left: number } | null>(
+    null
+  );
 
   // Convex queries and mutations
   const collection = useQuery(
@@ -86,7 +338,6 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
   );
   const addCard = useMutation(api.collections.addCard);
   const removeCard = useMutation(api.collections.removeCard);
-  const updateQuantity = useMutation(api.collections.updateQuantity);
   const addToWishlist = useMutation(api.wishlist.addToWishlist);
   const removeFromWishlist = useMutation(api.wishlist.removeFromWishlist);
   const togglePriority = useMutation(api.wishlist.togglePriority);
@@ -95,31 +346,110 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
 
-  // Build a map of owned cards for quick lookup
-  const ownedCards = new Map<string, number>();
-  if (collection) {
-    collection.forEach((card) => {
-      ownedCards.set(card.cardId, card.quantity);
-    });
-  }
+  // Build a map of owned cards for quick lookup (cardId -> total quantity)
+  // Also build a map of owned variants per card (cardId -> Map<variant, quantity>)
+  const { ownedCards, ownedVariantsMap } = useMemo(() => {
+    const cards = new Map<string, number>();
+    const variants = new Map<string, Map<CardVariant, number>>();
+
+    if (collection) {
+      collection.forEach((card) => {
+        const variant = (card.variant ?? 'normal') as CardVariant;
+        const currentTotal = cards.get(card.cardId) ?? 0;
+        cards.set(card.cardId, currentTotal + card.quantity);
+
+        // Track per-variant quantities
+        if (!variants.has(card.cardId)) {
+          variants.set(card.cardId, new Map());
+        }
+        const variantMap = variants.get(card.cardId)!;
+        const currentVariantQty = variantMap.get(variant) ?? 0;
+        variantMap.set(variant, currentVariantQty + card.quantity);
+      });
+    }
+
+    return { ownedCards: cards, ownedVariantsMap: variants };
+  }, [collection]);
 
   // Build a map of wishlisted card IDs to their priority status for quick lookup
-  const wishlistedCards = new Map<string, boolean>();
-  if (wishlist) {
-    wishlist.forEach((item) => {
-      wishlistedCards.set(item.cardId, item.isPriority ?? false);
-    });
-  }
-
-  const handleToggleCard = async (cardId: string, cardName: string) => {
-    if (!profileId) return;
-
-    if (ownedCards.has(cardId)) {
-      await removeCard({ profileId: profileId as Id<'profiles'>, cardId, cardName, setName });
-    } else {
-      await addCard({ profileId: profileId as Id<'profiles'>, cardId, cardName, setName });
+  const wishlistedCards = useMemo(() => {
+    const map = new Map<string, boolean>();
+    if (wishlist) {
+      wishlist.forEach((item) => {
+        map.set(item.cardId, item.isPriority ?? false);
+      });
     }
-  };
+    return map;
+  }, [wishlist]);
+
+  // Open variant selector when clicking on a card
+  const handleCardClick = useCallback(
+    (card: PokemonCard, event: React.MouseEvent) => {
+      if (!profileId) return;
+
+      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      const availableVariants = getAvailableVariants(card);
+
+      // If only one variant and card is not owned, add it directly
+      if (availableVariants.length === 1 && !ownedCards.has(card.id)) {
+        addCard({
+          profileId: profileId as Id<'profiles'>,
+          cardId: card.id,
+          cardName: card.name,
+          setName,
+          variant: availableVariants[0],
+        });
+        return;
+      }
+
+      // Show variant selector for multi-variant cards or owned cards
+      setSelectorPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + rect.width / 2 + window.scrollX,
+      });
+      setSelectedCard(card);
+    },
+    [profileId, ownedCards, addCard, setName]
+  );
+
+  // Add variant handler
+  const handleAddVariant = useCallback(
+    async (cardId: string, cardName: string, variant: CardVariant) => {
+      if (!profileId) return;
+      await addCard({
+        profileId: profileId as Id<'profiles'>,
+        cardId,
+        cardName,
+        setName,
+        variant,
+      });
+    },
+    [profileId, addCard, setName]
+  );
+
+  // Remove variant handler
+  const handleRemoveVariant = useCallback(
+    async (cardId: string, cardName: string, variant: CardVariant) => {
+      if (!profileId) return;
+      const currentQty = ownedVariantsMap.get(cardId)?.get(variant) ?? 0;
+      if (currentQty <= 0) return;
+
+      await removeCard({
+        profileId: profileId as Id<'profiles'>,
+        cardId,
+        cardName,
+        setName,
+        variant,
+      });
+    },
+    [profileId, removeCard, setName, ownedVariantsMap]
+  );
+
+  // Close variant selector
+  const handleCloseSelector = useCallback(() => {
+    setSelectedCard(null);
+    setSelectorPosition(null);
+  }, []);
 
   const handleToggleWishlist = async (cardId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -137,23 +467,6 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
     if (!profileId) return;
 
     await togglePriority({ profileId: profileId as Id<'profiles'>, cardId });
-  };
-
-  const handleUpdateQuantity = async (cardId: string, delta: number) => {
-    if (!profileId) return;
-
-    const current = ownedCards.get(cardId) || 0;
-    const newQty = Math.max(0, current + delta);
-
-    if (newQty === 0) {
-      await removeCard({ profileId: profileId as Id<'profiles'>, cardId });
-    } else {
-      await updateQuantity({
-        profileId: profileId as Id<'profiles'>,
-        cardId,
-        quantity: newQty,
-      });
-    }
   };
 
   const ownedCount = ownedCards.size;
@@ -263,7 +576,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                   ? 'ring-2 ring-kid-success ring-offset-2'
                   : 'opacity-60 hover:opacity-100 hover:shadow-md'
               )}
-              onClick={() => handleToggleCard(card.id, card.name)}
+              onClick={(e) => handleCardClick(card, e)}
             >
               {/* Card Image */}
               <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg">
@@ -368,31 +681,48 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                 </div>
               </div>
 
-              {/* Quantity Controls - Show on hover when owned */}
+              {/* Owned Variants Indicator - Show which variants are owned */}
               {isOwned && (
-                <div
-                  className="absolute bottom-12 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-white/95 px-2 py-1 opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    onClick={() => handleUpdateQuantity(card.id, -1)}
-                  >
-                    −
-                  </button>
-                  <span className="min-w-[1.5rem] text-center text-sm font-medium">{quantity}</span>
-                  <button
-                    className="flex h-6 w-6 items-center justify-center rounded-full bg-kid-primary text-white hover:bg-kid-primary/90"
-                    onClick={() => handleUpdateQuantity(card.id, 1)}
-                  >
-                    +
-                  </button>
+                <div className="mt-1 flex items-center justify-center gap-1">
+                  {(() => {
+                    const cardVariants = ownedVariantsMap.get(card.id);
+                    if (!cardVariants) return null;
+                    return Array.from(cardVariants.entries()).map(([variant, qty]) => {
+                      const config = VARIANT_CONFIG[variant];
+                      return (
+                        <span
+                          key={variant}
+                          className={cn(
+                            'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium text-white',
+                            `bg-gradient-to-r ${config.gradient}`
+                          )}
+                          title={`${config.label} x${qty}`}
+                        >
+                          {config.shortLabel}
+                          {qty > 1 && <span className="text-white/80">x{qty}</span>}
+                        </span>
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </div>
           );
         })}
       </div>
+
+      {/* Variant Selector Popup */}
+      {selectedCard && selectorPosition && (
+        <VariantSelector
+          card={selectedCard}
+          ownedVariants={ownedVariantsMap.get(selectedCard.id) ?? new Map()}
+          setName={setName}
+          onAddVariant={handleAddVariant}
+          onRemoveVariant={handleRemoveVariant}
+          onClose={handleCloseSelector}
+          position={selectorPosition}
+        />
+      )}
     </div>
   );
 }
