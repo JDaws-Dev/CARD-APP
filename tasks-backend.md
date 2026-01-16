@@ -79,7 +79,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [ ] Add game_id field to cachedSets table - Link sets to games
 - [ ] Add game_id field to cachedCards table - Link cards to games
 - [ ] Create game-agnostic API abstraction in src/lib/tcg-api.ts - Unified fetch interface that routes to correct API based on game
-- [ ] API adapter for YGOPRODeck (src/lib/yugioh-api.ts) - Yu-Gi-Oh! cards, 20 req/sec rate limit
+- [x] API adapter for YGOPRODeck (src/lib/yugioh-api.ts) - Yu-Gi-Oh! cards, 20 req/sec rate limit
 - [ ] API adapter for OPTCG API (src/lib/onepiece-api.ts) - One Piece cards
 - [ ] API adapter for ApiTCG (src/lib/dragonball-api.ts) - Dragon Ball Fusion World cards
 - [ ] API adapter for Lorcast (src/lib/lorcana-api.ts) - Disney Lorcana cards, 10 req/sec rate limit
@@ -888,3 +888,54 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Integration scenarios: card display preparation, transform card handling, promo identification
   - Type export verification
 - All tests pass, linter clean
+
+### 2026-01-16: API adapter for YGOPRODeck (Yu-Gi-Oh! cards)
+
+- Created `src/lib/yugioh-api.ts` with full YGOPRODeck API client:
+  - Rate limiting: 20 req/sec (50ms minimum between requests)
+  - No API key required, publicly accessible API
+  - Documentation: https://ygoprodeck.com/api-guide/
+- Defined comprehensive TypeScript types:
+  - `YuGiOhSet`: Set object with set_name, set_code, num_of_cards, tcg_date, set_image
+  - `YuGiOhCard`: Full card object with id, name, type, desc, atk/def, level, race, attribute, banlist_info, card_sets, card_images, card_prices
+  - `YuGiOhCardType`: 24 monster types + 4 spell/trap types
+  - `YuGiOhFrameType`: normal, effect, ritual, fusion, synchro, xyz, link, spell, trap, token, skill
+  - `YuGiOhAttribute`: DARK, DIVINE, EARTH, FIRE, LIGHT, WATER, WIND
+  - `YuGiOhRace`: 26 monster races + 7 spell/trap races
+  - `YuGiOhFilterOptions`: Comprehensive filter interface for card queries
+- Set API functions:
+  - `getAllSets`: Get all sets sorted by release date (newest first)
+  - `getSetByCode`: Get single set by set code
+  - `searchSets`: Search sets by name
+  - `getSetsByDateRange`: Get sets within a date range
+- Card API functions:
+  - `getCards`: Generic card query with full filter support
+  - `getCardsInSet`: Get all cards in a set by set code
+  - `getCardById`: Get single card by Konami passcode
+  - `getCardsByIds`: Batch fetch cards by IDs (50 per batch)
+  - `getCardByName`: Get card by exact name
+  - `searchCards`: Fuzzy search cards by name
+  - `getCardsByArchetype`, `getCardsByType`, `getCardsByAttribute`, `getCardsByRace`
+  - `getRandomCard`: Get random card
+  - `getAllArchetypes`: Get all card archetypes
+  - `getDatabaseVersion`: Get database version for cache invalidation
+- Helper functions:
+  - `isMonsterCard`, `isSpellCard`, `isTrapCard`: Card type checking
+  - `isExtraDeckMonster`: Check Fusion/Synchro/Xyz/Link
+  - `isPendulumMonster`: Check Pendulum cards
+  - `getCardImage`: Get image URL (full/small/cropped)
+  - `getCardImageVariants`: Get all alternate artworks
+  - `getTCGPlayerPrice`, `getCardmarketPrice`, `getSetPrice`: Price helpers
+  - `getCardSets`: Get all set printings for a card
+  - `getRarityDisplayName`: Convert rarity code to display name
+  - `getCardDexId`, `getCardPrintingId`: Generate unique identifiers
+  - `getAttributeDisplayName`, `getFrameTypeDisplayName`: Display helpers
+  - `isBannedTCG`, `isLimitedTCG`, `isSemiLimitedTCG`, `getTCGBanlistStatus`: Banlist helpers
+  - `getMonsterStats`, `getMonsterLevel`: Format stats for display
+  - `formatTypeLine`: Format card type line for display
+- Added constants:
+  - `YUGIOH_ATTRIBUTES`: Attribute code to name mapping
+  - `YUGIOH_MONSTER_RACES`: List of 26 monster races
+  - `YUGIOH_FRAME_TYPES`: Frame type to display name mapping
+  - `YUGIOH_RARITIES`: 11 rarity codes with display names and sort order
+- Linter clean, TypeScript compiles with no errors
