@@ -26,6 +26,10 @@ import {
   WeeklyChallenges,
   WeeklyChallengesSkeleton,
 } from '@/components/gamification/WeeklyChallenges';
+import {
+  ComebackStatus,
+  ComebackStatusSkeleton,
+} from '@/components/gamification/ComebackRewards';
 import { FireIcon, SparklesIcon, HomeIcon } from '@heroicons/react/24/solid';
 import {
   ArrowLeftIcon,
@@ -68,6 +72,9 @@ export default function StreakPage() {
           </div>
           <div className="mt-6">
             <WeeklyChallengesSkeleton />
+          </div>
+          <div className="mt-6">
+            <ComebackStatusSkeleton />
           </div>
           <div className="mt-6">
             <StreakMilestoneRewardsSkeleton />
@@ -181,6 +188,11 @@ export default function StreakPage() {
           <WeeklyChallenges />
         </div>
 
+        {/* Comeback Rewards Status */}
+        <div className="mt-6">
+          <ComebackStatus />
+        </div>
+
         {/* Streak Milestone Rewards */}
         <div className="mt-6">
           <StreakMilestoneRewards showRewardsPreview={true} />
@@ -243,6 +255,13 @@ export default function StreakPage() {
               <span>
                 Complete weekly challenges like &ldquo;Add 3 Water-type cards&rdquo; for themed
                 rewards and bonus XP!
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-pink-400" />
+              <span>
+                Been away for a while? Come back and claim bonus XP rewards - the longer you were
+                away, the bigger the bonus!
               </span>
             </li>
           </ul>

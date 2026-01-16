@@ -17,6 +17,7 @@ import { MilestoneProvider } from '@/components/gamification/MilestoneCelebratio
 import { SetCompletionProvider } from '@/components/gamification/SetCompletionCelebration';
 import { GraceDayProvider } from '@/components/providers/GraceDayProvider';
 import { DailyStampProvider } from '@/components/providers/DailyStampProvider';
+import { ComebackProvider } from '@/components/gamification/ComebackRewards';
 import { AuthAwareHeader } from '@/components/layout/AuthAwareHeader';
 import { LiveRegionProvider } from '@/components/accessibility/LiveRegion';
 import './globals.css';
@@ -55,6 +56,7 @@ export default function RootLayout({
                                     <SetCompletionProvider>
                                       <GraceDayProvider>
                                         <DailyStampProvider>
+                                          <ComebackProvider>
                                           <LiveRegionProvider>
                                           {/* Skip link for keyboard navigation - visually hidden until focused */}
                                           <a
@@ -66,6 +68,7 @@ export default function RootLayout({
                                           <AuthAwareHeader />
                                           <main id="main-content">{children}</main>
                                         </LiveRegionProvider>
+                                          </ComebackProvider>
                                         </DailyStampProvider>
                                       </GraceDayProvider>
                                     </SetCompletionProvider>
