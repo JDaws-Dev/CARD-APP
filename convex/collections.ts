@@ -1781,3 +1781,464 @@ export const getSetRarityProgress = query({
     };
   },
 });
+
+// ============================================================================
+// OPTIMIZED BATCH QUERIES - High performance queries for large collections
+// ============================================================================
+
+/**
+ * Batch fetch card data for multiple cardIds efficiently.
+ * Uses chunked parallel fetching to avoid overwhelming the database.
+ * Returns a map of cardId -> card data for O(1) lookups.
+ */
+export const batchGetCardData = query({
+  args: {
+    cardIds: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (args.cardIds.length === 0) {
+      return { cards: {}, missing: [], hitRate: 1 };
+    }
+
+    // Deduplicate cardIds
+    const uniqueCardIds = [...new Set(args.cardIds)];
+
+    // Batch size optimization: process in chunks to avoid overwhelming DB
+    const CHUNK_SIZE = 50;
+    const chunks: string[][] = [];
+    for (let i = 0; i < uniqueCardIds.length; i += CHUNK_SIZE) {
+      chunks.push(uniqueCardIds.slice(i, i + CHUNK_SIZE));
+    }
+
+    // Fetch all chunks in parallel (within each chunk)
+    const allResults: Array<{
+      cardId: string;
+      name: string;
+      imageSmall: string;
+      imageLarge: string;
+      setId: string;
+      rarity?: string;
+      types: string[];
+      priceMarket?: number;
+    } | null> = [];
+
+    for (const chunk of chunks) {
+      const chunkResults = await Promise.all(
+        chunk.map((cardId) =>
+          ctx.db
+            .query('cachedCards')
+            .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+            .first()
+        )
+      );
+      allResults.push(...chunkResults);
+    }
+
+    // Build result map
+    const cards: Record<
+      string,
+      {
+        name: string;
+        imageSmall: string;
+        imageLarge: string;
+        setId: string;
+        rarity?: string;
+        types: string[];
+        priceMarket?: number;
+      }
+    > = {};
+    const missing: string[] = [];
+
+    for (let i = 0; i < uniqueCardIds.length; i++) {
+      const cardId = uniqueCardIds[i];
+      const result = allResults[i];
+      if (result) {
+        cards[cardId] = {
+          name: result.name,
+          imageSmall: result.imageSmall,
+          imageLarge: result.imageLarge,
+          setId: result.setId,
+          rarity: result.rarity,
+          types: result.types,
+          priceMarket: result.priceMarket,
+        };
+      } else {
+        missing.push(cardId);
+      }
+    }
+
+    return {
+      cards,
+      missing,
+      hitRate: uniqueCardIds.length > 0 ? Object.keys(cards).length / uniqueCardIds.length : 1,
+    };
+  },
+});
+
+/**
+ * Batch fetch set data for multiple setIds efficiently.
+ */
+export const batchGetSetData = query({
+  args: {
+    setIds: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (args.setIds.length === 0) {
+      return { sets: {}, missing: [], hitRate: 1 };
+    }
+
+    // Deduplicate setIds
+    const uniqueSetIds = [...new Set(args.setIds)];
+
+    // Fetch all sets in parallel
+    const results = await Promise.all(
+      uniqueSetIds.map((setId) =>
+        ctx.db
+          .query('cachedSets')
+          .withIndex('by_set_id', (q) => q.eq('setId', setId))
+          .first()
+      )
+    );
+
+    // Build result map
+    const sets: Record<
+      string,
+      {
+        name: string;
+        series: string;
+        totalCards: number;
+        releaseDate: string;
+        logoUrl?: string;
+      }
+    > = {};
+    const missing: string[] = [];
+
+    for (let i = 0; i < uniqueSetIds.length; i++) {
+      const setId = uniqueSetIds[i];
+      const result = results[i];
+      if (result) {
+        sets[setId] = {
+          name: result.name,
+          series: result.series,
+          totalCards: result.totalCards,
+          releaseDate: result.releaseDate,
+          logoUrl: result.logoUrl,
+        };
+      } else {
+        missing.push(setId);
+      }
+    }
+
+    return {
+      sets,
+      missing,
+      hitRate: uniqueSetIds.length > 0 ? Object.keys(sets).length / uniqueSetIds.length : 1,
+    };
+  },
+});
+
+/**
+ * Get collection with enriched card data in a single optimized query.
+ * This is the preferred way to get a collection with all card details.
+ * Uses batch fetching and efficient grouping.
+ */
+export const getCollectionWithDetails = query({
+  args: {
+    profileId: v.id('profiles'),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return {
+        cards: [],
+        total: 0,
+        hasMore: false,
+      };
+    }
+
+    // Apply pagination if requested
+    const offset = args.offset ?? 0;
+    const limit = args.limit ?? collectionCards.length;
+    const paginatedCards = collectionCards.slice(offset, offset + limit);
+    const hasMore = offset + limit < collectionCards.length;
+
+    // Get unique card IDs from paginated results only
+    const uniqueCardIds = [...new Set(paginatedCards.map((c) => c.cardId))];
+
+    // Batch fetch card data - use chunking for large collections
+    const CHUNK_SIZE = 50;
+    const chunks: string[][] = [];
+    for (let i = 0; i < uniqueCardIds.length; i += CHUNK_SIZE) {
+      chunks.push(uniqueCardIds.slice(i, i + CHUNK_SIZE));
+    }
+
+    const cardDataMap = new Map<
+      string,
+      { name: string; imageSmall: string; setId: string; rarity?: string; types: string[] }
+    >();
+
+    for (const chunk of chunks) {
+      const chunkResults = await Promise.all(
+        chunk.map((cardId) =>
+          ctx.db
+            .query('cachedCards')
+            .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+            .first()
+        )
+      );
+
+      for (const card of chunkResults) {
+        if (card) {
+          cardDataMap.set(card.cardId, {
+            name: card.name,
+            imageSmall: card.imageSmall,
+            setId: card.setId,
+            rarity: card.rarity,
+            types: card.types,
+          });
+        }
+      }
+    }
+
+    // Enrich collection cards with cached data
+    const enrichedCards = paginatedCards.map((card) => {
+      const cachedData = cardDataMap.get(card.cardId);
+      return {
+        _id: card._id,
+        cardId: card.cardId,
+        variant: card.variant ?? 'normal',
+        quantity: card.quantity,
+        name: cachedData?.name ?? card.cardId,
+        imageSmall: cachedData?.imageSmall ?? '',
+        setId: cachedData?.setId ?? card.cardId.split('-')[0],
+        rarity: cachedData?.rarity,
+        types: cachedData?.types ?? [],
+      };
+    });
+
+    return {
+      cards: enrichedCards,
+      total: collectionCards.length,
+      hasMore,
+    };
+  },
+});
+
+/**
+ * Get collection stats with set completion progress - optimized for dashboard display.
+ * Returns aggregated stats without fetching individual card details.
+ */
+export const getCollectionDashboardStats = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return {
+        totalCards: 0,
+        uniqueCards: 0,
+        totalQuantity: 0,
+        setsStarted: 0,
+        setProgress: [],
+      };
+    }
+
+    // Calculate stats in single pass
+    let totalQuantity = 0;
+    const uniqueCardIds = new Set<string>();
+    const cardsBySet = new Map<string, Set<string>>();
+
+    for (const card of collectionCards) {
+      totalQuantity += card.quantity;
+      uniqueCardIds.add(card.cardId);
+
+      // Extract setId
+      const dashIndex = card.cardId.lastIndexOf('-');
+      const setId = dashIndex > 0 ? card.cardId.substring(0, dashIndex) : card.cardId;
+
+      const setCards = cardsBySet.get(setId) ?? new Set<string>();
+      setCards.add(card.cardId);
+      cardsBySet.set(setId, setCards);
+    }
+
+    // Get set data for progress calculation
+    const setIds = [...cardsBySet.keys()];
+    const setDataResults = await Promise.all(
+      setIds.map((setId) =>
+        ctx.db
+          .query('cachedSets')
+          .withIndex('by_set_id', (q) => q.eq('setId', setId))
+          .first()
+      )
+    );
+
+    // Build set progress data
+    const setProgress: Array<{
+      setId: string;
+      setName: string;
+      owned: number;
+      total: number;
+      percentage: number;
+    }> = [];
+
+    for (let i = 0; i < setIds.length; i++) {
+      const setId = setIds[i];
+      const setData = setDataResults[i];
+      const ownedCards = cardsBySet.get(setId)?.size ?? 0;
+      const totalCards = setData?.totalCards ?? 0;
+
+      setProgress.push({
+        setId,
+        setName: setData?.name ?? setId,
+        owned: ownedCards,
+        total: totalCards,
+        percentage: totalCards > 0 ? Math.round((ownedCards / totalCards) * 100 * 100) / 100 : 0,
+      });
+    }
+
+    // Sort by percentage descending
+    setProgress.sort((a, b) => b.percentage - a.percentage);
+
+    return {
+      totalCards: collectionCards.length,
+      uniqueCards: uniqueCardIds.size,
+      totalQuantity,
+      setsStarted: setIds.length,
+      setProgress: setProgress.slice(0, 10), // Return top 10 sets
+    };
+  },
+});
+
+/**
+ * Get cards by set with optimized batch enrichment.
+ * Filters at the collection level before enrichment for better performance.
+ */
+export const getCollectionBySetOptimized = query({
+  args: {
+    profileId: v.id('profiles'),
+    setId: v.string(),
+    includeSetCompletion: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const allCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Filter by set prefix efficiently
+    const setPrefix = args.setId + '-';
+    const setCards = allCards.filter((card) => card.cardId.startsWith(setPrefix));
+
+    if (setCards.length === 0) {
+      return {
+        cards: [],
+        totalInCollection: 0,
+        setCompletion: args.includeSetCompletion
+          ? { owned: 0, total: 0, percentage: 0, missing: [] }
+          : undefined,
+      };
+    }
+
+    // Batch fetch card data for this set's cards only
+    const uniqueCardIds = [...new Set(setCards.map((c) => c.cardId))];
+    const cardDataResults = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Build lookup map
+    const cardDataMap = new Map<
+      string,
+      { name: string; imageSmall: string; rarity?: string; types: string[]; number: string }
+    >();
+    for (const card of cardDataResults) {
+      if (card) {
+        cardDataMap.set(card.cardId, {
+          name: card.name,
+          imageSmall: card.imageSmall,
+          rarity: card.rarity,
+          types: card.types,
+          number: card.number,
+        });
+      }
+    }
+
+    // Enrich collection cards
+    const enrichedCards = setCards.map((card) => {
+      const cachedData = cardDataMap.get(card.cardId);
+      return {
+        cardId: card.cardId,
+        variant: card.variant ?? 'normal',
+        quantity: card.quantity,
+        name: cachedData?.name ?? card.cardId,
+        imageSmall: cachedData?.imageSmall ?? '',
+        rarity: cachedData?.rarity,
+        types: cachedData?.types ?? [],
+        number: cachedData?.number ?? '',
+      };
+    });
+
+    // Sort by card number
+    enrichedCards.sort((a, b) => {
+      const numA = parseInt(a.number) || 0;
+      const numB = parseInt(b.number) || 0;
+      return numA - numB;
+    });
+
+    // Get set completion if requested
+    let setCompletion:
+      | { owned: number; total: number; percentage: number; missing: string[] }
+      | undefined;
+
+    if (args.includeSetCompletion) {
+      // Get set info
+      const setData = await ctx.db
+        .query('cachedSets')
+        .withIndex('by_set_id', (q) => q.eq('setId', args.setId))
+        .first();
+
+      // Get all cards in this set
+      const allSetCards = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_set', (q) => q.eq('setId', args.setId))
+        .collect();
+
+      const ownedCardIds = new Set(setCards.map((c) => c.cardId));
+      const missingCards = allSetCards.filter((card) => !ownedCardIds.has(card.cardId));
+
+      setCompletion = {
+        owned: ownedCardIds.size,
+        total: setData?.totalCards ?? allSetCards.length,
+        percentage:
+          (setData?.totalCards ?? allSetCards.length) > 0
+            ? Math.round(
+                (ownedCardIds.size / (setData?.totalCards ?? allSetCards.length)) * 100 * 100
+              ) / 100
+            : 0,
+        missing: missingCards.map((c) => c.cardId).slice(0, 50), // Limit missing cards returned
+      };
+    }
+
+    return {
+      cards: enrichedCards,
+      totalInCollection: setCards.length,
+      setCompletion,
+    };
+  },
+});

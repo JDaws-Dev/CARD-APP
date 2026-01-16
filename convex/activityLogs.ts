@@ -87,7 +87,9 @@ export const getRecentActivityWithNames = query({
     // Enrich logs with card names
     return logs.map((log) => {
       if (log.action === 'card_added' || log.action === 'card_removed') {
-        const metadata = log.metadata as { cardId?: string; cardName?: string; [key: string]: unknown } | undefined;
+        const metadata = log.metadata as
+          | { cardId?: string; cardName?: string; [key: string]: unknown }
+          | undefined;
         if (metadata?.cardId) {
           // If cardName is missing, look it up from our map
           const cardName = metadata.cardName ?? cardNameMap.get(metadata.cardId) ?? metadata.cardId;
@@ -149,11 +151,12 @@ export const getFamilyActivity = query({
 
     // Get all activity logs and filter by family profiles
     // Note: In production, we might want a compound index for this
-    const allLogs = await ctx.db.query('activityLogs').order('desc').take(limit * 4);
+    const allLogs = await ctx.db
+      .query('activityLogs')
+      .order('desc')
+      .take(limit * 4);
 
-    const familyLogs = allLogs
-      .filter((log) => profileIds.has(log.profileId))
-      .slice(0, limit);
+    const familyLogs = allLogs.filter((log) => profileIds.has(log.profileId)).slice(0, limit);
 
     // Enrich with profile names
     const enrichedLogs = familyLogs.map((log) => {
@@ -189,11 +192,12 @@ export const getFamilyActivityWithNames = query({
     const profileIds = new Set(profiles.map((p) => p._id));
 
     // Get all activity logs and filter by family profiles
-    const allLogs = await ctx.db.query('activityLogs').order('desc').take(limit * 4);
+    const allLogs = await ctx.db
+      .query('activityLogs')
+      .order('desc')
+      .take(limit * 4);
 
-    const familyLogs = allLogs
-      .filter((log) => profileIds.has(log.profileId))
-      .slice(0, limit);
+    const familyLogs = allLogs.filter((log) => profileIds.has(log.profileId)).slice(0, limit);
 
     // Collect all unique cardIds that need name lookup
     const cardIdsToLookup = new Set<string>();
@@ -231,7 +235,9 @@ export const getFamilyActivityWithNames = query({
       let enrichedMetadata = log.metadata;
 
       if (log.action === 'card_added' || log.action === 'card_removed') {
-        const metadata = log.metadata as { cardId?: string; cardName?: string; [key: string]: unknown } | undefined;
+        const metadata = log.metadata as
+          | { cardId?: string; cardName?: string; [key: string]: unknown }
+          | undefined;
         if (metadata?.cardId) {
           const cardName = metadata.cardName ?? cardNameMap.get(metadata.cardId) ?? metadata.cardId;
           enrichedMetadata = {
@@ -451,5 +457,136 @@ export const clearOldLogs = mutation({
     }
 
     return { deletedCount: oldLogs.length };
+  },
+});
+
+// ============================================================================
+// OPTIMIZED QUERIES - Using compound indexes for better performance
+// ============================================================================
+
+/**
+ * Get card_added activity logs efficiently using the compound index.
+ * Optimized for streak calculation and new cards display.
+ */
+export const getCardAddedActivity = query({
+  args: {
+    profileId: v.id('profiles'),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 100;
+
+    // Use the compound index for efficient filtering by action type
+    const logs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile_and_action', (q) =>
+        q.eq('profileId', args.profileId).eq('action', 'card_added')
+      )
+      .order('desc')
+      .take(limit);
+
+    return logs;
+  },
+});
+
+/**
+ * Get achievement_earned activity logs efficiently.
+ * Useful for recent achievements display.
+ */
+export const getAchievementEarnedActivity = query({
+  args: {
+    profileId: v.id('profiles'),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 50;
+
+    // Use the compound index for efficient filtering by action type
+    const logs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile_and_action', (q) =>
+        q.eq('profileId', args.profileId).eq('action', 'achievement_earned')
+      )
+      .order('desc')
+      .take(limit);
+
+    return logs;
+  },
+});
+
+/**
+ * Get activity counts by action type - optimized for dashboard stats.
+ */
+export const getActivityCountsByType = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Fetch counts using the compound index for each action type
+    const [cardAddedLogs, cardRemovedLogs, achievementLogs] = await Promise.all([
+      ctx.db
+        .query('activityLogs')
+        .withIndex('by_profile_and_action', (q) =>
+          q.eq('profileId', args.profileId).eq('action', 'card_added')
+        )
+        .collect(),
+      ctx.db
+        .query('activityLogs')
+        .withIndex('by_profile_and_action', (q) =>
+          q.eq('profileId', args.profileId).eq('action', 'card_removed')
+        )
+        .collect(),
+      ctx.db
+        .query('activityLogs')
+        .withIndex('by_profile_and_action', (q) =>
+          q.eq('profileId', args.profileId).eq('action', 'achievement_earned')
+        )
+        .collect(),
+    ]);
+
+    return {
+      cardsAdded: cardAddedLogs.length,
+      cardsRemoved: cardRemovedLogs.length,
+      achievementsEarned: achievementLogs.length,
+      totalActions: cardAddedLogs.length + cardRemovedLogs.length + achievementLogs.length,
+    };
+  },
+});
+
+/**
+ * Get daily card addition dates for streak calculation - optimized version.
+ * Uses the compound index to fetch only card_added events.
+ */
+export const getDailyCardAdditionDates = query({
+  args: {
+    profileId: v.id('profiles'),
+    daysBack: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const daysBack = args.daysBack ?? 60;
+    const startDate = Date.now() - daysBack * 24 * 60 * 60 * 1000;
+
+    // Use compound index to get only card_added events
+    const cardAddedLogs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile_and_action', (q) =>
+        q.eq('profileId', args.profileId).eq('action', 'card_added')
+      )
+      .collect();
+
+    // Filter to date range
+    const recentLogs = cardAddedLogs.filter((log) => log._creationTime >= startDate);
+
+    // Extract unique dates (YYYY-MM-DD format)
+    const uniqueDates = new Set<string>();
+    for (const log of recentLogs) {
+      const date = new Date(log._creationTime);
+      const dateStr = date.toISOString().split('T')[0];
+      uniqueDates.add(dateStr);
+    }
+
+    return {
+      dates: Array.from(uniqueDates).sort(),
+      totalCardAdds: recentLogs.length,
+      daysWithActivity: uniqueDates.size,
+    };
   },
 });

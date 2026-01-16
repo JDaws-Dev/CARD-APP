@@ -110,7 +110,8 @@ export default defineSchema({
     isPriority: v.boolean(),
   })
     .index('by_profile', ['profileId'])
-    .index('by_profile_and_card', ['profileId', 'cardId']),
+    .index('by_profile_and_card', ['profileId', 'cardId'])
+    .index('by_profile_and_priority', ['profileId', 'isPriority']),
 
   wishlistShares: defineTable({
     profileId: v.id('profiles'),
@@ -138,7 +139,8 @@ export default defineSchema({
     earnedAt: v.number(), // Unix timestamp
   })
     .index('by_profile', ['profileId'])
-    .index('by_profile_and_key', ['profileId', 'achievementKey']),
+    .index('by_profile_and_key', ['profileId', 'achievementKey'])
+    .index('by_profile_and_type', ['profileId', 'achievementType']),
 
   // Collection milestones tracking (for celebration triggers)
   collectionMilestones: defineTable({
@@ -163,7 +165,9 @@ export default defineSchema({
       v.literal('achievement_earned')
     ),
     metadata: v.optional(v.any()), // Additional data about the action
-  }).index('by_profile', ['profileId']),
+  })
+    .index('by_profile', ['profileId'])
+    .index('by_profile_and_action', ['profileId', 'action']),
 
   // ============================================================================
   // CACHED CARD DATA (for offline support and faster queries)
