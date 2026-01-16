@@ -32,6 +32,7 @@ const navLinks = [
   { href: '/collection', label: 'My Collection' },
   { href: '/my-wishlist', label: 'My Wishlist' },
   { href: '/badges', label: 'Badges' },
+  { href: '/profile', label: 'Profile' },
   { href: '/parent-dashboard', label: 'Parent Dashboard' },
   { href: '/search', label: 'Search' },
 ];
