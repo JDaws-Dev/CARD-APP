@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { FilterPanel, FilterChips } from '@/components/filter';
 import { SearchResults } from '@/components/search/SearchResults';
+import { FilterPanelSkeleton } from '@/components/ui/Skeleton';
+import { FunnelIcon } from '@heroicons/react/24/outline';
 import type { PokemonCard, PokemonSet } from '@/lib/pokemon-tcg';
 
 export default function BrowsePage() {
@@ -15,6 +17,7 @@ export default function BrowsePage() {
 
   // Data state
   const [sets, setSets] = useState<PokemonSet[]>([]);
+  const [setsLoading, setSetsLoading] = useState(true);
   const [results, setResults] = useState<PokemonCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +26,7 @@ export default function BrowsePage() {
   // Fetch sets on mount
   useEffect(() => {
     async function fetchSets() {
+      setSetsLoading(true);
       try {
         const response = await fetch('/api/sets');
         if (response.ok) {
@@ -31,6 +35,8 @@ export default function BrowsePage() {
         }
       } catch (err) {
         console.error('Failed to fetch sets:', err);
+      } finally {
+        setSetsLoading(false);
       }
     }
     fetchSets();
@@ -124,16 +130,20 @@ export default function BrowsePage() {
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* Filter Panel - Sidebar */}
           <div className="lg:w-72 lg:flex-shrink-0">
-            <FilterPanel
-              sets={sets}
-              selectedSetId={selectedSetId}
-              selectedType={selectedType}
-              nameFilter={nameFilter}
-              onSetChange={setSelectedSetId}
-              onTypeChange={setSelectedType}
-              onNameChange={setNameFilter}
-              onClearAll={handleClearAll}
-            />
+            {setsLoading ? (
+              <FilterPanelSkeleton />
+            ) : (
+              <FilterPanel
+                sets={sets}
+                selectedSetId={selectedSetId}
+                selectedType={selectedType}
+                nameFilter={nameFilter}
+                onSetChange={setSelectedSetId}
+                onTypeChange={setSelectedType}
+                onNameChange={setNameFilter}
+                onClearAll={handleClearAll}
+              />
+            )}
           </div>
 
           {/* Results */}
@@ -162,7 +172,9 @@ export default function BrowsePage() {
               <SearchResults cards={results} isLoading={isLoading} />
             ) : (
               <div className="rounded-xl bg-white p-12 text-center shadow-sm">
-                <div className="mb-4 text-6xl">🎴</div>
+                <div className="mb-4 flex justify-center">
+                  <FunnelIcon className="h-16 w-16 text-kid-primary" />
+                </div>
                 <h2 className="mb-2 text-xl font-bold text-gray-800">Browse Pokemon Cards</h2>
                 <p className="mb-6 text-gray-500">
                   Use the filters to find cards by set, type, or Pokemon name.

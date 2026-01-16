@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
+import { CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 
 interface CollectionCard {
   _id: string;
@@ -111,12 +112,13 @@ export function CollectionView({ collection }: CollectionViewProps) {
   setGroups.sort((a, b) => a.setName.localeCompare(b.setName));
 
   if (isLoading) {
+    // Show skeleton for estimated number of groups based on collection size
+    const estimatedGroups = Math.min(Math.ceil(collection.length / 5), 3);
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="mb-4 animate-bounce text-4xl">🎴</div>
-          <p className="text-gray-500">Loading your cards...</p>
-        </div>
+      <div className="space-y-8">
+        {Array.from({ length: Math.max(estimatedGroups, 1) }).map((_, i) => (
+          <CollectionGroupSkeleton key={i} />
+        ))}
       </div>
     );
   }

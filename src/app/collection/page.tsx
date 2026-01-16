@@ -6,6 +6,8 @@ import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { CollectionView } from '@/components/collection/CollectionView';
 import Link from 'next/link';
 import type { Id } from '../../../convex/_generated/dataModel';
+import { Square3Stack3DIcon } from '@heroicons/react/24/outline';
+import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 
 export default function MyCollectionPage() {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
@@ -20,16 +22,34 @@ export default function MyCollectionPage() {
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
 
-  // Loading state
+  // Loading state with skeleton screens
   if (profileLoading || collection === undefined || stats === undefined) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-indigo-50 to-purple-50 px-4 py-8">
         <div className="mx-auto max-w-7xl">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="mb-4 animate-bounce text-4xl">🎴</div>
-              <p className="text-gray-500">Loading your collection...</p>
-            </div>
+          {/* Header skeleton */}
+          <div className="mb-8">
+            <Skeleton className="mb-4 h-4 w-24" />
+            <Skeleton className="mb-2 h-8 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+
+          {/* Stats skeleton */}
+          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-xl bg-white p-6 shadow-sm">
+                <div className="text-center">
+                  <Skeleton className="mx-auto mb-2 h-10 w-16" />
+                  <Skeleton className="mx-auto h-4 w-20" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Collection skeleton */}
+          <div className="space-y-8">
+            <CollectionGroupSkeleton />
+            <CollectionGroupSkeleton />
           </div>
         </div>
       </main>
@@ -77,7 +97,9 @@ export default function MyCollectionPage() {
         {/* Collection Content */}
         {collection.length === 0 ? (
           <div className="rounded-xl bg-white p-12 text-center shadow-sm">
-            <div className="mb-4 text-6xl">🃏</div>
+            <div className="mb-4 flex justify-center">
+              <Square3Stack3DIcon className="h-16 w-16 text-gray-300" />
+            </div>
             <h2 className="mb-2 text-xl font-bold text-gray-800">No cards yet!</h2>
             <p className="mb-6 text-gray-500">
               Start building your collection by browsing sets and tapping on cards you own.

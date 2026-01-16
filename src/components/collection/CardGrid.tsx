@@ -13,7 +13,8 @@ import {
   TrophyIcon,
   StarIcon as StarIconSolid,
 } from '@heroicons/react/24/solid';
-import { MapIcon, CompassIcon } from '@heroicons/react/24/outline';
+import { MapIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
+import { CardGridSkeleton, StatsBarSkeleton } from '@/components/ui/Skeleton';
 
 // Custom card icon for loading state
 function CardIcon({ className }: { className?: string }) {
@@ -134,16 +135,12 @@ export function CardGrid({ cards, setId }: CardGridProps) {
   const totalCount = cards.length;
   const progressPercent = totalCount > 0 ? Math.round((ownedCount / totalCount) * 100) : 0;
 
-  // Loading state
+  // Loading state with skeleton screens
   if (profileLoading || collection === undefined) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="mb-4 flex justify-center">
-            <CardIcon className="h-12 w-12 animate-bounce text-kid-primary" />
-          </div>
-          <p className="text-gray-500">Loading your collection...</p>
-        </div>
+      <div>
+        <StatsBarSkeleton />
+        <CardGridSkeleton count={cards.length > 0 ? Math.min(cards.length, 20) : 20} />
       </div>
     );
   }
@@ -205,7 +202,7 @@ export function CardGrid({ cards, setId }: CardGridProps) {
                 ) : progressPercent >= 50 ? (
                   <MapIcon className="h-5 w-5" />
                 ) : (
-                  <CompassIcon className="h-5 w-5" />
+                  <GlobeAltIcon className="h-5 w-5" />
                 )}
               </span>
               <span className="text-sm font-medium text-gray-600">

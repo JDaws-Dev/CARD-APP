@@ -8,6 +8,8 @@ import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { cn } from '@/lib/utils';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import type { Id } from '../../../convex/_generated/dataModel';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { SearchResultsSkeleton } from '@/components/ui/Skeleton';
 
 interface SearchResultsProps {
   cards: PokemonCard[];
@@ -61,20 +63,15 @@ export function SearchResults({ cards, isLoading }: SearchResultsProps) {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="mb-4 animate-bounce text-4xl">🔍</div>
-          <p className="text-gray-500">Searching...</p>
-        </div>
-      </div>
-    );
+    return <SearchResultsSkeleton count={10} />;
   }
 
   if (cards.length === 0) {
     return (
       <div className="rounded-xl bg-white p-12 text-center shadow-sm">
-        <div className="mb-4 text-6xl">🔍</div>
+        <div className="mb-4 flex justify-center">
+          <MagnifyingGlassIcon className="h-16 w-16 text-gray-300" />
+        </div>
         <h2 className="mb-2 text-xl font-bold text-gray-800">No cards found</h2>
         <p className="text-gray-500">Try a different search term or check your spelling.</p>
       </div>
