@@ -23,6 +23,7 @@ import { LevelDisplay } from '@/components/gamification/LevelSystem';
 import { KidModeToggle } from '@/components/layout/KidModeToggle';
 import { DarkModeToggle } from '@/components/layout/DarkModeToggle';
 import { LowStimulationToggle } from '@/components/layout/LowStimulationToggle';
+import { DyslexicFontToggle } from '@/components/layout/DyslexicFontToggle';
 import { OfflineIndicator } from '@/components/layout/OfflineIndicator';
 
 // Custom card stack icon for logo (shared across all headers)
@@ -125,6 +126,7 @@ export function AppHeader() {
           <OfflineIndicator />
           <KidModeToggle />
           <LowStimulationToggle compact />
+          <DyslexicFontToggle compact />
           <DarkModeToggle compact />
           <div className="h-6 w-px bg-gray-200 dark:bg-slate-600" aria-hidden="true" />
 
@@ -312,6 +314,7 @@ export function AppHeader() {
               <OfflineIndicator />
               <KidModeToggle />
               <LowStimulationToggle compact />
+              <DyslexicFontToggle compact />
               <DarkModeToggle compact />
             </div>
           </div>

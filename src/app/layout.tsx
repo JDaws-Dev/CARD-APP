@@ -7,6 +7,7 @@ import { GameThemeProvider } from '@/components/providers/GameThemeProvider';
 import { DarkModeProvider } from '@/components/providers/DarkModeProvider';
 import { OfflineProvider } from '@/components/providers/OfflineProvider';
 import { LowStimulationProvider } from '@/components/providers/LowStimulationProvider';
+import { DyslexicFontProvider } from '@/components/providers/DyslexicFontProvider';
 import { CelebrationProvider } from '@/components/ui/CelebrationAnimation';
 import { LevelUpProvider } from '@/components/gamification/LevelSystem';
 import { MilestoneProvider } from '@/components/gamification/MilestoneCelebration';
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <ConvexClientProvider>
           <DarkModeProvider>
+            <DyslexicFontProvider>
             <LowStimulationProvider>
               <OfflineProvider>
                 <GameSelectorProvider>
@@ -60,6 +62,7 @@ export default function RootLayout({
                 </GameSelectorProvider>
               </OfflineProvider>
             </LowStimulationProvider>
+            </DyslexicFontProvider>
           </DarkModeProvider>
         </ConvexClientProvider>
       </body>

@@ -761,3 +761,77 @@ body {
     transition: none !important;
   }
 }
+
+/* ============================================================================
+ * DYSLEXIC-FRIENDLY FONT (OpenDyslexic)
+ * Accessibility feature for users with dyslexia. OpenDyslexic is designed
+ * with weighted bottoms to increase readability and reduce letter confusion.
+ * ============================================================================ */
+
+/* Import OpenDyslexic font from CDN */
+@import url('https://fonts.cdnfonts.com/css/opendyslexic');
+
+/* Apply OpenDyslexic font when enabled */
+.dyslexic-font {
+  --font-dyslexic: 'OpenDyslexic', 'Comic Sans MS', sans-serif;
+}
+
+/* Apply dyslexic font to all text elements */
+.dyslexic-font,
+.dyslexic-font * {
+  font-family: var(--font-dyslexic) !important;
+}
+
+/* Adjust letter spacing for better readability */
+.dyslexic-font {
+  letter-spacing: 0.05em;
+  word-spacing: 0.1em;
+  line-height: 1.6;
+}
+
+/* Slightly increase body text size for clarity */
+.dyslexic-font body {
+  font-size: 1.05rem;
+}
+
+/* Ensure headings maintain visual hierarchy with adjusted spacing */
+.dyslexic-font h1,
+.dyslexic-font h2,
+.dyslexic-font h3,
+.dyslexic-font h4,
+.dyslexic-font h5,
+.dyslexic-font h6 {
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+
+/* Adjust paragraph spacing for readability */
+.dyslexic-font p {
+  margin-bottom: 1.2em;
+}
+
+/* Adjust button text for touch targets */
+.dyslexic-font button,
+.dyslexic-font a {
+  letter-spacing: 0.03em;
+}
+
+/* Ensure code blocks remain in monospace */
+.dyslexic-font code,
+.dyslexic-font pre,
+.dyslexic-font kbd,
+.dyslexic-font samp {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+/* Keep icons from inheriting font */
+.dyslexic-font svg {
+  font-family: inherit !important;
+}
+
+/* Utility class to exclude specific elements from dyslexic font */
+.dyslexic-font .no-dyslexic-font {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif !important;
+  letter-spacing: normal;
+  word-spacing: normal;
+}
