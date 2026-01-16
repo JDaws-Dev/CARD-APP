@@ -1,0 +1,141 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  UserIcon,
+  ArrowRightOnRectangleIcon,
+  Bars3Icon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
+import { UserPlusIcon } from '@heroicons/react/24/solid';
+import { useState } from 'react';
+
+// Custom card stack icon for logo
+function CardStackIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Back card */}
+      <rect x="12" y="8" width="36" height="48" rx="4" className="fill-indigo-300" />
+      {/* Middle card */}
+      <rect x="16" y="12" width="36" height="48" rx="4" className="fill-purple-400" />
+      {/* Front card */}
+      <rect x="20" y="16" width="36" height="48" rx="4" className="fill-kid-primary" />
+      {/* Card detail lines */}
+      <rect x="26" y="24" width="24" height="4" rx="1" className="fill-white/60" />
+      <rect x="26" y="32" width="18" height="3" rx="1" className="fill-white/40" />
+      <circle cx="38" cy="48" r="8" className="fill-white/30" />
+    </svg>
+  );
+}
+
+const navLinks = [
+  { href: '/sets', label: 'Browse Sets' },
+  { href: '/collection', label: 'My Collection' },
+  { href: '/search', label: 'Search' },
+  { href: '/browse', label: 'Browse' },
+];
+
+export function Header() {
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <CardStackIcon className="h-10 w-10" />
+          <span className="bg-gradient-to-r from-kid-primary to-kid-secondary bg-clip-text text-xl font-bold text-transparent">
+            KidCollect
+          </span>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className="hidden items-center gap-6 md:flex">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`text-sm font-medium transition-colors hover:text-kid-primary ${
+                pathname === link.href ? 'text-kid-primary' : 'text-gray-600'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Auth Buttons - Desktop */}
+        <div className="hidden items-center gap-3 md:flex">
+          <Link
+            href="/login"
+            className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+          >
+            <ArrowRightOnRectangleIcon className="h-4 w-4" />
+            Log In
+          </Link>
+          <Link
+            href="/signup"
+            className="flex items-center gap-1.5 rounded-lg bg-kid-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-kid-primary/90"
+          >
+            <UserPlusIcon className="h-4 w-4" />
+            Sign Up
+          </Link>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          type="button"
+          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+        >
+          {mobileMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+        </button>
+      </nav>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="border-t border-gray-200 bg-white md:hidden">
+          <div className="space-y-1 px-4 py-3">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`block rounded-lg px-3 py-2 text-base font-medium transition-colors ${
+                  pathname === link.href
+                    ? 'bg-kid-primary/10 text-kid-primary'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+          <div className="border-t border-gray-200 px-4 py-3">
+            <div className="flex flex-col gap-2">
+              <Link
+                href="/login"
+                className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                Log In
+              </Link>
+              <Link
+                href="/signup"
+                className="flex items-center justify-center gap-2 rounded-lg bg-kid-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-kid-primary/90"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <UserPlusIcon className="h-4 w-4" />
+                Sign Up Free
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}

@@ -1,12 +1,10 @@
 import Link from 'next/link';
+import { ChartBarIcon, TrophyIcon, GiftIcon } from '@heroicons/react/24/solid';
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-indigo-50 to-purple-50 p-8">
+    <main className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-center bg-gradient-to-b from-indigo-50 to-purple-50 p-8">
       <div className="text-center">
-        {/* Logo placeholder */}
-        <div className="mb-8 text-6xl">🎴</div>
-
         <h1 className="mb-4 bg-gradient-to-r from-kid-primary to-kid-secondary bg-clip-text text-5xl font-bold text-transparent">
           KidCollect
         </h1>
@@ -48,7 +46,9 @@ export default function Home() {
         {/* Feature highlights */}
         <div className="mt-16 grid gap-8 text-left sm:grid-cols-3">
           <div className="rounded-2xl bg-white/50 p-6 shadow-sm">
-            <div className="mb-3 text-3xl">📊</div>
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-kid-primary/10">
+              <ChartBarIcon className="h-6 w-6 text-kid-primary" />
+            </div>
             <h3 className="mb-2 font-semibold text-gray-900">Track Your Cards</h3>
             <p className="text-sm text-gray-600">
               See all your cards in one place. Know exactly what you have!
@@ -56,7 +56,9 @@ export default function Home() {
           </div>
 
           <div className="rounded-2xl bg-white/50 p-6 shadow-sm">
-            <div className="mb-3 text-3xl">🏆</div>
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-kid-secondary/10">
+              <TrophyIcon className="h-6 w-6 text-kid-secondary" />
+            </div>
             <h3 className="mb-2 font-semibold text-gray-900">Earn Badges</h3>
             <p className="text-sm text-gray-600">
               Complete sets, hit milestones, and show off your achievements!
@@ -64,7 +66,9 @@ export default function Home() {
           </div>
 
           <div className="rounded-2xl bg-white/50 p-6 shadow-sm">
-            <div className="mb-3 text-3xl">🎁</div>
+            <div className="bg-kid-accent/10 mb-3 flex h-10 w-10 items-center justify-center rounded-lg">
+              <GiftIcon className="text-kid-accent h-6 w-6" />
+            </div>
             <h3 className="mb-2 font-semibold text-gray-900">Wishlist</h3>
             <p className="text-sm text-gray-600">
               Share your wishlist with family so they know what to get you!
