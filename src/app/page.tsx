@@ -117,7 +117,7 @@ export default function Home() {
           {/* CTA Buttons */}
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="/sets"
+              href="/signup"
               className="touch-target group flex items-center gap-2 rounded-full bg-gradient-to-r from-kid-primary to-purple-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-kid-primary/30 transition-all hover:scale-105 hover:shadow-xl hover:shadow-kid-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-kid-primary"
             >
               <RocketLaunchIcon
@@ -127,10 +127,10 @@ export default function Home() {
               Start Collecting Free
             </Link>
             <Link
-              href="/collection"
+              href="/login"
               className="touch-target rounded-full border-2 border-gray-300 bg-white px-8 py-4 text-lg font-semibold text-gray-700 shadow-sm transition-all hover:border-kid-primary hover:text-kid-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
             >
-              View My Collection
+              Log In
             </Link>
           </div>
 
@@ -494,7 +494,7 @@ export default function Home() {
               </ul>
               <div className="mt-6">
                 <Link
-                  href="/sets"
+                  href="/signup"
                   className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-lg shadow-rose-500/30 transition-all hover:scale-105 hover:shadow-xl"
                 >
                   <GiftIcon className="h-5 w-5" />
@@ -651,7 +651,7 @@ export default function Home() {
               </ul>
 
               <Link
-                href="/sets"
+                href="/signup"
                 className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-kid-primary bg-white px-6 py-3 font-semibold text-kid-primary transition-all hover:bg-kid-primary hover:text-white"
               >
                 <RocketLaunchIcon className="h-5 w-5" />
@@ -730,7 +730,7 @@ export default function Home() {
               </ul>
 
               <Link
-                href="/sets"
+                href="/signup"
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-kid-secondary to-pink-500 px-6 py-3 font-semibold text-white shadow-lg shadow-kid-secondary/30 transition-all hover:scale-105 hover:shadow-xl"
               >
                 <UserGroupIcon className="h-5 w-5" />
@@ -894,7 +894,7 @@ export default function Home() {
             free, fun, and family-friendly!
           </p>
           <Link
-            href="/sets"
+            href="/signup"
             className="touch-target inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-kid-primary to-kid-secondary px-10 py-4 text-lg font-bold text-white shadow-lg shadow-kid-primary/30 transition-all hover:scale-105 hover:shadow-xl"
           >
             <SparklesIcon className="h-5 w-5" />
