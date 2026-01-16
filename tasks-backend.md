@@ -62,7 +62,7 @@
 - [x] Write unit tests for achievement awarding logic
 - [x] Write integration tests for collection CRUD operations
 - [ ] Implement offline collection caching strategy (service worker setup)
-- [ ] Performance optimization (index Convex queries, optimize batch fetches)
+- [x] Performance optimization (index Convex queries, optimize batch fetches)
 
 ### Data Persistence & Sync
 
@@ -1463,7 +1463,6 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Integration scenarios: Kids trading Pikachu cards, Fair trade between siblings, Trade with unpriced cards, Large quantity trade, Parent checking trade fairness
 - All 3038 tests pass, linter clean
 
-
 ### 2026-01-16: Rarity filter support - Add rarity indexing for efficient filtering
 
 - Added rarity indexes to `cachedCards` table in `convex/schema.ts`:
@@ -1546,3 +1545,45 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Batch processing (detection, filtering, grouping, counting, statistics)
   - Integration scenarios: CoroCoro collection, Tournament prize cards, Store exclusives, Mixed collection analysis, Confidence levels, Edge cases
 - All 3430 tests pass, linter clean
+
+
+### 2026-01-16: Performance optimization (index Convex queries, optimize batch fetches)
+
+- Added compound indexes to `convex/schema.ts` for efficient filtering:
+  - `activityLogs.by_profile_and_action`: Filter activity by action type (card_added, card_removed, achievement_earned)
+  - `wishlistCards.by_profile_and_priority`: Efficient priority item lookups
+  - `achievements.by_profile_and_type`: Category-based achievement queries
+- Added optimized batch queries to `convex/collections.ts`:
+  - `batchGetCardData`: Chunked parallel fetching (50/chunk) with deduplication for card enrichment
+  - `batchGetSetData`: Efficient set data lookup for multiple sets
+  - `getCollectionWithDetails`: Paginated collection with enrichment (fetch only what's displayed)
+  - `getCollectionDashboardStats`: Aggregated stats calculated in single pass (no enrichment needed)
+  - `getCollectionBySetOptimized`: Filter-first enrichment pattern (filter collection → enrich subset)
+- Added optimized activity log queries using compound index to `convex/activityLogs.ts`:
+  - `getCardAddedActivity`: Direct filtering for card_added events
+  - `getAchievementEarnedActivity`: Direct filtering for achievements
+  - `getActivityCountsByType`: Parallel fetching by action type using Promise.all
+  - `getDailyCardAdditionDates`: Efficient streak calculation using compound index
+- Created `src/lib/performance.ts` with 30+ utility functions:
+  - Deduplication: `getUniqueValues`, `getUniqueKeys`, `getUniqueFromNested`
+  - Chunking: `chunkArray`, `processInChunks`, `processInParallelChunks`
+  - Batch lookups: `createLookupMap`, `createGroupedLookupMap`, `buildBatchLookupResult`
+  - Card enrichment: `extractCardIdsForLookup`, `extractSetIdsFromCardIds`, `buildCardEnrichmentMap`, `enrichCardWithCachedData`
+  - Collection aggregation: `groupCollectionByCardId`, `groupCollectionBySetId`, `calculateCollectionStats`
+  - Filter optimization: `preFilterByCardId`, `filterBySetPrefix`, `createSetMembershipFilter`
+  - Pagination: `paginateResults`, `applyCursorPagination`
+  - Cache helpers: `calculateCacheTTL`, `isCacheStale`
+  - Query optimization: `getOptimalBatchSize`, `estimateQueryComplexity`
+- Added 73 tests in `src/lib/__tests__/performance.test.ts` covering:
+  - Constants validation (MAX_BATCH_SIZE, DEFAULT_CHUNK_SIZE)
+  - Deduplication utilities (unique values, keys, nested extraction)
+  - Chunking utilities (array splitting, async processing)
+  - Batch lookup utilities (map creation, grouped maps, result building)
+  - Card/set enrichment utilities (cardId extraction, setId parsing, enrichment maps)
+  - Collection aggregation utilities (grouping by cardId, setId, stats calculation)
+  - Filter optimization utilities (pre-filtering, set membership)
+  - Pagination utilities (page-based, cursor-based)
+  - Cache invalidation helpers (TTL calculation, staleness checking)
+  - Query optimization helpers (batch size calculation, complexity estimation)
+  - Integration scenarios: full collection processing pipeline, filtering and pagination pipeline
+- All 3551 tests pass, linter clean
