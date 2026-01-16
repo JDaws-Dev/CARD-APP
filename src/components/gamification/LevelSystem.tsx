@@ -207,14 +207,14 @@ function LevelUpCelebration({
       <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
         <div
           className={cn(
-            'absolute h-48 w-48 animate-ping rounded-full opacity-20 bg-gradient-to-r',
+            'absolute h-48 w-48 animate-ping rounded-full bg-gradient-to-r opacity-20',
             tier.gradient
           )}
           style={{ animationDuration: '1.5s' }}
         />
         <div
           className={cn(
-            'absolute h-64 w-64 animate-ping rounded-full opacity-10 bg-gradient-to-r',
+            'absolute h-64 w-64 animate-ping rounded-full bg-gradient-to-r opacity-10',
             tier.gradient
           )}
           style={{ animationDuration: '2s', animationDelay: '0.2s' }}
@@ -248,14 +248,14 @@ function LevelUpCelebration({
         <div className="relative mx-auto mb-4 flex h-24 w-24 items-center justify-center">
           <div
             className={cn(
-              'absolute inset-0 animate-pulse rounded-full blur-lg bg-gradient-to-r',
+              'absolute inset-0 animate-pulse rounded-full bg-gradient-to-r blur-lg',
               tier.gradient
             )}
             aria-hidden="true"
           />
           <div
             className={cn(
-              'relative flex h-20 w-20 items-center justify-center rounded-full shadow-lg bg-gradient-to-r',
+              'relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r shadow-lg',
               tier.gradient
             )}
           >
@@ -265,7 +265,7 @@ function LevelUpCelebration({
 
         {/* Level up text */}
         <div className="mb-2 text-center">
-          <div className="inline-flex items-center gap-1.5 animate-bounce">
+          <div className="inline-flex animate-bounce items-center gap-1.5">
             <ChevronUpIcon className="h-5 w-5 text-kid-primary" aria-hidden="true" />
             <span className="bg-gradient-to-r from-kid-primary to-kid-secondary bg-clip-text text-sm font-bold uppercase tracking-wider text-transparent">
               Level Up!
@@ -329,7 +329,9 @@ export function LevelDisplay({ variant = 'compact', className }: LevelDisplayPro
   );
 
   // Calculate XP from unique cards (each unique card = 2 XP as base)
-  const totalXP = milestoneProgress ? milestoneProgress.totalUniqueCards * XP_VALUES.unique_card : 0;
+  const totalXP = milestoneProgress
+    ? milestoneProgress.totalUniqueCards * XP_VALUES.unique_card
+    : 0;
   const levelInfo = getLevelFromXP(totalXP);
   const tier = getLevelTier(levelInfo.level);
 
@@ -418,7 +420,7 @@ export function LevelDisplay({ variant = 'compact', className }: LevelDisplayPro
   return (
     <div
       className={cn(
-        'group relative flex items-center gap-2 rounded-full px-3 py-1.5 shadow-md transition-all hover:shadow-lg bg-gradient-to-r',
+        'group relative flex items-center gap-2 rounded-full bg-gradient-to-r px-3 py-1.5 shadow-md transition-all hover:shadow-lg',
         tier.gradient,
         tier.glow,
         className
@@ -500,7 +502,9 @@ export function LevelUpProvider({ children }: { children: ReactNode }) {
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
 
-  const totalXP = milestoneProgress ? milestoneProgress.totalUniqueCards * XP_VALUES.unique_card : 0;
+  const totalXP = milestoneProgress
+    ? milestoneProgress.totalUniqueCards * XP_VALUES.unique_card
+    : 0;
   const levelInfo = getLevelFromXP(totalXP);
 
   // Check for level up

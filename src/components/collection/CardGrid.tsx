@@ -445,6 +445,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
 
       // If only one variant and card is not owned, add it directly
       if (availableVariants.length === 1 && !ownedCards.has(card.id)) {
+        const isNewCard = !ownedCards.has(card.id);
         addCard({
           profileId: profileId as Id<'profiles'>,
           cardId: card.id,
@@ -452,6 +453,10 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
           setName,
           variant: availableVariants[0],
         });
+        // Show XP gain notification for new unique cards
+        if (isNewCard) {
+          showXPGain(2, 'New card!');
+        }
         return;
       }
 
@@ -462,13 +467,14 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
       });
       setSelectedCard(card);
     },
-    [profileId, ownedCards, addCard, setName]
+    [profileId, ownedCards, addCard, setName, showXPGain]
   );
 
   // Add variant handler
   const handleAddVariant = useCallback(
     async (cardId: string, cardName: string, variant: CardVariant) => {
       if (!profileId) return;
+      const isNewCard = !ownedCards.has(cardId);
       await addCard({
         profileId: profileId as Id<'profiles'>,
         cardId,
@@ -476,8 +482,12 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
         setName,
         variant,
       });
+      // Show XP gain notification for new unique cards
+      if (isNewCard) {
+        showXPGain(2, 'New card!');
+      }
     },
-    [profileId, addCard, setName]
+    [profileId, addCard, setName, ownedCards, showXPGain]
   );
 
   // Remove variant handler
