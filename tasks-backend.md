@@ -101,7 +101,7 @@
 ### Data Persistence & Sync
 
 - [x] Cloud backup/sync system - Automatic backup to prevent collection loss (major competitor complaint)
-- [ ] Data persistence guarantee - Never lose collection data when switching phones/devices
+- [x] Data persistence guarantee - Never lose collection data when switching phones/devices
 - [x] Conflict resolution - Handle sync conflicts when same account used on multiple devices
 
 ### Multi-TCG Architecture
@@ -166,6 +166,32 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-16: Add data persistence guarantee system
+
+- Created `convex/dataPersistence.ts` with comprehensive data integrity system:
+  - Queries for data verification:
+    - `getCollectionChecksum`: Compute checksums for collection, wishlist, and achievements
+    - `verifyDataIntegrity`: Compare expected vs actual checksums with discrepancy reports
+    - `getDataPersistenceStatus`: Get data health status, sync info, and stats
+    - `getRecoverySnapshot`: Complete backup snapshot for recovery purposes
+    - `getRecentDataChanges`: Track modifications since a given timestamp
+    - `getBackupPoints`: History of verified backup points
+  - Mutations for device tracking and recovery:
+    - `registerDevice`: Register devices accessing a profile (device type, name, app version)
+    - `recordDeviceHeartbeat`: Periodic sync monitoring with checksum comparison
+    - `restoreFromSnapshot`: Restore collection and wishlist from a recovery snapshot
+    - `createBackupPoint`: Create verified backup points with checksums and stats
+  - Hash function for cross-device checksum verification
+- Created `src/lib/dataPersistence.ts` with client-side utilities:
+  - Checksum functions: `hashCode`, `computeCollectionChecksum`, `computeWishlistChecksum`, `computeAchievementChecksum`, `computeFullChecksum`
+  - Device identification: `generateDeviceId`, `getOrCreateDeviceId`, `detectDeviceType`, `getDeviceName`
+  - Local storage caching: `saveLocalChecksum`, `getLocalChecksum`, `saveLocalSnapshot`, `getLocalSnapshot`, `clearLocalPersistenceData`
+  - Validation: `isValidCardId`, `isValidVariant`, `isValidQuantity`, `validatePersistenceCard`, `validateDataSnapshot`
+  - Comparison: `compareChecksums`, `diffCollections` (find differences between local and server)
+  - Display helpers: `getDataHealthMessage`, `getDataHealthColor`, `formatSyncTime`, `getSyncStatusMessage`, `formatDataStats`
+- Added 80 comprehensive tests in `src/lib/__tests__/dataPersistence.test.ts`
+- All tests pass, dev server starts successfully with Convex functions ready
 
 ### 2026-01-16: Add data population system for multi-TCG support
 
