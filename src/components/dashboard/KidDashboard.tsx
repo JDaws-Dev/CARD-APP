@@ -16,6 +16,7 @@ import {
   MagnifyingGlassIcon,
   PlusIcon,
   BookOpenIcon,
+  CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
 import { FireIcon, StarIcon, BoltIcon } from '@heroicons/react/24/solid';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -23,6 +24,7 @@ import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/Activi
 import { StreakCounter } from '@/components/gamification/StreakCounter';
 import { LevelDisplay } from '@/components/gamification/LevelSystem';
 import { MilestoneProgress } from '@/components/gamification/MilestoneCelebration';
+import { StreakCalendar, StreakCalendarSkeleton } from '@/components/gamification/StreakCalendar';
 import { cn } from '@/lib/utils';
 
 // ============================================================================
@@ -91,6 +93,8 @@ function StatCard({ icon: Icon, value, label, gradient, iconColor, animate }: St
         'relative overflow-hidden rounded-2xl p-4 shadow-sm transition-all hover:shadow-md',
         gradient
       )}
+      role="group"
+      aria-label={`${label}: ${value}`}
     >
       {/* Background pattern */}
       <div
@@ -107,12 +111,17 @@ function StatCard({ icon: Icon, value, label, gradient, iconColor, animate }: St
             'flex h-10 w-10 items-center justify-center rounded-xl bg-white/60 shadow-sm',
             animate && 'animate-pulse'
           )}
+          aria-hidden="true"
         >
           <Icon className={cn('h-5 w-5', iconColor)} />
         </div>
         <div>
-          <div className="text-2xl font-bold text-gray-800">{value}</div>
-          <div className="text-xs font-medium text-gray-500">{label}</div>
+          <div className="text-2xl font-bold text-gray-800" aria-hidden="true">
+            {value}
+          </div>
+          <div className="text-xs font-medium text-gray-500" aria-hidden="true">
+            {label}
+          </div>
         </div>
       </div>
     </div>
@@ -190,7 +199,7 @@ function BadgeProgressPreview({ className }: BadgeProgressPreviewProps) {
           <div className="mb-3 flex gap-2">
             {earnedBadges.map((badge, index) => (
               <div
-                key={badge.key}
+                key={badge.achievementKey}
                 className={cn(
                   'flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br shadow-md',
                   index === 0
@@ -201,7 +210,7 @@ function BadgeProgressPreview({ className }: BadgeProgressPreviewProps) {
                         ? 'from-emerald-400 to-teal-500'
                         : 'from-rose-400 to-pink-500'
                 )}
-                title={badge.name}
+                title={badge.achievementKey}
               >
                 <StarIcon className="h-6 w-6 text-white" />
               </div>
@@ -222,6 +231,39 @@ function BadgeProgressPreview({ className }: BadgeProgressPreviewProps) {
           </p>
         </>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// STREAK CALENDAR PREVIEW
+// ============================================================================
+
+interface StreakCalendarPreviewProps {
+  className?: string;
+}
+
+function StreakCalendarPreview({ className }: StreakCalendarPreviewProps) {
+  return (
+    <div className={cn('rounded-2xl bg-white shadow-sm', className)}>
+      {/* Header with link to full calendar */}
+      <div className="flex items-center justify-between border-b border-gray-100 p-4">
+        <div className="flex items-center gap-2">
+          <CalendarDaysIcon className="h-5 w-5 text-orange-500" />
+          <h3 className="font-semibold text-gray-800">Activity Calendar</h3>
+        </div>
+        <Link
+          href="/streak"
+          className="flex items-center gap-1 text-sm text-orange-500 hover:text-orange-600"
+        >
+          View full calendar
+          <ArrowRightIcon className="h-3 w-3" />
+        </Link>
+      </div>
+      {/* Compact calendar view */}
+      <div className="p-4">
+        <StreakCalendar days={14} showStats={false} showLegend={false} />
+      </div>
     </div>
   );
 }
@@ -392,7 +434,11 @@ export function KidDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+      <div
+        className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4"
+        role="region"
+        aria-label={`Collection stats: ${stats.totalCards} total cards, ${stats.uniqueCards} unique cards, ${stats.setsStarted} sets started, ${currentStreak} day streak`}
+      >
         <StatCard
           icon={Square3Stack3DIcon}
           value={stats.totalCards}
@@ -478,6 +524,9 @@ export function KidDashboard() {
 
           {/* Badge Progress */}
           <BadgeProgressPreview />
+
+          {/* Streak Calendar Preview */}
+          <StreakCalendarPreview />
         </div>
 
         {/* Right: Activity Feed */}

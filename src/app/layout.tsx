@@ -16,6 +16,7 @@ import { LevelUpProvider } from '@/components/gamification/LevelSystem';
 import { MilestoneProvider } from '@/components/gamification/MilestoneCelebration';
 import { SetCompletionProvider } from '@/components/gamification/SetCompletionCelebration';
 import { AuthAwareHeader } from '@/components/layout/AuthAwareHeader';
+import { LiveRegionProvider } from '@/components/accessibility/LiveRegion';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -50,15 +51,17 @@ export default function RootLayout({
                                 <LevelUpProvider>
                                   <MilestoneProvider>
                                     <SetCompletionProvider>
-                                      {/* Skip link for keyboard navigation - visually hidden until focused */}
-                                      <a
-                                        href="#main-content"
-                                        className="absolute left-0 z-[100] -translate-y-full rounded bg-blue-600 px-4 py-2 text-white transition-transform focus:translate-y-0"
-                                      >
-                                        Skip to main content
-                                      </a>
-                                      <AuthAwareHeader />
-                                      <main id="main-content">{children}</main>
+                                      <LiveRegionProvider>
+                                        {/* Skip link for keyboard navigation - visually hidden until focused */}
+                                        <a
+                                          href="#main-content"
+                                          className="absolute left-0 z-[100] -translate-y-full rounded bg-blue-600 px-4 py-2 text-white transition-transform focus:translate-y-0"
+                                        >
+                                          Skip to main content
+                                        </a>
+                                        <AuthAwareHeader />
+                                        <main id="main-content">{children}</main>
+                                      </LiveRegionProvider>
                                     </SetCompletionProvider>
                                   </MilestoneProvider>
                                 </LevelUpProvider>

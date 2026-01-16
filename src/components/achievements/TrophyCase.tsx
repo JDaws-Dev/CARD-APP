@@ -433,6 +433,12 @@ function BadgeCard({
 
   const Icon = badge.icon;
   const badgeThreshold = threshold ?? badge.threshold;
+  const earnedDateFormatted = earnedAt ? formatRelativeDate(earnedAt) : null;
+
+  // Generate accessible label for the badge
+  const ariaLabel = earned
+    ? `${badge.name} badge, ${badge.tier ? `${badge.tier} tier, ` : ''}earned${earnedDateFormatted ? ` ${earnedDateFormatted}` : ''}. ${badge.description}`
+    : `${badge.name} badge, locked. ${badge.description}${progress > 0 ? `. Progress: ${Math.round(progress)}%, ${current} of ${badgeThreshold}` : ''}`;
 
   return (
     <div
@@ -442,9 +448,11 @@ function BadgeCard({
           ? 'bg-white shadow-md hover:-translate-y-1 hover:shadow-lg'
           : 'bg-gray-100/50 opacity-70 hover:opacity-90'
       )}
+      aria-label={ariaLabel}
+      role="article"
     >
       {/* Badge icon container */}
-      <div className="relative mb-3">
+      <div className="relative mb-3" aria-hidden="true">
         {/* Glow effect for earned badges */}
         {earned && (
           <div
@@ -499,20 +507,25 @@ function BadgeCard({
           'mb-1 text-center text-sm font-semibold',
           earned ? 'text-gray-800' : 'text-gray-500'
         )}
+        aria-hidden="true"
       >
         {badge.name}
       </h4>
 
       {/* Description or earned date */}
       {earned && earnedAt ? (
-        <p className="text-center text-xs text-gray-500">{formatRelativeDate(earnedAt)}</p>
+        <p className="text-center text-xs text-gray-500" aria-hidden="true">
+          {earnedDateFormatted}
+        </p>
       ) : (
-        <p className="text-center text-xs text-gray-500">{badge.description}</p>
+        <p className="text-center text-xs text-gray-500" aria-hidden="true">
+          {badge.description}
+        </p>
       )}
 
       {/* Progress bar for unearned badges */}
       {!earned && progress > 0 && (
-        <div className="mt-2 w-full">
+        <div className="mt-2 w-full" aria-hidden="true">
           <div
             className="h-1.5 overflow-hidden rounded-full bg-gray-200"
             role="progressbar"
@@ -599,8 +612,13 @@ function CategorySection({
     return { progress: 0, current: 0 };
   };
 
+  const progressPercent = Math.round((earnedCount / badgeKeys.length) * 100);
+
   return (
-    <div className={cn('rounded-3xl bg-gradient-to-br p-6', category.bgGradient)}>
+    <section
+      className={cn('rounded-3xl bg-gradient-to-br p-6', category.bgGradient)}
+      aria-labelledby={`category-${category.id}-heading`}
+    >
       {/* Category header */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -609,16 +627,23 @@ function CategorySection({
               'flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br',
               category.gradient
             )}
+            aria-hidden="true"
           >
             <Icon className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-800">{category.name}</h3>
+            <h3 id={`category-${category.id}-heading`} className="text-lg font-bold text-gray-800">
+              {category.name}
+            </h3>
             <p className="text-sm text-gray-500">{category.description}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 shadow-sm">
-          <TrophyIcon className="h-4 w-4 text-amber-500" />
+        <div
+          className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 shadow-sm"
+          role="status"
+          aria-label={`${earnedCount} of ${badgeKeys.length} badges earned in ${category.name}`}
+        >
+          <TrophyIcon className="h-4 w-4 text-amber-500" aria-hidden="true" />
           <span className="text-sm font-semibold text-gray-700">
             {earnedCount}/{badgeKeys.length}
           </span>
@@ -627,38 +652,50 @@ function CategorySection({
 
       {/* Category progress bar */}
       <div className="mb-6">
-        <div className="h-2 overflow-hidden rounded-full bg-white/50">
+        <div
+          className="h-2 overflow-hidden rounded-full bg-white/50"
+          role="progressbar"
+          aria-valuenow={progressPercent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`${category.name} progress: ${progressPercent}% complete`}
+        >
           <div
             className={cn(
               'h-full rounded-full bg-gradient-to-r transition-all duration-500',
               category.gradient
             )}
-            style={{ width: `${(earnedCount / badgeKeys.length) * 100}%` }}
+            style={{ width: `${progressPercent}%` }}
           />
         </div>
       </div>
 
       {/* Badges grid */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div
+        className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+        role="list"
+        aria-label={`${category.name} badges`}
+      >
         {badgeKeys.map((key) => {
           const earned = earnedBadges.has(key);
           const achievement = achievements.find((a) => a.achievementKey === key);
           const progressData = getProgressForBadge(key);
 
           return (
-            <BadgeCard
-              key={key}
-              badgeKey={key}
-              earned={earned}
-              earnedAt={achievement?.earnedAt}
-              progress={progressData.progress}
-              current={progressData.current}
-              threshold={progressData.threshold}
-            />
+            <div key={key} role="listitem">
+              <BadgeCard
+                badgeKey={key}
+                earned={earned}
+                earnedAt={achievement?.earnedAt}
+                progress={progressData.progress}
+                current={progressData.current}
+                threshold={progressData.threshold}
+              />
+            </div>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -1074,48 +1111,77 @@ export function TrophyCase({ profileId }: TrophyCaseProps) {
   const recentAchievement = [...achievements].sort((a, b) => b.earnedAt - a.earnedAt)[0];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" role="region" aria-label="Trophy case">
       {/* Stats header */}
-      <div className="rounded-2xl bg-gradient-to-r from-kid-primary/10 via-purple-50 to-kid-secondary/10 p-6">
+      <div
+        className="rounded-2xl bg-gradient-to-r from-kid-primary/10 via-purple-50 to-kid-secondary/10 p-6"
+        role="status"
+        aria-label={`Badge progress: ${totalEarned} of ${totalBadges} badges earned, ${completionPercent}% complete`}
+      >
         <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
           {/* Total badges */}
           <div className="text-center">
-            <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg">
+            <div
+              className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg"
+              aria-hidden="true"
+            >
               <TrophyIcon className="h-7 w-7 text-white" />
             </div>
-            <div className="text-3xl font-bold text-gray-800">{totalEarned}</div>
-            <div className="text-sm text-gray-500">Badges Earned</div>
+            <div className="text-3xl font-bold text-gray-800" aria-hidden="true">
+              {totalEarned}
+            </div>
+            <div className="text-sm text-gray-500" aria-hidden="true">
+              Badges Earned
+            </div>
           </div>
 
           {/* Divider */}
-          <div className="hidden h-16 w-px bg-gray-200 sm:block" />
+          <div className="hidden h-16 w-px bg-gray-200 sm:block" aria-hidden="true" />
 
           {/* Completion percentage */}
           <div className="text-center">
-            <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg">
+            <div
+              className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg"
+              aria-hidden="true"
+            >
               <CheckBadgeIcon className="h-7 w-7 text-white" />
             </div>
-            <div className="text-3xl font-bold text-gray-800">{completionPercent}%</div>
-            <div className="text-sm text-gray-500">Complete</div>
+            <div className="text-3xl font-bold text-gray-800" aria-hidden="true">
+              {completionPercent}%
+            </div>
+            <div className="text-sm text-gray-500" aria-hidden="true">
+              Complete
+            </div>
           </div>
 
           {/* Divider */}
-          <div className="hidden h-16 w-px bg-gray-200 sm:block" />
+          <div className="hidden h-16 w-px bg-gray-200 sm:block" aria-hidden="true" />
 
           {/* Remaining badges */}
           <div className="text-center">
-            <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 shadow-lg">
+            <div
+              className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 shadow-lg"
+              aria-hidden="true"
+            >
               <StarIcon className="h-7 w-7 text-white" />
             </div>
-            <div className="text-3xl font-bold text-gray-800">{totalBadges - totalEarned}</div>
-            <div className="text-sm text-gray-500">To Unlock</div>
+            <div className="text-3xl font-bold text-gray-800" aria-hidden="true">
+              {totalBadges - totalEarned}
+            </div>
+            <div className="text-sm text-gray-500" aria-hidden="true">
+              To Unlock
+            </div>
           </div>
         </div>
 
         {/* Recent achievement banner */}
         {recentAchievement && BADGE_DEFINITIONS[recentAchievement.achievementKey] && (
-          <div className="mt-6 flex items-center justify-center gap-3 rounded-xl bg-white/50 px-4 py-3">
-            <SparklesIcon className="h-5 w-5 text-amber-500" />
+          <div
+            className="mt-6 flex items-center justify-center gap-3 rounded-xl bg-white/50 px-4 py-3"
+            role="status"
+            aria-label={`Most recent badge: ${BADGE_DEFINITIONS[recentAchievement.achievementKey]?.name}, earned ${formatRelativeDate(recentAchievement.earnedAt)}`}
+          >
+            <SparklesIcon className="h-5 w-5 text-amber-500" aria-hidden="true" />
             <span className="text-sm text-gray-600">
               Most recent:{' '}
               <span className="font-semibold text-gray-800">

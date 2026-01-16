@@ -604,27 +604,47 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
   return (
     <div>
       {/* Stats Bar */}
-      <div className="mb-4 rounded-xl bg-white p-3 shadow-sm sm:mb-6 sm:p-4">
+      <div
+        className="mb-4 rounded-xl bg-white p-3 shadow-sm sm:mb-6 sm:p-4"
+        role="region"
+        aria-label={`Set collection progress: ${ownedCount} of ${totalCount} cards owned, ${progressPercent}% complete`}
+      >
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
           {/* Stats - Responsive grid on mobile, flex on larger screens */}
-          <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-4">
-            <div className="text-center">
-              <div className="text-xl font-bold text-kid-primary sm:text-2xl">{ownedCount}</div>
-              <div className="text-xs text-gray-500">Owned</div>
+          <div
+            className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-4"
+            role="group"
+            aria-label="Collection statistics"
+          >
+            <div className="text-center" role="group" aria-label={`Owned: ${ownedCount} cards`}>
+              <div className="text-xl font-bold text-kid-primary sm:text-2xl" aria-hidden="true">
+                {ownedCount}
+              </div>
+              <div className="text-xs text-gray-500" aria-hidden="true">
+                Owned
+              </div>
             </div>
-            <div className="hidden h-8 w-px bg-gray-200 sm:block" />
-            <div className="text-center">
-              <div className="text-xl font-bold text-gray-400 sm:text-2xl">
+            <div className="hidden h-8 w-px bg-gray-200 sm:block" aria-hidden="true" />
+            <div
+              className="text-center"
+              role="group"
+              aria-label={`Needed: ${totalCount - ownedCount} cards`}
+            >
+              <div className="text-xl font-bold text-gray-400 sm:text-2xl" aria-hidden="true">
                 {totalCount - ownedCount}
               </div>
-              <div className="text-xs text-gray-500">Needed</div>
+              <div className="text-xs text-gray-500" aria-hidden="true">
+                Needed
+              </div>
             </div>
-            <div className="hidden h-8 w-px bg-gray-200 sm:block" />
-            <div className="text-center">
-              <div className="text-xl font-bold text-kid-secondary sm:text-2xl">
+            <div className="hidden h-8 w-px bg-gray-200 sm:block" aria-hidden="true" />
+            <div className="text-center" role="group" aria-label={`${progressPercent}% complete`}>
+              <div className="text-xl font-bold text-kid-secondary sm:text-2xl" aria-hidden="true">
                 {progressPercent}%
               </div>
-              <div className="text-xs text-gray-500">Complete</div>
+              <div className="text-xs text-gray-500" aria-hidden="true">
+                Complete
+              </div>
             </div>
           </div>
 
@@ -632,8 +652,12 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
           <div className="flex w-full flex-wrap items-center justify-center gap-3 border-t border-gray-100 pt-3 sm:w-auto sm:justify-end sm:gap-4 sm:border-0 sm:pt-0">
             {/* Priority Stars Indicator */}
             {priorityCount && priorityCount.count > 0 && (
-              <div className="flex items-center gap-1.5" title="Priority wishlist items">
-                <div className="flex items-center">
+              <div
+                className="flex items-center gap-1.5"
+                role="status"
+                aria-label={`${priorityCount.count} of ${priorityCount.max} priority slots used`}
+              >
+                <div className="flex items-center" aria-hidden="true">
                   {Array.from({ length: priorityCount.max }).map((_, i) => (
                     <span
                       key={i}
@@ -650,14 +674,23 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                     </span>
                   ))}
                 </div>
-                <span className="text-xs text-gray-500">Priority</span>
+                <span className="text-xs text-gray-500" aria-hidden="true">
+                  Priority
+                </span>
               </div>
             )}
 
             {/* Progress indicator */}
             {progressPercent >= 25 && (
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-sm">
+              <div
+                className="flex items-center gap-2"
+                role="status"
+                aria-label={`Collection rank: ${progressPercent >= 100 ? 'Set Champion' : progressPercent >= 75 ? 'Set Master' : progressPercent >= 50 ? 'Set Adventurer' : 'Set Explorer'}`}
+              >
+                <span
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-sm"
+                  aria-hidden="true"
+                >
                   {progressPercent >= 100 ? (
                     <CrownIcon className="h-5 w-5" />
                   ) : progressPercent >= 75 ? (
@@ -668,7 +701,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                     <GlobeAltIcon className="h-5 w-5" />
                   )}
                 </span>
-                <span className="text-sm font-medium text-gray-600">
+                <span className="text-sm font-medium text-gray-600" aria-hidden="true">
                   {progressPercent >= 100
                     ? 'Set Champion!'
                     : progressPercent >= 75

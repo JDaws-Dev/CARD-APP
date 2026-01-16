@@ -13,6 +13,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useCelebration } from '@/components/ui/CelebrationAnimation';
+import { useLiveRegion } from '@/components/accessibility/LiveRegion';
+import { generateActivityAriaLabel } from '@/lib/screenReaderUtils';
 import { cn } from '@/lib/utils';
 
 interface ActivityLog {
@@ -167,19 +169,34 @@ function ActivityItem({ log }: { log: ActivityLog }) {
   const Icon = actionDisplay.icon;
   const description = formatActivityDescription(log);
   const isAchievement = log.action === 'achievement_earned';
+  const relativeTime = formatRelativeTime(log._creationTime);
+
+  // Generate accessible label for screen readers
+  const ariaLabel = generateActivityAriaLabel({
+    actionType: log.action,
+    cardName: log.metadata?.cardName,
+    setName: log.metadata?.setName,
+    achievementName: log.metadata?.achievementKey,
+    quantity: log.metadata?.quantity,
+    timestamp: relativeTime,
+  });
 
   return (
-    <div
+    <article
       className={cn(
         'flex items-start gap-3 rounded-lg p-3 transition-colors',
         isAchievement
           ? 'relative overflow-hidden bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100'
           : 'bg-gray-50 hover:bg-gray-100'
       )}
+      aria-label={ariaLabel}
     >
       {/* Achievement shimmer effect */}
       {isAchievement && (
-        <div className="absolute inset-0 -translate-x-full animate-[shimmer_3s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+        <div
+          className="absolute inset-0 -translate-x-full animate-[shimmer_3s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent"
+          aria-hidden="true"
+        />
       )}
 
       <div
@@ -188,8 +205,9 @@ function ActivityItem({ log }: { log: ActivityLog }) {
           actionDisplay.bgColor,
           isAchievement && 'animate-glow-pulse'
         )}
+        aria-hidden="true"
       >
-        <Icon className={cn('h-4 w-4', actionDisplay.iconColor)} />
+        <Icon className={cn('h-4 w-4', actionDisplay.iconColor)} aria-hidden="true" />
       </div>
       <div className="relative min-w-0 flex-1">
         <p
@@ -203,12 +221,12 @@ function ActivityItem({ log }: { log: ActivityLog }) {
         <div className="flex items-center gap-2 text-xs text-gray-500">
           {description.sub && <span className="truncate text-kid-primary">{description.sub}</span>}
           <span className="flex items-center gap-1">
-            <ClockIcon className="h-3 w-3" />
-            {formatRelativeTime(log._creationTime)}
+            <ClockIcon className="h-3 w-3" aria-hidden="true" />
+            <time dateTime={new Date(log._creationTime).toISOString()}>{relativeTime}</time>
           </span>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -240,7 +258,9 @@ function getBadgeType(achievementType?: string): 'gold' | 'silver' | 'bronze' | 
 export function ActivityFeed({ limit = 10, showHeader = true, className }: ActivityFeedProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { celebrate } = useCelebration();
+  const { announce } = useLiveRegion();
   const seenAchievementsRef = useRef<Set<string>>(new Set());
+  const seenActivityRef = useRef<Set<string>>(new Set());
   const isInitialLoadRef = useRef(true);
 
   const activity = useQuery(
@@ -252,15 +272,41 @@ export function ActivityFeed({ limit = 10, showHeader = true, className }: Activ
   useEffect(() => {
     if (!activity || activity.length === 0) return;
 
-    // On initial load, just record all existing achievements without celebrating
+    // On initial load, just record all existing activities without announcing
     if (isInitialLoadRef.current) {
       (activity as ActivityLog[]).forEach((log) => {
+        seenActivityRef.current.add(log._id);
         if (log.action === 'achievement_earned') {
           seenAchievementsRef.current.add(log._id);
         }
       });
       isInitialLoadRef.current = false;
       return;
+    }
+
+    // Check for new activities and announce them
+    const newActivities = (activity as ActivityLog[]).filter(
+      (log) => !seenActivityRef.current.has(log._id)
+    );
+
+    if (newActivities.length > 0) {
+      // Announce the most recent new activity
+      const latestActivity = newActivities[0];
+      const description = formatActivityDescription(latestActivity);
+      const announcementText =
+        latestActivity.action === 'achievement_earned'
+          ? `Achievement earned: ${latestActivity.metadata?.achievementKey ?? 'new badge'}`
+          : description.main;
+
+      announce(
+        announcementText,
+        latestActivity.action === 'achievement_earned' ? 'assertive' : 'polite'
+      );
+
+      // Mark all new activities as seen
+      newActivities.forEach((log) => {
+        seenActivityRef.current.add(log._id);
+      });
     }
 
     // Check for new achievement events
@@ -287,7 +333,7 @@ export function ActivityFeed({ limit = 10, showHeader = true, className }: Activ
         seenAchievementsRef.current.add(log._id);
       });
     }
-  }, [activity, celebrate]);
+  }, [activity, celebrate, announce]);
 
   // Loading state
   if (profileLoading || activity === undefined) {
@@ -323,19 +369,34 @@ export function ActivityFeed({ limit = 10, showHeader = true, className }: Activ
     );
   }
 
+  const activityCount = (activity as ActivityLog[]).length;
+
   return (
-    <div className={cn('rounded-xl bg-white p-4 shadow-sm', className)}>
+    <section
+      className={cn('rounded-xl bg-white p-4 shadow-sm', className)}
+      aria-label={`Recent activity feed, ${activityCount} ${activityCount === 1 ? 'item' : 'items'}`}
+    >
       {showHeader && (
         <div className="mb-4 flex items-center gap-2">
-          <ClockIcon className="h-5 w-5 text-kid-primary" />
-          <h3 className="font-semibold text-gray-800">Recent Activity</h3>
+          <ClockIcon className="h-5 w-5 text-kid-primary" aria-hidden="true" />
+          <h3 className="font-semibold text-gray-800" id="activity-feed-heading">
+            Recent Activity
+          </h3>
         </div>
       )}
-      <div className="space-y-2">
-        {(activity as ActivityLog[]).map((log) => (
-          <ActivityItem key={log._id} log={log} />
+      <div
+        className="space-y-2"
+        role="feed"
+        aria-labelledby={showHeader ? 'activity-feed-heading' : undefined}
+        aria-label={!showHeader ? 'Recent collection activity' : undefined}
+        aria-busy={false}
+      >
+        {(activity as ActivityLog[]).map((log, index) => (
+          <div key={log._id} aria-setsize={activityCount} aria-posinset={index + 1}>
+            <ActivityItem log={log} />
+          </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
