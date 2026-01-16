@@ -15,6 +15,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   HeartIcon,
+  CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
 import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
@@ -100,6 +101,13 @@ export default function MyCollectionPage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <Link
+                href="/timeline"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-400 to-purple-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-indigo-500 hover:to-purple-600"
+              >
+                <CalendarDaysIcon className="h-5 w-5" />
+                Timeline
+              </Link>
               <Link
                 href="/my-wishlist"
                 className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-rose-500 hover:to-pink-600"
