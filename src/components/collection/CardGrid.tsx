@@ -12,9 +12,33 @@ import {
   HeartIcon as HeartIconSolid,
   TrophyIcon,
   StarIcon as StarIconSolid,
+  CurrencyDollarIcon,
 } from '@heroicons/react/24/solid';
 import { MapIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { CardGridSkeleton, StatsBarSkeleton } from '@/components/ui/Skeleton';
+
+// Helper function to get the best market price from a card's TCGPlayer prices
+function getCardMarketPrice(card: PokemonCard): number | null {
+  const prices = card.tcgplayer?.prices;
+  if (!prices) return null;
+
+  // Return the first available market price, preferring normal > holofoil > reverseHolofoil
+  const marketPrice =
+    prices.normal?.market ?? prices.holofoil?.market ?? prices.reverseHolofoil?.market ?? null;
+
+  return marketPrice;
+}
+
+// Format price as currency string
+function formatPrice(price: number): string {
+  if (price < 10) {
+    return `$${price.toFixed(2)}`;
+  } else if (price < 100) {
+    return `$${price.toFixed(1)}`;
+  } else {
+    return `$${Math.round(price)}`;
+  }
+}
 
 // Custom card icon for loading state
 function CardIcon({ className }: { className?: string }) {
@@ -45,9 +69,10 @@ function CrownIcon({ className }: { className?: string }) {
 interface CardGridProps {
   cards: PokemonCard[];
   setId: string;
+  setName?: string;
 }
 
-export function CardGrid({ cards, setId }: CardGridProps) {
+export function CardGrid({ cards, setId, setName }: CardGridProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
 
   // Convex queries and mutations
@@ -86,13 +111,13 @@ export function CardGrid({ cards, setId }: CardGridProps) {
     });
   }
 
-  const handleToggleCard = async (cardId: string) => {
+  const handleToggleCard = async (cardId: string, cardName: string) => {
     if (!profileId) return;
 
     if (ownedCards.has(cardId)) {
-      await removeCard({ profileId: profileId as Id<'profiles'>, cardId });
+      await removeCard({ profileId: profileId as Id<'profiles'>, cardId, cardName, setName });
     } else {
-      await addCard({ profileId: profileId as Id<'profiles'>, cardId });
+      await addCard({ profileId: profileId as Id<'profiles'>, cardId, cardName, setName });
     }
   };
 
@@ -227,6 +252,7 @@ export function CardGrid({ cards, setId }: CardGridProps) {
           const isWishlisted = wishlistedCards.has(card.id);
           const isPriority = wishlistedCards.get(card.id) ?? false;
           const canAddPriority = (priorityCount?.remaining ?? 0) > 0;
+          const marketPrice = getCardMarketPrice(card);
 
           return (
             <div
@@ -237,7 +263,7 @@ export function CardGrid({ cards, setId }: CardGridProps) {
                   ? 'ring-2 ring-kid-success ring-offset-2'
                   : 'opacity-60 hover:opacity-100 hover:shadow-md'
               )}
-              onClick={() => handleToggleCard(card.id)}
+              onClick={() => handleToggleCard(card.id, card.name)}
             >
               {/* Card Image */}
               <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg">
@@ -323,7 +349,23 @@ export function CardGrid({ cards, setId }: CardGridProps) {
               {/* Card Info */}
               <div className="mt-2 text-center">
                 <p className="truncate text-xs font-medium text-gray-800">{card.name}</p>
-                <p className="text-xs text-gray-400">#{card.number}</p>
+                <div className="flex items-center justify-center gap-1.5">
+                  <span className="text-xs text-gray-400">#{card.number}</span>
+                  {marketPrice !== null && (
+                    <span
+                      className={cn(
+                        'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold',
+                        marketPrice >= 10
+                          ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-white'
+                          : 'bg-emerald-100 text-emerald-700'
+                      )}
+                      title={`TCGPlayer market price: $${marketPrice.toFixed(2)}`}
+                    >
+                      <CurrencyDollarIcon className="h-3 w-3" />
+                      {formatPrice(marketPrice).replace('$', '')}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Quantity Controls - Show on hover when owned */}
