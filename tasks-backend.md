@@ -36,7 +36,7 @@
 
 - [x] Implement set completion badge awarding logic (check on card add, award at 25/50/75/100%)
 - [x] Create collector milestone badge awarding (trigger on card count thresholds)
-- [ ] Build type specialist badge logic (count cards by type, award at 10+)
+- [x] Build type specialist badge logic (count cards by type, award at 10+)
 - [ ] Add Pokemon fan badge logic (count specific Pokemon across sets)
 - [ ] Implement streak tracking system (track daily activity, award streak badges)
 - [ ] Add badge earned date tracking to schema and mutations
@@ -200,3 +200,33 @@
   - All individual utility functions
   - Progressive badge collection journey integration test
 - All 462 tests pass, linter clean
+
+### 2026-01-16: Build type specialist badge logic (count cards by type, award at 10+)
+- Added `checkTypeSpecialistAchievements` mutation to `convex/achievements.ts`:
+  - Counts unique cards by Pokemon type from `cachedCards` table
+  - Awards badges at 10+ cards threshold for each of 11 types (Fire, Water, Grass, Lightning, Psychic, Fighting, Darkness, Metal, Dragon, Fairy, Colorless)
+  - Logs `achievement_earned` activity with badge name, type, count, and threshold
+  - Returns awarded badges, type counts, progress for all types, and nearby badges
+- Added `getTypeSpecialistProgress` query for UI display:
+  - Shows progress for all 11 Pokemon types with earned status and earnedAt timestamp
+  - Sorts by progress (earned first, then closest to earning)
+  - Identifies nearby badges (types with 1-9 cards) sorted by remaining count
+  - Returns summary stats: totalTypeBadgesEarned, totalTypeBadgesAvailable
+- Added type specialist badge utilities to `src/lib/achievements.ts`:
+  - `TYPE_SPECIALIST_BADGE_DEFINITIONS`: Badge types, keys, and names constant
+  - `getTypeSpecialistBadgesToAward`: Determine badges to award (excludes already earned)
+  - `getTypeSpecialistProgressSummary`: Full progress summary for UI
+  - `getTypeSpecialistBadgeDefinition`, `getTypeSpecialistBadgeForType`: Get single badge definition
+  - `cardsNeededForTypeSpecialist`, `getTypeSpecialistPercentProgress`: Progress helpers
+  - `hasTypeSpecialistBeenEarned`, `getAllEarnedTypeSpecialistKeys`, `countEarnedTypeSpecialistBadges`
+  - `countCardsByType`: Count cards by type from card data (handles multi-type cards)
+  - `getNearbyTypeSpecialistBadges`: Get types closest to earning badge
+  - `getDominantType`, `getTypeDistribution`: Collection analysis utilities
+- Added 75 tests in `src/lib/__tests__/achievements.test.ts` covering:
+  - TYPE_SPECIALIST_BADGE_DEFINITIONS constant validation
+  - getTypeSpecialistBadgesToAward logic (all thresholds, exclusions)
+  - getTypeSpecialistProgressSummary (progress tracking, sorting, nearby badges)
+  - All individual utility functions
+  - countCardsByType with multi-type cards
+  - Progressive badge collection journey integration test
+- All 538 tests pass, linter clean
