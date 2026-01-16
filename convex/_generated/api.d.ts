@@ -9,6 +9,7 @@
  */
 
 import type * as achievements from "../achievements.js";
+import type * as activityLogs from "../activityLogs.js";
 import type * as collections from "../collections.js";
 import type * as profiles from "../profiles.js";
 import type * as wishlist from "../wishlist.js";
@@ -21,6 +22,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   achievements: typeof achievements;
+  activityLogs: typeof activityLogs;
   collections: typeof collections;
   profiles: typeof profiles;
   wishlist: typeof wishlist;

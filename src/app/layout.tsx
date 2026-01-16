@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ConvexClientProvider } from '@/components/providers/ConvexClientProvider';
 import { CelebrationProvider } from '@/components/ui/CelebrationAnimation';
+import { LevelUpProvider } from '@/components/gamification/LevelSystem';
 import { Header } from '@/components/layout/Header';
 import './globals.css';
 
@@ -24,12 +25,14 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <ConvexClientProvider>
           <CelebrationProvider>
-            {/* Skip link for keyboard navigation */}
-            <a href="#main-content" className="skip-link">
-              Skip to main content
-            </a>
-            <Header />
-            <main id="main-content">{children}</main>
+            <LevelUpProvider>
+              {/* Skip link for keyboard navigation */}
+              <a href="#main-content" className="skip-link">
+                Skip to main content
+              </a>
+              <Header />
+              <main id="main-content">{children}</main>
+            </LevelUpProvider>
           </CelebrationProvider>
         </ConvexClientProvider>
       </body>
