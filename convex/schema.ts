@@ -170,14 +170,26 @@ export default defineSchema({
   // ============================================================================
 
   cachedSets: defineTable({
-    setId: v.string(), // Pokemon TCG API set ID (e.g., "sv1")
+    setId: v.string(), // TCG API set ID (e.g., "sv1" for Pokemon, "LOB" for Yu-Gi-Oh!)
+    gameSlug: v.union(
+      v.literal('pokemon'),
+      v.literal('yugioh'),
+      v.literal('mtg'),
+      v.literal('onepiece'),
+      v.literal('lorcana'),
+      v.literal('digimon'),
+      v.literal('dragonball')
+    ), // Links set to its game
     name: v.string(),
     series: v.string(),
     releaseDate: v.string(),
     totalCards: v.number(),
     logoUrl: v.optional(v.string()),
     symbolUrl: v.optional(v.string()),
-  }).index('by_set_id', ['setId']),
+  })
+    .index('by_set_id', ['setId'])
+    .index('by_game', ['gameSlug'])
+    .index('by_game_and_release', ['gameSlug', 'releaseDate']),
 
   cachedCards: defineTable({
     cardId: v.string(), // Pokemon TCG API card ID (e.g., "sv1-1")
