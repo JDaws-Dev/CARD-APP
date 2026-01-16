@@ -103,6 +103,11 @@ export default function Home() {
             Like a Pro!
           </h1>
 
+          {/* Tagline */}
+          <p className="mx-auto mb-4 text-xl font-bold tracking-wide text-gray-800 sm:mb-5 sm:text-2xl md:text-3xl">
+            All your cards. One app.
+          </p>
+
           {/* Subheading */}
           <p className="mx-auto mb-6 max-w-2xl text-base text-gray-600 sm:mb-8 sm:text-lg md:text-xl">
             The fun and easy way for kids to organize their collection, earn badges, and share
