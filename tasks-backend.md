@@ -57,7 +57,7 @@
 ### Testing & Performance
 
 - [x] Write unit tests for achievement awarding logic
-- [ ] Write integration tests for collection CRUD operations
+- [x] Write integration tests for collection CRUD operations
 - [ ] Implement offline collection caching strategy (service worker setup)
 - [ ] Performance optimization (index Convex queries, optimize batch fetches)
 
@@ -349,3 +349,29 @@
   - formatDateRange for same month, same year, different year scenarios
   - getDateString, isSameDay, getDaysSinceEarned, wasEarnedRecently utilities
 - All 737 tests pass, linter clean
+
+### 2026-01-16: Write integration tests for collection CRUD operations
+- Created `src/lib/collections.ts` with pure utility functions for:
+  - Validation: `isValidVariant`, `isValidCardId`, `isValidQuantity`
+  - Extraction: `extractSetId`, `extractCardNumber`
+  - Query logic: `getCollectionStats`, `checkCardOwnership`, `filterBySet`, `groupCardsByCardId`, `getUniqueCardIds`, `countCardsBySet`
+  - CRUD operations: `addCardToCollection`, `removeCardFromCollection`, `updateCardQuantity`, `decrementCardQuantity`, `incrementCardQuantity`
+  - Collection comparison: `findSharedCards`, `findUniqueCards`, `mergeCollections`
+  - Sorting: `sortByCardId`, `sortByQuantity`, `sortBySetAndNumber`
+- Defined types: `CardVariant`, `CollectionCard`, `CardOwnership`, `CollectionStats`, `GroupedCard`
+- Exported constants: `DEFAULT_VARIANT`, `VALID_VARIANTS`
+- Added 69 integration tests in `src/lib/__tests__/collections.test.ts` covering:
+  - Constants validation
+  - All validation functions (isValidVariant, isValidCardId, isValidQuantity)
+  - Card ID parsing (extractSetId, extractCardNumber)
+  - Query functions (getCollectionStats, checkCardOwnership, filterBySet, groupCardsByCardId)
+  - CRUD operations with full coverage:
+    - CREATE: addCardToCollection (new card, duplicate, variants, quantity updates)
+    - READ: checkCardOwnership, getUniqueCardIds, countCardsBySet
+    - UPDATE: updateCardQuantity, incrementCardQuantity, decrementCardQuantity
+    - DELETE: removeCardFromCollection (specific variant, all variants)
+  - Collection comparison (findSharedCards, findUniqueCards, mergeCollections)
+  - Sorting functions (by cardId, quantity, set+number)
+  - Integration scenarios: collection building over time, trading between siblings, variant tracking, set completion tracking
+  - Edge cases: large quantities, all variant types
+- All 806 tests pass, linter clean
