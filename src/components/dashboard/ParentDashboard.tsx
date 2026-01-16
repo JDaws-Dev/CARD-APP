@@ -34,23 +34,23 @@ function usePricingVisibility() {
 // Profile card skeleton for loading state
 function ProfileCardSkeleton() {
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm">
+    <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
       {/* Header skeleton */}
-      <div className="mb-6 flex items-center gap-4">
-        <Skeleton className="h-16 w-16 rounded-full" />
+      <div className="mb-4 flex items-center gap-3 sm:mb-6 sm:gap-4">
+        <Skeleton className="h-12 w-12 rounded-full sm:h-16 sm:w-16" />
         <div className="flex-1">
-          <Skeleton className="mb-2 h-6 w-32" />
-          <Skeleton className="h-4 w-24" />
+          <Skeleton className="mb-2 h-5 w-24 sm:h-6 sm:w-32" />
+          <Skeleton className="h-4 w-20 sm:w-24" />
         </div>
       </div>
 
       {/* Stats grid skeleton */}
-      <div className="mb-6 grid grid-cols-2 gap-4">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:mb-6 sm:gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="rounded-xl bg-gray-50 p-4">
-            <Skeleton className="mx-auto mb-2 h-5 w-5" />
-            <Skeleton className="mx-auto mb-1 h-6 w-12" />
-            <Skeleton className="mx-auto h-3 w-16" />
+          <div key={i} className="rounded-xl bg-gray-50 p-3 sm:p-4">
+            <Skeleton className="mx-auto mb-2 h-4 w-4 sm:h-5 sm:w-5" />
+            <Skeleton className="mx-auto mb-1 h-5 w-10 sm:h-6 sm:w-12" />
+            <Skeleton className="mx-auto h-3 w-12 sm:w-16" />
           </div>
         ))}
       </div>
@@ -151,9 +151,9 @@ function ChildProfileCard({ profileId, displayName, avatarUrl }: ChildProfileCar
   };
 
   return (
-    <div className="group rounded-2xl bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg">
+    <div className="group rounded-2xl bg-white p-4 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg sm:p-6">
       {/* Profile header */}
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-4 flex items-center gap-3 sm:mb-6 sm:gap-4">
         {/* Avatar */}
         {avatarUrl ? (
           <Image
@@ -161,24 +161,24 @@ function ChildProfileCard({ profileId, displayName, avatarUrl }: ChildProfileCar
             alt={displayName}
             width={64}
             height={64}
-            className="h-16 w-16 rounded-full border-4 border-white object-cover shadow-md"
+            className="h-12 w-12 rounded-full border-4 border-white object-cover shadow-md sm:h-16 sm:w-16"
           />
         ) : (
           <div
             className={cn(
-              'flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br shadow-md',
+              'flex h-12 w-12 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br shadow-md sm:h-16 sm:w-16',
               avatarGradient
             )}
           >
-            <span className="text-xl font-bold text-white">{initials}</span>
+            <span className="text-lg font-bold text-white sm:text-xl">{initials}</span>
           </div>
         )}
 
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-gray-800">{displayName}</h3>
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-lg font-bold text-gray-800 sm:text-xl">{displayName}</h3>
           <div className="flex items-center gap-2">
             <TrophyIcon className="h-4 w-4 text-amber-500" />
-            <span className="text-sm text-gray-500">
+            <span className="text-xs text-gray-500 sm:text-sm">
               {achievements.length} badge{achievements.length !== 1 ? 's' : ''}
             </span>
           </div>
@@ -187,48 +187,48 @@ function ChildProfileCard({ profileId, displayName, avatarUrl }: ChildProfileCar
         {/* View collection link */}
         <Link
           href={`/collection?profile=${profileId}`}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-all group-hover:bg-kid-primary group-hover:text-white"
+          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-all group-hover:bg-kid-primary group-hover:text-white sm:h-10 sm:w-10"
         >
-          <ArrowRightIcon className="h-5 w-5" />
+          <ArrowRightIcon className="h-4 w-4 sm:h-5 sm:w-5" />
         </Link>
       </div>
 
       {/* Stats grid */}
-      <div className="mb-6 grid grid-cols-2 gap-4">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:mb-6 sm:gap-4">
         {/* Total cards */}
-        <div className="rounded-xl bg-gradient-to-br from-kid-primary/10 to-purple-100 p-4 text-center">
-          <Square3Stack3DIcon className="mx-auto mb-1 h-5 w-5 text-kid-primary" />
-          <div className="text-2xl font-bold text-gray-800">{stats.totalCards}</div>
+        <div className="rounded-xl bg-gradient-to-br from-kid-primary/10 to-purple-100 p-3 text-center sm:p-4">
+          <Square3Stack3DIcon className="mx-auto mb-1 h-4 w-4 text-kid-primary sm:h-5 sm:w-5" />
+          <div className="text-xl font-bold text-gray-800 sm:text-2xl">{stats.totalCards}</div>
           <div className="text-xs text-gray-500">Total Cards</div>
         </div>
 
         {/* Unique cards */}
-        <div className="rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 p-4 text-center">
-          <SparklesIcon className="mx-auto mb-1 h-5 w-5 text-pink-500" />
-          <div className="text-2xl font-bold text-gray-800">{stats.uniqueCards}</div>
+        <div className="rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 p-3 text-center sm:p-4">
+          <SparklesIcon className="mx-auto mb-1 h-4 w-4 text-pink-500 sm:h-5 sm:w-5" />
+          <div className="text-xl font-bold text-gray-800 sm:text-2xl">{stats.uniqueCards}</div>
           <div className="text-xs text-gray-500">Unique Cards</div>
         </div>
 
         {/* Sets started */}
-        <div className="rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 p-4 text-center">
-          <ChartBarIcon className="mx-auto mb-1 h-5 w-5 text-emerald-500" />
-          <div className="text-2xl font-bold text-gray-800">{stats.setsStarted}</div>
+        <div className="rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 p-3 text-center sm:p-4">
+          <ChartBarIcon className="mx-auto mb-1 h-4 w-4 text-emerald-500 sm:h-5 sm:w-5" />
+          <div className="text-xl font-bold text-gray-800 sm:text-2xl">{stats.setsStarted}</div>
           <div className="text-xs text-gray-500">Sets Started</div>
         </div>
 
         {/* Collection value */}
-        <div className="rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 p-4 text-center">
-          <CurrencyDollarIcon className="mx-auto mb-1 h-5 w-5 text-amber-500" />
+        <div className="rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 p-3 text-center sm:p-4">
+          <CurrencyDollarIcon className="mx-auto mb-1 h-4 w-4 text-amber-500 sm:h-5 sm:w-5" />
           {showPricing ? (
             <>
-              <div className="text-2xl font-bold text-gray-800">
+              <div className="text-xl font-bold text-gray-800 sm:text-2xl">
                 ${collectionValue.totalValue.toFixed(0)}
               </div>
               <div className="text-xs text-gray-500">Est. Value</div>
             </>
           ) : (
             <>
-              <div className="text-2xl font-bold text-gray-400">---</div>
+              <div className="text-xl font-bold text-gray-400 sm:text-2xl">---</div>
               <div className="text-xs text-gray-400">Hidden</div>
             </>
           )}
@@ -358,17 +358,19 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
 
   return (
     <PricingVisibilityContext.Provider value={showPricing}>
-      <div className="space-y-8">
+      <div className="space-y-4 sm:space-y-8">
         {/* Family overview header */}
-        <div className="rounded-2xl bg-gradient-to-r from-indigo-100 via-purple-50 to-pink-100 p-6">
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+        <div className="rounded-2xl bg-gradient-to-r from-indigo-100 via-purple-50 to-pink-100 p-4 sm:p-6">
+          <div className="grid grid-cols-3 gap-4 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-8 md:gap-12">
             {/* Total profiles */}
             <div className="text-center">
-              <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 shadow-lg">
-                <UserGroupIcon className="h-7 w-7 text-white" />
+              <div className="mx-auto mb-1 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 shadow-lg sm:mb-2 sm:h-14 sm:w-14">
+                <UserGroupIcon className="h-5 w-5 text-white sm:h-7 sm:w-7" />
               </div>
-              <div className="text-3xl font-bold text-gray-800">{totalProfiles}</div>
-              <div className="text-sm text-gray-500">Collector{totalProfiles !== 1 ? 's' : ''}</div>
+              <div className="text-2xl font-bold text-gray-800 sm:text-3xl">{totalProfiles}</div>
+              <div className="text-xs text-gray-500 sm:text-sm">
+                Collector{totalProfiles !== 1 ? 's' : ''}
+              </div>
             </div>
 
             {/* Divider */}
@@ -378,22 +380,22 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
             <div className="text-center">
               <div
                 className={cn(
-                  'mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full shadow-lg',
+                  'mx-auto mb-1 flex h-10 w-10 items-center justify-center rounded-full shadow-lg sm:mb-2 sm:h-14 sm:w-14',
                   family.subscriptionTier === 'family'
                     ? 'bg-gradient-to-br from-amber-400 to-orange-500'
                     : 'bg-gradient-to-br from-emerald-400 to-teal-500'
                 )}
               >
                 {family.subscriptionTier === 'family' ? (
-                  <StarIcon className="h-7 w-7 text-white" />
+                  <StarIcon className="h-5 w-5 text-white sm:h-7 sm:w-7" />
                 ) : (
-                  <HeartIcon className="h-7 w-7 text-white" />
+                  <HeartIcon className="h-5 w-5 text-white sm:h-7 sm:w-7" />
                 )}
               </div>
-              <div className="text-xl font-bold capitalize text-gray-800">
+              <div className="text-lg font-bold capitalize text-gray-800 sm:text-xl">
                 {family.subscriptionTier}
               </div>
-              <div className="text-sm text-gray-500">Plan</div>
+              <div className="text-xs text-gray-500 sm:text-sm">Plan</div>
             </div>
 
             {/* Divider */}
@@ -401,24 +403,24 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
 
             {/* Profile slots */}
             <div className="text-center">
-              <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-500 shadow-lg">
-                <FireIcon className="h-7 w-7 text-white" />
+              <div className="mx-auto mb-1 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-500 shadow-lg sm:mb-2 sm:h-14 sm:w-14">
+                <FireIcon className="h-5 w-5 text-white sm:h-7 sm:w-7" />
               </div>
-              <div className="text-3xl font-bold text-gray-800">
+              <div className="text-2xl font-bold text-gray-800 sm:text-3xl">
                 {family.subscriptionTier === 'family' ? 5 - totalProfiles : 1 - totalProfiles}
               </div>
-              <div className="text-sm text-gray-500">Slots Available</div>
+              <div className="text-xs text-gray-500 sm:text-sm">Slots</div>
             </div>
           </div>
         </div>
 
         {/* Pricing toggle control */}
-        <div className="flex items-center justify-between rounded-xl bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-3 rounded-xl bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <div className="flex items-center gap-3">
-            <CurrencyDollarIcon className="h-5 w-5 text-amber-500" />
-            <div>
-              <div className="font-medium text-gray-800">TCGPlayer Prices</div>
-              <div className="text-sm text-gray-500">
+            <CurrencyDollarIcon className="h-5 w-5 flex-shrink-0 text-amber-500" />
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-gray-800 sm:text-base">TCGPlayer Prices</div>
+              <div className="text-xs text-gray-500 sm:text-sm">
                 {showPricing
                   ? 'Estimated card values are visible'
                   : 'Prices are hidden from display'}
@@ -430,7 +432,7 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
 
         {/* Profile cards grid */}
         {profiles.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
             {profiles.map((profile) => (
               <ChildProfileCard
                 key={profile._id}

@@ -43,44 +43,44 @@ export function SetsList({ sets }: SetsListProps) {
   return (
     <>
       {/* Series Filter Tabs */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <SeriesFilter value={selectedSeries} onChange={setSelectedSeries} setCounts={setCounts} />
       </div>
 
       {/* Sets Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
         {filteredSets.map((set) => (
           <Link
             key={set.id}
             href={`/sets/${set.id}`}
-            className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-md transition-all hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+            className="group relative overflow-hidden rounded-2xl bg-white p-4 shadow-md transition-all hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 sm:p-6"
             aria-label={`${set.name} - ${set.total} cards, ${set.series} series`}
           >
             {/* Set Logo */}
-            <div className="mb-4 flex h-24 items-center justify-center">
+            <div className="mb-3 flex h-20 items-center justify-center sm:mb-4 sm:h-24">
               {set.images?.logo ? (
                 <Image
                   src={set.images.logo}
                   alt={set.name}
                   width={200}
                   height={80}
-                  className="h-auto max-h-20 w-auto object-contain"
+                  className="h-auto max-h-16 w-auto object-contain sm:max-h-20"
                 />
               ) : (
-                <div className="text-2xl font-bold text-gray-500">{set.name}</div>
+                <div className="text-xl font-bold text-gray-500 sm:text-2xl">{set.name}</div>
               )}
             </div>
 
             {/* Set Info */}
             <div className="text-center">
-              <h2 className="text-lg font-semibold text-gray-800 group-hover:text-kid-primary">
+              <h2 className="text-base font-semibold text-gray-800 group-hover:text-kid-primary sm:text-lg">
                 {set.name}
               </h2>
-              <p className="mt-1 text-sm text-gray-500">{set.series}</p>
+              <p className="mt-1 text-xs text-gray-500 sm:text-sm">{set.series}</p>
 
               {/* Card Count */}
-              <div className="mt-4 flex items-center justify-center gap-2">
-                <span className="rounded-full bg-kid-primary/10 px-3 py-1 text-sm font-medium text-kid-primary">
+              <div className="mt-3 flex items-center justify-center gap-2 sm:mt-4">
+                <span className="rounded-full bg-kid-primary/10 px-2.5 py-0.5 text-xs font-medium text-kid-primary sm:px-3 sm:py-1 sm:text-sm">
                   {set.total} cards
                 </span>
                 {set.images?.symbol && (
@@ -89,13 +89,13 @@ export function SetsList({ sets }: SetsListProps) {
                     alt=""
                     width={24}
                     height={24}
-                    className="h-6 w-6"
+                    className="h-5 w-5 sm:h-6 sm:w-6"
                   />
                 )}
               </div>
 
               {/* Release Date */}
-              <p className="mt-3 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-gray-500 sm:mt-3">
                 Released:{' '}
                 {new Date(set.releaseDate).toLocaleDateString('en-US', {
                   month: 'short',

@@ -67,7 +67,7 @@ export default function Home() {
   return (
     <div className="flex min-h-[calc(100vh-65px)] flex-col overflow-hidden">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-indigo-100 via-purple-50 to-pink-50 px-4 pb-16 pt-12 sm:px-8 sm:pb-24 sm:pt-20">
+      <section className="relative bg-gradient-to-b from-indigo-100 via-purple-50 to-pink-50 px-3 pb-12 pt-8 sm:px-6 sm:pb-20 sm:pt-16 md:px-8 md:pb-24 md:pt-20">
         {/* Decorative elements */}
         <FloatingCard className="left-[5%] top-[15%] h-16 w-12 -rotate-12 opacity-60" delay="0s" />
         <FloatingCard
@@ -94,7 +94,7 @@ export default function Home() {
           </div>
 
           {/* Heading */}
-          <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
+          <h1 className="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 sm:mb-6 sm:text-5xl md:text-6xl lg:text-7xl">
             Track Your{' '}
             <span className="bg-gradient-to-r from-kid-primary via-purple-500 to-kid-secondary bg-clip-text text-transparent">
               Pokemon Cards
@@ -104,7 +104,7 @@ export default function Home() {
           </h1>
 
           {/* Subheading */}
-          <p className="mx-auto mb-8 max-w-2xl text-lg text-gray-600 sm:text-xl">
+          <p className="mx-auto mb-6 max-w-2xl text-base text-gray-600 sm:mb-8 sm:text-lg md:text-xl">
             The fun and easy way for kids to organize their collection, earn badges, and share
             wishlists with family!
           </p>
@@ -148,61 +148,67 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section className="bg-white px-4 py-16 sm:px-8 sm:py-20">
+      <section className="bg-white px-3 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20">
         <div className="mx-auto max-w-5xl">
-          <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">How It Works</h2>
-            <p className="mx-auto max-w-2xl text-gray-600">
+          <div className="mb-8 text-center sm:mb-12">
+            <h2 className="mb-3 text-2xl font-bold text-gray-900 sm:mb-4 sm:text-3xl md:text-4xl">
+              How It Works
+            </h2>
+            <p className="mx-auto max-w-2xl text-sm text-gray-600 sm:text-base">
               Getting started is super easy! Just three simple steps.
             </p>
           </div>
 
           <div className="relative">
             {/* Connecting line for desktop */}
-            <div className="absolute left-0 right-0 top-16 hidden h-1 bg-gradient-to-r from-kid-primary via-purple-500 to-kid-secondary md:block" />
+            <div className="absolute left-0 right-0 top-12 hidden h-1 bg-gradient-to-r from-kid-primary via-purple-500 to-kid-secondary sm:top-16 md:block" />
 
-            <div className="grid gap-8 md:grid-cols-3">
+            <div className="grid gap-6 sm:gap-8 md:grid-cols-3">
               {/* Step 1 */}
               <div className="relative flex flex-col items-center text-center">
-                <div className="relative z-10 mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-kid-primary to-purple-600 shadow-lg shadow-kid-primary/30">
-                  <RectangleStackIcon className="h-14 w-14 text-white" />
-                  <div className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-bold text-kid-primary shadow-md">
+                <div className="relative z-10 mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-kid-primary to-purple-600 shadow-lg shadow-kid-primary/30 sm:mb-6 sm:h-32 sm:w-32">
+                  <RectangleStackIcon className="h-10 w-10 text-white sm:h-14 sm:w-14" />
+                  <div className="absolute -right-1 -top-1 flex h-8 w-8 items-center justify-center rounded-full bg-white text-base font-bold text-kid-primary shadow-md sm:-right-2 sm:-top-2 sm:h-10 sm:w-10 sm:text-lg">
                     1
                   </div>
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-gray-900">Pick Your Sets</h3>
-                <p className="text-gray-600">
+                <h3 className="mb-2 text-lg font-bold text-gray-900 sm:text-xl">Pick Your Sets</h3>
+                <p className="text-sm text-gray-600 sm:text-base">
                   Browse through all Pokemon card sets and choose which ones you want to track.
                 </p>
               </div>
 
               {/* Step 2 */}
               <div className="relative flex flex-col items-center text-center">
-                <div className="relative z-10 mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-kid-secondary shadow-lg shadow-purple-500/30">
-                  <HandRaisedIcon className="h-14 w-14 text-white" />
-                  <div className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-bold text-purple-500 shadow-md">
+                <div className="relative z-10 mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-kid-secondary shadow-lg shadow-purple-500/30 sm:mb-6 sm:h-32 sm:w-32">
+                  <HandRaisedIcon className="h-10 w-10 text-white sm:h-14 sm:w-14" />
+                  <div className="absolute -right-1 -top-1 flex h-8 w-8 items-center justify-center rounded-full bg-white text-base font-bold text-purple-500 shadow-md sm:-right-2 sm:-top-2 sm:h-10 sm:w-10 sm:text-lg">
                     2
                   </div>
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-gray-900">Tap Cards You Own</h3>
-                <p className="text-gray-600">
+                <h3 className="mb-2 text-lg font-bold text-gray-900 sm:text-xl">
+                  Tap Cards You Own
+                </h3>
+                <p className="text-sm text-gray-600 sm:text-base">
                   Just tap on any card to add it to your collection. Tap again to add more copies!
                 </p>
               </div>
 
               {/* Step 3 */}
               <div className="relative flex flex-col items-center text-center">
-                <div className="relative z-10 mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-kid-secondary to-pink-500 shadow-lg shadow-kid-secondary/30">
-                  <div className="flex items-center gap-1">
-                    <TrophyIcon className="h-10 w-10 text-white" />
-                    <ShareIcon className="h-8 w-8 text-white" />
+                <div className="relative z-10 mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-kid-secondary to-pink-500 shadow-lg shadow-kid-secondary/30 sm:mb-6 sm:h-32 sm:w-32">
+                  <div className="flex items-center gap-0.5 sm:gap-1">
+                    <TrophyIcon className="h-8 w-8 text-white sm:h-10 sm:w-10" />
+                    <ShareIcon className="h-6 w-6 text-white sm:h-8 sm:w-8" />
                   </div>
-                  <div className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-bold text-kid-secondary shadow-md">
+                  <div className="absolute -right-1 -top-1 flex h-8 w-8 items-center justify-center rounded-full bg-white text-base font-bold text-kid-secondary shadow-md sm:-right-2 sm:-top-2 sm:h-10 sm:w-10 sm:text-lg">
                     3
                   </div>
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-gray-900">Earn Badges & Share</h3>
-                <p className="text-gray-600">
+                <h3 className="mb-2 text-lg font-bold text-gray-900 sm:text-xl">
+                  Earn Badges & Share
+                </h3>
+                <p className="text-sm text-gray-600 sm:text-base">
                   Unlock cool badges as you collect, and share your wishlist with family for gifts!
                 </p>
               </div>
@@ -212,55 +218,61 @@ export default function Home() {
       </section>
 
       {/* Feature Cards Section */}
-      <section className="bg-gradient-to-b from-white to-gray-50 px-4 py-16 sm:px-8 sm:py-24">
+      <section className="bg-gradient-to-b from-white to-gray-50 px-3 py-12 sm:px-6 sm:py-16 md:px-8 md:py-24">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">
+          <div className="mb-8 text-center sm:mb-12">
+            <h2 className="mb-3 text-2xl font-bold text-gray-900 sm:mb-4 sm:text-3xl md:text-4xl">
               Everything You Need to Be a <span className="text-kid-primary">Super Collector</span>
             </h2>
-            <p className="mx-auto max-w-2xl text-gray-600">
+            <p className="mx-auto max-w-2xl text-sm text-gray-600 sm:text-base">
               KidCollect makes tracking your Pokemon cards fun and easy.
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-3 md:gap-8">
             {/* Feature 1 */}
-            <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-50 to-purple-50 p-8 transition-all hover:-translate-y-1 hover:shadow-xl">
-              <div className="mb-4 inline-flex rounded-2xl bg-kid-primary/10 p-3">
-                <ChartBarIcon className="h-8 w-8 text-kid-primary" />
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
+              <div className="mb-3 inline-flex rounded-xl bg-kid-primary/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
+                <ChartBarIcon className="h-6 w-6 text-kid-primary sm:h-8 sm:w-8" />
               </div>
-              <h3 className="mb-3 text-xl font-bold text-gray-900">Track Every Card</h3>
-              <p className="text-gray-600">
+              <h3 className="mb-2 text-lg font-bold text-gray-900 sm:mb-3 sm:text-xl">
+                Track Every Card
+              </h3>
+              <p className="text-sm text-gray-600 sm:text-base">
                 Add cards with a single tap. See your progress on every set. Know exactly what you
                 have and what you need!
               </p>
-              <div className="absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-kid-primary/5 transition-all group-hover:scale-150" />
+              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-kid-primary/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
             </div>
 
             {/* Feature 2 */}
-            <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 p-8 transition-all hover:-translate-y-1 hover:shadow-xl">
-              <div className="mb-4 inline-flex rounded-2xl bg-amber-500/10 p-3">
-                <TrophyIcon className="h-8 w-8 text-amber-500" />
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
+              <div className="mb-3 inline-flex rounded-xl bg-amber-500/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
+                <TrophyIcon className="h-6 w-6 text-amber-500 sm:h-8 sm:w-8" />
               </div>
-              <h3 className="mb-3 text-xl font-bold text-gray-900">Earn Cool Badges</h3>
-              <p className="text-gray-600">
+              <h3 className="mb-2 text-lg font-bold text-gray-900 sm:mb-3 sm:text-xl">
+                Earn Cool Badges
+              </h3>
+              <p className="text-sm text-gray-600 sm:text-base">
                 Complete sets, reach milestones, and collect badges. Show off your achievements to
                 friends and family!
               </p>
-              <div className="absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-amber-500/5 transition-all group-hover:scale-150" />
+              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-amber-500/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
             </div>
 
             {/* Feature 3 */}
-            <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-pink-50 to-rose-50 p-8 transition-all hover:-translate-y-1 hover:shadow-xl">
-              <div className="mb-4 inline-flex rounded-2xl bg-kid-secondary/10 p-3">
-                <GiftIcon className="h-8 w-8 text-kid-secondary" />
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
+              <div className="mb-3 inline-flex rounded-xl bg-kid-secondary/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
+                <GiftIcon className="h-6 w-6 text-kid-secondary sm:h-8 sm:w-8" />
               </div>
-              <h3 className="mb-3 text-xl font-bold text-gray-900">Share Wishlists</h3>
-              <p className="text-gray-600">
+              <h3 className="mb-2 text-lg font-bold text-gray-900 sm:mb-3 sm:text-xl">
+                Share Wishlists
+              </h3>
+              <p className="text-sm text-gray-600 sm:text-base">
                 Mark cards you want and share your wishlist link with family. Perfect for birthdays
                 and holidays!
               </p>
-              <div className="absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-kid-secondary/5 transition-all group-hover:scale-150" />
+              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-kid-secondary/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
             </div>
           </div>
         </div>

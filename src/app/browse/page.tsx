@@ -125,11 +125,13 @@ export default function BrowsePage() {
             Back to Home
           </Link>
 
-          <h1 className="text-3xl font-bold text-gray-800">Browse Cards</h1>
-          <p className="text-gray-500">Filter cards by set, type, or Pokemon name</p>
+          <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">Browse Cards</h1>
+          <p className="text-sm text-gray-500 sm:text-base">
+            Filter cards by set, type, or Pokemon name
+          </p>
         </div>
 
-        <div className="flex flex-col gap-8 lg:flex-row">
+        <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:gap-8">
           {/* Filter Panel - Sidebar */}
           <div className="lg:w-72 lg:flex-shrink-0">
             {setsLoading ? (

@@ -29,7 +29,7 @@ export function FilterPanel({
 
   return (
     <aside
-      className="space-y-6 rounded-xl bg-white p-6 shadow-sm"
+      className="space-y-4 rounded-xl bg-white p-4 shadow-sm sm:space-y-6 sm:p-6"
       role="search"
       aria-label="Card filters"
     >

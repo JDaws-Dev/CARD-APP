@@ -43,12 +43,12 @@ export default function MyCollectionPage() {
           </div>
 
           {/* Stats skeleton */}
-          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mb-6 grid grid-cols-3 gap-2 sm:mb-8 sm:gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-xl bg-white p-6 shadow-sm">
+              <div key={i} className="rounded-xl bg-white p-3 shadow-sm sm:p-6">
                 <div className="text-center">
-                  <Skeleton className="mx-auto mb-2 h-10 w-16" />
-                  <Skeleton className="mx-auto h-4 w-20" />
+                  <Skeleton className="mx-auto mb-2 h-8 w-12 sm:h-10 sm:w-16" />
+                  <Skeleton className="mx-auto h-3 w-14 sm:h-4 sm:w-20" />
                 </div>
               </div>
             ))}
@@ -89,12 +89,14 @@ export default function MyCollectionPage() {
             Back to Home
           </Link>
 
-          <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">My Collection</h1>
-              <p className="text-gray-500">All your collected Pokemon cards in one place</p>
+              <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">My Collection</h1>
+              <p className="text-sm text-gray-500 sm:text-base">
+                All your collected Pokemon cards in one place
+              </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Link
                 href="/badges"
                 className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-amber-500 hover:to-orange-600"
@@ -115,29 +117,35 @@ export default function MyCollectionPage() {
         </div>
 
         {/* Stats Overview */}
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="mb-6 grid grid-cols-3 gap-2 sm:mb-8 sm:gap-4">
+          <div className="rounded-xl bg-white p-3 shadow-sm sm:p-6">
             <div className="text-center">
-              <div className="text-4xl font-bold text-kid-primary">{stats.totalCards}</div>
-              <div className="text-sm text-gray-500">Total Cards</div>
+              <div className="text-2xl font-bold text-kid-primary sm:text-4xl">
+                {stats.totalCards}
+              </div>
+              <div className="text-xs text-gray-500 sm:text-sm">Total Cards</div>
             </div>
           </div>
-          <div className="rounded-xl bg-white p-6 shadow-sm">
+          <div className="rounded-xl bg-white p-3 shadow-sm sm:p-6">
             <div className="text-center">
-              <div className="text-4xl font-bold text-kid-secondary">{stats.uniqueCards}</div>
-              <div className="text-sm text-gray-500">Unique Cards</div>
+              <div className="text-2xl font-bold text-kid-secondary sm:text-4xl">
+                {stats.uniqueCards}
+              </div>
+              <div className="text-xs text-gray-500 sm:text-sm">Unique Cards</div>
             </div>
           </div>
-          <div className="rounded-xl bg-white p-6 shadow-sm">
+          <div className="rounded-xl bg-white p-3 shadow-sm sm:p-6">
             <div className="text-center">
-              <div className="text-4xl font-bold text-kid-success">{stats.setsStarted}</div>
-              <div className="text-sm text-gray-500">Sets Started</div>
+              <div className="text-2xl font-bold text-kid-success sm:text-4xl">
+                {stats.setsStarted}
+              </div>
+              <div className="text-xs text-gray-500 sm:text-sm">Sets Started</div>
             </div>
           </div>
         </div>
 
         {/* Main content with sidebar layout */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-4">
           {/* Collection Content */}
           <div className="lg:col-span-3">
             {collection.length === 0 ? (

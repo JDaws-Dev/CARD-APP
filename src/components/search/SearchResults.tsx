@@ -79,12 +79,12 @@ export function SearchResults({ cards, isLoading }: SearchResultsProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <p className="text-sm text-gray-500">
         Found {cards.length} card{cards.length !== 1 ? 's' : ''}
       </p>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5">
         {cards.map((card) => {
           const isOwned = ownedCards.has(card.id);
           const quantity = ownedCards.get(card.id) || 0;

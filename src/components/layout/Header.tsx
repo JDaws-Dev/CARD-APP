@@ -53,11 +53,11 @@ export function Header() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+          className="flex items-center gap-1.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 sm:gap-2"
           aria-label="KidCollect - Go to home page"
         >
-          <CardStackIcon className="h-10 w-10" aria-hidden="true" />
-          <span className="bg-gradient-to-r from-kid-primary to-kid-secondary bg-clip-text text-xl font-bold text-transparent">
+          <CardStackIcon className="h-8 w-8 sm:h-10 sm:w-10" aria-hidden="true" />
+          <span className="bg-gradient-to-r from-kid-primary to-kid-secondary bg-clip-text text-lg font-bold text-transparent sm:text-xl">
             KidCollect
           </span>
         </Link>
