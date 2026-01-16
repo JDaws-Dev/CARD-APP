@@ -25,7 +25,7 @@
 - [ ] Implement parent PIN protection logic (store hashed PIN, verify on access)
 - [ ] **Profile type field** - Add `profileType: "parent" | "child"` to profiles schema for role-based UI
 - [ ] **Get current user profile query** - Return profile with type for header/dashboard routing
-- [ ] **Kid dashboard stats query** - Return collection count, badge count, current streak, recent activity for dashboard
+- [x] **Kid dashboard stats query** - Return collection count, badge count, current streak, recent activity for dashboard
 - [ ] Create collection value calculation query (sum tcgplayer.prices for all owned cards)
 - [ ] Add "most valuable cards" query (return top N cards by market price)
 
@@ -565,3 +565,37 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - cardSelectionProbability (edge cases, multiple occurrences)
   - Integration scenarios: Featured Cards Display, Random Card from Set, Holofoil Random Selection, Empty Collection Handling, Single Card Collection
 - All 956 tests pass, linter clean
+
+### 2026-01-16: Add kid dashboard stats query
+
+- Added `getKidDashboardStats` query to `convex/profiles.ts`:
+  - Returns complete dashboard stats for a kid profile in a single query
+  - Collection stats: uniqueCards, totalCards, setsStarted
+  - Badge stats: total count, recentlyEarned (last 7 days)
+  - Streak info: currentStreak, longestStreak, isActiveToday, lastActiveDate
+  - Recent activity: last 10 actions with enriched display text, icons, and relative timestamps
+  - Enriches activity logs with card names from cachedCards table
+  - Includes profile info (displayName, avatarUrl)
+- Added helper functions: `calculateStreakFromDates`, `formatRelativeTime`
+- Created `src/lib/dashboardStats.ts` with pure utility functions:
+  - Collection stats: `calculateCollectionStats`, `extractSetId`
+  - Badge stats: `calculateBadgeStats` with configurable recentDays
+  - Streak calculation: `areConsecutiveDays`, `calculateStreak`, `extractActivityDates`, `getTodayDateString`, `getYesterdayDateString`, `timestampToDateString`
+  - Activity formatting: `formatRelativeTime`, `getActivityIcon`, `formatActivityForDisplay`, `formatActivitiesForDisplay`
+  - Dashboard composition: `calculateDashboardStats`
+  - Streak helpers: `getStreakStatusMessage`, `isStreakAtRisk`, `formatStreakDisplay`
+- Exported types: `CollectionStats`, `BadgeStats`, `StreakInfo`, `ActivityLogEntry`, `EnrichedActivity`, `DashboardStats`, `CollectionCard`, `Achievement`
+- Added 53 tests in `src/lib/__tests__/dashboardStats.test.ts` covering:
+  - extractSetId parsing
+  - calculateCollectionStats (empty, unique cards, totals, sets)
+  - calculateBadgeStats (total, recentlyEarned, custom days)
+  - areConsecutiveDays (consecutive, non-consecutive, boundaries)
+  - calculateStreak (empty, today, yesterday, broken, longest vs current)
+  - extractActivityDates (unique, filtered, sorted)
+  - formatRelativeTime (just now, minutes, hours, days)
+  - getActivityIcon (all action types)
+  - formatActivityForDisplay (card_added, card_removed, achievement_earned, name lookups)
+  - calculateDashboardStats integration
+  - Streak helpers (status messages, at risk detection, display formatting)
+  - Integration scenarios: New User, Active Collector, Streak at Risk
+- All 959 tests pass, linter clean
