@@ -102,11 +102,75 @@
 
 - [ ] Dark mode toggle - System preference detection + manual toggle
 - [ ] Offline viewing indicator - Show when viewing cached data, sync status
-- [ ] Update landing page with new tagline - "All your cards. One app."
+- [x] Update landing page with new tagline - "All your cards. One app."
 - [ ] Add trust signals to landing page - COPPA badge, "No ads ever" shield, "Cloud backup" icon
 - [ ] Set completion confetti - Big celebration when hitting 100% on a set
 - [ ] Optimize card grid scrolling performance - Virtual scrolling for large collections
 - [ ] Create onboarding flow - New user walkthrough: pick games, create profile, add first cards
+
+### Forgiving Streak System (Research-based)
+
+- [ ] Grace day streak protection - 1 "grace day" per week that doesn't break streak when missed
+- [ ] Weekend pause toggle - Optional setting to pause streak requirements on weekends
+- [ ] Streak repair with XP - Spend accumulated XP to repair a recently broken streak (teaches consequence/value)
+- [ ] Visual streak calendar - Show past 30 days with activity markers and grace days used
+- [ ] Streak milestone rewards - Special avatar items or badges at 7, 14, 30, 60, 100 day streaks
+
+### Virtual Experience Features
+
+- [ ] Virtual Pack Opening Simulator - 2 free daily "packs" with realistic opening animations (random cards from user's collected sets, no purchases)
+- [ ] Pack opening haptics/sounds - Toggle-able whoosh and sparkle sounds, phone vibration for rare pulls
+- [ ] Virtual Trophy Room - 3D-style display shelves showing user's top 10 rarest/most valuable cards with glow effects
+- [ ] Digital binder view - Page-turn animations, customizable binder cover themes (Pokemon types, starter themes)
+- [ ] Card flip animation - Tap any card to see the back design with smooth 3D flip effect
+- [ ] Card zoom with pinch - Pinch to zoom on card artwork, pan around for detail viewing
+
+### Collection Timeline & Story
+
+- [ ] Timeline View - Chronological view of when cards were added with month markers and "collection anniversaries"
+- [ ] First card celebration - Special permanent badge/display for user's very first card (nostalgia feature)
+- [ ] Collector's Journey Story Mode - Adventure narrative that unlocks chapters based on collection milestones
+- [ ] Adventure Map visualization - Visual map showing Pokemon regions unlocked based on sets/types collected
+- [ ] Collection stats over time - Graphs showing collection growth, cards per month, value over time
+
+### Family & Social Features
+
+- [ ] Family Collection goals - Shared collection goal between parent and child accounts with combined progress bar
+- [ ] Sleep mode scheduling - Parent-controlled quiet hours where app shows calming "Time for bed!" screen
+- [ ] Trade suggestion engine - Suggest trades between siblings based on wishlists and duplicate cards
+- [ ] Family leaderboard - Opt-in friendly competition between family members (cards collected this week)
+- [ ] Shared wishlist viewing - Parents can view all children's wishlists in one place for gift planning
+
+### Financial Literacy (Kid-Friendly)
+
+- [ ] Savings goals calculator - "Want this $50 card? Here's how long saving $5/week takes" with visual piggy bank progress
+- [ ] Wishlist total tracker - Show combined estimated value of all wishlisted items
+- [ ] Budget-friendly alternatives - Suggest similar but cheaper cards when viewing expensive wishlist items
+- [ ] "Is it worth it?" helper - Educational comparison showing what else you could buy for the same price
+
+### Educational Mini-Games
+
+- [ ] "Grade Like a Pro" mini-game - Show card images, user guesses condition (NM/LP/MP/HP), earn XP for correct answers
+- [ ] Rarity guessing game - Show card artwork only, guess the rarity before reveal
+- [ ] Set symbol matching game - Match set symbols to set names for learning
+- [ ] Pokemon type quiz - Quick quiz on Pokemon types based on cards in collection
+- [ ] Price estimation game - Guess if card is worth more or less than $X (teaches value awareness)
+
+### Enhanced Accessibility
+
+- [ ] Low-stimulation mode - Autism-friendly mode with reduced animations, muted colors, no sounds, simpler layouts
+- [ ] OpenDyslexic font option - Toggle dyslexia-friendly font throughout app
+- [ ] High-contrast mode - Enhanced contrast beyond standard dark mode for vision accessibility
+- [ ] Screen reader optimization - Enhanced ARIA descriptions, live regions for all dynamic content
+- [ ] Reduced motion beyond system - Manual toggle for reduced motion even if system preference isn't set
+- [ ] Focus mode - Hide all gamification elements for users who find them overwhelming
+
+### Engagement & Retention
+
+- [ ] Daily stamp collection - Non-consecutive stamp system (collect 5 stamps in a week for reward, doesn't need to be consecutive)
+- [ ] Weekly challenges - "Add 3 water-type cards this week" with themed rewards
+- [ ] Comeback rewards - Special welcome back celebration and bonus XP for returning after absence
+- [ ] Collection snapshot sharing - Generate shareable image of collection stats/highlights for social media
 
 ---
 
@@ -154,3 +218,4 @@
 - **2026-01-16**: Added set structure intro onboarding flow - Created comprehensive educational content about Pokemon TCG sets (src/lib/setStructureContent.ts) with 6-step onboarding flow covering: what a set is, finding set symbols, understanding card numbers, types of sets (main expansion, mini set, special set, promo), what a "master set" means, and collection tracking. SetStructureIntro component (src/components/onboarding/SetStructureIntro.tsx) provides both modal and inline versions with step-by-step progress tracking, animated celebrations on completion, and bonus sections explaining 4 set types and 5 collection goals with difficulty ratings (easy to expert). SetStructureButton component integrated into /sets page header with "New" badge for first-time users. Features: localStorage-based completion tracking, keyboard navigation (arrow keys, Enter, Escape), full ARIA accessibility, gradient styling per step. Includes 48 unit tests covering content library functions, data structure validation, and content quality. Uses Heroicons (BookOpenIcon, TrophyIcon, SparklesIcon, ChevronLeftIcon, ChevronRightIcon, XMarkIcon, CheckCircleIcon, LightBulbIcon, ArrowRightIcon, MagnifyingGlassIcon, HashtagIcon, Squares2X2Icon, ChartBarIcon, CubeIcon, Square3Stack3DIcon, StarIcon, HeartIcon, FireIcon). Commit: 458e5ab
 - **2026-01-16**: Added card condition basics guide - Created comprehensive kid-friendly card condition guide (src/components/guide/ConditionGuide.tsx) explaining NM/LP/MP/HP/DMG differences with visual representations. Features: ConditionCard components showing each condition with Heroicon indicators (SparklesIcon for NM, HandThumbUpIcon for LP, CheckCircleIcon for MP, ExclamationTriangleIcon for HP, XCircleIcon for DMG), color-coded gradients (emerald/blue/amber/orange/red), value percentage display (~100%/80%/50%/25%/10% of NM value), trade acceptability badges, detailed view with "What to Look For" checklist, damage examples, fun facts, and card care tips; VisualComparisonSection with table comparing corners/edges, surface condition, value, and trade status at a glance; ConditionGuideModal version for inline use; ConditionGuideButton component for triggering guide. Added /condition-guide page with loading.tsx and error.tsx route files. Integrated into /learn page with featured guide banner. Uses extensive content library (src/lib/conditionGuide.ts) with 122 existing tests covering condition info retrieval, comparison functions, grading guidance, statistics, and educational content. Uses Heroicons throughout (SparklesIcon, HandThumbUpIcon, CheckCircleIcon, ExclamationTriangleIcon, XCircleIcon, BookOpenIcon, MagnifyingGlassIcon, EyeIcon, CurrencyDollarIcon, ArrowsRightLeftIcon, StarIcon, ShieldCheckIcon, LightBulbIcon, ChevronLeftIcon, XMarkIcon, ArrowRightIcon). Commit: c2e63f3
 - **2026-01-16**: Rebranded from KidCollect to CardDex - Updated all user-facing references from "KidCollect" to "CardDex" across the entire UI. Changes include: Header component logo text and aria-label; root layout page title metadata; sets pages metadata titles; wishlist pages (invalid link CTA and footer link); export checklist PDF footer attribution (including domain change to pokemon.carddex.app); landing page feature descriptions, testimonials section, and footer disclaimer. All 1661 tests pass. Commit: 13fe21f
+- **2026-01-16**: Updated landing page with new tagline "All your cards. One app." - Added prominent tagline between the main heading and subheading in the hero section. Uses bold text with responsive sizing (text-xl on mobile, text-2xl on sm, text-3xl on md) in gray-800 color to stand out while maintaining visual hierarchy. All 1706 tests pass. Commit: 9fadc1b
