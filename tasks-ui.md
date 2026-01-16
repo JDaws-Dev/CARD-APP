@@ -20,17 +20,16 @@
 | **Financial Literacy**               | 0        | **4**     |
 | **Educational Mini-Games**           | 0        | **5**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
-| **Engagement & Retention**           | 3        | **1**     |
-| **TOTAL**                            | **84**   | **26**    |
+| **Engagement & Retention**           | 4        | **0**     |
+| **TOTAL**                            | **85**   | **25**    |
 
 ### Priority Order for Remaining Tasks
 
-1. **Engagement & Retention** (2 tasks) - Comeback rewards, snapshot sharing - Key for daily active users
-2. **Virtual Experience Features** (6 tasks) - Pack opening simulator, trophy room - Fun differentiators
-3. **Family & Social Features** (5 tasks) - Family goals, trade suggestions - Multi-user value
-4. **Educational Mini-Games** (5 tasks) - Grade Like a Pro, rarity guessing - Learning through play
-5. **Financial Literacy** (4 tasks) - Savings calculator, budget alternatives - Parent-friendly
-6. **Collection Timeline & Story** (5 tasks) - Timeline view, adventure map - Nice-to-have features
+1. **Virtual Experience Features** (6 tasks) - Pack opening simulator, trophy room - Fun differentiators
+2. **Family & Social Features** (5 tasks) - Family goals, trade suggestions - Multi-user value
+3. **Educational Mini-Games** (5 tasks) - Grade Like a Pro, rarity guessing - Learning through play
+4. **Financial Literacy** (4 tasks) - Savings calculator, budget alternatives - Parent-friendly
+5. **Collection Timeline & Story** (5 tasks) - Timeline view, adventure map - Nice-to-have features
 
 ---
 
@@ -213,7 +212,7 @@
 - [x] Daily stamp collection - Non-consecutive stamp system (collect 5 stamps in a week for reward, doesn't need to be consecutive)
 - [x] Weekly challenges - "Add 3 water-type cards this week" with themed rewards
 - [x] Comeback rewards - Special welcome back celebration and bonus XP for returning after absence
-- [ ] Collection snapshot sharing - Generate shareable image of collection stats/highlights for social media
+- [x] Collection snapshot sharing - Generate shareable image of collection stats/highlights for social media
 
 ---
 
@@ -298,3 +297,4 @@
 - **2026-01-16**: Added daily stamp collection system - Created non-consecutive stamp system where users collect 5 stamps in any week for bonus XP reward. Features: dailyStamps.ts utility library with stamp tracking, week boundaries, and progress calculations; DailyStampProvider context for app-wide state management; DailyStampCollection component with weekly 7-day stamp grid, interactive collect-today cells with pulse animation, progress bar with smooth transitions, reward claim modal with celebration animation; stamp milestones at 10/25/50/100 total stamps with progress indicators; localStorage persistence with automatic cleanup of old data (>8 weeks); integrated into /streak page with skeleton loading states; added tip about daily stamps to tips section. Uses Heroicons (CalendarDaysIcon, GiftIcon, SparklesIcon, CheckCircleIcon, StarIcon, FireIcon, BoltIcon). Commit: fb6ee0d
 - **2026-01-16**: Added weekly challenges system - Created themed weekly challenges like "Add 3 Water-type cards this week" with XP rewards. Features: weeklyChallenges.ts library with 14 challenge templates covering type collection (fire, water, grass, lightning, psychic, fighting, dragon), rarity hunts (rare, ultra rare), variant collection (holofoil, reverse holo), and general challenges (set explorer, variety collector, card enthusiast); deterministic weekly selection using seeded random based on week start date; WeeklyChallenges component with ChallengeCard displaying progress bars, status indicators, and claim buttons; reward modal with celebration animation; tracks all-time completed challenges and total XP earned; localStorage persistence with auto-cleanup of old data; integrated into /streak page below daily stamps with skeleton loading state; added tip about weekly challenges. Uses Heroicons (TrophyIcon, SparklesIcon, CheckCircleIcon, ClockIcon, GiftIcon, BoltIcon, FireIcon, GlobeAltIcon, StarIcon, ShieldCheckIcon, HeartIcon, RocketLaunchIcon). Commit: 266caa9
 - **2026-01-16**: Added comeback rewards system - Special welcome back celebration with bonus XP for users returning after absence. Features: comebackRewards.ts utility library with 4 reward tiers (3 days = 5 XP, 7 days = 15 XP, 14 days = 30 XP, 30 days = 50 XP); ComebackProvider context that detects absence and shows celebration modal on return; ComebackCelebration modal with animated background rings, tier-specific gradients (bronze/silver/gold/platinum), gift icon, XP reward display, and claim button; ComebackStatus compact display showing total comebacks earned and bonus XP history; localStorage persistence with visit tracking and claim deduplication; integrated into /streak page with skeleton loading state; added tip about comeback rewards. Uses Heroicons (GiftIcon, SparklesIcon, BoltIcon, HeartIcon, XMarkIcon, CheckCircleIcon). Commit: 8358a8f
+- **2026-01-16**: Added collection snapshot sharing for social media - Created CollectionSnapshotShare component (src/components/collection/CollectionSnapshotShare.tsx) generating shareable images of collection stats using HTML Canvas API. Features: 1080x1080px Instagram-friendly square format; 4 theme options (Galaxy purple, Ocean blue, Forest green, Sunset orange); displays profile name, total cards, unique cards, day streak, badges earned, sets started with progress bar; CardDex branding and tagline; date stamp; download as PNG, copy to clipboard, or share via Web Share API on mobile; modal preview with theme selector; integrated into Dashboard welcome header and Collection page header; skeleton loading state while data loads. Uses Heroicons (ShareIcon, XMarkIcon, ArrowDownTrayIcon, ClipboardDocumentIcon, CheckIcon, SparklesIcon, Square3Stack3DIcon, TrophyIcon, FireIcon, StarIcon). Commit: 0006c18
