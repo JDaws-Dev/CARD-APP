@@ -22,6 +22,9 @@ export default defineSchema({
     displayName: v.string(),
     avatarUrl: v.optional(v.string()),
     profileType: v.optional(v.union(v.literal('parent'), v.literal('child'))),
+    // XP/Level system fields
+    xp: v.optional(v.number()), // Total XP earned
+    level: v.optional(v.number()), // Current level (cached, derived from XP)
   }).index('by_family', ['familyId']),
 
   // ============================================================================
