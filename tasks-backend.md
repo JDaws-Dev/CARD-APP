@@ -101,7 +101,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 
 ### Additional Features
 
-- [ ] Japanese promo support - Proper detection and categorization of Japanese promos
+- [x] Japanese promo support - Proper detection and categorization of Japanese promos
 - [x] "New in collection" tracking - Query for cards added in last 7 days
 - [x] Random card query - Return random card from user's collection
 - [x] Rarity filter support - Add rarity indexing for efficient filtering
@@ -1505,3 +1505,44 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Validation functions (normalizeRarity, validateRarityFilter)
   - Integration scenarios: Collection Analysis, Filter Workflow, Display Formatting
 - All 3251 tests pass, linter clean
+
+### 2026-01-16: Japanese promo support - Proper detection and categorization
+
+- Created `src/lib/japanesePromos.ts` with comprehensive utilities for detecting and categorizing Japanese promotional cards:
+  - Types: `JapanesePromoCategory` (magazine/tournament/movie/store/campaign/prerelease/prize/other), `JapanesePromoSource`, `JapanesePromoInfo`, `CardForPromoDetection`
+  - Constants:
+    - `JAPANESE_PROMO_SET_PATTERNS`: RegExp patterns for Japanese promo set IDs (svp, swshp, -jp suffix, jp- prefix)
+    - `JAPANESE_PROMO_NUMBER_PATTERNS`: 20+ patterns for card numbers (CoroCoro, V-Jump, Pokemon Center, WCS, movie promos, etc.)
+    - `JAPANESE_PROMO_SOURCES`: 15 known sources with category, displayName, and description
+    - `PROMO_CATEGORY_INFO`: 8 categories with displayName, icon emoji, and description
+    - `JAPANESE_PROMO_KEYWORDS`: 19 keywords for keyword-based detection
+  - Detection functions:
+    - `detectByNumberPattern`: Match card number against known patterns (high confidence)
+    - `detectBySetId`: Check if set ID matches Japanese promo patterns
+    - `detectByKeywords`: Search card name and set name for Japanese promo keywords
+    - `hasJapanesePromoNumberFormat`: Check for general Japanese numbering formats
+    - `detectJapanesePromo`: Comprehensive detection using all methods with confidence scoring (high/medium/low)
+  - Categorization helpers:
+    - `getCategoryDisplayName`, `getCategoryIcon`, `getCategoryDescription`: Get category info
+    - `getSourceInfo`, `getSourcesForCategory`: Get source details
+    - `getAllCategories`, `getAllCategoryInfo`: List all categories
+  - Display helpers:
+    - `formatPromoForDisplay`: Format promo info for UI display
+    - `getPromoTooltip`: Generate tooltip text with source details
+    - `getPromoLabel`: Get short abbreviation (CC, VJ, PC, WCS, etc.)
+    - `isCollectiblePromo`: Check if promo is valuable/sought-after (prize, tournament, movie)
+    - `getPromoRarityTier`: Get relative rarity tier (ultra-rare, rare, uncommon, common)
+  - Batch processing:
+    - `detectJapanesePromosInBatch`: Process multiple cards at once
+    - `filterJapanesePromos`: Filter to only Japanese promos
+    - `groupByPromoCategory`: Group cards by category
+    - `countByCategory`: Count cards by category
+    - `getPromoStats`: Comprehensive statistics (total, by category, by confidence, collectible count)
+- Added 125 tests in `src/lib/__tests__/japanesePromos.test.ts` covering:
+  - Constants validation (patterns, sources, categories, keywords)
+  - All detection functions (number patterns, set IDs, keywords, comprehensive detection)
+  - Categorization helpers (display names, icons, descriptions, source info)
+  - Display helpers (formatting, tooltips, labels, collectibility, rarity tiers)
+  - Batch processing (detection, filtering, grouping, counting, statistics)
+  - Integration scenarios: CoroCoro collection, Tournament prize cards, Store exclusives, Mixed collection analysis, Confidence levels, Edge cases
+- All 3430 tests pass, linter clean
