@@ -83,8 +83,8 @@ function getLevelFromXP(totalXP: number): {
   progress: number;
   isMaxLevel: boolean;
 } {
-  let currentLevel = LEVEL_THRESHOLDS[0];
-  let nextLevel = LEVEL_THRESHOLDS[1];
+  let currentLevel: (typeof LEVEL_THRESHOLDS)[number] = LEVEL_THRESHOLDS[0];
+  let nextLevel: (typeof LEVEL_THRESHOLDS)[number] = LEVEL_THRESHOLDS[1];
 
   for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
     if (totalXP >= LEVEL_THRESHOLDS[i].xp) {

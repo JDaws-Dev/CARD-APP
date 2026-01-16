@@ -10,7 +10,9 @@
 
 import type * as achievements from "../achievements.js";
 import type * as activityLogs from "../activityLogs.js";
+import type * as auth from "../auth.js";
 import type * as collections from "../collections.js";
+import type * as http from "../http.js";
 import type * as profiles from "../profiles.js";
 import type * as wishlist from "../wishlist.js";
 
@@ -23,7 +25,9 @@ import type {
 declare const fullApi: ApiFromModules<{
   achievements: typeof achievements;
   activityLogs: typeof activityLogs;
+  auth: typeof auth;
   collections: typeof collections;
+  http: typeof http;
   profiles: typeof profiles;
   wishlist: typeof wishlist;
 }>;

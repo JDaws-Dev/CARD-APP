@@ -232,7 +232,7 @@ function VariantSelector({
           className="ml-2 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1"
           aria-label="Close variant selector"
         >
-          <XMarkIcon className="h-4 w-4" aria-hidden="true" />
+          <XMarkIcon className="h-4 w-4" aria-hidden={true} />
         </button>
       </div>
 
@@ -242,7 +242,7 @@ function VariantSelector({
           className="mb-3 flex items-center gap-2 rounded-lg bg-kid-success/10 px-3 py-2"
           aria-live="polite"
         >
-          <CheckCircleIcon className="h-4 w-4 text-kid-success" aria-hidden="true" />
+          <CheckCircleIcon className="h-4 w-4 text-kid-success" aria-hidden={true} />
           <span className="text-xs font-medium text-kid-success">{totalOwned} total owned</span>
         </div>
       )}
@@ -270,7 +270,7 @@ function VariantSelector({
                     'flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br text-white',
                     `${config.gradient}`
                   )}
-                  aria-hidden="true"
+                  aria-hidden={true}
                 >
                   {Icon ? (
                     <Icon className="h-4 w-4" />
@@ -302,7 +302,7 @@ function VariantSelector({
                   aria-label={`Remove one ${config.label} copy`}
                   aria-disabled={quantity === 0}
                 >
-                  <MinusIcon className="h-4 w-4" aria-hidden="true" />
+                  <MinusIcon className="h-4 w-4" aria-hidden={true} />
                 </button>
                 <span
                   className="min-w-[1.5rem] text-center text-sm font-semibold text-gray-800"
@@ -316,7 +316,7 @@ function VariantSelector({
                   className="flex h-7 w-7 items-center justify-center rounded-full bg-kid-primary text-white transition-colors hover:bg-kid-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1"
                   aria-label={`Add one ${config.label} copy`}
                 >
-                  <PlusIcon className="h-4 w-4" aria-hidden="true" />
+                  <PlusIcon className="h-4 w-4" aria-hidden={true} />
                 </button>
               </div>
             </div>
@@ -335,10 +335,20 @@ function VariantSelector({
 }
 
 // Sparkle icon component for "NEW" badge
-function SparkleStarIcon({ className }: { className?: string }) {
+function SparkleStarIcon({
+  className,
+  style,
+  "aria-hidden": ariaHidden,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+  "aria-hidden"?: boolean;
+}) {
   return (
     <svg
       className={className}
+      style={style}
+      aria-hidden={ariaHidden}
       viewBox="0 0 24 24"
       fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
@@ -669,11 +679,11 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                   className="new-badge-shimmer absolute -right-1 -top-1 z-10 flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-bold text-white shadow-lg"
                   title="Added in the last 7 days"
                 >
-                  <SparkleStarIcon className="animate-sparkle h-3 w-3" aria-hidden="true" />
+                  <SparkleStarIcon className="animate-sparkle h-3 w-3" aria-hidden={true} />
                   <span>NEW</span>
                   <SparkleStarIcon
                     className="animate-sparkle h-3 w-3"
-                    aria-hidden="true"
+                    aria-hidden={true}
                     style={{ animationDelay: '0.5s' }}
                   />
                 </div>
@@ -727,9 +737,9 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                   aria-pressed={isWishlisted}
                 >
                   {isWishlisted ? (
-                    <HeartIconSolid className="h-4 w-4" aria-hidden="true" />
+                    <HeartIconSolid className="h-4 w-4" aria-hidden={true} />
                   ) : (
-                    <HeartIcon className="h-4 w-4" aria-hidden="true" />
+                    <HeartIcon className="h-4 w-4" aria-hidden={true} />
                   )}
                 </button>
 
@@ -762,9 +772,9 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                     }
                   >
                     {isPriority ? (
-                      <StarIconSolid className="h-4 w-4" aria-hidden="true" />
+                      <StarIconSolid className="h-4 w-4" aria-hidden={true} />
                     ) : (
-                      <StarIconOutline className="h-4 w-4" aria-hidden="true" />
+                      <StarIconOutline className="h-4 w-4" aria-hidden={true} />
                     )}
                   </button>
                 )}

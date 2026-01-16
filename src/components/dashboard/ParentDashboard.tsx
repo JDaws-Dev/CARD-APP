@@ -348,8 +348,8 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
   const family = useQuery(api.profiles.getFamily, { familyId });
   const profiles = useQuery(api.profiles.getProfilesByFamily, { familyId });
 
-  // Loading state
-  if (family === undefined || profiles === undefined) {
+  // Loading state or no family found
+  if (family === undefined || family === null || profiles === undefined) {
     return <ParentDashboardSkeleton />;
   }
 

@@ -1,7 +1,10 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
+  ...authTables,
+
   // ============================================================================
   // FAMILY & AUTHENTICATION
   // ============================================================================
@@ -28,9 +31,17 @@ export default defineSchema({
     profileId: v.id("profiles"),
     cardId: v.string(), // Pokemon TCG API card ID (e.g., "sv1-1")
     quantity: v.number(),
+    variant: v.optional(v.union(
+      v.literal("normal"),
+      v.literal("holofoil"),
+      v.literal("reverseHolofoil"),
+      v.literal("1stEditionHolofoil"),
+      v.literal("1stEditionNormal")
+    )),
   })
     .index("by_profile", ["profileId"])
-    .index("by_profile_and_card", ["profileId", "cardId"]),
+    .index("by_profile_and_card", ["profileId", "cardId"])
+    .index("by_profile_card_variant", ["profileId", "cardId", "variant"]),
 
   // ============================================================================
   // WISHLIST
