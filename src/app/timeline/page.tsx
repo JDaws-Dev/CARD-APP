@@ -2,6 +2,7 @@
 
 import { CollectionTimeline } from '@/components/collection/CollectionTimeline';
 import { FirstCardCelebration } from '@/components/collection/FirstCardCelebration';
+import { CollectionStatsGraph } from '@/components/collection/CollectionStatsGraph';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import Link from 'next/link';
 import { ArrowLeftIcon, CalendarDaysIcon, SparklesIcon, HomeIcon } from '@heroicons/react/24/outline';
@@ -90,6 +91,11 @@ export default function TimelinePage() {
         {/* First Card Celebration */}
         <div className="mb-6">
           <FirstCardCelebration />
+        </div>
+
+        {/* Collection Stats Graph */}
+        <div className="mb-6">
+          <CollectionStatsGraph />
         </div>
 
         {/* Timeline */}
