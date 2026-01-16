@@ -850,3 +850,413 @@ describe('Integration Scenarios', () => {
     });
   });
 });
+
+// ============================================================================
+// VARIANT GROUPING
+// ============================================================================
+
+import {
+  VARIANT_DISPLAY_NAMES,
+  getVariantDisplayName,
+  groupCollectionByVariant,
+  enrichWithNames,
+  calculateVariantSummary,
+  getUsedVariants,
+  filterByVariant,
+  sortByVariant,
+  sortByCardIdThenVariant,
+  groupCardsByCardIdWithDetails,
+  countByVariant,
+  quantityByVariant,
+  hasVariant,
+  getAllVariantsOfCard,
+  getTotalQuantityOfCard,
+} from '../collections';
+
+describe('Variant Grouping Functions', () => {
+  const multiVariantCollection: CollectionCard[] = [
+    createCard('sv1-1', 3, 'normal'),
+    createCard('sv1-1', 1, 'holofoil'),
+    createCard('sv1-1', 2, 'reverseHolofoil'),
+    createCard('sv1-25', 2, 'normal'),
+    createCard('sv1-25', 1, 'holofoil'),
+    createCard('sv2-10', 5, '1stEditionHolofoil'),
+    createCard('sv2-50', 1, '1stEditionNormal'),
+  ];
+
+  describe('VARIANT_DISPLAY_NAMES', () => {
+    it('should have display names for all valid variants', () => {
+      for (const variant of VALID_VARIANTS) {
+        expect(VARIANT_DISPLAY_NAMES[variant]).toBeDefined();
+        expect(typeof VARIANT_DISPLAY_NAMES[variant]).toBe('string');
+      }
+    });
+
+    it('should have correct display names', () => {
+      expect(VARIANT_DISPLAY_NAMES['normal']).toBe('Normal');
+      expect(VARIANT_DISPLAY_NAMES['holofoil']).toBe('Holofoil');
+      expect(VARIANT_DISPLAY_NAMES['reverseHolofoil']).toBe('Reverse Holofoil');
+      expect(VARIANT_DISPLAY_NAMES['1stEditionHolofoil']).toBe('1st Edition Holofoil');
+      expect(VARIANT_DISPLAY_NAMES['1stEditionNormal']).toBe('1st Edition Normal');
+    });
+  });
+
+  describe('getVariantDisplayName', () => {
+    it('should return display name for valid variants', () => {
+      expect(getVariantDisplayName('normal')).toBe('Normal');
+      expect(getVariantDisplayName('holofoil')).toBe('Holofoil');
+      expect(getVariantDisplayName('reverseHolofoil')).toBe('Reverse Holofoil');
+    });
+  });
+
+  describe('groupCollectionByVariant', () => {
+    it('should create enriched cards from collection cards', () => {
+      const cards = [createCard('sv1-1', 2, 'holofoil')];
+      const grouped = groupCollectionByVariant(cards);
+
+      expect(grouped).toHaveLength(1);
+      expect(grouped[0].cardId).toBe('sv1-1');
+      expect(grouped[0].variant).toBe('holofoil');
+      expect(grouped[0].quantity).toBe(2);
+      expect(grouped[0].setId).toBe('sv1');
+    });
+
+    it('should default to normal variant when undefined', () => {
+      const cards: CollectionCard[] = [{ cardId: 'sv1-1', quantity: 1, variant: 'normal' }];
+      const grouped = groupCollectionByVariant(cards);
+
+      expect(grouped[0].variant).toBe('normal');
+    });
+
+    it('should handle empty collection', () => {
+      const grouped = groupCollectionByVariant([]);
+      expect(grouped).toHaveLength(0);
+    });
+  });
+
+  describe('enrichWithNames', () => {
+    it('should add names from name map', () => {
+      const cards = groupCollectionByVariant([createCard('sv1-1', 1, 'normal')]);
+      const nameMap = new Map([['sv1-1', 'Pikachu']]);
+
+      const enriched = enrichWithNames(cards, nameMap);
+
+      expect(enriched[0].name).toBe('Pikachu');
+    });
+
+    it('should fall back to cardId when name not found', () => {
+      const cards = groupCollectionByVariant([createCard('sv1-1', 1, 'normal')]);
+      const nameMap = new Map<string, string>();
+
+      const enriched = enrichWithNames(cards, nameMap);
+
+      expect(enriched[0].name).toBe('sv1-1');
+    });
+  });
+
+  describe('calculateVariantSummary', () => {
+    it('should calculate correct summary', () => {
+      const summary = calculateVariantSummary(multiVariantCollection);
+
+      expect(summary.totalEntries).toBe(7);
+      expect(summary.totalQuantity).toBe(15);
+      expect(summary.uniqueCards).toBe(4);
+      expect(summary.variantBreakdown.normal).toBe(2);
+      expect(summary.variantBreakdown.holofoil).toBe(2);
+      expect(summary.variantBreakdown.reverseHolofoil).toBe(1);
+      expect(summary.variantBreakdown['1stEditionHolofoil']).toBe(1);
+      expect(summary.variantBreakdown['1stEditionNormal']).toBe(1);
+    });
+
+    it('should handle empty collection', () => {
+      const summary = calculateVariantSummary([]);
+
+      expect(summary.totalEntries).toBe(0);
+      expect(summary.totalQuantity).toBe(0);
+      expect(summary.uniqueCards).toBe(0);
+    });
+
+    it('should count all variants even when zero', () => {
+      const cards = [createCard('sv1-1', 1, 'normal')];
+      const summary = calculateVariantSummary(cards);
+
+      expect(summary.variantBreakdown.holofoil).toBe(0);
+      expect(summary.variantBreakdown.reverseHolofoil).toBe(0);
+    });
+  });
+
+  describe('getUsedVariants', () => {
+    it('should return only variants present in collection', () => {
+      const used = getUsedVariants(multiVariantCollection);
+
+      expect(used).toContain('normal');
+      expect(used).toContain('holofoil');
+      expect(used).toContain('reverseHolofoil');
+      expect(used).toContain('1stEditionHolofoil');
+      expect(used).toContain('1stEditionNormal');
+      expect(used).toHaveLength(5);
+    });
+
+    it('should handle empty collection', () => {
+      const used = getUsedVariants([]);
+      expect(used).toHaveLength(0);
+    });
+
+    it('should return sorted array', () => {
+      const used = getUsedVariants(multiVariantCollection);
+      const sorted = [...used].sort();
+      expect(used).toEqual(sorted);
+    });
+  });
+
+  describe('filterByVariant', () => {
+    it('should filter to single variant', () => {
+      const holofoils = filterByVariant(multiVariantCollection, 'holofoil');
+
+      expect(holofoils).toHaveLength(2);
+      expect(holofoils.every((c) => c.variant === 'holofoil')).toBe(true);
+    });
+
+    it('should return empty for unused variant', () => {
+      const cards = [createCard('sv1-1', 1, 'normal')];
+      const holofoils = filterByVariant(cards, 'holofoil');
+
+      expect(holofoils).toHaveLength(0);
+    });
+  });
+
+  describe('sortByVariant', () => {
+    it('should sort by variant order', () => {
+      const sorted = sortByVariant(multiVariantCollection);
+
+      // Normal should come first
+      expect(sorted[0].variant).toBe('normal');
+      expect(sorted[1].variant).toBe('normal');
+      // Then holofoil
+      expect(sorted[2].variant).toBe('holofoil');
+      expect(sorted[3].variant).toBe('holofoil');
+    });
+
+    it('should sort descending when specified', () => {
+      const sorted = sortByVariant(multiVariantCollection, false);
+
+      // 1stEdition variants should come first in descending
+      expect(sorted[0].variant).toBe('1stEditionNormal');
+      expect(sorted[1].variant).toBe('1stEditionHolofoil');
+    });
+
+    it('should not mutate original array', () => {
+      const original = [...multiVariantCollection];
+      sortByVariant(multiVariantCollection);
+      expect(multiVariantCollection).toEqual(original);
+    });
+  });
+
+  describe('sortByCardIdThenVariant', () => {
+    it('should sort by cardId first, then variant', () => {
+      const sorted = sortByCardIdThenVariant(multiVariantCollection);
+
+      expect(sorted[0].cardId).toBe('sv1-1');
+      expect(sorted[0].variant).toBe('normal');
+      expect(sorted[1].cardId).toBe('sv1-1');
+      expect(sorted[1].variant).toBe('holofoil');
+      expect(sorted[2].cardId).toBe('sv1-1');
+      expect(sorted[2].variant).toBe('reverseHolofoil');
+    });
+  });
+
+  describe('groupCardsByCardIdWithDetails', () => {
+    it('should group cards by cardId with variants', () => {
+      const grouped = groupCardsByCardIdWithDetails(multiVariantCollection);
+
+      expect(grouped).toHaveLength(4); // 4 unique cardIds
+
+      const sv1_1 = grouped.find((g) => g.cardId === 'sv1-1');
+      expect(sv1_1).toBeDefined();
+      expect(sv1_1!.totalQuantity).toBe(6);
+      expect(sv1_1!.variants.normal).toBe(3);
+      expect(sv1_1!.variants.holofoil).toBe(1);
+      expect(sv1_1!.variants.reverseHolofoil).toBe(2);
+    });
+
+    it('should include card names when provided', () => {
+      const nameMap = new Map([['sv1-1', 'Pikachu']]);
+      const grouped = groupCardsByCardIdWithDetails(multiVariantCollection, nameMap);
+
+      const sv1_1 = grouped.find((g) => g.cardId === 'sv1-1');
+      expect(sv1_1!.name).toBe('Pikachu');
+    });
+
+    it('should extract setId correctly', () => {
+      const grouped = groupCardsByCardIdWithDetails(multiVariantCollection);
+
+      const sv1_1 = grouped.find((g) => g.cardId === 'sv1-1');
+      expect(sv1_1!.setId).toBe('sv1');
+
+      const sv2_10 = grouped.find((g) => g.cardId === 'sv2-10');
+      expect(sv2_10!.setId).toBe('sv2');
+    });
+  });
+
+  describe('countByVariant', () => {
+    it('should count entries by variant', () => {
+      const counts = countByVariant(multiVariantCollection);
+
+      expect(counts.get('normal')).toBe(2);
+      expect(counts.get('holofoil')).toBe(2);
+      expect(counts.get('reverseHolofoil')).toBe(1);
+      expect(counts.get('1stEditionHolofoil')).toBe(1);
+      expect(counts.get('1stEditionNormal')).toBe(1);
+    });
+
+    it('should handle empty collection', () => {
+      const counts = countByVariant([]);
+      expect(counts.size).toBe(0);
+    });
+  });
+
+  describe('quantityByVariant', () => {
+    it('should sum quantities by variant', () => {
+      const quantities = quantityByVariant(multiVariantCollection);
+
+      expect(quantities.get('normal')).toBe(5); // 3 + 2
+      expect(quantities.get('holofoil')).toBe(2); // 1 + 1
+      expect(quantities.get('reverseHolofoil')).toBe(2);
+      expect(quantities.get('1stEditionHolofoil')).toBe(5);
+      expect(quantities.get('1stEditionNormal')).toBe(1);
+    });
+  });
+
+  describe('hasVariant', () => {
+    it('should return true when variant exists', () => {
+      expect(hasVariant(multiVariantCollection, 'holofoil')).toBe(true);
+      expect(hasVariant(multiVariantCollection, 'normal')).toBe(true);
+      expect(hasVariant(multiVariantCollection, '1stEditionHolofoil')).toBe(true);
+    });
+
+    it('should return false when variant does not exist', () => {
+      const cards = [createCard('sv1-1', 1, 'normal')];
+      expect(hasVariant(cards, 'holofoil')).toBe(false);
+    });
+
+    it('should handle empty collection', () => {
+      expect(hasVariant([], 'normal')).toBe(false);
+    });
+  });
+
+  describe('getAllVariantsOfCard', () => {
+    it('should return all variants of a specific card', () => {
+      const sv1_1Variants = getAllVariantsOfCard(multiVariantCollection, 'sv1-1');
+
+      expect(sv1_1Variants).toHaveLength(3);
+      expect(sv1_1Variants.map((c) => c.variant)).toContain('normal');
+      expect(sv1_1Variants.map((c) => c.variant)).toContain('holofoil');
+      expect(sv1_1Variants.map((c) => c.variant)).toContain('reverseHolofoil');
+    });
+
+    it('should return empty for card not in collection', () => {
+      const variants = getAllVariantsOfCard(multiVariantCollection, 'nonexistent');
+      expect(variants).toHaveLength(0);
+    });
+  });
+
+  describe('getTotalQuantityOfCard', () => {
+    it('should sum quantity across all variants', () => {
+      const total = getTotalQuantityOfCard(multiVariantCollection, 'sv1-1');
+      expect(total).toBe(6); // 3 + 1 + 2
+    });
+
+    it('should return 0 for card not in collection', () => {
+      const total = getTotalQuantityOfCard(multiVariantCollection, 'nonexistent');
+      expect(total).toBe(0);
+    });
+
+    it('should handle single variant', () => {
+      const total = getTotalQuantityOfCard(multiVariantCollection, 'sv2-10');
+      expect(total).toBe(5);
+    });
+  });
+});
+
+describe('Variant Grouping Integration Scenarios', () => {
+  describe('Displaying Collection by Variant', () => {
+    it('should support grouping for display', () => {
+      const collection: CollectionCard[] = [
+        createCard('sv1-1', 5, 'normal'),
+        createCard('sv1-1', 2, 'holofoil'),
+        createCard('sv1-25', 1, 'normal'),
+        createCard('sv2-10', 3, 'reverseHolofoil'),
+      ];
+
+      const grouped = groupCardsByCardIdWithDetails(collection);
+      const summary = calculateVariantSummary(collection);
+
+      // Should have 3 unique cards
+      expect(grouped).toHaveLength(3);
+
+      // sv1-1 should show both variants
+      const sv1_1 = grouped.find((g) => g.cardId === 'sv1-1');
+      expect(sv1_1!.totalQuantity).toBe(7);
+      expect(sv1_1!.variants.normal).toBe(5);
+      expect(sv1_1!.variants.holofoil).toBe(2);
+
+      // Summary shows variant distribution
+      expect(summary.variantBreakdown.normal).toBe(2);
+      expect(summary.variantBreakdown.holofoil).toBe(1);
+      expect(summary.variantBreakdown.reverseHolofoil).toBe(1);
+    });
+  });
+
+  describe('Filtering Collection View', () => {
+    it('should support filtering to specific variants', () => {
+      const collection: CollectionCard[] = [
+        createCard('sv1-1', 3, 'normal'),
+        createCard('sv1-1', 1, 'holofoil'),
+        createCard('sv1-25', 2, 'normal'),
+        createCard('sv1-50', 1, 'holofoil'),
+      ];
+
+      // Filter to holofoils only
+      const holofoils = filterByVariant(collection, 'holofoil');
+      expect(holofoils).toHaveLength(2);
+      expect(holofoils.every((c) => c.variant === 'holofoil')).toBe(true);
+
+      // Get quantity of holofoils
+      const quantities = quantityByVariant(holofoils);
+      expect(quantities.get('holofoil')).toBe(2);
+    });
+  });
+
+  describe('Collection Statistics', () => {
+    it('should provide complete variant statistics', () => {
+      const collection: CollectionCard[] = [
+        createCard('sv1-1', 10, 'normal'),
+        createCard('sv1-1', 5, 'holofoil'),
+        createCard('sv1-1', 3, 'reverseHolofoil'),
+        createCard('sv2-1', 2, 'normal'),
+        createCard('sv2-1', 1, '1stEditionHolofoil'),
+      ];
+
+      const summary = calculateVariantSummary(collection);
+      const usedVariants = getUsedVariants(collection);
+
+      // Summary stats
+      expect(summary.totalEntries).toBe(5);
+      expect(summary.totalQuantity).toBe(21);
+      expect(summary.uniqueCards).toBe(2);
+
+      // Variant breakdown
+      expect(summary.variantBreakdown.normal).toBe(2);
+      expect(summary.variantBreakdown.holofoil).toBe(1);
+      expect(summary.variantBreakdown.reverseHolofoil).toBe(1);
+      expect(summary.variantBreakdown['1stEditionHolofoil']).toBe(1);
+
+      // Used variants
+      expect(usedVariants).toContain('normal');
+      expect(usedVariants).toContain('holofoil');
+      expect(usedVariants).toContain('reverseHolofoil');
+      expect(usedVariants).toContain('1stEditionHolofoil');
+      expect(usedVariants).not.toContain('1stEditionNormal'); // Not used
+    });
+  });
+});

@@ -108,6 +108,189 @@ export const getCardVariants = query({
   },
 });
 
+/**
+ * Get the entire collection grouped by unique (cardId, variant) pairs.
+ * Returns enriched data including card names from the cache.
+ * Useful for displaying a full collection view with variant breakdown.
+ */
+export const getCollectionGroupedByVariant = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return {
+        cards: [],
+        summary: {
+          totalEntries: 0,
+          totalQuantity: 0,
+          uniqueCards: 0,
+          variantBreakdown: {} as Record<string, number>,
+        },
+      };
+    }
+
+    // Get unique card IDs to fetch card names
+    const uniqueCardIds = Array.from(new Set(collectionCards.map((c) => c.cardId)));
+
+    // Fetch card data from cache
+    const cachedCards = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Build a map for quick lookups
+    const cardDataMap = new Map<string, { name: string; imageSmall: string; setId: string }>();
+    for (const cachedCard of cachedCards) {
+      if (cachedCard) {
+        cardDataMap.set(cachedCard.cardId, {
+          name: cachedCard.name,
+          imageSmall: cachedCard.imageSmall,
+          setId: cachedCard.setId,
+        });
+      }
+    }
+
+    // Build the grouped result
+    const groupedCards: Array<{
+      cardId: string;
+      variant: string;
+      quantity: number;
+      name: string;
+      imageSmall: string;
+      setId: string;
+    }> = [];
+
+    // Track variant counts
+    const variantCounts: Record<string, number> = {};
+
+    for (const card of collectionCards) {
+      const variant = card.variant ?? 'normal';
+      const cardData = cardDataMap.get(card.cardId);
+
+      groupedCards.push({
+        cardId: card.cardId,
+        variant,
+        quantity: card.quantity,
+        name: cardData?.name ?? card.cardId,
+        imageSmall: cardData?.imageSmall ?? '',
+        setId: cardData?.setId ?? card.cardId.split('-')[0],
+      });
+
+      // Count variants
+      variantCounts[variant] = (variantCounts[variant] ?? 0) + 1;
+    }
+
+    // Sort by cardId then variant for consistent ordering
+    groupedCards.sort((a, b) => {
+      const cardCompare = a.cardId.localeCompare(b.cardId);
+      if (cardCompare !== 0) return cardCompare;
+      return a.variant.localeCompare(b.variant);
+    });
+
+    return {
+      cards: groupedCards,
+      summary: {
+        totalEntries: collectionCards.length,
+        totalQuantity: collectionCards.reduce((sum, c) => sum + c.quantity, 0),
+        uniqueCards: uniqueCardIds.length,
+        variantBreakdown: variantCounts,
+      },
+    };
+  },
+});
+
+/**
+ * Get collection grouped by card, with variants aggregated.
+ * Returns each unique cardId with all its variants in a single object.
+ */
+export const getCollectionByCard = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return [];
+    }
+
+    // Get unique card IDs
+    const uniqueCardIds = Array.from(new Set(collectionCards.map((c) => c.cardId)));
+
+    // Fetch card data from cache
+    const cachedCards = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Build a map for quick lookups
+    const cardDataMap = new Map<string, { name: string; imageSmall: string; setId: string }>();
+    for (const cachedCard of cachedCards) {
+      if (cachedCard) {
+        cardDataMap.set(cachedCard.cardId, {
+          name: cachedCard.name,
+          imageSmall: cachedCard.imageSmall,
+          setId: cachedCard.setId,
+        });
+      }
+    }
+
+    // Group cards by cardId
+    const groupedByCard = new Map<
+      string,
+      {
+        cardId: string;
+        name: string;
+        imageSmall: string;
+        setId: string;
+        totalQuantity: number;
+        variants: Record<string, number>;
+      }
+    >();
+
+    for (const card of collectionCards) {
+      const variant = card.variant ?? 'normal';
+      const existing = groupedByCard.get(card.cardId);
+
+      if (existing) {
+        existing.totalQuantity += card.quantity;
+        existing.variants[variant] = (existing.variants[variant] ?? 0) + card.quantity;
+      } else {
+        const cardData = cardDataMap.get(card.cardId);
+        groupedByCard.set(card.cardId, {
+          cardId: card.cardId,
+          name: cardData?.name ?? card.cardId,
+          imageSmall: cardData?.imageSmall ?? '',
+          setId: cardData?.setId ?? card.cardId.split('-')[0],
+          totalQuantity: card.quantity,
+          variants: { [variant]: card.quantity },
+        });
+      }
+    }
+
+    // Sort by cardId
+    const result = Array.from(groupedByCard.values()).sort((a, b) =>
+      a.cardId.localeCompare(b.cardId)
+    );
+
+    return result;
+  },
+});
+
 // ============================================================================
 // MUTATIONS
 // ============================================================================
@@ -116,6 +299,8 @@ export const addCard = mutation({
   args: {
     profileId: v.id('profiles'),
     cardId: v.string(),
+    cardName: v.optional(v.string()),
+    setName: v.optional(v.string()),
     variant: v.optional(cardVariant),
     quantity: v.optional(v.number()),
   },
@@ -147,11 +332,11 @@ export const addCard = mutation({
       quantity,
     });
 
-    // Log activity
+    // Log activity with card name and set name for display
     await ctx.db.insert('activityLogs', {
       profileId: args.profileId,
       action: 'card_added',
-      metadata: { cardId: args.cardId, variant, quantity },
+      metadata: { cardId: args.cardId, cardName: args.cardName ?? args.cardId, setName: args.setName, variant, quantity },
     });
 
     return cardEntryId;
@@ -162,9 +347,13 @@ export const removeCard = mutation({
   args: {
     profileId: v.id('profiles'),
     cardId: v.string(),
+    cardName: v.optional(v.string()),
+    setName: v.optional(v.string()),
     variant: v.optional(cardVariant),
   },
   handler: async (ctx, args) => {
+    const cardName = args.cardName ?? args.cardId;
+
     // If variant specified, remove only that variant
     if (args.variant) {
       const existing = await ctx.db
@@ -181,7 +370,7 @@ export const removeCard = mutation({
         await ctx.db.insert('activityLogs', {
           profileId: args.profileId,
           action: 'card_removed',
-          metadata: { cardId: args.cardId, variant: args.variant },
+          metadata: { cardId: args.cardId, cardName, setName: args.setName, variant: args.variant },
         });
       }
     } else {
@@ -202,7 +391,7 @@ export const removeCard = mutation({
         await ctx.db.insert('activityLogs', {
           profileId: args.profileId,
           action: 'card_removed',
-          metadata: { cardId: args.cardId, variantsRemoved: allVariants.length },
+          metadata: { cardId: args.cardId, cardName, setName: args.setName, variantsRemoved: allVariants.length },
         });
       }
     }
@@ -383,6 +572,256 @@ export const findTradeableCards = query({
     };
   },
 });
+
+// ============================================================================
+// COLLECTION VALUE - Calculate total value of owned cards
+// ============================================================================
+
+/**
+ * Calculate the total value of a profile's collection.
+ * Uses cached card prices from the cachedCards table.
+ * Only counts cards that have pricing data available.
+ */
+export const getCollectionValue = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return {
+        totalValue: 0,
+        valuedCardsCount: 0,
+        unvaluedCardsCount: 0,
+        totalCardsCount: 0,
+      };
+    }
+
+    // Get unique card IDs
+    const uniqueCardIds = Array.from(new Set(collectionCards.map((c) => c.cardId)));
+
+    // Fetch pricing data for all cards
+    const cachedCards = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Build a pricing map
+    const priceMap = new Map<string, number>();
+    for (const cachedCard of cachedCards) {
+      if (cachedCard && typeof cachedCard.priceMarket === 'number' && cachedCard.priceMarket > 0) {
+        priceMap.set(cachedCard.cardId, cachedCard.priceMarket);
+      }
+    }
+
+    // Calculate total value
+    let totalValue = 0;
+    let valuedCardsCount = 0;
+    let unvaluedCardsCount = 0;
+
+    for (const card of collectionCards) {
+      const price = priceMap.get(card.cardId);
+      if (price !== undefined) {
+        totalValue += price * card.quantity;
+        valuedCardsCount++;
+      } else {
+        unvaluedCardsCount++;
+      }
+    }
+
+    return {
+      totalValue: Math.round(totalValue * 100) / 100, // Round to cents
+      valuedCardsCount,
+      unvaluedCardsCount,
+      totalCardsCount: collectionCards.length,
+    };
+  },
+});
+
+/**
+ * Get the most valuable cards in a profile's collection.
+ * Returns top N cards sorted by market value descending.
+ */
+export const getMostValuableCards = query({
+  args: {
+    profileId: v.id('profiles'),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 10;
+
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return [];
+    }
+
+    // Get unique card IDs
+    const uniqueCardIds = Array.from(new Set(collectionCards.map((c) => c.cardId)));
+
+    // Fetch card data for all cards
+    const cachedCards = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Build a price and name map
+    const cardDataMap = new Map<string, { price: number; name: string; imageSmall: string }>();
+    for (const cachedCard of cachedCards) {
+      if (cachedCard && typeof cachedCard.priceMarket === 'number' && cachedCard.priceMarket > 0) {
+        cardDataMap.set(cachedCard.cardId, {
+          price: cachedCard.priceMarket,
+          name: cachedCard.name,
+          imageSmall: cachedCard.imageSmall,
+        });
+      }
+    }
+
+    // Calculate value for each collection card
+    const valuedCards: Array<{
+      cardId: string;
+      name: string;
+      imageSmall: string;
+      variant: string;
+      quantity: number;
+      unitPrice: number;
+      totalValue: number;
+    }> = [];
+
+    for (const card of collectionCards) {
+      const cardData = cardDataMap.get(card.cardId);
+      if (cardData) {
+        valuedCards.push({
+          cardId: card.cardId,
+          name: cardData.name,
+          imageSmall: cardData.imageSmall,
+          variant: card.variant ?? 'normal',
+          quantity: card.quantity,
+          unitPrice: cardData.price,
+          totalValue: Math.round(cardData.price * card.quantity * 100) / 100,
+        });
+      }
+    }
+
+    // Sort by total value descending and return top N
+    valuedCards.sort((a, b) => b.totalValue - a.totalValue);
+    return valuedCards.slice(0, limit);
+  },
+});
+
+/**
+ * Get collection value breakdown by set.
+ */
+export const getCollectionValueBySet = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return [];
+    }
+
+    // Group cards by set (extract setId from cardId format "setId-number")
+    const cardsBySet = new Map<string, typeof collectionCards>();
+    for (const card of collectionCards) {
+      const setId = card.cardId.split('-')[0];
+      const existing = cardsBySet.get(setId) ?? [];
+      existing.push(card);
+      cardsBySet.set(setId, existing);
+    }
+
+    // Get unique card IDs for pricing lookup
+    const uniqueCardIds = Array.from(new Set(collectionCards.map((c) => c.cardId)));
+
+    // Fetch pricing data
+    const cachedCards = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Build a price map
+    const priceMap = new Map<string, number>();
+    for (const cachedCard of cachedCards) {
+      if (cachedCard && typeof cachedCard.priceMarket === 'number' && cachedCard.priceMarket > 0) {
+        priceMap.set(cachedCard.cardId, cachedCard.priceMarket);
+      }
+    }
+
+    // Get set names
+    const setIds = [...cardsBySet.keys()];
+    const cachedSets = await Promise.all(
+      setIds.map((setId) =>
+        ctx.db
+          .query('cachedSets')
+          .withIndex('by_set_id', (q) => q.eq('setId', setId))
+          .first()
+      )
+    );
+
+    const setNameMap = new Map<string, string>();
+    for (const set of cachedSets) {
+      if (set) {
+        setNameMap.set(set.setId, set.name);
+      }
+    }
+
+    // Calculate value per set
+    const setValues: Array<{
+      setId: string;
+      setName: string;
+      totalValue: number;
+      cardCount: number;
+    }> = [];
+
+    for (const [setId, cards] of cardsBySet) {
+      let setValue = 0;
+      for (const card of cards) {
+        const price = priceMap.get(card.cardId);
+        if (price !== undefined) {
+          setValue += price * card.quantity;
+        }
+      }
+
+      setValues.push({
+        setId,
+        setName: setNameMap.get(setId) ?? setId,
+        totalValue: Math.round(setValue * 100) / 100,
+        cardCount: cards.length,
+      });
+    }
+
+    // Sort by value descending
+    setValues.sort((a, b) => b.totalValue - a.totalValue);
+    return setValues;
+  },
+});
+
+// ============================================================================
+// COLLECTION COMPARISON
+// ============================================================================
 
 /**
  * Get a summary of collection overlap between two profiles.

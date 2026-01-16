@@ -506,3 +506,281 @@ export function sortBySetAndNumber(
 
   return ascending ? sorted : sorted.reverse();
 }
+
+// ============================================================================
+// VARIANT GROUPING
+// ============================================================================
+
+/** Card entry with enriched data */
+export interface EnrichedCollectionCard {
+  cardId: string;
+  variant: CardVariant;
+  quantity: number;
+  name: string;
+  imageSmall: string;
+  setId: string;
+}
+
+/** Card grouped by cardId with variant breakdown */
+export interface GroupedCardWithData {
+  cardId: string;
+  name: string;
+  imageSmall: string;
+  setId: string;
+  totalQuantity: number;
+  variants: Record<CardVariant, number>;
+}
+
+/** Summary of collection variant distribution */
+export interface VariantSummary {
+  totalEntries: number;
+  totalQuantity: number;
+  uniqueCards: number;
+  variantBreakdown: Record<CardVariant, number>;
+}
+
+/** Display name for each variant */
+export const VARIANT_DISPLAY_NAMES: Record<CardVariant, string> = {
+  normal: 'Normal',
+  holofoil: 'Holofoil',
+  reverseHolofoil: 'Reverse Holofoil',
+  '1stEditionHolofoil': '1st Edition Holofoil',
+  '1stEditionNormal': '1st Edition Normal',
+};
+
+/**
+ * Gets the display name for a variant.
+ */
+export function getVariantDisplayName(variant: CardVariant): string {
+  return VARIANT_DISPLAY_NAMES[variant] ?? variant;
+}
+
+/**
+ * Groups collection by (cardId, variant) pairs.
+ * Each unique combination is a separate entry.
+ */
+export function groupCollectionByVariant(
+  cards: CollectionCard[]
+): EnrichedCollectionCard[] {
+  return cards.map((card) => ({
+    cardId: card.cardId,
+    variant: card.variant ?? DEFAULT_VARIANT,
+    quantity: card.quantity,
+    name: card.cardId, // Will be enriched by caller
+    imageSmall: '',
+    setId: extractSetId(card.cardId),
+  }));
+}
+
+/**
+ * Enriches collection cards with names from a name map.
+ */
+export function enrichWithNames(
+  cards: EnrichedCollectionCard[],
+  nameMap: Map<string, string>
+): EnrichedCollectionCard[] {
+  return cards.map((card) => ({
+    ...card,
+    name: nameMap.get(card.cardId) ?? card.cardId,
+  }));
+}
+
+/**
+ * Calculates variant summary from a collection.
+ */
+export function calculateVariantSummary(cards: CollectionCard[]): VariantSummary {
+  const variantBreakdown: Record<CardVariant, number> = {
+    normal: 0,
+    holofoil: 0,
+    reverseHolofoil: 0,
+    '1stEditionHolofoil': 0,
+    '1stEditionNormal': 0,
+  };
+
+  const uniqueCardIds = new Set<string>();
+  let totalQuantity = 0;
+
+  for (const card of cards) {
+    const variant = card.variant ?? DEFAULT_VARIANT;
+    variantBreakdown[variant] = (variantBreakdown[variant] ?? 0) + 1;
+    uniqueCardIds.add(card.cardId);
+    totalQuantity += card.quantity;
+  }
+
+  return {
+    totalEntries: cards.length,
+    totalQuantity,
+    uniqueCards: uniqueCardIds.size,
+    variantBreakdown,
+  };
+}
+
+/**
+ * Gets variants that have at least one card in the collection.
+ */
+export function getUsedVariants(cards: CollectionCard[]): CardVariant[] {
+  const variants = new Set<CardVariant>();
+  for (const card of cards) {
+    variants.add(card.variant ?? DEFAULT_VARIANT);
+  }
+  return Array.from(variants).sort();
+}
+
+/**
+ * Filters collection by variant type.
+ */
+export function filterByVariant(
+  cards: CollectionCard[],
+  variant: CardVariant
+): CollectionCard[] {
+  return cards.filter((card) => (card.variant ?? DEFAULT_VARIANT) === variant);
+}
+
+/**
+ * Sorts collection cards by variant, then by cardId.
+ */
+export function sortByVariant(
+  cards: CollectionCard[],
+  ascending = true
+): CollectionCard[] {
+  const variantOrder: Record<CardVariant, number> = {
+    normal: 0,
+    holofoil: 1,
+    reverseHolofoil: 2,
+    '1stEditionHolofoil': 3,
+    '1stEditionNormal': 4,
+  };
+
+  const sorted = [...cards].sort((a, b) => {
+    const variantA = a.variant ?? DEFAULT_VARIANT;
+    const variantB = b.variant ?? DEFAULT_VARIANT;
+
+    const variantCompare = variantOrder[variantA] - variantOrder[variantB];
+    if (variantCompare !== 0) {
+      return variantCompare;
+    }
+
+    return a.cardId.localeCompare(b.cardId);
+  });
+
+  return ascending ? sorted : sorted.reverse();
+}
+
+/**
+ * Sorts collection cards by cardId, then by variant.
+ */
+export function sortByCardIdThenVariant(
+  cards: CollectionCard[],
+  ascending = true
+): CollectionCard[] {
+  const variantOrder: Record<CardVariant, number> = {
+    normal: 0,
+    holofoil: 1,
+    reverseHolofoil: 2,
+    '1stEditionHolofoil': 3,
+    '1stEditionNormal': 4,
+  };
+
+  const sorted = [...cards].sort((a, b) => {
+    const cardCompare = a.cardId.localeCompare(b.cardId);
+    if (cardCompare !== 0) {
+      return cardCompare;
+    }
+
+    const variantA = a.variant ?? DEFAULT_VARIANT;
+    const variantB = b.variant ?? DEFAULT_VARIANT;
+
+    return variantOrder[variantA] - variantOrder[variantB];
+  });
+
+  return ascending ? sorted : sorted.reverse();
+}
+
+/**
+ * Groups cards by cardId into an object that includes all variant data.
+ * This is a more complete version of groupCardsByCardId that returns richer data.
+ */
+export function groupCardsByCardIdWithDetails(
+  cards: CollectionCard[],
+  cardNames?: Map<string, string>
+): GroupedCardWithData[] {
+  const grouped = new Map<string, GroupedCardWithData>();
+
+  for (const card of cards) {
+    const variant = card.variant ?? DEFAULT_VARIANT;
+    const existing = grouped.get(card.cardId);
+
+    if (existing) {
+      existing.totalQuantity += card.quantity;
+      existing.variants[variant] = (existing.variants[variant] ?? 0) + card.quantity;
+    } else {
+      grouped.set(card.cardId, {
+        cardId: card.cardId,
+        name: cardNames?.get(card.cardId) ?? card.cardId,
+        imageSmall: '',
+        setId: extractSetId(card.cardId),
+        totalQuantity: card.quantity,
+        variants: { [variant]: card.quantity } as Record<CardVariant, number>,
+      });
+    }
+  }
+
+  return Array.from(grouped.values());
+}
+
+/**
+ * Gets the count of cards for a specific variant.
+ */
+export function countByVariant(cards: CollectionCard[]): Map<CardVariant, number> {
+  const counts = new Map<CardVariant, number>();
+
+  for (const card of cards) {
+    const variant = card.variant ?? DEFAULT_VARIANT;
+    counts.set(variant, (counts.get(variant) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
+/**
+ * Gets the total quantity of cards for a specific variant.
+ */
+export function quantityByVariant(cards: CollectionCard[]): Map<CardVariant, number> {
+  const quantities = new Map<CardVariant, number>();
+
+  for (const card of cards) {
+    const variant = card.variant ?? DEFAULT_VARIANT;
+    quantities.set(variant, (quantities.get(variant) ?? 0) + card.quantity);
+  }
+
+  return quantities;
+}
+
+/**
+ * Checks if a collection has any cards of a specific variant.
+ */
+export function hasVariant(cards: CollectionCard[], variant: CardVariant): boolean {
+  return cards.some((card) => (card.variant ?? DEFAULT_VARIANT) === variant);
+}
+
+/**
+ * Gets all cards of a specific cardId across all variants.
+ */
+export function getAllVariantsOfCard(
+  cards: CollectionCard[],
+  cardId: string
+): CollectionCard[] {
+  return cards.filter((card) => card.cardId === cardId);
+}
+
+/**
+ * Gets the total quantity of a specific card across all variants.
+ */
+export function getTotalQuantityOfCard(
+  cards: CollectionCard[],
+  cardId: string
+): number {
+  return cards
+    .filter((card) => card.cardId === cardId)
+    .reduce((sum, card) => sum + card.quantity, 0);
+}
