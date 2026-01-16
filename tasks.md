@@ -23,7 +23,7 @@
 - [x] Implement set completion percentage display
 - [x] Connect card tracking to Convex backend (persist data)
 - [x] Create "My Collection" view aggregating all owned cards
-- [ ] Add search functionality for finding Pokemon by name
+- [x] Add search functionality for finding Pokemon by name
 - [ ] Create filter system (by set, type, Pokemon)
 
 ## Phase 3: Achievement System (Weeks 5-6)
@@ -148,3 +148,23 @@
 - `src/lib/__tests__/pokemon-tcg.test.ts` - Pokemon TCG utility tests
 
 **Next steps:** Add search functionality for finding Pokemon by name
+
+### 2026-01-15 - Search Functionality
+
+**Completed tasks:**
+
+- Created search API endpoint (`/api/search`) with query validation
+- Built SearchResults component with collection integration (add/remove cards from search results)
+- Created search page (`/search`) with debounced input, loading states, and quick suggestions
+- Added search link to home page navigation
+- Implemented comprehensive test suite for search API (10 tests passing)
+- All 19 tests passing, ESLint and Prettier checks passing
+
+**Files created:**
+
+- `src/app/api/search/route.ts` - Search API endpoint
+- `src/app/api/search/__tests__/route.test.ts` - API route tests
+- `src/app/search/page.tsx` - Search page with input and results
+- `src/components/search/SearchResults.tsx` - Search results display component
+
+**Next steps:** Create filter system (by set, type, Pokemon)
