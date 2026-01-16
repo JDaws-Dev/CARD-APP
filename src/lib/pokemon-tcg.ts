@@ -76,6 +76,63 @@ export interface PokemonCard {
   };
 }
 
+// =============================================================================
+// PROMO CARD HELPERS
+// =============================================================================
+
+/**
+ * Known promo set IDs (Black Star Promo sets)
+ */
+export const PROMO_SET_IDS = [
+  'svp',
+  'swshp',
+  'smp',
+  'xyp',
+  'bwp',
+  'dpp',
+  'np',
+  'basep',
+  'hsp',
+] as const;
+
+/**
+ * Check if a card is a promo card
+ * Checks both rarity field and set ID for comprehensive detection
+ */
+export function isPromoCard(card: PokemonCard): boolean {
+  // Check if rarity is explicitly "Promo"
+  if (card.rarity?.toLowerCase() === 'promo') {
+    return true;
+  }
+  // Check if card belongs to a known promo set
+  if (PROMO_SET_IDS.includes(card.set.id as (typeof PROMO_SET_IDS)[number])) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Get the promo set era/series name from a promo card
+ * Returns a user-friendly label like "SV Promo", "SWSH Promo", etc.
+ */
+export function getPromoSetLabel(card: PokemonCard): string | null {
+  if (!isPromoCard(card)) return null;
+
+  const setIdToLabel: Record<string, string> = {
+    svp: 'SV Promo',
+    swshp: 'SWSH Promo',
+    smp: 'SM Promo',
+    xyp: 'XY Promo',
+    bwp: 'BW Promo',
+    dpp: 'DP Promo',
+    np: 'Nintendo Promo',
+    basep: 'Base Promo',
+    hsp: 'HGSS Promo',
+  };
+
+  return setIdToLabel[card.set.id] || 'Promo';
+}
+
 interface APIResponse<T> {
   data: T;
   page?: number;

@@ -6,7 +6,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { cn } from '@/lib/utils';
-import type { PokemonCard } from '@/lib/pokemon-tcg';
+import { isPromoCard, getPromoSetLabel, type PokemonCard } from '@/lib/pokemon-tcg';
 import type { Id } from '../../../convex/_generated/dataModel';
 import {
   HeartIcon,
@@ -23,6 +23,7 @@ import {
   CurrencyDollarIcon,
   SparklesIcon,
   CheckCircleIcon,
+  BoltIcon,
 } from '@heroicons/react/24/solid';
 import { MapIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { CardGridSkeleton, StatsBarSkeleton } from '@/components/ui/Skeleton';
@@ -821,7 +822,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                 >
                   {card.name}
                 </p>
-                <div className="flex items-center justify-center gap-1.5">
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
                   <span
                     className={cn(
                       'text-gray-500',
@@ -830,6 +831,16 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                   >
                     #{card.number}
                   </span>
+                  {/* Promo badge for promotional cards */}
+                  {isPromoCard(card) && (
+                    <span
+                      className="inline-flex items-center gap-0.5 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 px-1.5 py-0.5 text-xs font-semibold text-white"
+                      title={getPromoSetLabel(card) || 'Promo card'}
+                    >
+                      <BoltIcon className="h-3 w-3" aria-hidden="true" />
+                      <span>Promo</span>
+                    </span>
+                  )}
                   {/* Only show price if pricing is enabled in kid mode settings */}
                   {features.showPricing && marketPrice !== null && (
                     <span

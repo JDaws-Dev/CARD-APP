@@ -6,6 +6,10 @@ import {
   getScarletVioletSets,
   getSwordShieldSets,
   getAllSupportedSets,
+  isPromoCard,
+  getPromoSetLabel,
+  PROMO_SET_IDS,
+  type PokemonCard,
 } from '../pokemon-tcg';
 
 // Mock fetch globally
@@ -226,6 +230,198 @@ describe('pokemon-tcg', () => {
       });
 
       await expect(getCardsByIds(['sv1-1'])).rejects.toThrow('Pokemon TCG API error');
+    });
+  });
+
+  describe('PROMO_SET_IDS', () => {
+    it('includes all known promo set IDs', () => {
+      expect(PROMO_SET_IDS).toContain('svp');
+      expect(PROMO_SET_IDS).toContain('swshp');
+      expect(PROMO_SET_IDS).toContain('smp');
+      expect(PROMO_SET_IDS).toContain('xyp');
+      expect(PROMO_SET_IDS).toContain('bwp');
+      expect(PROMO_SET_IDS).toContain('dpp');
+      expect(PROMO_SET_IDS).toContain('np');
+      expect(PROMO_SET_IDS).toContain('basep');
+      expect(PROMO_SET_IDS).toContain('hsp');
+    });
+
+    it('has exactly 9 promo set IDs', () => {
+      expect(PROMO_SET_IDS).toHaveLength(9);
+    });
+  });
+
+  describe('isPromoCard', () => {
+    // Helper to create a mock card
+    const createCard = (overrides: Partial<PokemonCard> = {}): PokemonCard => ({
+      id: 'sv1-1',
+      name: 'Pikachu',
+      supertype: 'Pokemon',
+      number: '1',
+      images: { small: '', large: '' },
+      set: { id: 'sv1', name: 'Scarlet & Violet' },
+      ...overrides,
+    });
+
+    it('returns true for cards with rarity "Promo"', () => {
+      const card = createCard({ rarity: 'Promo' });
+      expect(isPromoCard(card)).toBe(true);
+    });
+
+    it('returns true for cards with rarity "promo" (case insensitive)', () => {
+      const card = createCard({ rarity: 'promo' });
+      expect(isPromoCard(card)).toBe(true);
+    });
+
+    it('returns true for cards with rarity "PROMO" (case insensitive)', () => {
+      const card = createCard({ rarity: 'PROMO' });
+      expect(isPromoCard(card)).toBe(true);
+    });
+
+    it('returns true for cards in Scarlet & Violet promo set (svp)', () => {
+      const card = createCard({
+        id: 'svp-1',
+        set: { id: 'svp', name: 'Scarlet & Violet Black Star Promos' },
+      });
+      expect(isPromoCard(card)).toBe(true);
+    });
+
+    it('returns true for cards in Sword & Shield promo set (swshp)', () => {
+      const card = createCard({
+        id: 'swshp-SWSH001',
+        set: { id: 'swshp', name: 'SWSH Black Star Promos' },
+      });
+      expect(isPromoCard(card)).toBe(true);
+    });
+
+    it('returns true for cards in Sun & Moon promo set (smp)', () => {
+      const card = createCard({
+        id: 'smp-SM01',
+        set: { id: 'smp', name: 'SM Black Star Promos' },
+      });
+      expect(isPromoCard(card)).toBe(true);
+    });
+
+    it('returns true for cards in XY promo set (xyp)', () => {
+      const card = createCard({
+        id: 'xyp-XY01',
+        set: { id: 'xyp', name: 'XY Black Star Promos' },
+      });
+      expect(isPromoCard(card)).toBe(true);
+    });
+
+    it('returns false for regular set cards', () => {
+      const card = createCard({
+        rarity: 'Rare',
+        set: { id: 'sv1', name: 'Scarlet & Violet' },
+      });
+      expect(isPromoCard(card)).toBe(false);
+    });
+
+    it('returns false for cards with undefined rarity in regular sets', () => {
+      const card = createCard({
+        rarity: undefined,
+        set: { id: 'sv1', name: 'Scarlet & Violet' },
+      });
+      expect(isPromoCard(card)).toBe(false);
+    });
+  });
+
+  describe('getPromoSetLabel', () => {
+    // Helper to create a mock card
+    const createCard = (overrides: Partial<PokemonCard> = {}): PokemonCard => ({
+      id: 'sv1-1',
+      name: 'Pikachu',
+      supertype: 'Pokemon',
+      number: '1',
+      images: { small: '', large: '' },
+      set: { id: 'sv1', name: 'Scarlet & Violet' },
+      ...overrides,
+    });
+
+    it('returns null for non-promo cards', () => {
+      const card = createCard({ rarity: 'Rare' });
+      expect(getPromoSetLabel(card)).toBeNull();
+    });
+
+    it('returns "SV Promo" for Scarlet & Violet promo cards', () => {
+      const card = createCard({
+        rarity: 'Promo',
+        set: { id: 'svp', name: 'Scarlet & Violet Black Star Promos' },
+      });
+      expect(getPromoSetLabel(card)).toBe('SV Promo');
+    });
+
+    it('returns "SWSH Promo" for Sword & Shield promo cards', () => {
+      const card = createCard({
+        rarity: 'Promo',
+        set: { id: 'swshp', name: 'SWSH Black Star Promos' },
+      });
+      expect(getPromoSetLabel(card)).toBe('SWSH Promo');
+    });
+
+    it('returns "SM Promo" for Sun & Moon promo cards', () => {
+      const card = createCard({
+        rarity: 'Promo',
+        set: { id: 'smp', name: 'SM Black Star Promos' },
+      });
+      expect(getPromoSetLabel(card)).toBe('SM Promo');
+    });
+
+    it('returns "XY Promo" for XY promo cards', () => {
+      const card = createCard({
+        rarity: 'Promo',
+        set: { id: 'xyp', name: 'XY Black Star Promos' },
+      });
+      expect(getPromoSetLabel(card)).toBe('XY Promo');
+    });
+
+    it('returns "BW Promo" for Black & White promo cards', () => {
+      const card = createCard({
+        rarity: 'Promo',
+        set: { id: 'bwp', name: 'BW Black Star Promos' },
+      });
+      expect(getPromoSetLabel(card)).toBe('BW Promo');
+    });
+
+    it('returns "DP Promo" for Diamond & Pearl promo cards', () => {
+      const card = createCard({
+        rarity: 'Promo',
+        set: { id: 'dpp', name: 'DP Black Star Promos' },
+      });
+      expect(getPromoSetLabel(card)).toBe('DP Promo');
+    });
+
+    it('returns "Nintendo Promo" for Nintendo promo cards', () => {
+      const card = createCard({
+        rarity: 'Promo',
+        set: { id: 'np', name: 'Nintendo Black Star Promos' },
+      });
+      expect(getPromoSetLabel(card)).toBe('Nintendo Promo');
+    });
+
+    it('returns "Base Promo" for Base promo cards', () => {
+      const card = createCard({
+        rarity: 'Promo',
+        set: { id: 'basep', name: 'Wizards Black Star Promos' },
+      });
+      expect(getPromoSetLabel(card)).toBe('Base Promo');
+    });
+
+    it('returns "HGSS Promo" for HGSS promo cards', () => {
+      const card = createCard({
+        rarity: 'Promo',
+        set: { id: 'hsp', name: 'HGSS Black Star Promos' },
+      });
+      expect(getPromoSetLabel(card)).toBe('HGSS Promo');
+    });
+
+    it('returns "Promo" for promo cards with unknown set ID', () => {
+      const card = createCard({
+        rarity: 'Promo',
+        set: { id: 'unknown', name: 'Unknown Promos' },
+      });
+      expect(getPromoSetLabel(card)).toBe('Promo');
     });
   });
 });
