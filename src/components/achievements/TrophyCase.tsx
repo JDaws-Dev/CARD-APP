@@ -16,8 +16,29 @@ import {
   MapIcon,
   RocketLaunchIcon,
   ShieldCheckIcon,
+  GlobeAltIcon,
 } from '@heroicons/react/24/solid';
 import { Skeleton } from '@/components/ui/Skeleton';
+import {
+  getAllGameAchievements,
+  getGameMilestoneProgress,
+  getCrossGameProgress,
+  GAME_MILESTONE_THRESHOLDS,
+  CROSS_GAME_ACHIEVEMENTS,
+  type GameAchievementDefinition,
+  type GameAchievementProgress,
+} from '@/lib/gameAchievements';
+import { GAMES, getGameInfo, type GameId } from '@/lib/gameSelector';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
+import {
+  PokemonIcon,
+  YugiohIcon,
+  OnePieceIcon,
+  DragonBallIcon,
+  LorcanaIcon,
+  DigimonIcon,
+  MtgIcon,
+} from '@/components/icons/tcg';
 
 // Badge category definitions
 const BADGE_CATEGORIES = [
@@ -641,6 +662,320 @@ function CategorySection({
   );
 }
 
+// Game icon component map
+const GAME_ICONS: Record<GameId, React.ComponentType<{ className?: string }>> = {
+  pokemon: PokemonIcon,
+  yugioh: YugiohIcon,
+  onepiece: OnePieceIcon,
+  dragonball: DragonBallIcon,
+  lorcana: LorcanaIcon,
+  digimon: DigimonIcon,
+  mtg: MtgIcon,
+};
+
+// Game-specific badge card component
+interface GameBadgeCardProps {
+  achievement: GameAchievementDefinition;
+  progress: GameAchievementProgress;
+  earnedAt?: number | null;
+}
+
+function GameBadgeCard({ achievement, progress, earnedAt }: GameBadgeCardProps) {
+  const gameInfo = achievement.gameId ? getGameInfo(achievement.gameId) : null;
+  const Icon = achievement.gameId ? GAME_ICONS[achievement.gameId] : GlobeAltIcon;
+
+  return (
+    <div
+      className={cn(
+        'group relative flex flex-col items-center rounded-2xl p-4 transition-all duration-300',
+        progress.earned
+          ? 'bg-white shadow-md hover:-translate-y-1 hover:shadow-lg'
+          : 'bg-gray-100/50 opacity-70 hover:opacity-90'
+      )}
+    >
+      {/* Badge icon container */}
+      <div className="relative mb-3">
+        {/* Glow effect for earned badges */}
+        {progress.earned && (
+          <div
+            className={cn(
+              'absolute inset-0 rounded-full bg-gradient-to-br opacity-50 blur-md transition-opacity group-hover:opacity-75',
+              getTierGradient(achievement.tier)
+            )}
+            style={{ transform: 'scale(1.3)' }}
+          />
+        )}
+
+        {/* Badge circle */}
+        <div
+          className={cn(
+            'relative flex h-16 w-16 items-center justify-center rounded-full',
+            progress.earned ? 'bg-gradient-to-br shadow-lg' : 'bg-gray-200'
+          )}
+          style={
+            progress.earned
+              ? {
+                  backgroundImage: `linear-gradient(135deg, ${achievement.color}ee, ${achievement.color}88)`,
+                }
+              : undefined
+          }
+        >
+          {progress.earned ? (
+            <Icon className="h-8 w-8 text-white drop-shadow-sm" />
+          ) : (
+            <LockClosedIcon className="h-6 w-6 text-gray-400" />
+          )}
+        </div>
+
+        {/* Tier indicator */}
+        {achievement.tier && progress.earned && (
+          <div
+            className={cn(
+              'absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br text-[10px] font-bold text-white shadow-sm',
+              getTierGradient(achievement.tier)
+            )}
+          >
+            {achievement.tier === 'platinum' && <SparklesIcon className="h-3 w-3" />}
+            {achievement.tier === 'gold' && <TrophyIcon className="h-3 w-3" />}
+            {achievement.tier === 'silver' && <StarIcon className="h-3 w-3" />}
+            {achievement.tier === 'bronze' && <CheckBadgeIcon className="h-3 w-3" />}
+          </div>
+        )}
+      </div>
+
+      {/* Badge name */}
+      <h4
+        className={cn(
+          'mb-1 text-center text-sm font-semibold',
+          progress.earned ? 'text-gray-800' : 'text-gray-500'
+        )}
+      >
+        {achievement.name}
+      </h4>
+
+      {/* Description or earned date */}
+      {progress.earned && earnedAt ? (
+        <p className="text-center text-xs text-gray-500">{formatRelativeDate(earnedAt)}</p>
+      ) : (
+        <p className="text-center text-xs text-gray-500">{achievement.description}</p>
+      )}
+
+      {/* Progress bar for unearned badges */}
+      {!progress.earned && progress.progress > 0 && (
+        <div className="mt-2 w-full">
+          <div
+            className="h-1.5 overflow-hidden rounded-full bg-gray-200"
+            role="progressbar"
+            aria-valuenow={progress.progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${Math.round(progress.progress)}% complete`}
+          >
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: `${Math.min(progress.progress, 100)}%`,
+                background: `linear-gradient(90deg, ${achievement.color}dd, ${achievement.color}99)`,
+              }}
+            />
+          </div>
+          <p className="mt-1 text-center text-[10px] text-gray-500">
+            {progress.current}/{progress.threshold}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Game-specific achievements section
+interface GameAchievementsSectionProps {
+  gameId: GameId;
+  cardCount: number;
+  earnedKeys: Set<string>;
+  achievements: Array<{ achievementKey: string; earnedAt: number }>;
+}
+
+function GameAchievementsSection({
+  gameId,
+  cardCount,
+  earnedKeys,
+  achievements,
+}: GameAchievementsSectionProps) {
+  const gameInfo = getGameInfo(gameId);
+  if (!gameInfo) return null;
+
+  const Icon = GAME_ICONS[gameId];
+  const progressList = getGameMilestoneProgress(gameId, cardCount, Array.from(earnedKeys));
+  const allGameAchievements = getAllGameAchievements().filter((a) => a.gameId === gameId);
+  const earnedCount = progressList.filter((p) => p.earned).length;
+
+  return (
+    <div
+      className={cn('rounded-3xl bg-gradient-to-br p-6', gameInfo.bgColor)}
+      style={{
+        backgroundImage: `linear-gradient(135deg, ${gameInfo.bgColor.replace('bg-', '')}50, white)`,
+      }}
+    >
+      {/* Section header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className={cn(
+              'flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br',
+              gameInfo.gradientFrom,
+              gameInfo.gradientTo
+            )}
+          >
+            <Icon className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-800">{gameInfo.name} Badges</h3>
+            <p className="text-sm text-gray-500">Collect {gameInfo.shortName} cards to unlock</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 shadow-sm">
+          <TrophyIcon className="h-4 w-4 text-amber-500" />
+          <span className="text-sm font-semibold text-gray-700">
+            {earnedCount}/{allGameAchievements.length}
+          </span>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="mb-6">
+        <div className="h-2 overflow-hidden rounded-full bg-white/50">
+          <div
+            className={cn(
+              'h-full rounded-full bg-gradient-to-r transition-all duration-500',
+              gameInfo.gradientFrom,
+              gameInfo.gradientTo
+            )}
+            style={{ width: `${(earnedCount / allGameAchievements.length) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Badges grid */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        {progressList.map((progress) => {
+          const achievement = allGameAchievements.find((a) => a.key === progress.key);
+          if (!achievement) return null;
+
+          const achievementData = achievements.find((a) => a.achievementKey === progress.key);
+
+          return (
+            <GameBadgeCard
+              key={progress.key}
+              achievement={achievement}
+              progress={progress}
+              earnedAt={achievementData?.earnedAt}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Cross-game achievements section
+interface CrossGameAchievementsSectionProps {
+  gamesWithCards: GameId[];
+  earnedKeys: Set<string>;
+  achievements: Array<{ achievementKey: string; earnedAt: number }>;
+}
+
+function CrossGameAchievementsSection({
+  gamesWithCards,
+  earnedKeys,
+  achievements,
+}: CrossGameAchievementsSectionProps) {
+  const progressList = getCrossGameProgress(gamesWithCards, Array.from(earnedKeys));
+  const allCrossGameAchievements = getAllGameAchievements().filter(
+    (a) => a.category === 'cross_game'
+  );
+  const earnedCount = progressList.filter((p) => p.earned).length;
+
+  return (
+    <div className="rounded-3xl bg-gradient-to-br from-indigo-50 to-purple-50 p-6">
+      {/* Section header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
+            <GlobeAltIcon className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-800">Multi-Collector Badges</h3>
+            <p className="text-sm text-gray-500">Collect cards across multiple TCG games</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 shadow-sm">
+          <TrophyIcon className="h-4 w-4 text-amber-500" />
+          <span className="text-sm font-semibold text-gray-700">
+            {earnedCount}/{allCrossGameAchievements.length}
+          </span>
+        </div>
+      </div>
+
+      {/* Games with cards indicator */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="text-sm text-gray-500">Games with cards:</span>
+        {gamesWithCards.map((gameId) => {
+          const gameInfo = getGameInfo(gameId);
+          const GameIcon = GAME_ICONS[gameId];
+          return (
+            <div
+              key={gameId}
+              className={cn(
+                'flex items-center gap-1 rounded-full px-2 py-1',
+                gameInfo?.bgColor,
+                gameInfo?.borderColor,
+                'border'
+              )}
+              title={gameInfo?.name}
+            >
+              <GameIcon className="h-4 w-4" />
+              <span className="text-xs font-medium">{gameInfo?.shortName}</span>
+            </div>
+          );
+        })}
+        {gamesWithCards.length === 0 && (
+          <span className="text-sm italic text-gray-400">None yet</span>
+        )}
+      </div>
+
+      {/* Progress bar */}
+      <div className="mb-6">
+        <div className="h-2 overflow-hidden rounded-full bg-white/50">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500"
+            style={{ width: `${(earnedCount / allCrossGameAchievements.length) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Badges grid */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {progressList.map((progress) => {
+          const achievement = allCrossGameAchievements.find((a) => a.key === progress.key);
+          if (!achievement) return null;
+
+          const achievementData = achievements.find((a) => a.achievementKey === progress.key);
+
+          return (
+            <GameBadgeCard
+              key={progress.key}
+              achievement={achievement}
+              progress={progress}
+              earnedAt={achievementData?.earnedAt}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // Skeleton for loading state
 export function TrophyCaseSkeleton() {
   return (
@@ -809,6 +1144,103 @@ export function TrophyCase({ profileId }: TrophyCaseProps) {
           pokemonProgress={category.id === 'pokemon_fan' ? pokemonProgress : undefined}
         />
       ))}
+
+      {/* Game-specific achievements section */}
+      <GameSpecificAchievementsWrapper
+        profileId={profileId}
+        achievements={achievements.map((a) => ({
+          achievementKey: a.achievementKey,
+          earnedAt: a.earnedAt,
+        }))}
+      />
+    </div>
+  );
+}
+
+// Wrapper component for game-specific achievements that uses game selector context
+interface GameSpecificAchievementsWrapperProps {
+  profileId: Id<'profiles'>;
+  achievements: Array<{ achievementKey: string; earnedAt: number }>;
+}
+
+function GameSpecificAchievementsWrapper({
+  profileId,
+  achievements,
+}: GameSpecificAchievementsWrapperProps) {
+  const { enabledGames, isLoading } = useGameSelector();
+
+  // For now, use placeholder card counts (in production, this would come from the backend)
+  // Since the app currently only supports Pokemon API, we use milestone progress as a proxy
+  const milestoneProgress = useQuery(api.achievements.getMilestoneProgress, { profileId });
+
+  if (isLoading || milestoneProgress === undefined) {
+    return (
+      <div className="space-y-8">
+        <div className="rounded-3xl bg-gray-50 p-6">
+          <Skeleton className="mb-4 h-12 w-64" />
+          <Skeleton className="h-2 w-full rounded-full" />
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center rounded-2xl bg-white p-4">
+                <Skeleton className="mb-3 h-16 w-16 rounded-full" />
+                <Skeleton className="mb-1 h-4 w-20" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Build earned keys set for game-specific achievements
+  const earnedGameAchievementKeys = new Set(achievements.map((a) => a.achievementKey));
+
+  // Calculate card counts per game (for now, only Pokemon has real data)
+  const cardCountsByGame: Record<GameId, number> = {
+    pokemon: milestoneProgress?.totalUniqueCards ?? 0,
+    yugioh: 0,
+    onepiece: 0,
+    dragonball: 0,
+    lorcana: 0,
+    digimon: 0,
+    mtg: 0,
+  };
+
+  // Determine which games have cards
+  const gamesWithCards = (Object.keys(cardCountsByGame) as GameId[]).filter(
+    (gameId) => cardCountsByGame[gameId] > 0
+  );
+
+  return (
+    <div className="space-y-8">
+      {/* Section divider with title */}
+      <div className="flex items-center gap-4">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+        <h2 className="flex items-center gap-2 text-lg font-bold text-gray-700">
+          <GlobeAltIcon className="h-5 w-5 text-indigo-500" />
+          Game-Specific Badges
+        </h2>
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+      </div>
+
+      {/* Game-specific sections for enabled games */}
+      {enabledGames.map((game) => (
+        <GameAchievementsSection
+          key={game.id}
+          gameId={game.id}
+          cardCount={cardCountsByGame[game.id]}
+          earnedKeys={earnedGameAchievementKeys}
+          achievements={achievements}
+        />
+      ))}
+
+      {/* Cross-game achievements */}
+      <CrossGameAchievementsSection
+        gamesWithCards={gamesWithCards}
+        earnedKeys={earnedGameAchievementKeys}
+        achievements={achievements}
+      />
     </div>
   );
 }
