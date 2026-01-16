@@ -1,6 +1,7 @@
 'use client';
 
 import { CollectionTimeline } from '@/components/collection/CollectionTimeline';
+import { FirstCardCelebration } from '@/components/collection/FirstCardCelebration';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import Link from 'next/link';
 import { ArrowLeftIcon, CalendarDaysIcon, SparklesIcon, HomeIcon } from '@heroicons/react/24/outline';
@@ -84,6 +85,11 @@ export default function TimelinePage() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* First Card Celebration */}
+        <div className="mb-6">
+          <FirstCardCelebration />
         </div>
 
         {/* Timeline */}
