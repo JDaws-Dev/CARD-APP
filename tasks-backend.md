@@ -85,7 +85,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [x] API adapter for Lorcast (src/lib/lorcana-api.ts) - Disney Lorcana cards, 10 req/sec rate limit
 - [x] API adapter for DigimonCard.io (src/lib/digimon-api.ts) - Digimon cards, 15 req/10sec rate limit
 - [x] API adapter for Scryfall (src/lib/mtg-api.ts) - Magic: The Gathering cards, 10 req/sec rate limit
-- [ ] Evaluate unified APIs - Test if ApiTCG.com or JustTCG can replace multiple adapters
+- [x] Evaluate unified APIs - Test if ApiTCG.com or JustTCG can replace multiple adapters
 
 ### Gamification Backend
 
@@ -1375,3 +1375,26 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Efficient queries for "all cards from set X in game Y"
   - Supporting card-caching for all 7 TCGs in a single unified table
 - Linter clean
+
+### 2026-01-16: Evaluate unified APIs (ApiTCG.com and JustTCG)
+
+- Created `src/lib/unified-api-evaluation.ts` documenting comprehensive API evaluation
+- **ApiTCG.com Findings:**
+  - Covers 10 games: Pokémon, One Piece, Dragon Ball, Digimon, MTG, Union Arena, Gundam, Star Wars Unlimited, Riftbound
+  - Missing Yu-Gi-Oh! and Disney Lorcana (2 of our 7 supported games)
+  - NO pricing data available
+  - Already in use for Dragon Ball Fusion World adapter
+  - Sets endpoint "under construction"
+- **JustTCG.com Findings:**
+  - Covers 7 games: MTG, Pokémon, Yu-Gi-Oh!, Lorcana, One Piece, Digimon, Union Arena
+  - Missing Dragon Ball Fusion World
+  - HAS pricing data via TCGPlayer integration
+  - Strict rate limits: Free tier 10 req/min, 1000/month
+  - Requires API key, paid plans $9-99/month for production use
+- **Recommendation: KEEP CURRENT MULTI-ADAPTER ARCHITECTURE**
+  - Neither unified API covers all 7 games (would still need 2+ adapters)
+  - Individual game APIs are more mature and have better rate limits
+  - Avoids single point of failure
+  - JustTCG could supplement for future cross-game pricing features
+- Added helper functions for potential future JustTCG integration
+- ESLint and Prettier clean
