@@ -27,6 +27,7 @@ import type { PokemonCard } from '@/lib/pokemon-tcg';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ExportWishlistButton } from '@/components/wishlist/ExportWishlist';
 import { BudgetAlternatives, BudgetAlternativesBadge } from '@/components/financial/BudgetAlternatives';
+import { IsItWorthItButton } from '@/components/financial/IsItWorthIt';
 import { cn } from '@/lib/utils';
 
 interface WishlistItem {
@@ -342,13 +343,16 @@ function WishlistCard({
         <p className="truncate text-xs text-gray-500">{cardData.set.name}</p>
       </div>
 
-      {/* Budget Alternatives Badge */}
-      {showBudgetBadge && onShowAlternatives && (
-        <div className="mt-2 flex justify-center">
-          <BudgetAlternativesBadge
-            card={cardData}
-            onClick={() => onShowAlternatives(cardData)}
-          />
+      {/* Financial Tools */}
+      {showBudgetBadge && (
+        <div className="mt-2 flex flex-wrap justify-center gap-1">
+          {onShowAlternatives && (
+            <BudgetAlternativesBadge
+              card={cardData}
+              onClick={() => onShowAlternatives(cardData)}
+            />
+          )}
+          <IsItWorthItButton cardPrice={price} cardName={cardData.name} />
         </div>
       )}
 
