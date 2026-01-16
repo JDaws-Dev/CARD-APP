@@ -32,6 +32,7 @@ import {
 } from '@/components/virtual/PackOpeningSimulator';
 import { cn } from '@/lib/utils';
 import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
+import { FamilyLeaderboard } from '@/components/family/FamilyLeaderboard';
 
 // ============================================================================
 // QUICK ACTION CARDS
@@ -554,6 +555,11 @@ export function KidDashboard() {
               goalTarget={500}
               variant="compact"
             />
+          )}
+
+          {/* Family Leaderboard */}
+          {profile?.familyId && (
+            <FamilyLeaderboard familyId={profile.familyId} variant="compact" />
           )}
 
           {/* Streak Calendar Preview */}

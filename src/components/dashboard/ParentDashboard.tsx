@@ -24,6 +24,7 @@ import {
 } from '@heroicons/react/24/solid';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
+import { FamilyLeaderboard } from '@/components/family/FamilyLeaderboard';
 import { TradeSuggestionEngine } from '@/components/family/TradeSuggestionEngine';
 
 // Context for pricing visibility
@@ -418,6 +419,9 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
 
         {/* Family Collection Goal */}
         <FamilyCollectionGoal familyId={familyId} goalTarget={500} />
+
+        {/* Family Leaderboard */}
+        <FamilyLeaderboard familyId={familyId} />
 
         {/* Trade Suggestion Engine */}
         <TradeSuggestionEngine familyId={familyId} maxSuggestions={10} />
