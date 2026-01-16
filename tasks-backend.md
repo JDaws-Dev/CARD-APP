@@ -23,8 +23,8 @@
 - [ ] Create parent account registration flow with email verification
 - [ ] Build child profile creation (up to 4 per family) with validation
 - [ ] Implement parent PIN protection logic (store hashed PIN, verify on access)
-- [ ] **Profile type field** - Add `profileType: "parent" | "child"` to profiles schema for role-based UI
-- [ ] **Get current user profile query** - Return profile with type for header/dashboard routing
+- [x] **Profile type field** - Add `profileType: "parent" | "child"` to profiles schema for role-based UI
+- [x] **Get current user profile query** - Return profile with type for header/dashboard routing
 - [x] **Kid dashboard stats query** - Return collection count, badge count, current streak, recent activity for dashboard
 - [ ] Create collection value calculation query (sum tcgplayer.prices for all owned cards)
 - [ ] Add "most valuable cards" query (return top N cards by market price)
@@ -599,3 +599,35 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Streak helpers (status messages, at risk detection, display formatting)
   - Integration scenarios: New User, Active Collector, Streak at Risk
 - All 959 tests pass, linter clean
+
+### 2026-01-16: Profile type field and Get current user profile query
+
+- Profile type field already existed in schema (`profileType: v.union(v.literal('parent'), v.literal('child'))` in `convex/schema.ts`)
+- Added `getCurrentUserProfile` query to `convex/profiles.ts`:
+  - Gets authenticated user via `getAuthUserId` from `@convex-dev/auth/server`
+  - Looks up user's email, finds family by email, returns profiles
+  - Returns profile with type for header/dashboard routing
+  - Supports optional `profileId` parameter for profile selection
+  - Returns: current profile, family info (with subscription tier), available profiles, and user auth info
+- Added `isUserAuthenticated` query:
+  - Lightweight query for checking auth state
+  - Returns `isAuthenticated` boolean and `userId`
+- Added `getCurrentUserProfiles` query:
+  - Returns all profiles available to the authenticated user
+  - Includes family subscription info
+  - Profiles sorted: parent first, then children alphabetically
+- Added helper functions to `src/lib/profiles.ts`:
+  - Types: `SubscriptionTier`, `FamilyInfo`, `UserInfo`, `ProfileSummary`, `CurrentUserProfileResult`
+  - Access checks: `hasParentAccess`, `isChildView`, `canAccessParentFeatures`
+  - Routing: `getDashboardRoute`, `getHeaderStyle`
+  - Profile switching: `canSwitchProfiles`, `getOtherProfiles`, `findProfileById`
+  - Subscription helpers: `isSubscriptionActive`, `hasFamilySubscription`, `getDaysUntilExpiration`, `getSubscriptionStatusMessage`
+  - Profile lookup: `getParentProfileFromResult`, `getChildProfilesFromResult`
+  - Display helpers: `getProfileGreeting`, `isEmailVerified`, `needsOnboarding`
+- Added 64 tests in `src/lib/__tests__/profiles.test.ts` covering:
+  - All helper functions with null handling
+  - Subscription expiration calculations
+  - Profile switching logic
+  - Dashboard routing by profile type
+  - Integration scenarios for parent/child/guest flows
+- All 1130 tests pass, linter clean
