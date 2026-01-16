@@ -11,7 +11,7 @@ interface SetDetailPageProps {
 export async function generateMetadata({ params }: SetDetailPageProps) {
   const set = await getSet(params.setId);
   return {
-    title: `${set.name} - KidCollect`,
+    title: `${set.name} - CardDex`,
     description: `Track your ${set.name} Pokemon card collection`,
   };
 }

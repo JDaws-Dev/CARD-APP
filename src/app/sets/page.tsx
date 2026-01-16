@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 
 export const metadata = {
-  title: 'Pokemon Sets - KidCollect',
+  title: 'Pokemon Sets - CardDex',
   description: 'Browse all Pokemon card sets from Scarlet & Violet and Sword & Shield eras',
 };
 

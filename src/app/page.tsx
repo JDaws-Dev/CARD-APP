@@ -225,7 +225,7 @@ export default function Home() {
               Everything You Need to Be a <span className="text-kid-primary">Super Collector</span>
             </h2>
             <p className="mx-auto max-w-2xl text-sm text-gray-600 sm:text-base">
-              KidCollect makes tracking your Pokemon cards fun and easy.
+              CardDex makes tracking your Pokemon cards fun and easy.
             </p>
           </div>
 
@@ -291,7 +291,7 @@ export default function Home() {
               <span className="text-kid-secondary">Families</span>
             </h2>
             <p className="mx-auto max-w-2xl text-gray-600">
-              KidCollect is packed with features that make collecting fun and help families stay
+              CardDex is packed with features that make collecting fun and help families stay
               connected.
             </p>
           </div>
@@ -768,7 +768,7 @@ export default function Home() {
               <span className="text-kid-secondary">Parents</span>
             </h2>
             <p className="mx-auto max-w-2xl text-gray-600">
-              See why families are choosing KidCollect to organize their Pokemon card collections.
+              See why families are choosing CardDex to organize their Pokemon card collections.
             </p>
           </div>
 
@@ -903,7 +903,7 @@ export default function Home() {
         className="bg-gray-900 px-4 py-8 text-center text-sm text-gray-400"
         role="contentinfo"
       >
-        <p>KidCollect is not affiliated with The Pokemon Company or Nintendo.</p>
+        <p>CardDex is not affiliated with The Pokemon Company or Nintendo.</p>
         <p className="mt-2">Made with love for young collectors everywhere.</p>
       </footer>
     </div>

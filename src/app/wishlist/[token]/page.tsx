@@ -108,7 +108,7 @@ function InvalidLink() {
           href="/"
           className="inline-flex items-center justify-center gap-2 rounded-full bg-kid-primary px-6 py-3 font-semibold text-white transition hover:bg-kid-primary/90"
         >
-          Go to KidCollect
+          Go to CardDex
         </Link>
       </div>
     </main>
@@ -354,7 +354,7 @@ export default function PublicWishlistPage() {
             href="/"
             className="inline-flex items-center gap-2 text-lg font-semibold text-kid-primary hover:underline"
           >
-            KidCollect
+            CardDex
           </Link>
         </div>
       </div>
