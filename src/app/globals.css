@@ -18,11 +18,7 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
+  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
     rgb(var(--background-start-rgb));
   min-height: 100vh;
 }
@@ -60,4 +56,28 @@ body {
 
 .animate-confetti {
   animation: confetti 1s ease-out forwards;
+}
+
+/* Landing page floating animation */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--rotate, 0deg));
+  }
+  50% {
+    transform: translateY(-10px) rotate(var(--rotate, 0deg));
+  }
+}
+
+/* Star twinkling animation */
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
 }
