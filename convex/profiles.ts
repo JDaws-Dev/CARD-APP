@@ -424,6 +424,574 @@ export const getOrCreateDemoProfile = mutation({
 });
 
 // ============================================================================
+// CHILD PROFILE CREATION WITH VALIDATION
+// ============================================================================
+
+/**
+ * Display name validation constants
+ */
+const MIN_DISPLAY_NAME_LENGTH = 1;
+const MAX_DISPLAY_NAME_LENGTH = 30;
+
+/**
+ * Profile limit constants
+ */
+const FREE_TIER_MAX_CHILD_PROFILES = 1;
+const FAMILY_TIER_MAX_CHILD_PROFILES = 3;
+const MAX_PARENT_PROFILES = 1;
+const MAX_TOTAL_PROFILES = 4;
+
+/**
+ * Blocked words/phrases for display names (kid-safety)
+ */
+const BLOCKED_NAME_PATTERNS: RegExp[] = [
+  /\b(ass|butt|crap|damn|hell|piss|poop|fart)\b/i,
+  /\b(f+u+c+k|s+h+i+t|b+i+t+c+h)\b/i,
+  /\b(hate|kill|die|dead)\b/i,
+  /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/, // Phone numbers
+  /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i, // Email addresses
+];
+
+/**
+ * Allowed characters regex for display names
+ */
+const ALLOWED_NAME_CHARS_REGEX = /^[\p{L}\p{N}\s\-']+$/u;
+
+interface ValidationError {
+  field: string;
+  code: string;
+  message: string;
+}
+
+interface ProfileCountsInternal {
+  parent: number;
+  child: number;
+  total: number;
+}
+
+/**
+ * Validate display name
+ */
+function validateDisplayNameInternal(name: string): ValidationError[] {
+  const errors: ValidationError[] = [];
+  const trimmed = name.trim();
+
+  // Check empty/whitespace
+  if (trimmed.length === 0) {
+    errors.push({
+      field: 'displayName',
+      code: 'REQUIRED',
+      message: 'Display name is required',
+    });
+    return errors;
+  }
+
+  // Check length
+  if (trimmed.length < MIN_DISPLAY_NAME_LENGTH) {
+    errors.push({
+      field: 'displayName',
+      code: 'TOO_SHORT',
+      message: `Display name must be at least ${MIN_DISPLAY_NAME_LENGTH} character`,
+    });
+  }
+
+  if (trimmed.length > MAX_DISPLAY_NAME_LENGTH) {
+    errors.push({
+      field: 'displayName',
+      code: 'TOO_LONG',
+      message: `Display name must be ${MAX_DISPLAY_NAME_LENGTH} characters or less`,
+    });
+  }
+
+  // Check allowed characters
+  if (!ALLOWED_NAME_CHARS_REGEX.test(trimmed)) {
+    errors.push({
+      field: 'displayName',
+      code: 'INVALID_CHARS',
+      message: 'Display name can only contain letters, numbers, spaces, hyphens, and apostrophes',
+    });
+  }
+
+  // Check excessive spaces
+  if (/\s{3,}/.test(name)) {
+    errors.push({
+      field: 'displayName',
+      code: 'EXCESSIVE_SPACES',
+      message: 'Display name cannot have more than 2 consecutive spaces',
+    });
+  }
+
+  // Check blocked content
+  if (BLOCKED_NAME_PATTERNS.some((pattern) => pattern.test(trimmed))) {
+    errors.push({
+      field: 'displayName',
+      code: 'INAPPROPRIATE_CONTENT',
+      message: 'Display name contains inappropriate content',
+    });
+  }
+
+  return errors;
+}
+
+/**
+ * Validate avatar URL
+ */
+function validateAvatarUrlInternal(url: string | undefined): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (url === undefined || url === '') {
+    return errors; // Avatar is optional
+  }
+
+  // Check URL format
+  let isValid = false;
+  try {
+    const parsed = new URL(url);
+    isValid = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    isValid = url.startsWith('/'); // Allow relative paths
+  }
+
+  if (!isValid) {
+    errors.push({
+      field: 'avatarUrl',
+      code: 'INVALID_URL',
+      message: 'Avatar URL must be a valid URL or path',
+    });
+  }
+
+  return errors;
+}
+
+/**
+ * Count profiles by type
+ */
+function countProfilesInternal(
+  profiles: Array<{ profileType?: 'parent' | 'child' }>
+): ProfileCountsInternal {
+  let parent = 0;
+  let child = 0;
+
+  for (const profile of profiles) {
+    if (profile.profileType === 'parent') {
+      parent++;
+    } else {
+      child++;
+    }
+  }
+
+  return { parent, child, total: parent + child };
+}
+
+/**
+ * Get max child profiles for tier
+ */
+function getMaxChildProfilesInternal(tier: 'free' | 'family'): number {
+  return tier === 'family' ? FAMILY_TIER_MAX_CHILD_PROFILES : FREE_TIER_MAX_CHILD_PROFILES;
+}
+
+/**
+ * Get max total profiles for tier
+ */
+function getMaxTotalProfilesInternal(tier: 'free' | 'family'): number {
+  if (tier === 'family') {
+    return MAX_TOTAL_PROFILES;
+  }
+  return MAX_PARENT_PROFILES + FREE_TIER_MAX_CHILD_PROFILES;
+}
+
+/**
+ * Query to check if a child profile can be created
+ */
+export const canCreateChildProfile = query({
+  args: { familyId: v.id('families') },
+  handler: async (ctx, args) => {
+    const family = await ctx.db.get(args.familyId);
+    if (!family) {
+      return {
+        allowed: false,
+        reason: 'Family not found',
+        upgradeRequired: false,
+      };
+    }
+
+    // Get effective tier (falls back to free if expired)
+    let effectiveTier: 'free' | 'family' = family.subscriptionTier;
+    if (
+      family.subscriptionTier === 'family' &&
+      family.subscriptionExpiresAt &&
+      family.subscriptionExpiresAt <= Date.now()
+    ) {
+      effectiveTier = 'free';
+    }
+
+    const existingProfiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', (q) => q.eq('familyId', args.familyId))
+      .collect();
+
+    const counts = countProfilesInternal(existingProfiles);
+    const maxChildProfiles = getMaxChildProfilesInternal(effectiveTier);
+    const maxTotalProfiles = getMaxTotalProfilesInternal(effectiveTier);
+
+    // Check total limit first
+    if (counts.total >= maxTotalProfiles) {
+      return {
+        allowed: false,
+        reason: `Maximum of ${maxTotalProfiles} profiles reached`,
+        upgradeRequired: false,
+        currentCounts: counts,
+        limits: { maxChildProfiles, maxTotalProfiles },
+      };
+    }
+
+    // Check child limit
+    if (counts.child >= maxChildProfiles) {
+      const canUpgrade = effectiveTier === 'free';
+      return {
+        allowed: false,
+        reason: canUpgrade
+          ? `Free plan is limited to ${maxChildProfiles} child profile. Upgrade to Family Plan for up to ${FAMILY_TIER_MAX_CHILD_PROFILES} child profiles.`
+          : `Maximum of ${maxChildProfiles} child profiles reached`,
+        upgradeRequired: canUpgrade,
+        currentCounts: counts,
+        limits: { maxChildProfiles, maxTotalProfiles },
+      };
+    }
+
+    return {
+      allowed: true,
+      upgradeRequired: false,
+      currentCounts: counts,
+      limits: { maxChildProfiles, maxTotalProfiles },
+      childProfilesRemaining: maxChildProfiles - counts.child,
+    };
+  },
+});
+
+/**
+ * Query to validate a child profile display name
+ */
+export const validateChildProfileName = query({
+  args: {
+    familyId: v.id('families'),
+    displayName: v.string(),
+    excludeProfileId: v.optional(v.id('profiles')),
+  },
+  handler: async (ctx, args) => {
+    const errors: ValidationError[] = [];
+
+    // Validate display name format
+    const nameErrors = validateDisplayNameInternal(args.displayName);
+    errors.push(...nameErrors);
+
+    // If format is valid, check uniqueness
+    if (nameErrors.length === 0) {
+      const existingProfiles = await ctx.db
+        .query('profiles')
+        .withIndex('by_family', (q) => q.eq('familyId', args.familyId))
+        .collect();
+
+      const normalizedName = args.displayName.trim().toLowerCase();
+      const isDuplicate = existingProfiles.some(
+        (p) =>
+          p.displayName.trim().toLowerCase() === normalizedName &&
+          (!args.excludeProfileId || p._id !== args.excludeProfileId)
+      );
+
+      if (isDuplicate) {
+        errors.push({
+          field: 'displayName',
+          code: 'DUPLICATE_NAME',
+          message: 'A profile with this name already exists in your family',
+        });
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      sanitizedName: args.displayName.trim().replace(/\s+/g, ' '),
+    };
+  },
+});
+
+/**
+ * Create a child profile with comprehensive validation.
+ * Validates:
+ * - Display name (length, characters, inappropriate content, uniqueness)
+ * - Avatar URL (format)
+ * - Profile limits (tier-based)
+ */
+export const createChildProfileValidated = mutation({
+  args: {
+    familyId: v.id('families'),
+    displayName: v.string(),
+    avatarUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const errors: ValidationError[] = [];
+
+    // Get family
+    const family = await ctx.db.get(args.familyId);
+    if (!family) {
+      throw new Error('Family not found');
+    }
+
+    // Get effective tier
+    let effectiveTier: 'free' | 'family' = family.subscriptionTier;
+    if (
+      family.subscriptionTier === 'family' &&
+      family.subscriptionExpiresAt &&
+      family.subscriptionExpiresAt <= Date.now()
+    ) {
+      effectiveTier = 'free';
+    }
+
+    // Validate display name
+    const nameErrors = validateDisplayNameInternal(args.displayName);
+    errors.push(...nameErrors);
+
+    // Validate avatar URL
+    const avatarErrors = validateAvatarUrlInternal(args.avatarUrl);
+    errors.push(...avatarErrors);
+
+    // Get existing profiles
+    const existingProfiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', (q) => q.eq('familyId', args.familyId))
+      .collect();
+
+    // Check name uniqueness (only if name is valid)
+    if (nameErrors.length === 0) {
+      const normalizedName = args.displayName.trim().toLowerCase();
+      const isDuplicate = existingProfiles.some(
+        (p) => p.displayName.trim().toLowerCase() === normalizedName
+      );
+
+      if (isDuplicate) {
+        errors.push({
+          field: 'displayName',
+          code: 'DUPLICATE_NAME',
+          message: 'A profile with this name already exists in your family',
+        });
+      }
+    }
+
+    // Check profile limits
+    const counts = countProfilesInternal(existingProfiles);
+    const maxChildProfiles = getMaxChildProfilesInternal(effectiveTier);
+    const maxTotalProfiles = getMaxTotalProfilesInternal(effectiveTier);
+
+    if (counts.total >= maxTotalProfiles) {
+      errors.push({
+        field: 'profile',
+        code: 'LIMIT_REACHED',
+        message: `Maximum of ${maxTotalProfiles} profiles reached`,
+      });
+    } else if (counts.child >= maxChildProfiles) {
+      const canUpgrade = effectiveTier === 'free';
+      errors.push({
+        field: 'profile',
+        code: canUpgrade ? 'UPGRADE_REQUIRED' : 'LIMIT_REACHED',
+        message: canUpgrade
+          ? `Free plan is limited to ${maxChildProfiles} child profile. Upgrade to Family Plan for up to ${FAMILY_TIER_MAX_CHILD_PROFILES} child profiles.`
+          : `Maximum of ${maxChildProfiles} child profiles reached`,
+      });
+    }
+
+    // If there are errors, return them without creating the profile
+    if (errors.length > 0) {
+      return {
+        success: false,
+        errors,
+        profileId: null,
+        upgradeRequired: errors.some((e) => e.code === 'UPGRADE_REQUIRED'),
+      };
+    }
+
+    // Sanitize inputs
+    const sanitizedName = args.displayName.trim().replace(/\s+/g, ' ');
+    const sanitizedAvatarUrl = args.avatarUrl?.trim() || undefined;
+
+    // Create the profile
+    const profileId = await ctx.db.insert('profiles', {
+      familyId: args.familyId,
+      displayName: sanitizedName,
+      avatarUrl: sanitizedAvatarUrl,
+      profileType: 'child',
+    });
+
+    return {
+      success: true,
+      errors: [],
+      profileId,
+      upgradeRequired: false,
+      childProfileCount: counts.child + 1,
+      maxChildProfiles,
+    };
+  },
+});
+
+/**
+ * Update a child profile with validation.
+ */
+export const updateChildProfileValidated = mutation({
+  args: {
+    profileId: v.id('profiles'),
+    displayName: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const errors: ValidationError[] = [];
+
+    // Get profile
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    // Validate display name if provided
+    if (args.displayName !== undefined) {
+      const nameErrors = validateDisplayNameInternal(args.displayName);
+      errors.push(...nameErrors);
+
+      // Check uniqueness (excluding current profile)
+      if (nameErrors.length === 0) {
+        const existingProfiles = await ctx.db
+          .query('profiles')
+          .withIndex('by_family', (q) => q.eq('familyId', profile.familyId))
+          .collect();
+
+        const normalizedName = args.displayName.trim().toLowerCase();
+        const isDuplicate = existingProfiles.some(
+          (p) => p.displayName.trim().toLowerCase() === normalizedName && p._id !== args.profileId
+        );
+
+        if (isDuplicate) {
+          errors.push({
+            field: 'displayName',
+            code: 'DUPLICATE_NAME',
+            message: 'A profile with this name already exists in your family',
+          });
+        }
+      }
+    }
+
+    // Validate avatar URL if provided
+    if (args.avatarUrl !== undefined) {
+      const avatarErrors = validateAvatarUrlInternal(args.avatarUrl);
+      errors.push(...avatarErrors);
+    }
+
+    // If there are errors, return them without updating
+    if (errors.length > 0) {
+      return {
+        success: false,
+        errors,
+      };
+    }
+
+    // Build updates
+    const updates: { displayName?: string; avatarUrl?: string } = {};
+
+    if (args.displayName !== undefined) {
+      updates.displayName = args.displayName.trim().replace(/\s+/g, ' ');
+    }
+
+    if (args.avatarUrl !== undefined) {
+      updates.avatarUrl = args.avatarUrl.trim() || undefined;
+    }
+
+    // Apply updates
+    if (Object.keys(updates).length > 0) {
+      await ctx.db.patch(args.profileId, updates);
+    }
+
+    return {
+      success: true,
+      errors: [],
+    };
+  },
+});
+
+/**
+ * Get profile limits and remaining slots for a family
+ */
+export const getProfileLimits = query({
+  args: { familyId: v.id('families') },
+  handler: async (ctx, args) => {
+    const family = await ctx.db.get(args.familyId);
+    if (!family) {
+      return null;
+    }
+
+    // Get effective tier
+    let effectiveTier: 'free' | 'family' = family.subscriptionTier;
+    if (
+      family.subscriptionTier === 'family' &&
+      family.subscriptionExpiresAt &&
+      family.subscriptionExpiresAt <= Date.now()
+    ) {
+      effectiveTier = 'free';
+    }
+
+    const existingProfiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', (q) => q.eq('familyId', args.familyId))
+      .collect();
+
+    const counts = countProfilesInternal(existingProfiles);
+    const maxChildProfiles = getMaxChildProfilesInternal(effectiveTier);
+    const maxTotalProfiles = getMaxTotalProfilesInternal(effectiveTier);
+
+    const childRemaining = Math.max(0, maxChildProfiles - counts.child);
+    const totalRemaining = Math.max(0, maxTotalProfiles - counts.total);
+
+    // Can add child if both limits allow
+    const canAddChild = childRemaining > 0 && totalRemaining > 0;
+    const canAddParent = counts.parent < MAX_PARENT_PROFILES && totalRemaining > 0;
+
+    // Build message
+    let message: string;
+    if (childRemaining === 0) {
+      if (effectiveTier === 'free') {
+        message = "You've reached the child profile limit on the Free plan. Upgrade for more!";
+      } else {
+        message = "You've reached the maximum child profiles for your account.";
+      }
+    } else if (childRemaining === 1) {
+      message = 'You can add 1 more child profile.';
+    } else {
+      message = `You can add ${childRemaining} more child profiles.`;
+    }
+
+    return {
+      tier: effectiveTier,
+      counts,
+      limits: {
+        maxChildProfiles,
+        maxTotalProfiles,
+        maxParentProfiles: MAX_PARENT_PROFILES,
+      },
+      remaining: {
+        childProfiles: childRemaining,
+        totalProfiles: totalRemaining,
+      },
+      canAddChild,
+      canAddParent,
+      message,
+      profiles: existingProfiles.map((p) => ({
+        id: p._id,
+        displayName: p.displayName,
+        profileType: p.profileType,
+        avatarUrl: p.avatarUrl,
+      })),
+    };
+  },
+});
+
+// ============================================================================
 // KID DASHBOARD STATS
 // ============================================================================
 

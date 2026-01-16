@@ -1,5 +1,37 @@
 # CardDex Backend Tasks
 
+## Status Summary (Updated 2026-01-16)
+
+| Section | Complete | Remaining |
+|---------|----------|-----------|
+| HIGH PRIORITY - Auth & Pricing | 6 | **4** |
+| Card Variants | 3 | 0 |
+| Achievement System | 6 | 0 |
+| Wishlist & Sharing | 4 | 0 |
+| Family Features | 2 | **1** |
+| Testing & Performance | 3 | **1** |
+| Data Persistence & Sync | 0 | **3** |
+| Multi-TCG Architecture | 12 | 0 |
+| Gamification Backend | 3 | 0 |
+| Educational Content | 3 | 0 |
+| Additional Features | 5 | 0 |
+| Launch Prep | 2 | **7** |
+| **TOTAL** | **49** | **16** |
+
+### Critical Path for Launch
+1. **Authentication (4 tasks)** - Email/password login, parent registration, child profiles, PIN protection
+2. **Launch Prep (7 tasks)** - Stripe integration, production deploy, monitoring, E2E tests
+3. **Data Persistence (3 tasks)** - Cloud backup, sync, conflict resolution
+4. **TCGPlayer Pricing (1 task)** - Fetch real pricing data from TCGPlayer API
+5. **Offline Caching (1 task)** - Service worker for offline viewing
+
+### Blocked Tasks
+- Stripe subscription integration - Requires business account setup
+- Production deployment - Waiting on auth completion
+- TCGPlayer API - Need affiliate account for pricing data
+
+---
+
 ## Coding Guidelines
 
 **READ THESE BEFORE STARTING ANY TASK:**
@@ -21,7 +53,7 @@
 - [x] Fix activity log to show card names instead of IDs (store cardName in metadata when logging)
 - [ ] Implement authentication system with Convex Auth (email/password login)
 - [ ] Create parent account registration flow with email verification
-- [ ] Build child profile creation (up to 4 per family) with validation
+- [x] Build child profile creation (up to 4 per family) with validation
 - [ ] Implement parent PIN protection logic (store hashed PIN, verify on access)
 - [x] **Profile type field** - Add `profileType: "parent" | "child"` to profiles schema for role-based UI
 - [x] **Get current user profile query** - Return profile with type for header/dashboard routing
@@ -1662,3 +1694,41 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Display helpers (tier names, date formatting, status messages, expiration warnings)
   - Integration scenarios: Free User Upgrade Journey, Family User Experience, Subscription Expiration Flow, Limit Checking Workflow
 - All 3852 tests pass, linter clean
+
+### 2026-01-16: Build child profile creation (up to 4 per family) with validation
+
+- Created `src/lib/childProfile.ts` with comprehensive validation utilities:
+  - Types: `ProfileType`, `ProfileCreateInput`, `ChildProfileCreateInput`, `ExistingProfile`, `ProfileCounts`, `ValidationError`, `ValidationResult`, `CanCreateProfileResult`, `CreateChildProfileResult`
+  - Constants: `MIN_DISPLAY_NAME_LENGTH` (1), `MAX_DISPLAY_NAME_LENGTH` (30), profile limits (free: 1 child, family: 3 children, max total: 4)
+  - `BLOCKED_NAME_PATTERNS`: RegExp patterns for profanity, hate speech, phone numbers, email addresses (kid-safety filter)
+  - `ALLOWED_NAME_CHARS_REGEX`: Unicode letters, numbers, spaces, hyphens, apostrophes
+  - Display name validation: `isDisplayNameLengthValid`, `isDisplayNameCharsValid`, `containsBlockedContent`, `isWhitespaceOnly`, `hasExcessiveSpaces`, `validateDisplayName`, `sanitizeDisplayName`
+  - Avatar URL validation: `isValidUrlFormat`, `isAllowedAvatarUrl`, `validateAvatarUrl`
+  - Profile counting: `countProfilesByType`, `isDisplayNameUniqueInFamily`, `getMaxChildProfilesForTier`, `getMaxTotalProfilesForTier`
+  - Profile creation validation: `canCreateChildProfile`, `canCreateParentProfile`, `validateChildProfileInput`, `validateChildProfileUpdate`
+  - Display helpers: `getProfileLimitMessage`, `formatProfileCounts`, `getRemainingProfilesInfo`, `getRandomDefaultAvatar`, `getDefaultAvatarByIndex`
+  - Error helpers: `getErrorMessage`, `isUpgradeRequiredError`, `getFirstErrorMessage`, `combineValidationResults`
+- Added new queries and mutations to `convex/profiles.ts`:
+  - `canCreateChildProfile`: Query to check if a child profile can be created (respects tier limits)
+  - `validateChildProfileName`: Query to validate display name (format, uniqueness, inappropriate content)
+  - `createChildProfileValidated`: Mutation with comprehensive validation (name, avatar, limits, sanitization)
+  - `updateChildProfileValidated`: Mutation to update child profile with validation
+  - `getProfileLimits`: Query to get profile limits and remaining slots for a family
+  - Internal validation functions matching lib utilities for server-side enforcement
+- Validation features:
+  - Display name: length (1-30 chars), allowed characters (Unicode-friendly), no excessive spaces, no inappropriate content, no personal info (phone/email)
+  - Avatar URL: valid URL format or relative path
+  - Profile limits: Free tier (1 parent + 1 child = 2 max), Family tier (1 parent + 3 children = 4 max)
+  - Upgrade prompts: Shows upgrade option when hitting free tier limits but not absolute limits
+  - Name uniqueness: Case-insensitive duplicate checking within family
+- Added 105 tests in `src/lib/__tests__/childProfile.test.ts` covering:
+  - Constants validation (limits, blocked patterns, default avatars)
+  - Display name validation (length, characters, blocked content, whitespace, excessive spaces)
+  - Avatar URL validation (http/https URLs, relative paths, invalid formats)
+  - Profile count utilities (counting by type, uniqueness checking)
+  - Profile creation validation (tier limits, upgrade required detection, input sanitization)
+  - Profile update validation (name changes, uniqueness with exclusion)
+  - Display helpers (limit messages, formatted counts, remaining info)
+  - Error helpers (message lookup, upgrade detection, result combining)
+  - Integration scenarios: New family first child, free user blocked on second child, family plan multiple children, inappropriate name rejection, duplicate name detection
+- All 4122 tests pass (2 pre-existing failures in unrelated streakCalendar.test.ts), linter clean
