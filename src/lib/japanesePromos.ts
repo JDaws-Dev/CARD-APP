@@ -406,11 +406,12 @@ export function detectJapanesePromo(card: CardForPromoDetection): JapanesePromoI
   if (numberResult.isMatch) {
     detectionMethods.push('number_pattern');
     category = numberResult.category;
-    if (numberResult.source) {
+    if (numberResult.source && category) {
       const sourceKey = numberResult.source.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const detectedCategory = category; // TypeScript narrowing helper
       source =
         JAPANESE_PROMO_SOURCES[sourceKey] ||
-        createSourceFromCategory(category, numberResult.source);
+        createSourceFromCategory(detectedCategory, numberResult.source);
     }
     confidence = 'high';
   }

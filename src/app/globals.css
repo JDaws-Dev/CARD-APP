@@ -590,3 +590,174 @@ body {
     size: letter;
   }
 }
+
+/* ============================================================================
+ * LOW-STIMULATION MODE
+ * Autism-friendly mode with reduced animations, muted colors, no sounds,
+ * and simpler layouts for users who find the standard interface overwhelming.
+ * ============================================================================ */
+
+/* Base low-stimulation mode indicator */
+.low-stim {
+  /* Apply subtle transition to all elements */
+  --low-stim-transition: 0.3s ease-out;
+}
+
+/* Reduce all animations when low-stim-no-animations is enabled */
+.low-stim-no-animations,
+.low-stim-no-animations *,
+.low-stim-no-animations *::before,
+.low-stim-no-animations *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.1s !important;
+  scroll-behavior: auto !important;
+}
+
+/* Disable specific animation classes */
+.low-stim-no-animations .animate-confetti,
+.low-stim-no-animations .animate-badge-entrance,
+.low-stim-no-animations .animate-glow-pulse,
+.low-stim-no-animations .animate-new-card-glow,
+.low-stim-no-animations .animate-sparkle,
+.low-stim-no-animations .animate-sparkle-rotate,
+.low-stim-no-animations .animate-just-pulled-pop,
+.low-stim-no-animations .animate-streak-flame,
+.low-stim-no-animations .animate-streak-glow,
+.low-stim-no-animations .new-badge-shimmer,
+.low-stim-no-animations .animate-pulse,
+.low-stim-no-animations .animate-bounce,
+.low-stim-no-animations .animate-spin {
+  animation: none !important;
+}
+
+/* Muted color palette for low-stim-muted */
+.low-stim-muted {
+  /* Desaturate and soften colors */
+  --low-stim-saturation: 0.5;
+
+  /* Override vibrant game colors with muted versions */
+  --game-primary: #9ca3af;
+  --game-primary-rgb: 156, 163, 175;
+  --game-secondary: #6b7280;
+  --game-secondary-rgb: 107, 114, 128;
+  --game-accent: #f3f4f6;
+  --game-accent-rgb: 243, 244, 246;
+  --game-text: #4b5563;
+  --game-text-rgb: 75, 85, 99;
+  --game-border: #d1d5db;
+  --game-border-rgb: 209, 213, 219;
+}
+
+/* Apply desaturation filter to images and gradients */
+.low-stim-muted img,
+.low-stim-muted [class*='bg-gradient'],
+.low-stim-muted [class*='from-'],
+.low-stim-muted [class*='to-'] {
+  filter: saturate(0.6) brightness(1.05);
+}
+
+/* Softer backgrounds */
+.low-stim-muted body {
+  --background-start-rgb: 248, 250, 252;
+  --background-end-rgb: 241, 245, 249;
+}
+
+.low-stim-muted.dark body,
+.dark.low-stim-muted body {
+  --background-start-rgb: 30, 41, 59;
+  --background-end-rgb: 51, 65, 85;
+}
+
+/* Simpler layouts - reduce visual complexity */
+.low-stim-simple {
+  /* Reduce decorative shadows */
+  --low-stim-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+/* Remove complex shadows and glows */
+.low-stim-simple [class*='shadow-lg'],
+.low-stim-simple [class*='shadow-xl'],
+.low-stim-simple [class*='shadow-2xl'] {
+  box-shadow: var(--low-stim-shadow) !important;
+}
+
+/* Simplify borders and rounded corners */
+.low-stim-simple [class*='rounded-2xl'],
+.low-stim-simple [class*='rounded-3xl'] {
+  border-radius: 0.5rem !important;
+}
+
+/* Hide decorative elements */
+.low-stim-no-decorations [aria-hidden='true']:not(svg):not([class*='Icon']),
+.low-stim-no-decorations .decoration,
+.low-stim-no-decorations .sparkle,
+.low-stim-no-decorations .confetti {
+  display: none !important;
+}
+
+/* Hide floating/animated decorations but keep functional icons */
+.low-stim-no-decorations [class*='animate-float'],
+.low-stim-no-decorations [class*='animate-twinkle'],
+.low-stim-no-decorations [class*='FloatingCard'],
+.low-stim-no-decorations [class*='FloatingStar'] {
+  display: none !important;
+}
+
+/* Softer contrast mode */
+.low-stim-soft-contrast {
+  --low-stim-text-contrast: 0.85;
+}
+
+/* Reduce text contrast for softer reading */
+.low-stim-soft-contrast {
+  color: #4b5563;
+}
+
+.low-stim-soft-contrast.dark,
+.dark.low-stim-soft-contrast {
+  color: #cbd5e1;
+}
+
+/* Soften black text */
+.low-stim-soft-contrast [class*='text-gray-900'],
+.low-stim-soft-contrast [class*='text-black'] {
+  color: #374151 !important;
+}
+
+.low-stim-soft-contrast.dark [class*='text-white'],
+.dark.low-stim-soft-contrast [class*='text-white'] {
+  color: #e2e8f0 !important;
+}
+
+/* Reduce contrast of vibrant colored text */
+.low-stim-soft-contrast [class*='text-kid-primary'] {
+  opacity: 0.85;
+}
+
+/* Utility classes for low-stim mode visibility */
+@layer utilities {
+  /* Hide element when low-stim is active */
+  .low-stim .hide-in-low-stim {
+    display: none !important;
+  }
+
+  /* Show element only when low-stim is active */
+  .show-in-low-stim {
+    display: none !important;
+  }
+  .low-stim .show-in-low-stim {
+    display: block !important;
+  }
+
+  /* Hide decorations when no-decorations is active */
+  .low-stim-no-decorations .low-stim-decoration {
+    display: none !important;
+  }
+
+  /* Conditional animation disable */
+  .low-stim-no-animations .low-stim-animated {
+    animation: none !important;
+    transition: none !important;
+  }
+}

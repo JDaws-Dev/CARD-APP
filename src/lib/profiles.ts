@@ -269,7 +269,7 @@ export interface ProfileSummary {
   id: string;
   displayName: string;
   avatarUrl?: string;
-  profileType: ProfileType;
+  profileType?: ProfileType;
 }
 
 export interface CurrentUserProfileResult {
@@ -285,8 +285,11 @@ export interface CurrentUserProfileResult {
 
 /**
  * Check if the user has a parent profile.
+ * Accepts a looser type to work with Convex query results where profileType may be undefined.
  */
-export function hasParentAccess(result: CurrentUserProfileResult | null): boolean {
+export function hasParentAccess(
+  result: { profile: { profileType?: string | null } } | null | undefined
+): boolean {
   if (!result) return false;
   return result.profile.profileType === 'parent';
 }

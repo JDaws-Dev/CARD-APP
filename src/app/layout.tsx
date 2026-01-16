@@ -6,6 +6,7 @@ import { GameSelectorProvider } from '@/components/providers/GameSelectorProvide
 import { GameThemeProvider } from '@/components/providers/GameThemeProvider';
 import { DarkModeProvider } from '@/components/providers/DarkModeProvider';
 import { OfflineProvider } from '@/components/providers/OfflineProvider';
+import { LowStimulationProvider } from '@/components/providers/LowStimulationProvider';
 import { CelebrationProvider } from '@/components/ui/CelebrationAnimation';
 import { LevelUpProvider } from '@/components/gamification/LevelSystem';
 import { MilestoneProvider } from '@/components/gamification/MilestoneCelebration';
@@ -32,14 +33,15 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <ConvexClientProvider>
           <DarkModeProvider>
-            <OfflineProvider>
-              <GameSelectorProvider>
-                <GameThemeProvider>
-                  <KidModeProvider>
-                    <CelebrationProvider>
-                      <LevelUpProvider>
-                        <MilestoneProvider>
-                          <SetCompletionProvider>
+            <LowStimulationProvider>
+              <OfflineProvider>
+                <GameSelectorProvider>
+                  <GameThemeProvider>
+                    <KidModeProvider>
+                      <CelebrationProvider>
+                        <LevelUpProvider>
+                          <MilestoneProvider>
+                            <SetCompletionProvider>
                             {/* Skip link for keyboard navigation - visually hidden until focused */}
                             <a
                               href="#main-content"
@@ -49,14 +51,15 @@ export default function RootLayout({
                             </a>
                             <AuthAwareHeader />
                             <main id="main-content">{children}</main>
-                          </SetCompletionProvider>
-                        </MilestoneProvider>
-                      </LevelUpProvider>
-                    </CelebrationProvider>
-                  </KidModeProvider>
-                </GameThemeProvider>
-              </GameSelectorProvider>
-            </OfflineProvider>
+                            </SetCompletionProvider>
+                          </MilestoneProvider>
+                        </LevelUpProvider>
+                      </CelebrationProvider>
+                    </KidModeProvider>
+                  </GameThemeProvider>
+                </GameSelectorProvider>
+              </OfflineProvider>
+            </LowStimulationProvider>
           </DarkModeProvider>
         </ConvexClientProvider>
       </body>
