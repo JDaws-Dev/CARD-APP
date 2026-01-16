@@ -6,7 +6,7 @@ import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { CollectionView } from '@/components/collection/CollectionView';
 import Link from 'next/link';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { Square3Stack3DIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
+import { Square3Stack3DIcon, ArrowsRightLeftIcon, TrophyIcon } from '@heroicons/react/24/outline';
 import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
 
@@ -86,13 +86,22 @@ export default function MyCollectionPage() {
               <h1 className="text-3xl font-bold text-gray-800">My Collection</h1>
               <p className="text-gray-500">All your collected Pokemon cards in one place</p>
             </div>
-            <Link
-              href="/compare"
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-kid-primary"
-            >
-              <ArrowsRightLeftIcon className="h-5 w-5" />
-              Compare Collections
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/badges"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-amber-500 hover:to-orange-600"
+              >
+                <TrophyIcon className="h-5 w-5" />
+                Trophy Case
+              </Link>
+              <Link
+                href="/compare"
+                className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-kid-primary"
+              >
+                <ArrowsRightLeftIcon className="h-5 w-5" />
+                Compare Collections
+              </Link>
+            </div>
           </div>
         </div>
 

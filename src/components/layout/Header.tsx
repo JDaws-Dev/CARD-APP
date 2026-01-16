@@ -32,6 +32,7 @@ function CardStackIcon({ className }: { className?: string }) {
 const navLinks = [
   { href: '/sets', label: 'Browse Sets' },
   { href: '/collection', label: 'My Collection' },
+  { href: '/badges', label: 'Badges' },
   { href: '/search', label: 'Search' },
   { href: '/browse', label: 'Browse' },
 ];
