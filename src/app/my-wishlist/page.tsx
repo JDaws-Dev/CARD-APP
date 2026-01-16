@@ -16,6 +16,7 @@ import {
   ArrowLeftIcon,
   ShareIcon,
   SparklesIcon,
+  CurrencyDollarIcon,
 } from '@heroicons/react/24/solid';
 import {
   HeartIcon as HeartIconOutline,
@@ -31,6 +32,45 @@ interface WishlistItem {
   _id: Id<'wishlistCards'>;
   cardId: string;
   isPriority: boolean;
+}
+
+/**
+ * Get the best available market price from a card's TCGPlayer prices
+ */
+function getCardMarketPrice(card: PokemonCard): number | null {
+  const prices = card.tcgplayer?.prices;
+  if (!prices) return null;
+
+  return (
+    prices.normal?.market ?? prices.holofoil?.market ?? prices.reverseHolofoil?.market ?? null
+  );
+}
+
+/**
+ * Format price as currency string
+ */
+function formatPrice(price: number): string {
+  if (price >= 1000) {
+    return `$${(price / 1000).toFixed(1)}k`;
+  }
+  if (price >= 100) {
+    return `$${Math.round(price)}`;
+  }
+  return `$${price.toFixed(2)}`;
+}
+
+/**
+ * Calculate the total estimated value of all wishlist cards
+ */
+function calculateWishlistTotal(cardData: Map<string, PokemonCard>): number {
+  let total = 0;
+  cardData.forEach((card) => {
+    const price = getCardMarketPrice(card);
+    if (price) {
+      total += price;
+    }
+  });
+  return total;
 }
 
 /**
@@ -444,7 +484,7 @@ export default function MyWishlistPage() {
         </div>
 
         {/* Stats */}
-        <div className="mx-auto mb-8 flex max-w-lg justify-center gap-4 rounded-xl bg-white p-4 shadow-sm sm:gap-8">
+        <div className="mx-auto mb-8 flex max-w-2xl flex-wrap justify-center gap-4 rounded-xl bg-white p-4 shadow-sm sm:gap-6">
           <div className="text-center">
             <div className="flex items-center justify-center gap-1">
               <HeartIcon className="h-5 w-5 text-rose-500" aria-hidden="true" />
@@ -452,7 +492,7 @@ export default function MyWishlistPage() {
             </div>
             <p className="text-xs text-gray-500 sm:text-sm">Wanted Cards</p>
           </div>
-          <div className="w-px bg-gray-200" aria-hidden="true" />
+          <div className="hidden w-px bg-gray-200 sm:block" aria-hidden="true" />
           <div className="text-center">
             <div className="flex items-center justify-center gap-1">
               <StarIcon className="h-5 w-5 text-amber-400" aria-hidden="true" />
@@ -462,7 +502,21 @@ export default function MyWishlistPage() {
             </div>
             <p className="text-xs text-gray-500 sm:text-sm">Most Wanted</p>
           </div>
-          <div className="w-px bg-gray-200" aria-hidden="true" />
+          <div className="hidden w-px bg-gray-200 sm:block" aria-hidden="true" />
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1">
+              <CurrencyDollarIcon className="h-5 w-5 text-emerald-500" aria-hidden="true" />
+              <span className="text-2xl font-bold text-gray-800">
+                {isLoadingCards ? (
+                  <span className="inline-block h-6 w-12 animate-pulse rounded bg-gray-200" />
+                ) : (
+                  formatPrice(calculateWishlistTotal(cardData))
+                )}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 sm:text-sm">Est. Total Value</p>
+          </div>
+          <div className="hidden w-px bg-gray-200 sm:block" aria-hidden="true" />
           <div className="text-center">
             <div className="flex items-center justify-center gap-1">
               <SparklesIcon className="h-5 w-5 text-purple-500" aria-hidden="true" />
