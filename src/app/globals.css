@@ -831,7 +831,12 @@ body {
 
 /* Utility class to exclude specific elements from dyslexic font */
 .dyslexic-font .no-dyslexic-font {
-  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif !important;
+  font-family:
+    var(--font-inter),
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif !important;
   letter-spacing: normal;
   word-spacing: normal;
 }
@@ -1060,5 +1065,84 @@ body {
     color: inherit !important;
     border-color: inherit !important;
     background-color: inherit !important;
+  }
+}
+
+/* ============================================================================
+ * MANUAL REDUCED MOTION MODE
+ * Allows users to manually reduce motion independent of system preference.
+ * This works in addition to @media (prefers-reduced-motion: reduce).
+ * ============================================================================ */
+
+/* Reduce all animations when .reduce-motion class is applied */
+.reduce-motion,
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Disable specific animation classes */
+.reduce-motion .animate-confetti,
+.reduce-motion .animate-badge-entrance,
+.reduce-motion .animate-glow-pulse,
+.reduce-motion .animate-new-card-glow,
+.reduce-motion .animate-sparkle,
+.reduce-motion .animate-sparkle-rotate,
+.reduce-motion .animate-just-pulled-pop,
+.reduce-motion .animate-streak-flame,
+.reduce-motion .animate-streak-glow,
+.reduce-motion .new-badge-shimmer,
+.reduce-motion .animate-pulse,
+.reduce-motion .animate-bounce,
+.reduce-motion .animate-spin,
+.reduce-motion .animate-float,
+.reduce-motion .animate-twinkle {
+  animation: none !important;
+}
+
+/* Hide animated decorative elements */
+.reduce-motion [class*='animate-float'],
+.reduce-motion [class*='animate-twinkle'],
+.reduce-motion [class*='FloatingCard'],
+.reduce-motion [class*='FloatingStar'] {
+  opacity: 0.5 !important;
+}
+
+/* Simplify scroll behavior */
+.reduce-motion {
+  scroll-behavior: auto !important;
+}
+
+/* Ensure smooth fades still work (accessibility-friendly fade) */
+.reduce-motion .fade-in {
+  transition-duration: 0.1s !important;
+}
+
+/* ============================================================================
+ * REDUCED MOTION UTILITY CLASSES
+ * ============================================================================ */
+
+@layer utilities {
+  /* Hide element when reduced motion is active */
+  .reduce-motion .hide-when-reduced-motion {
+    display: none !important;
+  }
+
+  /* Show element only when reduced motion is active */
+  .show-when-reduced-motion {
+    display: none !important;
+  }
+  .reduce-motion .show-when-reduced-motion {
+    display: block !important;
+  }
+
+  /* Override reduced motion for specific elements that need animation */
+  .reduce-motion .allow-motion {
+    animation: revert !important;
+    transition: revert !important;
   }
 }

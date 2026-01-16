@@ -25,6 +25,7 @@ import { DarkModeToggle } from '@/components/layout/DarkModeToggle';
 import { LowStimulationToggle } from '@/components/layout/LowStimulationToggle';
 import { DyslexicFontToggle } from '@/components/layout/DyslexicFontToggle';
 import { HighContrastToggle } from '@/components/layout/HighContrastToggle';
+import { ReducedMotionToggle } from '@/components/layout/ReducedMotionToggle';
 import { OfflineIndicator } from '@/components/layout/OfflineIndicator';
 
 // Custom card stack icon for logo (shared across all headers)
@@ -127,6 +128,7 @@ export function AppHeader() {
           <OfflineIndicator />
           <KidModeToggle />
           <LowStimulationToggle compact />
+          <ReducedMotionToggle compact />
           <DyslexicFontToggle compact />
           <HighContrastToggle compact />
           <DarkModeToggle compact />
@@ -316,6 +318,7 @@ export function AppHeader() {
               <OfflineIndicator />
               <KidModeToggle />
               <LowStimulationToggle compact />
+              <ReducedMotionToggle compact />
               <DyslexicFontToggle compact />
               <HighContrastToggle compact />
               <DarkModeToggle compact />
