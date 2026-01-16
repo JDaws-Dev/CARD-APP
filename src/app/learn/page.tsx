@@ -1,15 +1,24 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { LearnToCollect } from '@/components/tutorials/LearnToCollect';
+import {
+  GradeLikeAProGame,
+  GradeLikeAProButton,
+} from '@/components/games/GradeLikeAProGame';
 import {
   BookOpenIcon,
   SparklesIcon,
   ArrowRightIcon,
   MagnifyingGlassIcon,
+  AcademicCapIcon,
+  StarIcon,
 } from '@heroicons/react/24/solid';
 
 export default function LearnPage() {
+  const [isGradeGameOpen, setIsGradeGameOpen] = useState(false);
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Featured Guide Banner - Card Condition Guide */}
@@ -43,6 +52,34 @@ export default function LearnPage() {
           </Link>
         </div>
       </div>
+
+      {/* Educational Mini-Game - Grade Like a Pro */}
+      <div className="mb-8 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-6 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-md">
+              <AcademicCapIcon className="h-7 w-7 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900">Grade Like a Pro</h2>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  <StarIcon className="h-3 w-3" aria-hidden="true" />
+                  Mini-Game
+                </span>
+              </div>
+              <p className="text-gray-600">
+                Test your card grading skills! Look at cards and guess their condition to earn XP.
+                Perfect for learning what to look for when grading your own cards.
+              </p>
+            </div>
+          </div>
+          <GradeLikeAProButton onClick={() => setIsGradeGameOpen(true)} />
+        </div>
+      </div>
+
+      {/* Grade Like a Pro Game Modal */}
+      <GradeLikeAProGame isOpen={isGradeGameOpen} onClose={() => setIsGradeGameOpen(false)} />
 
       <LearnToCollect />
     </main>
