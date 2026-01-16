@@ -14,6 +14,7 @@ import {
   ArrowRightIcon,
 } from '@heroicons/react/24/solid';
 import { RandomCardButton } from './RandomCardButton';
+import { DigitalBinder, DigitalBinderButton } from '@/components/virtual/DigitalBinder';
 
 // Helper function to get the best market price from a card's TCGPlayer prices
 function getCardMarketPrice(card: PokemonCard): number | null {
@@ -63,6 +64,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [isBinderOpen, setIsBinderOpen] = useState(false);
 
   // Fetch card data from Pokemon TCG API
   const fetchCards = useCallback(async () => {
@@ -188,6 +190,18 @@ export function CollectionView({ collection }: CollectionViewProps) {
     return cardsWithPrices.sort((a, b) => b.price - a.price).slice(0, 5);
   }, [collection, cardData]);
 
+  // All cards for binder view
+  const allCardsForBinder = useMemo(() => {
+    const cards: CardWithQuantity[] = [];
+    collection.forEach((item) => {
+      const card = cardData.get(item.cardId);
+      if (card) {
+        cards.push({ ...card, quantity: item.quantity });
+      }
+    });
+    return cards;
+  }, [collection, cardData]);
+
   if (isLoading) {
     // Show skeleton for estimated number of groups based on collection size
     const estimatedGroups = Math.min(Math.ceil(collection.length / 5), 3);
@@ -237,12 +251,20 @@ export function CollectionView({ collection }: CollectionViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Random Card Button - Fun feature for kids */}
+      {/* Action buttons - Random Card and Binder View */}
       {cardData.size > 0 && (
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <DigitalBinderButton onClick={() => setIsBinderOpen(true)} />
           <RandomCardButton collection={collection} cardData={cardData} />
         </div>
       )}
+
+      {/* Digital Binder Modal */}
+      <DigitalBinder
+        cards={allCardsForBinder}
+        isOpen={isBinderOpen}
+        onClose={() => setIsBinderOpen(false)}
+      />
 
       {/* Collection Value Banner */}
       {collectionValue.total > 0 && (
