@@ -16,12 +16,14 @@
 
 ## Backend Tasks
 
-### Authentication & Profiles
+### HIGH PRIORITY - Authentication & Pricing
 
-- [ ] Implement authentication system with Convex Auth
+- [ ] Implement authentication system with Convex Auth (email/password login)
 - [ ] Create parent account registration flow with email verification
 - [ ] Build child profile creation (up to 4 per family) with validation
 - [ ] Implement parent PIN protection logic (store hashed PIN, verify on access)
+- [ ] Create collection value calculation query (sum tcgplayer.prices for all owned cards)
+- [ ] Add "most valuable cards" query (return top N cards by market price)
 
 ### Card Variants
 
@@ -47,8 +49,8 @@
 
 ### Family Features
 
-- [ ] Create activity log mutations (log card additions with timestamps)
-- [ ] Build duplicate finder query (compare two profiles, find matching cardIds)
+- [x] Create activity log mutations (log card additions with timestamps)
+- [x] Build duplicate finder query (compare two profiles, find matching cardIds)
 - [ ] Add pricing data fetching from TCGPlayer API
 
 ### Testing & Performance
@@ -70,3 +72,42 @@
 - Created `src/lib/wishlist.ts` with pure utility functions (`canAddPriority`, `validatePriorityToggle`, `getPriorityStatus`)
 - Added 21 tests in `src/lib/__tests__/wishlist.test.ts`
 - All 111 tests pass, linter clean
+
+### 2026-01-15: Create activity log mutations (log card additions with timestamps)
+- Created `convex/activityLogs.ts` with full query/mutation support:
+  - `getRecentActivity`: Get paginated activity for a profile (newest first)
+  - `getActivityByDateRange`: Filter activity by date range
+  - `getFamilyActivity`: Get activity across all family profiles (for parent dashboard)
+  - `getDailyActivityDates`: Get dates with card_added activity (for streak calculation)
+  - `getActivityStats`: Summary stats (total actions, counts by type, first/last activity)
+  - `logActivity`: Generic mutation to log any action
+  - `logCardAdded`, `logCardRemoved`, `logAchievementEarned`: Typed convenience mutations
+  - `clearOldLogs`: Maintenance mutation for cleanup
+- Created `src/lib/activityLogs.ts` with utility functions:
+  - Date utilities: `timestampToDateString`, `getTodayDateString`, `getYesterdayDateString`, `areConsecutiveDays`, `getStartOfDay`, `getEndOfDay`
+  - Streak calculation: `calculateStreak` (returns currentStreak, longestStreak, isActiveToday)
+  - Activity summarization: `summarizeActivityByDate`, `getCardAddDates`, `filterLogsByDateRange`, `getLastActivityOfType`, `countActionsByType`
+  - Formatting: `formatActionForDisplay`, `formatRelativeTime`
+- Added 41 tests in `src/lib/__tests__/activityLogs.test.ts`
+- All 152 tests pass, linter clean
+
+### 2026-01-15: Build duplicate finder query (compare two profiles, find matching cardIds)
+- Added `findDuplicateCards` query to `convex/collections.ts`:
+  - Takes two profileIds and returns cards that exist in both collections
+  - Includes quantity and variant breakdown for each profile
+  - Validates against comparing a profile with itself
+- Added `findTradeableCards` query:
+  - Returns cards that fromProfile has but toProfile doesn't
+  - Useful for trading suggestions between family members
+- Added `getCollectionComparison` query:
+  - Returns summary comparison with shared cards, unique cards per profile
+  - Includes total quantities and card counts
+- Created `src/lib/duplicates.ts` with pure utility functions:
+  - `groupCardsByCardId`, `aggregateVariants`: Group and aggregate card data
+  - `findDuplicates`, `findTradeableCards`: Core comparison logic
+  - `compareCollections`, `getUniqueCardIds`, `getTotalQuantity`: Collection utilities
+  - `calculateOverlapPercentage`: Calculate collection similarity
+  - `findExcessCards`: Find cards with quantity > 1 (for trade suggestions)
+  - `getVariantSummary`: Summarize variant distribution
+- Added 35 tests in `src/lib/__tests__/duplicates.test.ts`
+- All 190 tests pass, linter clean
