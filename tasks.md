@@ -1,5 +1,27 @@
 # KidCollect Development Tasks
 
+## Coding Guidelines
+
+**READ THESE BEFORE STARTING ANY TASK:**
+
+1. **No Emojis in UI** - Use SVG icons instead of emojis for a professional look. Create or use existing SVG components in `src/components/icons/`. Emojis look unprofessional and render inconsistently across devices.
+
+2. **Icon Library** - Use Heroicons (already available via `@heroicons/react`) or create custom SVGs. Example:
+
+   ```tsx
+   import { CheckCircleIcon, StarIcon } from '@heroicons/react/24/solid';
+   ```
+
+3. **Replace existing emojis** - When working on a file that contains emojis (🎴, 🔍, ✅, etc.), replace them with appropriate SVG icons.
+
+4. **Kid-friendly but professional** - The app is for kids but should look polished. Use color and animation instead of emojis to convey fun.
+
+---
+
+## Phase 0: Code Cleanup
+
+- [ ] Replace all emojis with SVG icons across the codebase (search for emoji patterns in tsx files)
+
 ## Phase 1: Foundation (Weeks 1-2)
 
 - [x] Initialize project with Next.js 14, TypeScript, and Tailwind CSS
@@ -28,7 +50,7 @@
 
 ## Phase 3: Achievement System (Weeks 5-6)
 
-- [ ] Design achievement data model and badge definitions
+- [x] Design achievement data model and badge definitions
 - [ ] Implement set completion badges (25%, 50%, 75%, 100%)
 - [ ] Create collector milestone badges (10, 50, 100, 250, 500, 1000 cards)
 - [ ] Build type specialist badges (Fire, Water, Grass, etc. at 10+ cards)
@@ -194,3 +216,32 @@
 - `src/components/filter/index.ts` - Component exports
 
 **Next steps:** Design achievement data model and badge definitions
+
+### 2026-01-15 - Achievement Data Model and Badge Definitions
+
+**Completed tasks:**
+
+- Enhanced ACHIEVEMENT_DEFINITIONS in `convex/achievements.ts` with icons and colors
+- Added 5 new type specialist badges (Fighting, Darkness, Metal, Fairy, Colorless)
+- Added 2 new Pokemon fan badges (Mewtwo Fan, Legendary Fan)
+- Created helper functions: getBadgesByCategory, getBadgeDefinition, getTypeSpecialistKey, etc.
+- Created `src/lib/badges.ts` for client-side badge operations with full type definitions
+- Added progress calculation helpers: calculateMilestoneProgress, calculateSetCompletionProgress
+- Comprehensive test suite with 34 tests for badge definitions and helpers
+- All 67 tests passing, ESLint and Prettier checks passing
+
+**Files created/modified:**
+
+- `convex/achievements.ts` - Enhanced badge definitions with icons/colors and helper functions
+- `src/lib/badges.ts` - Client-side badge definitions and utilities
+- `src/lib/__tests__/badges.test.ts` - Comprehensive badge tests (34 tests)
+
+**Badge Categories Defined:**
+
+- Set Completion: 4 badges (25%, 50%, 75%, 100%)
+- Collector Milestones: 7 badges (1, 10, 50, 100, 250, 500, 1000 cards)
+- Type Specialists: 11 badges (Fire, Water, Grass, Lightning, Psychic, Fighting, Darkness, Metal, Dragon, Fairy, Colorless)
+- Pokemon Fans: 5 badges (Pikachu, Eevee, Charizard, Mewtwo, Legendary)
+- Streaks: 4 badges (3, 7, 14, 30 days)
+
+**Next steps:** Implement set completion badges (25%, 50%, 75%, 100%)
