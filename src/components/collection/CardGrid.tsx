@@ -15,6 +15,7 @@ import {
   PlusIcon,
   MinusIcon,
   CheckIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import {
   HeartIcon as HeartIconSolid,
@@ -31,6 +32,7 @@ import { IconLegend } from './IconLegend';
 import { useLevelUp } from '@/components/gamification/LevelSystem';
 import { useKidMode } from '@/components/providers/KidModeProvider';
 import { useSetCompletionTracker } from '@/components/gamification/SetCompletionCelebration';
+import { CardFlipModal } from './FlippableCard';
 
 // Variant type definition
 type CardVariant =
@@ -377,6 +379,9 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
   const [selectorPosition, setSelectorPosition] = useState<{ top: number; left: number } | null>(
     null
   );
+
+  // State for card flip modal
+  const [flipCard, setFlipCard] = useState<PokemonCard | null>(null);
 
   // Convex queries and mutations
   const collection = useQuery(
@@ -797,6 +802,18 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                   </div>
                 )}
 
+                {/* Card Flip Button */}
+                <button
+                  className="absolute left-1 bottom-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-500 opacity-0 shadow-md transition-all hover:bg-white hover:text-kid-primary focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1 group-hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFlipCard(card);
+                  }}
+                  aria-label={`Flip ${card.name} to see card back`}
+                >
+                  <ArrowPathIcon className="h-4 w-4" aria-hidden={true} />
+                </button>
+
                 {/* Quantity Badge */}
                 {quantity > 1 && (
                   <div className="absolute left-1 top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-kid-primary px-1 text-xs font-bold text-white shadow-md">
@@ -957,6 +974,16 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
             position={selectorPosition}
           />
         </>
+      )}
+
+      {/* Card Flip Modal */}
+      {flipCard && (
+        <CardFlipModal
+          frontImage={flipCard.images.large || flipCard.images.small}
+          cardName={flipCard.name}
+          isOpen={!!flipCard}
+          onClose={() => setFlipCard(null)}
+        />
       )}
     </div>
   );
