@@ -13,6 +13,7 @@ import {
   FireIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/solid';
+import { RandomCardButton } from './RandomCardButton';
 
 // Helper function to get the best market price from a card's TCGPlayer prices
 function getCardMarketPrice(card: PokemonCard): number | null {
@@ -236,6 +237,13 @@ export function CollectionView({ collection }: CollectionViewProps) {
 
   return (
     <div className="space-y-6">
+      {/* Random Card Button - Fun feature for kids */}
+      {cardData.size > 0 && (
+        <div className="flex justify-end">
+          <RandomCardButton collection={collection} cardData={cardData} />
+        </div>
+      )}
+
       {/* Collection Value Banner */}
       {collectionValue.total > 0 && (
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-6 text-white shadow-lg">
