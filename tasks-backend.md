@@ -97,7 +97,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 
 - [ ] Tutorial content storage - Schema and queries for "Learn to Collect" tutorial content
 - [x] Rarity definitions - Store rarity explanations with examples for tooltips
-- [ ] Card condition guide content - NM/LP/MP/HP definitions and example images
+- [x] Card condition guide content - NM/LP/MP/HP definitions and example images
 
 ### Additional Features
 
@@ -749,3 +749,43 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Educational content helpers
   - Integration scenarios: API rarity matching, collection analysis, tooltip display, card sorting
 - All 1491 tests pass, linter clean
+
+### 2026-01-16: Card condition guide content with Convex queries for tooltips
+
+- Created `convex/conditionGuide.ts` with Convex queries:
+  - `getAllConditionDefinitions`: Get all 5 condition grades (NM/LP/MP/HP/DMG)
+  - `getConditionById`: Get single condition by ID
+  - `getConditionByShortName`: Match by short name (NM, LP, etc.)
+  - `getConditionTooltip`: Get formatted tooltip data for UI display
+  - `getConditionComparison`: Compare two conditions for trade evaluation
+  - `getGradingChecklist`: Get grading checklist for self-grading
+  - `getTradeworthyConditions`: Get conditions acceptable for trading
+  - `getConditionSortValue`: Get sort value for ordering cards by condition
+- Defined 5 condition grades with kid-friendly content:
+  - Near Mint (NM): Almost perfect, 100% value, trade acceptable
+  - Lightly Played (LP): Tiny wear, 80% value, trade acceptable
+  - Moderately Played (MP): Noticeable wear, 50% value, trade acceptable
+  - Heavily Played (HP): Significant wear, 25% value, not trade acceptable
+  - Damaged (DMG): Major damage, 10% value, not trade acceptable
+- Each condition includes: id, name, shortName, description, whatToLookFor, valueImpact, collectorTip, sortOrder, colorClass, icon, approximateValuePercent, tradeAcceptable, damageExamples
+- Created `src/lib/conditionGuide.ts` with comprehensive utilities:
+  - Core lookup: `getConditionInfo`, `getConditionByShortName`, `getConditionByNameOrShortName`, `getAllConditionGrades`, `getConditionBySortOrder`
+  - Validation: `isValidConditionId`, `isValidConditionShortName`, `getValidConditionIds`, `getValidConditionShortNames`
+  - Comparison/sorting: `compareConditions`, `isBetterConditionThan`, `isWorseConditionThan`, `sortConditionsBestFirst`, `sortConditionsWorstFirst`
+  - Display helpers: `getConditionTooltipData`, `getConditionDisplayLabel`, `getConditionShortLabel`, `getConditionIcon`, `getConditionColorClass`
+  - Trade evaluation: `compareConditionsDetailed`, `getApproximateValuePercent`, `isTradeAcceptable`, `getTradeAcceptableConditions`, `getNonTradeAcceptableConditions`
+  - Grading helpers: `getGradingGuidance`, `getNextBetterCondition`, `getNextWorseCondition`, `estimateConditionFromDamage`
+  - Statistics: `calculateConditionDistribution`, `getConditionStats`, `getTradeablePercentage`
+  - Educational: `getConditionExplanation`, `getConditionFunFacts`, `getCardCareAdvice`, `isCollectibleCondition`, `isPlayableCondition`, `getConditionTier`, `formatConditionWithIcon`
+- Added 122 tests in `src/lib/__tests__/conditionGuide.test.ts` covering:
+  - CONDITION_GRADES constant validation (5 grades, unique IDs, ascending sort orders, value percentages decrease)
+  - All core lookup functions with edge cases
+  - Validation functions
+  - Comparison and sorting functions (non-mutating, null handling)
+  - All display helper functions
+  - Trade evaluation and condition comparison functions
+  - Grading helpers and damage estimation
+  - Distribution and statistics calculations
+  - Educational content helpers
+  - Integration scenarios: grading a new card, comparing cards for trade, collection condition analysis, card progression
+- All 1706 tests pass, linter clean
