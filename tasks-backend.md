@@ -82,7 +82,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [x] API adapter for YGOPRODeck (src/lib/yugioh-api.ts) - Yu-Gi-Oh! cards, 20 req/sec rate limit
 - [x] API adapter for OPTCG API (src/lib/onepiece-api.ts) - One Piece cards, 10 req/sec rate limit (conservative)
 - [ ] API adapter for ApiTCG (src/lib/dragonball-api.ts) - Dragon Ball Fusion World cards
-- [ ] API adapter for Lorcast (src/lib/lorcana-api.ts) - Disney Lorcana cards, 10 req/sec rate limit
+- [x] API adapter for Lorcast (src/lib/lorcana-api.ts) - Disney Lorcana cards, 10 req/sec rate limit
 - [ ] API adapter for DigimonCard.io (src/lib/digimon-api.ts) - Digimon cards, 15 req/10sec rate limit
 - [x] API adapter for Scryfall (src/lib/mtg-api.ts) - Magic: The Gathering cards, 10 req/sec rate limit
 - [ ] Evaluate unified APIs - Test if ApiTCG.com or JustTCG can replace multiple adapters
@@ -1033,3 +1033,63 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Deck statistics calculation
   - Integration scenarios: Building a deck view, Card search and display, Collection analysis
 - All 2264 tests pass, linter clean
+
+### 2026-01-16: API adapter for Lorcast (Disney Lorcana cards)
+
+- Created `src/lib/lorcana-api.ts` with full Lorcast API client:
+  - Rate limiting: 10 req/sec (100ms minimum between requests)
+  - No API key required, publicly accessible API
+  - Documentation: https://lorcast.com/docs/api
+- Defined comprehensive TypeScript types:
+  - `LorcanaCard`: Full card object with id, name, version, layout, cost, ink, type, classifications, text, strength, willpower, lore, rarity, illustrators, collector_number, legalities, set, prices, image_uris
+  - `LorcanaInk`: Amber, Amethyst, Emerald, Ruby, Sapphire, Steel
+  - `LorcanaRarity`: Common, Uncommon, Rare, Super_rare, Legendary, Enchanted, Promo
+  - `LorcanaCardType`: Action, Character, Item, Location, Song
+  - `LorcanaLayout`: normal, landscape (for Location cards)
+  - `LorcanaSet`: Set info with id, name, code, released_at, prereleased_at
+  - `LorcanaFilterOptions`: Filter by name, ink, rarity, type, set, cost, strength, willpower, lore, inkwell, classification, text
+- Set endpoints:
+  - `getAllSets`: Get all sets
+  - `getSetByCode`: Get set by code (e.g., "1", "D100")
+  - `getSetById`: Get set by Scryfall-style ID
+  - `searchSets`: Search sets by name
+- Card endpoints:
+  - `getCardsInSet`: Get all cards in a set
+  - `getCardBySetAndNumber`: Get card by set code and collector number
+  - `searchCards`: Search cards using Lorcast syntax
+  - `filterCards`: Filter cards with multiple criteria
+  - `searchCardsByName`: Search by card name
+  - `getCardsByInk`, `getCardsByType`, `getCardsByRarity`, `getCardsByClassification`: Filter helpers
+  - `getSongCards`, `getLocationCards`, `getInkableCards`: Specialized queries
+- Helper functions:
+  - `getCardDexId`, `parseCardDexId`: Generate/parse unique identifiers (format: "lorcana-{set}-{number}")
+  - `getCardImage`: Get image URL by size (small, normal, large)
+  - `isCharacterCard`, `isActionCard`, `isSongCard`, `isItemCard`, `isLocationCard`: Type checking
+  - `isLandscapeCard`, `isInkable`, `isFloodborn`, `hasShift`, `hasSinger`: Property checking
+  - `isCoreLegal`: Check core format legality
+  - `getRarityDisplayName`, `getTypeDisplayName`, `getInkInfo`: Display helpers
+  - `getMarketPrice`: Parse USD price (normal/foil)
+  - `formatCost`, `formatStrength`, `formatWillpower`, `formatLore`: Formatting helpers
+  - `getCardSummary`, `getFullCardName`: Generate display strings
+  - `sortBySetAndNumber`, `sortByRarity`, `sortByCost`, `sortByStrength`, `sortByLore`: Sorting functions
+  - `filterByInk`, `filterByClassification`: Client-side filtering
+  - `getUniqueInks`, `getUniqueClassifications`: Extract unique values
+  - `calculateDeckStats`: Calculate deck statistics (characters, actions, songs, items, locations, avgCost, inkableCount, inks)
+- Added constants:
+  - `LORCANA_INKS`: 6 inks with hex color codes
+  - `LORCANA_RARITIES`: 7 rarities with sort order
+  - `LORCANA_CARD_TYPES`: 5 types with descriptions
+- Added 71 tests in `src/lib/__tests__/lorcana-api.test.ts` covering:
+  - Constants validation (inks, rarities, card types)
+  - Card ID functions (getCardDexId, parseCardDexId)
+  - Card type checking (character, action, song, item, location)
+  - Property checking (landscape, inkable, Floodborn, Shift, Singer)
+  - Image and display functions
+  - Price parsing
+  - Formatting functions
+  - Sorting functions (non-mutating verified)
+  - Filtering functions
+  - Utility functions (unique inks, unique classifications)
+  - Deck statistics calculation
+  - Integration scenarios: Card display preparation, Floodborn card detection, Song card mechanics, Collection filtering, Deck building analysis
+- All tests pass, linter clean
