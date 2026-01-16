@@ -9,14 +9,14 @@
 | Achievement System             | 6        | 0         |
 | Wishlist & Sharing             | 4        | 0         |
 | Family Features                | 2        | **1**     |
-| Testing & Performance          | 3        | **1**     |
+| Testing & Performance          | 4        | 0         |
 | Data Persistence & Sync        | 2        | **1**     |
 | Multi-TCG Architecture         | 12       | **7**     |
 | Gamification Backend           | 3        | 0         |
 | Educational Content            | 3        | 0         |
 | Additional Features            | 5        | 0         |
 | Launch Prep                    | 4        | **5**     |
-| **TOTAL**                      | **56**   | **16**    |
+| **TOTAL**                      | **57**   | **15**    |
 
 ### Critical Path for Launch
 
@@ -24,7 +24,6 @@
 2. **Launch Prep (5 tasks)** - Stripe integration, production deploy, monitoring (E2E tests complete)
 3. **Data Persistence (1 task)** - Data persistence guarantee, conflict resolution (cloud backup complete)
 4. **TCGPlayer Pricing (1 task)** - Fetch real pricing data from TCGPlayer API
-5. **Offline Caching (1 task)** - Service worker for offline viewing
 
 ### Blocked Tasks
 
@@ -95,7 +94,7 @@
 
 - [x] Write unit tests for achievement awarding logic
 - [x] Write integration tests for collection CRUD operations
-- [ ] Implement offline collection caching strategy (service worker setup)
+- [x] Implement offline collection caching strategy (service worker setup)
 - [x] Performance optimization (index Convex queries, optimize batch fetches)
 
 ### Data Persistence & Sync
@@ -1995,3 +1994,77 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Display helpers
   - Integration scenarios: offline device sync, simultaneous additions, full sync flow
 - All conflict resolution tests pass, TypeScript compiles, lint clean
+
+### 2026-01-16: Implement offline collection caching strategy (service worker setup)
+
+- Created `src/lib/offlineCache.ts` with comprehensive offline caching system:
+  - **Constants**:
+    - `CACHE_VERSION`: Version tracking for cache migrations
+    - `COLLECTION_CACHE_NAME`, `IMAGE_CACHE_NAME`, `STATIC_CACHE_NAME`: Named caches for different content types
+    - `COLLECTION_CACHE_MAX_AGE` (24 hours), `IMAGE_CACHE_MAX_AGE` (7 days): Cache expiration settings
+    - `MAX_CACHED_IMAGES`: Limit of 500 images to prevent storage overflow
+    - Storage keys for collection, wishlist, cards, and metadata
+  - **Types**:
+    - `OfflineCollectionCard`, `OfflineWishlistCard`, `OfflineCachedCard`: Data structures for offline storage
+    - `CacheMetadata`: Version, timestamps, and counts tracking
+    - `CacheStatus`: 'empty' | 'stale' | 'fresh' | 'updating' | 'error'
+    - `CacheHealthReport`: Comprehensive status with errors, storage usage
+    - `OfflineDataSnapshot`: Complete data export for offline use
+    - `ServiceWorkerRegistrationResult`, `CacheUpdateResult`: Operation results
+  - **Environment Detection**:
+    - `isBrowser()`, `isServiceWorkerSupported()`, `isLocalStorageAvailable()`
+    - `isIndexedDBAvailable()`, `isCacheAPIAvailable()`
+    - `getStorageCapabilities()`: Get all capability flags at once
+  - **Local Storage Cache Functions**:
+    - `saveCollectionToCache()`, `loadCollectionFromCache()`: Collection persistence
+    - `saveWishlistToCache()`, `loadWishlistFromCache()`: Wishlist persistence
+    - `saveCardsToCache()`, `loadCardsFromCache()`: Card data persistence
+  - **Cache Metadata Management**:
+    - `getDefaultCacheMetadata()`, `loadCacheMetadata()`, `saveCacheMetadata()`
+    - `updateCacheMetadata()`: Partial updates with auto timestamp
+  - **Cache Status Functions**:
+    - `isCacheExpired()`, `getCacheAge()`, `determineCacheStatus()`
+    - `getCacheStatusMessage()`, `getCacheStatusColor()`: Display helpers
+  - **Cache Health Report**:
+    - `estimateStorageUsage()`, `estimateAvailableStorage()`
+    - `generateCacheHealthReport()`: Comprehensive health check with integrity verification
+  - **Cache Management**:
+    - `clearProfileCache()`, `clearAllOfflineCaches()`: Cleanup functions
+    - `getCachedProfileIds()`: List all cached profiles
+  - **Offline Data Snapshots**:
+    - `createOfflineSnapshot()`: Create complete data export
+    - `saveOfflineSnapshot()`, `loadOfflineSnapshot()`: Persist/restore snapshots
+  - **Service Worker Functions**:
+    - `getServiceWorkerScript()`: Returns complete SW script for caching
+    - `registerServiceWorker()`, `unregisterServiceWorker()`: SW lifecycle
+    - `getServiceWorkerRegistration()`, `isServiceWorkerActive()`: Status checks
+  - **Image Caching**:
+    - `cacheImages()`: Request SW to cache images
+    - `extractImageUrls()`: Extract URLs from card data
+    - `clearServiceWorkerCaches()`: Clear all SW caches
+  - **Display Helpers**:
+    - `formatCacheAge()`, `formatStorageSize()`: Human-readable formatting
+    - `getCacheHealthSummary()`: Status summary message
+    - `shouldRefreshCache()`, `getStorageUsagePercent()`, `isStorageLow()`: Cache decision helpers
+  - **Service Worker Script** includes:
+    - Install handler with static file caching (/, /sets, /my-wishlist, /badges)
+    - Activate handler with old cache cleanup
+    - Fetch handler with cache-first for images, network-first for pages
+    - Message handler for CACHE_IMAGES and CLEAR_CACHE operations
+    - Image domain allowlist (images.pokemontcg.io)
+- Added 100 tests in `src/lib/__tests__/offlineCache.test.ts` covering:
+  - Constants validation (cache names, max ages, storage keys)
+  - Environment detection (browser, service worker, localStorage, IndexedDB, Cache API)
+  - Local storage cache functions (save/load collection, wishlist, cards)
+  - Cache metadata functions (default, save, load, update)
+  - Cache status functions (expiration, age, status determination, messages, colors)
+  - Cache health report (storage estimation, report generation)
+  - Cache management (clear profile, clear all, get cached profiles)
+  - Offline data snapshots (create, save, load)
+  - Service worker script (valid JS, cache names, event handlers)
+  - Image caching (extract URLs, empty arrays, missing images)
+  - Display helpers (format age, size, health summary, refresh decision, storage percent)
+  - Integration scenarios (complete workflow, multi-profile, expiration handling, image extraction)
+  - Edge cases (empty data, large collections, invalid JSON, storage quota exceeded, special characters)
+- All 100 tests pass, ESLint clean, Prettier formatted, TypeScript compiles
+- Note: Pre-existing build failure in GraceDayProvider.tsx (unrelated to this task)
