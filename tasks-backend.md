@@ -95,7 +95,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 
 ### Educational Content
 
-- [ ] Tutorial content storage - Schema and queries for "Learn to Collect" tutorial content
+- [x] Tutorial content storage - Schema and queries for "Learn to Collect" tutorial content
 - [x] Rarity definitions - Store rarity explanations with examples for tooltips
 - [x] Card condition guide content - NM/LP/MP/HP definitions and example images
 
@@ -939,3 +939,41 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - `YUGIOH_FRAME_TYPES`: Frame type to display name mapping
   - `YUGIOH_RARITIES`: 11 rarity codes with display names and sort order
 - Linter clean, TypeScript compiles with no errors
+
+### 2026-01-16: Tutorial content storage for Learn to Collect feature
+
+- Created `convex/tutorialContent.ts` with Convex queries:
+  - `TUTORIAL_LESSONS`: 12 comprehensive kid-friendly lessons covering 6 categories:
+    - Basics: "What is Card Collecting?", "How to Get Cards"
+    - Cards: "Types of Cards", "Understanding Rarity", "How to Read a Card"
+    - Care: "Handling Cards Safely", "Storing Your Cards", "Protecting Your Collection"
+    - Organization: "Organizing Your Cards", "Tracking Your Collection"
+    - Trading: "Trading Basics", "Trading Etiquette"
+    - Advanced: "Completing Sets", "Building a Valuable Collection"
+  - Each lesson includes: multiple steps with content, fun facts, key takeaways, estimated time
+  - 5 lessons award completion badges (tutorial_welcome, tutorial_card_expert, tutorial_card_care, tutorial_organizer, tutorial_trader, tutorial_completionist)
+  - `TUTORIAL_CATEGORIES`: 6 categories for organizing lessons (basics, cards, care, organization, trading, advanced)
+  - Queries: `getAllCategories`, `getCategoryById`, `getAllLessons`, `getLessonById`, `getLessonsByCategory`, `getLessonStep`, `getTutorialOverview`, `getLessonsWithBadges`, `searchTutorials`, `getRecommendedLesson`
+- Extended `src/lib/tutorialContent.ts` with comprehensive utility functions:
+  - Types: `GuideProgress`, `TutorialProgress`, `GuideWithProgress`, `CategoryProgressSummary`
+  - Validation: `isValidCategoryId`, `isValidGuideIdFormat`, `isValidGuide`, `isValidStep`, `isValidStepId`
+  - Lookup: `getStep`, `getStepIndex`, `getGuidesWithBadges`, `getGuideBadgeId`, `guideExists`, `categoryExists`
+  - Sorting: `sortGuidesByCategory`, `sortGuidesByDuration`, `sortGuidesByStepCount`, `sortGuidesByDifficulty`, `sortCategories`
+  - Filtering: `filterByMaxDuration`, `filterIncompleteGuides`, `filterCompletedGuides`
+  - Progress tracking: `calculateTutorialProgress`, `calculateGuideProgress`, `calculateCategoryProgress`, `enrichGuidesWithProgress`, `getNextRecommendedGuide`, `isCategoryComplete`, `areAllTutorialsComplete`
+  - Navigation: `getStepNavigation`, `getNextGuide`, `getPreviousGuide`
+  - Display helpers: `formatEstimatedTime`, `formatProgressPercent`, `getProgressMessage`, `getStepIndicator`, `getCategoryDisplayLabel`, `getGuideDisplayLabel`, `getBadgeEarnedMessage`
+  - Search: `searchGuides`, `countTotalSteps`, `calculateTotalTimeMinutes`
+  - Category helpers: `getAllCategoryProgress`, `getGuideCountByCategory`, `getGuidesGroupedByCategory`
+- Added 85 new tests in `src/lib/__tests__/tutorialContent.test.ts` covering:
+  - Validation functions (category IDs, guide ID format, guide/step validation)
+  - Lookup functions (getStep, getStepIndex, badges, existence checks)
+  - Sorting functions (by category, duration, step count, difficulty)
+  - Filtering functions (max duration, incomplete/completed)
+  - Progress tracking (tutorial, guide, category progress calculations)
+  - Navigation functions (step navigation, next/previous guide)
+  - Display helpers (formatting, messages)
+  - Search functions
+  - Category helpers
+  - Integration scenarios: New User Journey, Category Completion Journey, Guide Step Navigation
+- All 2075 tests pass, linter clean
