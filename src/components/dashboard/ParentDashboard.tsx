@@ -24,6 +24,7 @@ import {
 } from '@heroicons/react/24/solid';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
+import { TradeSuggestionEngine } from '@/components/family/TradeSuggestionEngine';
 
 // Context for pricing visibility
 const PricingVisibilityContext = createContext<boolean>(true);
@@ -417,6 +418,9 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
 
         {/* Family Collection Goal */}
         <FamilyCollectionGoal familyId={familyId} goalTarget={500} />
+
+        {/* Trade Suggestion Engine */}
+        <TradeSuggestionEngine familyId={familyId} maxSuggestions={10} />
 
         {/* Pricing toggle control */}
         <div className="flex flex-col gap-3 rounded-xl bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
