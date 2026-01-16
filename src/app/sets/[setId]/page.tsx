@@ -1,7 +1,7 @@
 import { getSet, getCardsInSet } from '@/lib/pokemon-tcg';
 import Link from 'next/link';
 import Image from 'next/image';
-import { CardGrid } from '@/components/collection/CardGrid';
+import { SetDetailClient } from '@/components/collection/SetDetailClient';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 interface SetDetailPageProps {
@@ -70,8 +70,8 @@ export default async function SetDetailPage({ params }: SetDetailPageProps) {
           </div>
         </div>
 
-        {/* Card Grid */}
-        <CardGrid cards={cards} setId={params.setId} setName={set.name} />
+        {/* Card Grid with Rarity Filter */}
+        <SetDetailClient set={set} cards={cards} />
       </div>
     </main>
   );
