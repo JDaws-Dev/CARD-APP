@@ -28,6 +28,7 @@ import { MapIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { CardGridSkeleton, StatsBarSkeleton } from '@/components/ui/Skeleton';
 import { IconLegend } from './IconLegend';
 import { useLevelUp } from '@/components/gamification/LevelSystem';
+import { useKidMode } from '@/components/providers/KidModeProvider';
 
 // Variant type definition
 type CardVariant =
@@ -338,11 +339,11 @@ function VariantSelector({
 function SparkleStarIcon({
   className,
   style,
-  "aria-hidden": ariaHidden,
+  'aria-hidden': ariaHidden,
 }: {
   className?: string;
   style?: React.CSSProperties;
-  "aria-hidden"?: boolean;
+  'aria-hidden'?: boolean;
 }) {
   return (
     <svg
@@ -367,6 +368,7 @@ interface CardGridProps {
 export function CardGrid({ cards, setId, setName }: CardGridProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { showXPGain } = useLevelUp();
+  const { features, isKidMode } = useKidMode();
 
   // State for variant selector popup
   const [selectedCard, setSelectedCard] = useState<PokemonCard | null>(null);
@@ -452,10 +454,34 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
 
       const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
       const availableVariants = getAvailableVariants(card);
+      const isNewCard = !ownedCards.has(card.id);
+
+      // In simplified mode (young kids), skip variant selector entirely - just toggle the card
+      if (!features.showVariantSelector) {
+        if (isNewCard) {
+          addCard({
+            profileId: profileId as Id<'profiles'>,
+            cardId: card.id,
+            cardName: card.name,
+            setName,
+            variant: availableVariants[0],
+          });
+          showXPGain(2, 'New card!');
+        } else {
+          // In simplified mode, clicking an owned card removes it
+          removeCard({
+            profileId: profileId as Id<'profiles'>,
+            cardId: card.id,
+            cardName: card.name,
+            setName,
+            variant: availableVariants[0],
+          });
+        }
+        return;
+      }
 
       // If only one variant and card is not owned, add it directly
-      if (availableVariants.length === 1 && !ownedCards.has(card.id)) {
-        const isNewCard = !ownedCards.has(card.id);
+      if (availableVariants.length === 1 && isNewCard) {
         addCard({
           profileId: profileId as Id<'profiles'>,
           cardId: card.id,
@@ -464,9 +490,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
           variant: availableVariants[0],
         });
         // Show XP gain notification for new unique cards
-        if (isNewCard) {
-          showXPGain(2, 'New card!');
-        }
+        showXPGain(2, 'New card!');
         return;
       }
 
@@ -477,7 +501,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
       });
       setSelectedCard(card);
     },
-    [profileId, ownedCards, addCard, setName, showXPGain]
+    [profileId, ownedCards, addCard, removeCard, setName, showXPGain, features.showVariantSelector]
   );
 
   // Add variant handler
@@ -641,8 +665,14 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
         </div>
       </div>
 
-      {/* Card Grid */}
-      <div className="card-grid">
+      {/* Card Grid - Use larger grid for simplified mode */}
+      <div
+        className={cn(
+          features.simplifiedLayout
+            ? 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4'
+            : 'card-grid'
+        )}
+      >
         {cards.map((card) => {
           const isOwned = ownedCards.has(card.id);
           const quantity = ownedCards.get(card.id) || 0;
@@ -657,9 +687,10 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
               key={card.id}
               role="button"
               tabIndex={0}
-              aria-label={`${card.name}, ${isOwned ? `owned ${quantity} copies` : 'not owned'}${isNewlyAdded ? ', newly added' : ''}${isWishlisted ? ', on wishlist' : ''}. Click to ${isOwned ? 'manage' : 'add to collection'}`}
+              aria-label={`${card.name}, ${isOwned ? `owned ${quantity} copies` : 'not owned'}${isNewlyAdded ? ', newly added' : ''}${isWishlisted ? ', on wishlist' : ''}. ${features.simplifiedLayout ? `Tap to ${isOwned ? 'remove' : 'add'}` : `Click to ${isOwned ? 'manage' : 'add to collection'}`}`}
               className={cn(
-                'group relative cursor-pointer rounded-xl bg-white p-2 shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2',
+                'group relative cursor-pointer rounded-xl bg-white shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2',
+                features.largerTouchTargets ? 'p-3' : 'p-2',
                 isOwned
                   ? 'ring-2 ring-kid-success ring-offset-2'
                   : 'opacity-60 hover:opacity-100 hover:shadow-md',
@@ -782,10 +813,25 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
 
               {/* Card Info */}
               <div className="mt-2 text-center">
-                <p className="truncate text-xs font-medium text-gray-800">{card.name}</p>
+                <p
+                  className={cn(
+                    'truncate font-medium text-gray-800',
+                    features.largerTouchTargets ? 'text-sm' : 'text-xs'
+                  )}
+                >
+                  {card.name}
+                </p>
                 <div className="flex items-center justify-center gap-1.5">
-                  <span className="text-xs text-gray-500">#{card.number}</span>
-                  {marketPrice !== null && (
+                  <span
+                    className={cn(
+                      'text-gray-500',
+                      features.largerTouchTargets ? 'text-sm' : 'text-xs'
+                    )}
+                  >
+                    #{card.number}
+                  </span>
+                  {/* Only show price if pricing is enabled in kid mode settings */}
+                  {features.showPricing && marketPrice !== null && (
                     <span
                       className={cn(
                         'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold',
@@ -802,8 +848,8 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                 </div>
               </div>
 
-              {/* Owned Variants Indicator - Show which variants are owned */}
-              {isOwned && (
+              {/* Owned Variants Indicator - Show which variants are owned (only in non-simplified mode) */}
+              {isOwned && features.showVariantSelector && (
                 <div className="mt-1 flex items-center justify-center gap-1">
                   {(() => {
                     const cardVariants = ownedVariantsMap.get(card.id);

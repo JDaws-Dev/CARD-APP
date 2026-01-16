@@ -7,6 +7,7 @@ import { UserPlusIcon } from '@heroicons/react/24/solid';
 import { useState } from 'react';
 import { StreakCounter } from '@/components/gamification/StreakCounter';
 import { LevelDisplay } from '@/components/gamification/LevelSystem';
+import { KidModeToggle } from '@/components/layout/KidModeToggle';
 
 // Custom card stack icon for logo
 function CardStackIcon({ className }: { className?: string }) {
@@ -77,10 +78,11 @@ export function Header() {
           ))}
         </div>
 
-        {/* Level, Streak & Auth Buttons - Desktop */}
+        {/* Level, Streak, Kid Mode & Auth Buttons - Desktop */}
         <div className="hidden items-center gap-3 md:flex">
           <LevelDisplay />
           <StreakCounter />
+          <KidModeToggle />
           <div className="h-6 w-px bg-gray-200" aria-hidden="true" />
           <Link
             href="/login"
@@ -141,11 +143,12 @@ export function Header() {
               </Link>
             ))}
           </div>
-          {/* Mobile level and streak counter */}
+          {/* Mobile level, streak, and kid mode */}
           <div className="border-t border-gray-200 px-4 py-3">
             <div className="mb-3 flex items-center justify-center gap-3">
               <LevelDisplay />
               <StreakCounter />
+              <KidModeToggle />
             </div>
           </div>
           <div className="border-t border-gray-200 px-4 py-3">

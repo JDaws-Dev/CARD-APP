@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ConvexClientProvider } from '@/components/providers/ConvexClientProvider';
+import { KidModeProvider } from '@/components/providers/KidModeProvider';
 import { CelebrationProvider } from '@/components/ui/CelebrationAnimation';
 import { LevelUpProvider } from '@/components/gamification/LevelSystem';
 import { MilestoneProvider } from '@/components/gamification/MilestoneCelebration';
@@ -25,18 +26,20 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
         <ConvexClientProvider>
-          <CelebrationProvider>
-            <LevelUpProvider>
-              <MilestoneProvider>
-                {/* Skip link for keyboard navigation */}
-                <a href="#main-content" className="skip-link">
-                  Skip to main content
-                </a>
-                <Header />
-                <main id="main-content">{children}</main>
-              </MilestoneProvider>
-            </LevelUpProvider>
-          </CelebrationProvider>
+          <KidModeProvider>
+            <CelebrationProvider>
+              <LevelUpProvider>
+                <MilestoneProvider>
+                  {/* Skip link for keyboard navigation */}
+                  <a href="#main-content" className="skip-link">
+                    Skip to main content
+                  </a>
+                  <Header />
+                  <main id="main-content">{children}</main>
+                </MilestoneProvider>
+              </LevelUpProvider>
+            </CelebrationProvider>
+          </KidModeProvider>
         </ConvexClientProvider>
       </body>
     </html>
