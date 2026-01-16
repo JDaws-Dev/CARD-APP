@@ -882,3 +882,250 @@ export function getAllEarnedMilestoneKeys(totalUniqueCards: number): string[] {
 export function countEarnedMilestones(totalUniqueCards: number): number {
   return MILESTONE_BADGE_DEFINITIONS.filter((m) => totalUniqueCards >= m.threshold).length;
 }
+
+// ============================================================================
+// TYPE SPECIALIST BADGE UTILITIES
+// ============================================================================
+
+export interface TypeSpecialistProgress {
+  type: string;
+  key: string;
+  name: string;
+  count: number;
+  threshold: number;
+  earned: boolean;
+  remaining: number;
+  progress: number;
+}
+
+export interface TypeSpecialistProgressSummary {
+  typeCounts: Record<string, number>;
+  typeProgress: TypeSpecialistProgress[];
+  nearbyBadges: TypeSpecialistProgress[];
+  earnedBadges: TypeSpecialistProgress[];
+  totalTypeBadgesEarned: number;
+  totalTypeBadgesAvailable: number;
+}
+
+/**
+ * Type specialist badge definitions with names for display
+ */
+export const TYPE_SPECIALIST_BADGE_DEFINITIONS = [
+  { type: 'Fire', key: 'fire_trainer', name: 'Fire Trainer' },
+  { type: 'Water', key: 'water_trainer', name: 'Water Trainer' },
+  { type: 'Grass', key: 'grass_trainer', name: 'Grass Trainer' },
+  { type: 'Lightning', key: 'electric_trainer', name: 'Electric Trainer' },
+  { type: 'Psychic', key: 'psychic_trainer', name: 'Psychic Trainer' },
+  { type: 'Fighting', key: 'fighting_trainer', name: 'Fighting Trainer' },
+  { type: 'Darkness', key: 'darkness_trainer', name: 'Darkness Trainer' },
+  { type: 'Metal', key: 'metal_trainer', name: 'Metal Trainer' },
+  { type: 'Dragon', key: 'dragon_trainer', name: 'Dragon Trainer' },
+  { type: 'Fairy', key: 'fairy_trainer', name: 'Fairy Trainer' },
+  { type: 'Colorless', key: 'colorless_trainer', name: 'Colorless Trainer' },
+] as const;
+
+/**
+ * Determines which type specialist badges should be awarded based on type counts.
+ * Returns badge keys to award (new badges only, excludes already earned).
+ */
+export function getTypeSpecialistBadgesToAward(
+  typeCounts: Record<string, number>,
+  alreadyEarned: string[] = []
+): string[] {
+  const earnedSet = new Set(alreadyEarned);
+  const badgesToAward: string[] = [];
+
+  for (const badge of TYPE_SPECIALIST_BADGE_DEFINITIONS) {
+    const count = typeCounts[badge.type] ?? 0;
+    if (count >= TYPE_SPECIALIST_THRESHOLD && !earnedSet.has(badge.key)) {
+      badgesToAward.push(badge.key);
+    }
+  }
+
+  return badgesToAward;
+}
+
+/**
+ * Gets type specialist progress summary for display.
+ * Takes type counts and list of already earned badge keys.
+ */
+export function getTypeSpecialistProgressSummary(
+  typeCounts: Record<string, number>,
+  earnedBadgeKeys: string[] = []
+): TypeSpecialistProgressSummary {
+  const earnedSet = new Set(earnedBadgeKeys);
+
+  const typeProgress: TypeSpecialistProgress[] = TYPE_SPECIALIST_BADGE_DEFINITIONS.map((badge) => {
+    const count = typeCounts[badge.type] ?? 0;
+    const earned = earnedSet.has(badge.key);
+    return {
+      type: badge.type,
+      key: badge.key,
+      name: badge.name,
+      count,
+      threshold: TYPE_SPECIALIST_THRESHOLD,
+      earned,
+      remaining: earned ? 0 : Math.max(0, TYPE_SPECIALIST_THRESHOLD - count),
+      progress: Math.min(100, Math.round((count / TYPE_SPECIALIST_THRESHOLD) * 100)),
+    };
+  });
+
+  // Sort by progress descending (closest to earning first), then alphabetically
+  const sortedByProgress = [...typeProgress].sort((a, b) => {
+    if (a.earned && !b.earned) return -1;
+    if (!a.earned && b.earned) return 1;
+    if (b.progress !== a.progress) return b.progress - a.progress;
+    return a.type.localeCompare(b.type);
+  });
+
+  // Find nearby badges (types with 1-9 cards)
+  const nearbyBadges = typeProgress
+    .filter((t) => t.count > 0 && !t.earned)
+    .sort((a, b) => a.remaining - b.remaining);
+
+  // Find earned badges
+  const earnedBadges = typeProgress.filter((t) => t.earned);
+
+  return {
+    typeCounts,
+    typeProgress: sortedByProgress,
+    nearbyBadges,
+    earnedBadges,
+    totalTypeBadgesEarned: earnedBadges.length,
+    totalTypeBadgesAvailable: TYPE_SPECIALIST_BADGE_DEFINITIONS.length,
+  };
+}
+
+/**
+ * Gets the type specialist badge definition for a given key.
+ */
+export function getTypeSpecialistBadgeDefinition(
+  key: string
+): { type: string; key: string; name: string } | null {
+  const badge = TYPE_SPECIALIST_BADGE_DEFINITIONS.find((b) => b.key === key);
+  return badge ? { type: badge.type, key: badge.key, name: badge.name } : null;
+}
+
+/**
+ * Gets the type specialist badge definition for a given Pokemon type.
+ */
+export function getTypeSpecialistBadgeForType(
+  pokemonType: string
+): { type: string; key: string; name: string } | null {
+  const badge = TYPE_SPECIALIST_BADGE_DEFINITIONS.find((b) => b.type === pokemonType);
+  return badge ? { type: badge.type, key: badge.key, name: badge.name } : null;
+}
+
+/**
+ * Calculates how many more cards of a type are needed to earn the badge.
+ */
+export function cardsNeededForTypeSpecialist(typeCount: number): number {
+  return Math.max(0, TYPE_SPECIALIST_THRESHOLD - typeCount);
+}
+
+/**
+ * Gets percentage progress toward a specific type specialist badge.
+ */
+export function getTypeSpecialistPercentProgress(typeCount: number): number {
+  return Math.min(100, Math.round((typeCount / TYPE_SPECIALIST_THRESHOLD) * 100));
+}
+
+/**
+ * Checks if a type specialist badge has been earned for a given count.
+ */
+export function hasTypeSpecialistBeenEarned(typeCount: number): boolean {
+  return typeCount >= TYPE_SPECIALIST_THRESHOLD;
+}
+
+/**
+ * Gets all type specialist badge keys that should be earned based on type counts.
+ */
+export function getAllEarnedTypeSpecialistKeys(typeCounts: Record<string, number>): string[] {
+  return TYPE_SPECIALIST_BADGE_DEFINITIONS.filter(
+    (badge) => (typeCounts[badge.type] ?? 0) >= TYPE_SPECIALIST_THRESHOLD
+  ).map((badge) => badge.key);
+}
+
+/**
+ * Gets the number of type specialist badges earned based on type counts.
+ */
+export function countEarnedTypeSpecialistBadges(typeCounts: Record<string, number>): number {
+  return TYPE_SPECIALIST_BADGE_DEFINITIONS.filter(
+    (badge) => (typeCounts[badge.type] ?? 0) >= TYPE_SPECIALIST_THRESHOLD
+  ).length;
+}
+
+/**
+ * Counts cards by type from a list of cards with type information.
+ * Each card can have multiple types, and each type is counted.
+ */
+export function countCardsByType(cards: Array<{ types: string[] }>): Record<string, number> {
+  const typeCounts: Record<string, number> = {};
+  for (const card of cards) {
+    for (const type of card.types) {
+      typeCounts[type] = (typeCounts[type] ?? 0) + 1;
+    }
+  }
+  return typeCounts;
+}
+
+/**
+ * Gets the types that are closest to earning a badge (sorted by remaining count).
+ */
+export function getNearbyTypeSpecialistBadges(
+  typeCounts: Record<string, number>,
+  earnedBadgeKeys: string[] = []
+): Array<{ type: string; key: string; name: string; count: number; remaining: number }> {
+  const earnedSet = new Set(earnedBadgeKeys);
+
+  return TYPE_SPECIALIST_BADGE_DEFINITIONS.filter((badge) => {
+    const count = typeCounts[badge.type] ?? 0;
+    return count > 0 && count < TYPE_SPECIALIST_THRESHOLD && !earnedSet.has(badge.key);
+  })
+    .map((badge) => {
+      const count = typeCounts[badge.type] ?? 0;
+      return {
+        type: badge.type,
+        key: badge.key,
+        name: badge.name,
+        count,
+        remaining: TYPE_SPECIALIST_THRESHOLD - count,
+      };
+    })
+    .sort((a, b) => a.remaining - b.remaining);
+}
+
+/**
+ * Gets the dominant type (type with most cards) from type counts.
+ */
+export function getDominantType(typeCounts: Record<string, number>): string | null {
+  let maxType: string | null = null;
+  let maxCount = 0;
+
+  for (const [type, count] of Object.entries(typeCounts)) {
+    if (count > maxCount) {
+      maxCount = count;
+      maxType = type;
+    }
+  }
+
+  return maxType;
+}
+
+/**
+ * Gets the type distribution as percentages.
+ */
+export function getTypeDistribution(
+  typeCounts: Record<string, number>
+): Array<{ type: string; count: number; percentage: number }> {
+  const totalCards = Object.values(typeCounts).reduce((sum, count) => sum + count, 0);
+  if (totalCards === 0) return [];
+
+  return Object.entries(typeCounts)
+    .map(([type, count]) => ({
+      type,
+      count,
+      percentage: Math.round((count / totalCards) * 100),
+    }))
+    .sort((a, b) => b.count - a.count);
+}

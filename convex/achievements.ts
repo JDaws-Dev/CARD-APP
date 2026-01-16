@@ -817,6 +817,222 @@ export const checkAllSetCompletionAchievements = mutation({
   },
 });
 
+// ============================================================================
+// TYPE SPECIALIST ACHIEVEMENTS
+// ============================================================================
+
+// Type specialist badges - one for each Pokemon card type at 10+ cards threshold
+const TYPE_SPECIALIST_BADGES = [
+  { type: 'Fire', key: 'fire_trainer', name: 'Fire Trainer' },
+  { type: 'Water', key: 'water_trainer', name: 'Water Trainer' },
+  { type: 'Grass', key: 'grass_trainer', name: 'Grass Trainer' },
+  { type: 'Lightning', key: 'electric_trainer', name: 'Electric Trainer' },
+  { type: 'Psychic', key: 'psychic_trainer', name: 'Psychic Trainer' },
+  { type: 'Fighting', key: 'fighting_trainer', name: 'Fighting Trainer' },
+  { type: 'Darkness', key: 'darkness_trainer', name: 'Darkness Trainer' },
+  { type: 'Metal', key: 'metal_trainer', name: 'Metal Trainer' },
+  { type: 'Dragon', key: 'dragon_trainer', name: 'Dragon Trainer' },
+  { type: 'Fairy', key: 'fairy_trainer', name: 'Fairy Trainer' },
+  { type: 'Colorless', key: 'colorless_trainer', name: 'Colorless Trainer' },
+] as const;
+
+const TYPE_SPECIALIST_THRESHOLD = 10;
+
+// Check and award type specialist badges based on cards by type
+export const checkTypeSpecialistAchievements = mutation({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Get unique cardIds (we count unique cards, not quantities)
+    const uniqueCardIds = new Set<string>();
+    for (const card of collectionCards) {
+      uniqueCardIds.add(card.cardId);
+    }
+
+    // Fetch cached card data to get types for each card
+    const typeCounts: Record<string, number> = {};
+    for (const cardId of uniqueCardIds) {
+      const cachedCard = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+        .first();
+
+      if (cachedCard && cachedCard.types) {
+        // A card can have multiple types, count each
+        for (const type of cachedCard.types) {
+          typeCounts[type] = (typeCounts[type] ?? 0) + 1;
+        }
+      }
+    }
+
+    const awarded: string[] = [];
+
+    // Check each type specialist badge
+    for (const badge of TYPE_SPECIALIST_BADGES) {
+      const count = typeCounts[badge.type] ?? 0;
+
+      if (count >= TYPE_SPECIALIST_THRESHOLD) {
+        // Check if already earned
+        const existing = await ctx.db
+          .query('achievements')
+          .withIndex('by_profile_and_key', (q) =>
+            q.eq('profileId', args.profileId).eq('achievementKey', badge.key)
+          )
+          .first();
+
+        if (!existing) {
+          await ctx.db.insert('achievements', {
+            profileId: args.profileId,
+            achievementType: 'type_specialist',
+            achievementKey: badge.key,
+            achievementData: {
+              type: badge.type,
+              count,
+              threshold: TYPE_SPECIALIST_THRESHOLD,
+            },
+            earnedAt: Date.now(),
+          });
+
+          // Log activity for achievement earned
+          await ctx.db.insert('activityLogs', {
+            profileId: args.profileId,
+            action: 'achievement_earned',
+            metadata: {
+              achievementKey: badge.key,
+              achievementName: badge.name,
+              achievementType: 'type_specialist',
+              pokemonType: badge.type,
+              count,
+              threshold: TYPE_SPECIALIST_THRESHOLD,
+            },
+          });
+
+          awarded.push(badge.key);
+        }
+      }
+    }
+
+    // Calculate progress for all types (for nearby badges)
+    const typeProgress = TYPE_SPECIALIST_BADGES.map((badge) => {
+      const count = typeCounts[badge.type] ?? 0;
+      return {
+        type: badge.type,
+        key: badge.key,
+        name: badge.name,
+        count,
+        threshold: TYPE_SPECIALIST_THRESHOLD,
+        earned: count >= TYPE_SPECIALIST_THRESHOLD,
+        remaining: Math.max(0, TYPE_SPECIALIST_THRESHOLD - count),
+        progress: Math.min(100, Math.round((count / TYPE_SPECIALIST_THRESHOLD) * 100)),
+      };
+    });
+
+    // Find types that are close to earning (1-9 cards)
+    const nearbyBadges = typeProgress
+      .filter((t) => t.count > 0 && t.count < TYPE_SPECIALIST_THRESHOLD)
+      .sort((a, b) => a.remaining - b.remaining);
+
+    return {
+      awarded,
+      typeCounts,
+      typeProgress,
+      nearbyBadges,
+      totalTypeBadgesEarned: typeProgress.filter((t) => t.earned).length,
+      totalTypeBadgesAvailable: TYPE_SPECIALIST_BADGES.length,
+    };
+  },
+});
+
+// Query to get type specialist progress for a profile (for UI display)
+export const getTypeSpecialistProgress = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Get unique cardIds
+    const uniqueCardIds = new Set<string>();
+    for (const card of collectionCards) {
+      uniqueCardIds.add(card.cardId);
+    }
+
+    // Fetch cached card data to get types
+    const typeCounts: Record<string, number> = {};
+    for (const cardId of uniqueCardIds) {
+      const cachedCard = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+        .first();
+
+      if (cachedCard && cachedCard.types) {
+        for (const type of cachedCard.types) {
+          typeCounts[type] = (typeCounts[type] ?? 0) + 1;
+        }
+      }
+    }
+
+    // Get earned type specialist achievements
+    const earnedAchievements = await ctx.db
+      .query('achievements')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .filter((q) => q.eq(q.field('achievementType'), 'type_specialist'))
+      .collect();
+
+    const earnedKeys = new Set(earnedAchievements.map((a) => a.achievementKey));
+
+    // Build progress for each type
+    const typeProgress = TYPE_SPECIALIST_BADGES.map((badge) => {
+      const count = typeCounts[badge.type] ?? 0;
+      const earned = earnedKeys.has(badge.key);
+      const earnedAchievement = earned
+        ? earnedAchievements.find((a) => a.achievementKey === badge.key)
+        : null;
+
+      return {
+        type: badge.type,
+        key: badge.key,
+        name: badge.name,
+        count,
+        threshold: TYPE_SPECIALIST_THRESHOLD,
+        earned,
+        earnedAt: earnedAchievement?.earnedAt ?? null,
+        remaining: earned ? 0 : Math.max(0, TYPE_SPECIALIST_THRESHOLD - count),
+        progress: Math.min(100, Math.round((count / TYPE_SPECIALIST_THRESHOLD) * 100)),
+      };
+    });
+
+    // Sort by progress descending (closest to earning first), then alphabetically
+    const sortedByProgress = [...typeProgress].sort((a, b) => {
+      if (a.earned && !b.earned) return -1;
+      if (!a.earned && b.earned) return 1;
+      if (b.progress !== a.progress) return b.progress - a.progress;
+      return a.type.localeCompare(b.type);
+    });
+
+    // Find nearby badges (types with 1-9 cards)
+    const nearbyBadges = typeProgress
+      .filter((t) => t.count > 0 && !t.earned)
+      .sort((a, b) => a.remaining - b.remaining);
+
+    return {
+      typeCounts,
+      typeProgress: sortedByProgress,
+      nearbyBadges,
+      earnedBadges: typeProgress.filter((t) => t.earned),
+      totalTypeBadgesEarned: typeProgress.filter((t) => t.earned).length,
+      totalTypeBadgesAvailable: TYPE_SPECIALIST_BADGES.length,
+    };
+  },
+});
+
 // Query to get set completion progress for a profile
 export const getSetCompletionProgress = query({
   args: {

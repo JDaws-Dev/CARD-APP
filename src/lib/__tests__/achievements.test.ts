@@ -1338,3 +1338,610 @@ describe('Milestone Badge Utilities', () => {
     });
   });
 });
+
+// Import new type specialist badge utilities
+import {
+  TYPE_SPECIALIST_BADGE_DEFINITIONS,
+  getTypeSpecialistBadgesToAward,
+  getTypeSpecialistProgressSummary,
+  getTypeSpecialistBadgeDefinition,
+  getTypeSpecialistBadgeForType,
+  cardsNeededForTypeSpecialist,
+  getTypeSpecialistPercentProgress,
+  hasTypeSpecialistBeenEarned,
+  getAllEarnedTypeSpecialistKeys,
+  countEarnedTypeSpecialistBadges,
+  countCardsByType,
+  getNearbyTypeSpecialistBadges,
+  getDominantType,
+  getTypeDistribution,
+} from '../achievements';
+
+describe('Type Specialist Badge Utilities', () => {
+  describe('TYPE_SPECIALIST_BADGE_DEFINITIONS', () => {
+    it('should have 11 type specialist definitions', () => {
+      expect(TYPE_SPECIALIST_BADGE_DEFINITIONS).toHaveLength(11);
+    });
+
+    it('should have unique keys', () => {
+      const keys = TYPE_SPECIALIST_BADGE_DEFINITIONS.map((b) => b.key);
+      expect(new Set(keys).size).toBe(keys.length);
+    });
+
+    it('should have unique types', () => {
+      const types = TYPE_SPECIALIST_BADGE_DEFINITIONS.map((b) => b.type);
+      expect(new Set(types).size).toBe(types.length);
+    });
+
+    it('should have names for all badges', () => {
+      for (const badge of TYPE_SPECIALIST_BADGE_DEFINITIONS) {
+        expect(badge.name).toBeTruthy();
+        expect(typeof badge.name).toBe('string');
+      }
+    });
+
+    it('should include all major Pokemon types', () => {
+      const types = TYPE_SPECIALIST_BADGE_DEFINITIONS.map((b) => b.type);
+      expect(types).toContain('Fire');
+      expect(types).toContain('Water');
+      expect(types).toContain('Grass');
+      expect(types).toContain('Lightning');
+      expect(types).toContain('Psychic');
+      expect(types).toContain('Fighting');
+      expect(types).toContain('Darkness');
+      expect(types).toContain('Metal');
+      expect(types).toContain('Dragon');
+      expect(types).toContain('Fairy');
+      expect(types).toContain('Colorless');
+    });
+
+    it('should match TYPE_TO_BADGE_KEY mapping', () => {
+      for (const badge of TYPE_SPECIALIST_BADGE_DEFINITIONS) {
+        expect(TYPE_TO_BADGE_KEY[badge.type]).toBe(badge.key);
+      }
+    });
+  });
+
+  describe('getTypeSpecialistBadgesToAward', () => {
+    it('should return no badges for empty type counts', () => {
+      expect(getTypeSpecialistBadgesToAward({})).toEqual([]);
+    });
+
+    it('should return no badges when all counts below threshold', () => {
+      expect(getTypeSpecialistBadgesToAward({ Fire: 5, Water: 9 })).toEqual([]);
+    });
+
+    it('should return fire_trainer at threshold (10)', () => {
+      const badges = getTypeSpecialistBadgesToAward({ Fire: 10 });
+      expect(badges).toEqual(['fire_trainer']);
+    });
+
+    it('should return badge above threshold', () => {
+      const badges = getTypeSpecialistBadgesToAward({ Water: 15 });
+      expect(badges).toContain('water_trainer');
+    });
+
+    it('should return multiple badges when multiple types at threshold', () => {
+      const badges = getTypeSpecialistBadgesToAward({
+        Fire: 10,
+        Water: 15,
+        Grass: 20,
+      });
+      expect(badges).toHaveLength(3);
+      expect(badges).toContain('fire_trainer');
+      expect(badges).toContain('water_trainer');
+      expect(badges).toContain('grass_trainer');
+    });
+
+    it('should return all 11 badges when all types at threshold', () => {
+      const typeCounts: Record<string, number> = {};
+      for (const badge of TYPE_SPECIALIST_BADGE_DEFINITIONS) {
+        typeCounts[badge.type] = 10;
+      }
+      const badges = getTypeSpecialistBadgesToAward(typeCounts);
+      expect(badges).toHaveLength(11);
+    });
+
+    it('should exclude already earned badges', () => {
+      const badges = getTypeSpecialistBadgesToAward(
+        { Fire: 10, Water: 10 },
+        ['fire_trainer']
+      );
+      expect(badges).toEqual(['water_trainer']);
+    });
+
+    it('should return empty array if all eligible badges earned', () => {
+      const badges = getTypeSpecialistBadgesToAward(
+        { Fire: 10 },
+        ['fire_trainer']
+      );
+      expect(badges).toEqual([]);
+    });
+
+    it('should not include badges for types not at threshold', () => {
+      const badges = getTypeSpecialistBadgesToAward({ Fire: 10, Water: 5 });
+      expect(badges).toContain('fire_trainer');
+      expect(badges).not.toContain('water_trainer');
+    });
+  });
+
+  describe('getTypeSpecialistProgressSummary', () => {
+    it('should return correct summary for empty type counts', () => {
+      const summary = getTypeSpecialistProgressSummary({});
+      expect(summary.totalTypeBadgesEarned).toBe(0);
+      expect(summary.totalTypeBadgesAvailable).toBe(11);
+      expect(summary.nearbyBadges).toHaveLength(0);
+      expect(summary.earnedBadges).toHaveLength(0);
+    });
+
+    it('should show progress for types with cards', () => {
+      const summary = getTypeSpecialistProgressSummary({ Fire: 5, Water: 8 });
+      const fireProgress = summary.typeProgress.find((t) => t.type === 'Fire');
+      const waterProgress = summary.typeProgress.find((t) => t.type === 'Water');
+
+      expect(fireProgress?.count).toBe(5);
+      expect(fireProgress?.progress).toBe(50);
+      expect(fireProgress?.remaining).toBe(5);
+      expect(fireProgress?.earned).toBe(false);
+
+      expect(waterProgress?.count).toBe(8);
+      expect(waterProgress?.progress).toBe(80);
+      expect(waterProgress?.remaining).toBe(2);
+    });
+
+    it('should mark earned badges correctly', () => {
+      const summary = getTypeSpecialistProgressSummary(
+        { Fire: 10, Water: 5 },
+        ['fire_trainer']
+      );
+      const fireProgress = summary.typeProgress.find((t) => t.type === 'Fire');
+      expect(fireProgress?.earned).toBe(true);
+      expect(fireProgress?.remaining).toBe(0);
+      expect(summary.totalTypeBadgesEarned).toBe(1);
+    });
+
+    it('should sort typeProgress with earned first, then by progress', () => {
+      const summary = getTypeSpecialistProgressSummary(
+        { Fire: 10, Water: 8, Grass: 3 },
+        ['fire_trainer']
+      );
+      // Fire (earned) should be first, then Water (80%), then Grass (30%)
+      expect(summary.typeProgress[0].type).toBe('Fire');
+      expect(summary.typeProgress[1].type).toBe('Water');
+    });
+
+    it('should identify nearby badges correctly', () => {
+      const summary = getTypeSpecialistProgressSummary(
+        { Fire: 8, Water: 3 },
+        []
+      );
+      expect(summary.nearbyBadges).toHaveLength(2);
+      // Sorted by remaining: Fire (2 remaining), Water (7 remaining)
+      expect(summary.nearbyBadges[0].type).toBe('Fire');
+      expect(summary.nearbyBadges[0].remaining).toBe(2);
+      expect(summary.nearbyBadges[1].type).toBe('Water');
+      expect(summary.nearbyBadges[1].remaining).toBe(7);
+    });
+
+    it('should not include earned badges in nearbyBadges', () => {
+      const summary = getTypeSpecialistProgressSummary(
+        { Fire: 10, Water: 5 },
+        ['fire_trainer']
+      );
+      expect(summary.nearbyBadges.find((b) => b.type === 'Fire')).toBeUndefined();
+    });
+
+    it('should not include types with 0 cards in nearbyBadges', () => {
+      const summary = getTypeSpecialistProgressSummary({ Fire: 5 });
+      expect(summary.nearbyBadges).toHaveLength(1);
+      expect(summary.nearbyBadges[0].type).toBe('Fire');
+    });
+  });
+
+  describe('getTypeSpecialistBadgeDefinition', () => {
+    it('should return definition for valid key', () => {
+      const def = getTypeSpecialistBadgeDefinition('fire_trainer');
+      expect(def?.type).toBe('Fire');
+      expect(def?.key).toBe('fire_trainer');
+      expect(def?.name).toBe('Fire Trainer');
+    });
+
+    it('should return null for invalid key', () => {
+      expect(getTypeSpecialistBadgeDefinition('invalid_key')).toBeNull();
+    });
+
+    it('should return definition for all badge keys', () => {
+      for (const badge of TYPE_SPECIALIST_BADGE_DEFINITIONS) {
+        const def = getTypeSpecialistBadgeDefinition(badge.key);
+        expect(def).not.toBeNull();
+        expect(def?.key).toBe(badge.key);
+      }
+    });
+  });
+
+  describe('getTypeSpecialistBadgeForType', () => {
+    it('should return definition for valid type', () => {
+      const def = getTypeSpecialistBadgeForType('Fire');
+      expect(def?.type).toBe('Fire');
+      expect(def?.key).toBe('fire_trainer');
+      expect(def?.name).toBe('Fire Trainer');
+    });
+
+    it('should return null for invalid type', () => {
+      expect(getTypeSpecialistBadgeForType('InvalidType')).toBeNull();
+    });
+
+    it('should handle Lightning -> electric_trainer mapping', () => {
+      const def = getTypeSpecialistBadgeForType('Lightning');
+      expect(def?.key).toBe('electric_trainer');
+      expect(def?.name).toBe('Electric Trainer');
+    });
+
+    it('should return definition for all Pokemon types', () => {
+      for (const badge of TYPE_SPECIALIST_BADGE_DEFINITIONS) {
+        const def = getTypeSpecialistBadgeForType(badge.type);
+        expect(def).not.toBeNull();
+        expect(def?.type).toBe(badge.type);
+      }
+    });
+  });
+
+  describe('cardsNeededForTypeSpecialist', () => {
+    it('should return 10 for 0 cards', () => {
+      expect(cardsNeededForTypeSpecialist(0)).toBe(10);
+    });
+
+    it('should return correct remaining for partial progress', () => {
+      expect(cardsNeededForTypeSpecialist(3)).toBe(7);
+      expect(cardsNeededForTypeSpecialist(5)).toBe(5);
+      expect(cardsNeededForTypeSpecialist(9)).toBe(1);
+    });
+
+    it('should return 0 at threshold', () => {
+      expect(cardsNeededForTypeSpecialist(10)).toBe(0);
+    });
+
+    it('should return 0 above threshold', () => {
+      expect(cardsNeededForTypeSpecialist(15)).toBe(0);
+      expect(cardsNeededForTypeSpecialist(100)).toBe(0);
+    });
+  });
+
+  describe('getTypeSpecialistPercentProgress', () => {
+    it('should return 0 for 0 cards', () => {
+      expect(getTypeSpecialistPercentProgress(0)).toBe(0);
+    });
+
+    it('should return correct percentage for partial progress', () => {
+      expect(getTypeSpecialistPercentProgress(1)).toBe(10);
+      expect(getTypeSpecialistPercentProgress(5)).toBe(50);
+      expect(getTypeSpecialistPercentProgress(8)).toBe(80);
+    });
+
+    it('should return 100 at threshold', () => {
+      expect(getTypeSpecialistPercentProgress(10)).toBe(100);
+    });
+
+    it('should cap at 100% above threshold', () => {
+      expect(getTypeSpecialistPercentProgress(15)).toBe(100);
+      expect(getTypeSpecialistPercentProgress(100)).toBe(100);
+    });
+  });
+
+  describe('hasTypeSpecialistBeenEarned', () => {
+    it('should return false for 0 cards', () => {
+      expect(hasTypeSpecialistBeenEarned(0)).toBe(false);
+    });
+
+    it('should return false below threshold', () => {
+      expect(hasTypeSpecialistBeenEarned(9)).toBe(false);
+    });
+
+    it('should return true at exact threshold', () => {
+      expect(hasTypeSpecialistBeenEarned(10)).toBe(true);
+    });
+
+    it('should return true above threshold', () => {
+      expect(hasTypeSpecialistBeenEarned(15)).toBe(true);
+      expect(hasTypeSpecialistBeenEarned(100)).toBe(true);
+    });
+  });
+
+  describe('getAllEarnedTypeSpecialistKeys', () => {
+    it('should return empty array for empty type counts', () => {
+      expect(getAllEarnedTypeSpecialistKeys({})).toEqual([]);
+    });
+
+    it('should return empty array when all below threshold', () => {
+      expect(getAllEarnedTypeSpecialistKeys({ Fire: 5, Water: 9 })).toEqual([]);
+    });
+
+    it('should return keys for types at threshold', () => {
+      const keys = getAllEarnedTypeSpecialistKeys({ Fire: 10, Water: 5 });
+      expect(keys).toEqual(['fire_trainer']);
+    });
+
+    it('should return multiple keys when multiple types at threshold', () => {
+      const keys = getAllEarnedTypeSpecialistKeys({ Fire: 10, Water: 15, Grass: 20 });
+      expect(keys).toHaveLength(3);
+      expect(keys).toContain('fire_trainer');
+      expect(keys).toContain('water_trainer');
+      expect(keys).toContain('grass_trainer');
+    });
+
+    it('should return all 11 keys when all types at threshold', () => {
+      const typeCounts: Record<string, number> = {};
+      for (const badge of TYPE_SPECIALIST_BADGE_DEFINITIONS) {
+        typeCounts[badge.type] = 10;
+      }
+      const keys = getAllEarnedTypeSpecialistKeys(typeCounts);
+      expect(keys).toHaveLength(11);
+    });
+  });
+
+  describe('countEarnedTypeSpecialistBadges', () => {
+    it('should return 0 for empty type counts', () => {
+      expect(countEarnedTypeSpecialistBadges({})).toBe(0);
+    });
+
+    it('should return 0 when all below threshold', () => {
+      expect(countEarnedTypeSpecialistBadges({ Fire: 5, Water: 9 })).toBe(0);
+    });
+
+    it('should count types at threshold', () => {
+      expect(countEarnedTypeSpecialistBadges({ Fire: 10, Water: 5 })).toBe(1);
+    });
+
+    it('should count multiple types at threshold', () => {
+      expect(countEarnedTypeSpecialistBadges({ Fire: 10, Water: 15, Grass: 20 })).toBe(3);
+    });
+
+    it('should return 11 when all types at threshold', () => {
+      const typeCounts: Record<string, number> = {};
+      for (const badge of TYPE_SPECIALIST_BADGE_DEFINITIONS) {
+        typeCounts[badge.type] = 10;
+      }
+      expect(countEarnedTypeSpecialistBadges(typeCounts)).toBe(11);
+    });
+  });
+
+  describe('countCardsByType', () => {
+    it('should return empty object for empty array', () => {
+      expect(countCardsByType([])).toEqual({});
+    });
+
+    it('should count single type cards', () => {
+      const cards = [
+        { types: ['Fire'] },
+        { types: ['Fire'] },
+        { types: ['Water'] },
+      ];
+      const counts = countCardsByType(cards);
+      expect(counts).toEqual({ Fire: 2, Water: 1 });
+    });
+
+    it('should count dual type cards (both types counted)', () => {
+      const cards = [
+        { types: ['Fire', 'Water'] },
+        { types: ['Fire'] },
+      ];
+      const counts = countCardsByType(cards);
+      expect(counts).toEqual({ Fire: 2, Water: 1 });
+    });
+
+    it('should handle cards with empty types array', () => {
+      const cards = [
+        { types: [] },
+        { types: ['Fire'] },
+      ];
+      const counts = countCardsByType(cards);
+      expect(counts).toEqual({ Fire: 1 });
+    });
+
+    it('should handle many cards with various types', () => {
+      const cards = [
+        { types: ['Fire'] },
+        { types: ['Fire', 'Dragon'] },
+        { types: ['Water'] },
+        { types: ['Water', 'Dragon'] },
+        { types: ['Dragon'] },
+      ];
+      const counts = countCardsByType(cards);
+      expect(counts.Fire).toBe(2);
+      expect(counts.Water).toBe(2);
+      expect(counts.Dragon).toBe(3);
+    });
+  });
+
+  describe('getNearbyTypeSpecialistBadges', () => {
+    it('should return empty array for empty type counts', () => {
+      expect(getNearbyTypeSpecialistBadges({})).toEqual([]);
+    });
+
+    it('should return types with partial progress', () => {
+      const nearby = getNearbyTypeSpecialistBadges({ Fire: 5, Water: 8 });
+      expect(nearby).toHaveLength(2);
+    });
+
+    it('should sort by remaining (closest first)', () => {
+      const nearby = getNearbyTypeSpecialistBadges({ Fire: 5, Water: 8, Grass: 3 });
+      expect(nearby[0].type).toBe('Water'); // 2 remaining
+      expect(nearby[1].type).toBe('Fire'); // 5 remaining
+      expect(nearby[2].type).toBe('Grass'); // 7 remaining
+    });
+
+    it('should not include types at or above threshold', () => {
+      const nearby = getNearbyTypeSpecialistBadges({ Fire: 10, Water: 5 });
+      expect(nearby).toHaveLength(1);
+      expect(nearby[0].type).toBe('Water');
+    });
+
+    it('should not include types with 0 cards', () => {
+      const nearby = getNearbyTypeSpecialistBadges({ Fire: 5, Water: 0 });
+      expect(nearby).toHaveLength(1);
+      expect(nearby[0].type).toBe('Fire');
+    });
+
+    it('should exclude already earned badges', () => {
+      const nearby = getNearbyTypeSpecialistBadges(
+        { Fire: 10, Water: 5 },
+        ['water_trainer'] // even though not at threshold, exclude if earned
+      );
+      expect(nearby).toHaveLength(0);
+    });
+
+    it('should include remaining count in results', () => {
+      const nearby = getNearbyTypeSpecialistBadges({ Fire: 7 });
+      expect(nearby[0].remaining).toBe(3);
+      expect(nearby[0].count).toBe(7);
+    });
+  });
+
+  describe('getDominantType', () => {
+    it('should return null for empty type counts', () => {
+      expect(getDominantType({})).toBeNull();
+    });
+
+    it('should return the type with most cards', () => {
+      expect(getDominantType({ Fire: 5, Water: 10, Grass: 3 })).toBe('Water');
+    });
+
+    it('should return one type when tied (first encountered)', () => {
+      const dominant = getDominantType({ Fire: 10, Water: 10 });
+      // Should return one of them (implementation detail)
+      expect(['Fire', 'Water']).toContain(dominant);
+    });
+
+    it('should return the only type if single', () => {
+      expect(getDominantType({ Fire: 5 })).toBe('Fire');
+    });
+  });
+
+  describe('getTypeDistribution', () => {
+    it('should return empty array for empty type counts', () => {
+      expect(getTypeDistribution({})).toEqual([]);
+    });
+
+    it('should calculate correct percentages', () => {
+      const dist = getTypeDistribution({ Fire: 50, Water: 50 });
+      expect(dist).toHaveLength(2);
+      expect(dist[0].percentage).toBe(50);
+      expect(dist[1].percentage).toBe(50);
+    });
+
+    it('should sort by count descending', () => {
+      const dist = getTypeDistribution({ Fire: 30, Water: 50, Grass: 20 });
+      expect(dist[0].type).toBe('Water');
+      expect(dist[1].type).toBe('Fire');
+      expect(dist[2].type).toBe('Grass');
+    });
+
+    it('should include count and percentage', () => {
+      const dist = getTypeDistribution({ Fire: 25, Water: 75 });
+      const waterDist = dist.find((d) => d.type === 'Water');
+      expect(waterDist?.count).toBe(75);
+      expect(waterDist?.percentage).toBe(75);
+    });
+
+    it('should handle single type', () => {
+      const dist = getTypeDistribution({ Fire: 100 });
+      expect(dist).toHaveLength(1);
+      expect(dist[0].type).toBe('Fire');
+      expect(dist[0].percentage).toBe(100);
+    });
+
+    it('should round percentages', () => {
+      const dist = getTypeDistribution({ Fire: 33, Water: 67 });
+      // 33/100 = 33%, 67/100 = 67%
+      expect(dist.find((d) => d.type === 'Fire')?.percentage).toBe(33);
+      expect(dist.find((d) => d.type === 'Water')?.percentage).toBe(67);
+    });
+  });
+
+  describe('Type Specialist Badge Awarding Journey', () => {
+    it('should track progressive badge collection by type', () => {
+      let earnedBadges: string[] = [];
+      const typeCounts: Record<string, number> = {};
+
+      // Start collecting Fire cards
+      typeCounts.Fire = 5;
+      let badges = getTypeSpecialistBadgesToAward(typeCounts, earnedBadges);
+      expect(badges).toHaveLength(0);
+
+      // Reach Fire threshold
+      typeCounts.Fire = 10;
+      badges = getTypeSpecialistBadgesToAward(typeCounts, earnedBadges);
+      expect(badges).toEqual(['fire_trainer']);
+      earnedBadges.push(...badges);
+
+      // Add Water cards
+      typeCounts.Water = 15;
+      badges = getTypeSpecialistBadgesToAward(typeCounts, earnedBadges);
+      expect(badges).toEqual(['water_trainer']);
+      earnedBadges.push(...badges);
+
+      // Fire badge already earned, not returned again
+      typeCounts.Fire = 20;
+      badges = getTypeSpecialistBadgesToAward(typeCounts, earnedBadges);
+      expect(badges).toHaveLength(0);
+    });
+
+    it('should show correct progress summary at each stage', () => {
+      // Starting collection
+      let summary = getTypeSpecialistProgressSummary({ Fire: 5, Water: 8 });
+      expect(summary.totalTypeBadgesEarned).toBe(0);
+      expect(summary.nearbyBadges).toHaveLength(2);
+      expect(summary.nearbyBadges[0].type).toBe('Water'); // 2 remaining
+
+      // After earning Fire badge
+      summary = getTypeSpecialistProgressSummary(
+        { Fire: 10, Water: 8 },
+        ['fire_trainer']
+      );
+      expect(summary.totalTypeBadgesEarned).toBe(1);
+      expect(summary.earnedBadges).toHaveLength(1);
+      expect(summary.nearbyBadges).toHaveLength(1); // Only Water now
+
+      // After earning all badges
+      const allTypeCounts: Record<string, number> = {};
+      const allBadgeKeys: string[] = [];
+      for (const badge of TYPE_SPECIALIST_BADGE_DEFINITIONS) {
+        allTypeCounts[badge.type] = 10;
+        allBadgeKeys.push(badge.key);
+      }
+      summary = getTypeSpecialistProgressSummary(allTypeCounts, allBadgeKeys);
+      expect(summary.totalTypeBadgesEarned).toBe(11);
+      expect(summary.nearbyBadges).toHaveLength(0);
+    });
+
+    it('should handle multi-type cards correctly', () => {
+      const cards = [
+        { types: ['Fire'] },
+        { types: ['Fire'] },
+        { types: ['Fire'] },
+        { types: ['Fire', 'Dragon'] },
+        { types: ['Fire', 'Dragon'] },
+        { types: ['Fire', 'Dragon'] },
+        { types: ['Dragon'] },
+        { types: ['Dragon'] },
+        { types: ['Dragon'] },
+        { types: ['Dragon'] },
+      ];
+
+      const typeCounts = countCardsByType(cards);
+      // Fire: 6 (3 pure + 3 dual)
+      // Dragon: 7 (4 pure + 3 dual)
+      expect(typeCounts.Fire).toBe(6);
+      expect(typeCounts.Dragon).toBe(7);
+
+      // Neither at threshold yet
+      const badges = getTypeSpecialistBadgesToAward(typeCounts);
+      expect(badges).toHaveLength(0);
+
+      // Add more Fire cards to reach threshold
+      typeCounts.Fire = 10;
+      const newBadges = getTypeSpecialistBadgesToAward(typeCounts);
+      expect(newBadges).toContain('fire_trainer');
+    });
+  });
+});
