@@ -30,6 +30,9 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Convex (generated files are safe to commit, but .env.local has secrets)
+# convex/_generated/ is committed for type safety
+
 # Vercel
 .vercel
 
