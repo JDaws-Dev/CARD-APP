@@ -84,7 +84,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [ ] API adapter for ApiTCG (src/lib/dragonball-api.ts) - Dragon Ball Fusion World cards
 - [ ] API adapter for Lorcast (src/lib/lorcana-api.ts) - Disney Lorcana cards, 10 req/sec rate limit
 - [ ] API adapter for DigimonCard.io (src/lib/digimon-api.ts) - Digimon cards, 15 req/10sec rate limit
-- [ ] API adapter for Scryfall (src/lib/mtg-api.ts) - Magic: The Gathering cards, 10 req/sec rate limit
+- [x] API adapter for Scryfall (src/lib/mtg-api.ts) - Magic: The Gathering cards, 10 req/sec rate limit
 - [ ] Evaluate unified APIs - Test if ApiTCG.com or JustTCG can replace multiple adapters
 
 ### Gamification Backend
@@ -851,3 +851,40 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Statistics calculations
   - Integration scenarios: New User Journey, Achievement Unlocks Item, Level Up Awards Items, Display Enrichment
 - All 1905 tests pass, linter clean
+
+### 2026-01-16: API adapter for Scryfall (Magic: The Gathering cards)
+
+- Created `src/lib/mtg-api.ts` with full Scryfall API client:
+  - Rate limiting: 10 req/sec (100ms minimum between requests)
+  - No API key required, but includes proper User-Agent header
+  - Set endpoints: `getAllSets`, `getCollectibleSets`, `getSetsByType`, `getSetByCode`, `getSetById`
+  - Card endpoints: `getCardsInSet` (with pagination), `getCardById`, `getCardByCollectorNumber`, `searchCards`, `autocompleteCardName`, `getRandomCard`, `filterCards`, `getCardsByIds`
+  - Filter support: set code, colors, color identity, rarity, type, name, CMC with operators
+- Defined comprehensive TypeScript types:
+  - `MTGSet`: Set object with id, code, name, set_type, released_at, card_count, icon_svg_uri
+  - `MTGCard`: Full card object with identifiers, gameplay fields, multi-face support, pricing, legalities
+  - `MTGSetType`: 22 set types (core, expansion, masters, promo, token, etc.)
+  - `MTGColor`, `MTGRarity`, `MTGImageUris`, `MTGCardFace`, `MTGPrices`, `MTGPurchaseUris`
+  - `ScryfallList<T>`: Paginated list response type
+  - `MTGFilterOptions`: Filter options interface
+- Added constants:
+  - `COLLECTIBLE_SET_TYPES`: Main set types for collection tracking (excludes tokens, memorabilia)
+  - `MTG_COLORS`: Color code to name mapping (W→White, U→Blue, etc.)
+  - `MTG_RARITIES`: Rarity display names and sort orders
+- Helper functions:
+  - `isPromoCard`: Check promo flag or promo set type
+  - `getCardImage`: Get image URI, handles multi-faced cards
+  - `getCardColorNames`: Convert color codes to display names
+  - `getRarityDisplayName`: Get rarity display name
+  - `getMarketPrice`: Parse USD price (regular or foil)
+  - `getCardDexId`: Generate unique ID in "set-number" format
+  - `isMultiFacedCard`: Check for transform/modal double-faced layouts
+  - `getManaCost`: Get mana cost, handles multi-faced cards
+- Added 45 tests in `src/lib/__tests__/mtg-api.test.ts` covering:
+  - Constants validation (COLLECTIBLE_SET_TYPES, MTG_COLORS, MTG_RARITIES)
+  - All helper functions with edge cases
+  - Multi-faced card handling (transform, modal DFC)
+  - Price parsing (normal, foil, missing, invalid)
+  - Integration scenarios: card display preparation, transform card handling, promo identification
+  - Type export verification
+- All tests pass, linter clean
