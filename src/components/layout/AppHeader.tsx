@@ -192,6 +192,17 @@ export function AppHeader() {
                       Parent Dashboard
                     </Link>
                   )}
+                  <Link
+                    href="/settings"
+                    onClick={() => setProfileMenuOpen(false)}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary dark:text-slate-200 dark:hover:bg-slate-700 ${
+                      pathname === '/settings' ? 'bg-kid-primary/10 text-kid-primary' : ''
+                    }`}
+                    role="menuitem"
+                  >
+                    <Cog6ToothIcon className="h-4 w-4" aria-hidden="true" />
+                    Settings
+                  </Link>
                   <div
                     className="my-1 border-t border-gray-100 dark:border-slate-700"
                     aria-hidden="true"

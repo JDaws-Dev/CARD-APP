@@ -110,7 +110,7 @@ export const PREMIUM_FEATURES = {
 /**
  * Features available on free tier (accessible to everyone).
  */
-export const FREE_TIER_FEATURES = new Set([
+export const FREE_TIER_FEATURES: Set<string> = new Set([
   PREMIUM_FEATURES.PRIORITY_ITEMS.id,
   PREMIUM_FEATURES.SHAREABLE_WISHLIST.id,
 ]);

@@ -12,7 +12,7 @@
 | Navigation & Dashboard               | 7        | 0         |
 | Multi-TCG Game Selector              | 6        | 0         |
 | Polish & UX                          | 7        | 0         |
-| **UI Cleanup & Settings (PRIORITY)** | 2        | **4**     |
+| **UI Cleanup & Settings (PRIORITY)** | 3        | **3**     |
 | **Forgiving Streak System**          | 3        | **2**     |
 | **Virtual Experience Features**      | 0        | **6**     |
 | **Collection Timeline & Story**      | 0        | **5**     |
@@ -21,7 +21,7 @@
 | **Educational Mini-Games**           | 0        | **5**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
 | **Engagement & Retention**           | 0        | **4**     |
-| **TOTAL**                            | **75**   | **35**    |
+| **TOTAL**                            | **76**   | **34**    |
 
 ### Priority Order for Remaining Tasks
 
@@ -148,7 +148,7 @@
 
 - [x] Create dedicated Settings page (`/settings`) - Central hub for all user preferences and accessibility options
 - [x] Move accessibility toggles from header to Settings page - Relocate Dark Mode, Low-Stimulation, Dyslexic Font, High Contrast, Reduced Motion, Focus Mode toggles
-- [ ] Simplify header - Keep only essential items: logo, main nav, single settings gear icon, profile menu
+- [x] Simplify header - Keep only essential items: logo, main nav, single settings gear icon, profile menu
 - [ ] Add Settings link to profile dropdown menu - Quick access from anywhere in the app
 - [ ] Create Settings page sections - Organize into: Display (dark mode, kid mode), Accessibility (low-stim, dyslexic font, high contrast, reduced motion, focus mode), Games (TCG selection), Notifications
 - [ ] Add "quick settings" popover from gear icon - Allow fast access to most-used settings (dark mode, kid mode) without leaving current page
@@ -292,3 +292,4 @@
 - **2026-01-16**: Added grace day streak protection with 1 free missed day per week - Created comprehensive grace day protection system to make streaks more forgiving. Utility library (src/lib/graceDays.ts) provides: GraceDayState/GraceDayUsage/GraceDayAvailability types; week boundary calculation using ISO week standards (getISOWeekInfo, getWeekBoundaries, isSameWeek); checkGraceDayAvailability() for real-time availability status with reset countdown; canProtectStreakGap() to detect if a streak gap can be saved by grace day; consumeGraceDay() to use protection and track usage history; calculateStreakWithGraceDays() for streak calculation considering protected days; localStorage persistence with automatic cleanup of old history (>1 year). GraceDayProvider context (src/components/providers/GraceDayProvider.tsx) manages app-wide state with enable/disable/toggle actions, checkProtection/protectStreak/isDateProtected methods, and availability tracking. GraceDayStatus component (src/components/gamification/GraceDayStatus.tsx) displays status card with shield icons (emerald=available, amber=used), toggle control, week info with reset countdown, and info box explaining feature. GraceDayIndicator compact version for inline display. GraceDayHistory component shows usage history list. Updated StreakCalendar component to add 4th stat column showing grace day availability for current week. Updated /streak page with GraceDayStatus section below calendar, updated info card messaging, added tip about weekly Sunday reset. 75 unit tests covering date/week utilities, grace day logic, localStorage persistence, and display helpers. Uses Heroicons (ShieldCheckIcon, ShieldExclamationIcon, SparklesIcon, InformationCircleIcon). Commit: 7b14add
 - **2026-01-16**: Created dedicated Settings page (`/settings`) - Central hub for all user preferences and accessibility options. Features: Display section with Dark Mode and Kid Mode toggles; Accessibility section with Low-Stimulation Mode, Dyslexic-Friendly Font, High Contrast, Reduced Motion, and Focus Mode toggles; Games section with GameSettingsToggle for TCG selection; Notifications section (placeholder for future). Includes loading.tsx with skeleton screens matching page layout and error.tsx with retry functionality. Uses Heroicons (Cog6ToothIcon, ArrowLeftIcon, ExclamationTriangleIcon, ArrowPathIcon). Commit: 28fd212
 - **2026-01-16**: Moved accessibility toggles from header to Settings page - Removed Low-Stimulation, Dyslexic Font, High Contrast, Reduced Motion, and Focus Mode toggles from AppHeader (both desktop and mobile views). Header now shows only essential items: logo, nav links, level display, streak counter, offline indicator, kid mode toggle, dark mode toggle, and profile menu. Accessibility options remain fully accessible via the dedicated Settings page. Commit: b1ef6c9
+- **2026-01-16**: Simplified header to essential items only - Removed LevelDisplay, StreakCounter, OfflineIndicator, KidModeToggle, and DarkModeToggle from AppHeader. Added single settings gear icon (Cog6ToothIcon) linking to /settings page. Header now contains only: logo, main nav links (My Collection, Browse Sets, Badges, Wishlist, Search), settings gear icon, and profile dropdown menu. Mobile menu also simplified with Settings link instead of inline toggles. All removed features remain accessible via dedicated Settings page. Commit: 55c9475
