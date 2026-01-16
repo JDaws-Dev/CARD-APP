@@ -35,7 +35,7 @@
 ### Achievement System
 
 - [x] Implement set completion badge awarding logic (check on card add, award at 25/50/75/100%)
-- [ ] Create collector milestone badge awarding (trigger on card count thresholds)
+- [x] Create collector milestone badge awarding (trigger on card count thresholds)
 - [ ] Build type specialist badge logic (count cards by type, award at 10+)
 - [ ] Add Pokemon fan badge logic (count specific Pokemon across sets)
 - [ ] Implement streak tracking system (track daily activity, award streak badges)
@@ -173,3 +173,30 @@
   - `getAllEarnedBadgeKeysForCompletion`: Get all badge keys earned at a completion level
 - Added 40 tests in `src/lib/__tests__/achievements.test.ts` for new utilities
 - All 413 tests pass, linter clean
+
+### 2026-01-16: Create collector milestone badge awarding (trigger on card count thresholds)
+- Enhanced `checkMilestoneAchievements` mutation in `convex/achievements.ts`:
+  - Now logs `achievement_earned` activity with badge name, type, and metadata
+  - Counts unique cardIds (ignoring variants) for accurate milestone tracking
+  - Returns richer response: awarded badges, total unique cards, next milestone info
+  - Awards badges at thresholds: 1 (first_catch), 10 (starter_collector), 50 (rising_trainer), 100 (pokemon_trainer), 250 (elite_collector), 500 (pokemon_master), 1000 (legendary_collector)
+- Added `getMilestoneProgress` query for UI display:
+  - Returns all 7 milestone badges with earned status and progress %
+  - Shows current and next milestone with cards needed
+  - Calculates percent progress toward next milestone
+  - Returns total milestones earned vs available
+- Added milestone badge utilities to `src/lib/achievements.ts`:
+  - `MILESTONE_BADGE_DEFINITIONS`: Badge keys, names, and thresholds constant
+  - `getMilestoneBadgesToAward`: Determine badges to award (excludes already earned)
+  - `getMilestoneProgressSummary`: Full progress summary for UI
+  - `getMilestoneBadgeDefinition`: Get single badge definition by key
+  - `getCurrentMilestoneTitle`: Get friendly name for current level (e.g., "Rising Trainer")
+  - `cardsNeededForMilestone`, `getMilestonePercentProgress`: Progress helpers
+  - `hasMilestoneBeenReached`, `getAllEarnedMilestoneKeys`, `countEarnedMilestones`
+- Added 49 tests in `src/lib/__tests__/achievements.test.ts` covering:
+  - MILESTONE_BADGE_DEFINITIONS constant validation
+  - getMilestoneBadgesToAward logic (all thresholds, exclusions)
+  - getMilestoneProgressSummary (progress tracking, boundary conditions)
+  - All individual utility functions
+  - Progressive badge collection journey integration test
+- All 462 tests pass, linter clean
