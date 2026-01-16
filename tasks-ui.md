@@ -170,7 +170,7 @@
 
 - [x] Timeline View - Chronological view of when cards were added with month markers and "collection anniversaries"
 - [x] First card celebration - Special permanent badge/display for user's very first card (nostalgia feature)
-- [ ] Collector's Journey Story Mode - Adventure narrative that unlocks chapters based on collection milestones
+- [x] Collector's Journey Story Mode - Adventure narrative that unlocks chapters based on collection milestones
 - [ ] Adventure Map visualization - Visual map showing Pokemon regions unlocked based on sets/types collected
 - [ ] Collection stats over time - Graphs showing collection growth, cards per month, value over time
 
@@ -217,6 +217,7 @@
 
 ## Progress
 
+- **2026-01-16**: Completed Collector's Journey Story Mode - Created CollectorsJourneyStory component (src/components/collection/CollectorsJourneyStory.tsx) with adventure narrative that unlocks chapters based on collection milestones. Features: 7 story chapters (1 card to 500 cards), animated chapter cards with progress bars for locked chapters, immersive story reader modal with decorative background patterns, journey header with overall progress tracking, milestone-based unlock system using existing getMilestoneProgress query, gradient themes per chapter, skeleton loading state, next chapter hints. Uses Heroicons (BookOpenIcon, LockClosedIcon, SparklesIcon, CheckCircleIcon, ChevronRightIcon, MapIcon, StarIcon, TrophyIcon, FireIcon, BoltIcon, RocketLaunchIcon, GlobeAltIcon). Commit: 89e2e3e
 - **2026-01-16**: Completed trade suggestion engine - Created TradeSuggestionEngine component (src/components/family/TradeSuggestionEngine.tsx) that suggests trades between siblings based on wishlists and duplicate cards. Features: collapsible panel in ParentDashboard, suggests cards where one sibling has duplicates (quantity > 1) that another sibling might want, visual badges for wishlist matches (rose "Wanted") vs extra cards (emerald "Extra"), card images with quantity badges, sorted by priority (wishlist first then by quantity), skeleton loading state, empty state messaging, responsive design. Added to ParentDashboard component. Uses Heroicons (LightBulbIcon, HeartIcon, CheckCircleIcon, ArrowsRightLeftIcon). Commit: 4f437c1
 - **2026-01-15**: Completed loading states and skeleton screens - Created reusable Skeleton component library (src/components/ui/Skeleton.tsx) with animated shimmer effects. Added CardSkeleton, CardGridSkeleton, StatsBarSkeleton, SetCardSkeleton, CollectionGroupSkeleton, SearchResultsSkeleton, and FilterPanelSkeleton. Updated CardGrid, SearchResults, CollectionView, collection page, and browse page to use skeleton screens instead of basic loading spinners. Also replaced browse page emoji with FunnelIcon SVG. Commit: bd35695
 - **2026-01-15**: Completed priority starring UI - Added star icon button next to heart on wishlisted cards. Star toggles priority status (max 5 items). Added priority count indicator in stats bar showing 5 stars visual. Disabled state when max reached. Also replaced progress indicator emojis with SVG icons (Crown, Trophy, Map, Compass) and loading state emoji with custom CardIcon SVG. Commit: 672daef
