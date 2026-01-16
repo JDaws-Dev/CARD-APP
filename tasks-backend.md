@@ -4,7 +4,7 @@
 
 | Section | Complete | Remaining |
 |---------|----------|-----------|
-| HIGH PRIORITY - Auth & Pricing | 6 | **4** |
+| HIGH PRIORITY - Auth & Pricing | 7 | **3** |
 | Card Variants | 3 | 0 |
 | Achievement System | 6 | 0 |
 | Wishlist & Sharing | 4 | 0 |
@@ -16,10 +16,10 @@
 | Educational Content | 3 | 0 |
 | Additional Features | 5 | 0 |
 | Launch Prep | 3 | **6** |
-| **TOTAL** | **50** | **15** |
+| **TOTAL** | **51** | **14** |
 
 ### Critical Path for Launch
-1. **Authentication (4 tasks)** - Email/password login, parent registration, child profiles, PIN protection
+1. **Authentication (2 tasks)** - Email/password login, parent registration (child profiles and PIN protection complete)
 2. **Launch Prep (6 tasks)** - Stripe integration, production deploy, monitoring, E2E tests
 3. **Data Persistence (3 tasks)** - Cloud backup, sync, conflict resolution
 4. **TCGPlayer Pricing (1 task)** - Fetch real pricing data from TCGPlayer API
@@ -54,7 +54,7 @@
 - [ ] Implement authentication system with Convex Auth (email/password login)
 - [ ] Create parent account registration flow with email verification
 - [x] Build child profile creation (up to 4 per family) with validation
-- [ ] Implement parent PIN protection logic (store hashed PIN, verify on access)
+- [x] Implement parent PIN protection logic (store hashed PIN, verify on access)
 - [x] **Profile type field** - Add `profileType: "parent" | "child"` to profiles schema for role-based UI
 - [x] **Get current user profile query** - Return profile with type for header/dashboard routing
 - [x] **Kid dashboard stats query** - Return collection count, badge count, current streak, recent activity for dashboard
@@ -1769,3 +1769,28 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Integration scenarios: Complete wishlist enrichment, URL manipulation, profile-based display
 - All 4187 tests pass (excluding 2 pre-existing failures in streakCalendar.test.ts), linter clean
 - Note: Build fails due to pre-existing TypeScript errors in AppHeader.tsx (profile type mismatch), not related to this task
+
+
+### 2026-01-16: Mark parent PIN protection task as complete (already implemented)
+
+- Verified `convex/pinProtection.ts` is fully implemented with:
+  - `hasPinSet`: Query to check if a family has a PIN set
+  - `getPinStatus`: Query for PIN protection status and lockout info
+  - `setParentPin`: Mutation to set or update parent PIN (validates format, verifies current PIN if changing)
+  - `verifyParentPin`: Mutation to verify PIN for parent access (logs attempts)
+  - `removeParentPin`: Mutation to remove PIN (requires current PIN verification)
+  - `checkParentAccess`: Query to check if profile can access parent features
+  - `validatePinInput`: Query for UI-side PIN validation
+  - Crypto utilities: PBKDF2 hashing with 100,000 iterations, SHA-256, random salt generation
+  - Security features: PIN stored as salt:hash format, lockout after 5 failed attempts, 15-minute lockout duration
+- Verified `src/lib/pinProtection.ts` has comprehensive utility functions:
+  - Validation: `isPinDigitsOnly`, `isPinLengthValid`, `validatePin`, `isValidPin`
+  - Strength analysis: `hasRepeatedDigits`, `isSequentialPattern`, `hasOnlyTwoDigits`, `isCommonWeakPin`, `countUniqueDigits`, `analyzePinStrength`
+  - Hashing: `generateSalt`, `hexToBytes`, `bytesToHex`, `hashPinWithSalt`, `createPinHash`, `parsePinHash`, `verifyPin`
+  - Display utilities: `maskPin`, `formatPinHint`, `getRemainingDigitsMessage`, `getPinStrengthColor`, `getPinStrengthLabel`
+  - State utilities: `hasPinSet`, `requiresPinProtection`, `getPinProtectedFeatures`
+  - Attempt tracking: `isAccountLocked`, `getRemainingLockoutTime`, `formatLockoutTime`, `getRemainingAttemptsMessage`
+  - Constants: `MIN_PIN_LENGTH` (4), `MAX_PIN_LENGTH` (6), `MAX_PIN_ATTEMPTS` (5), `PIN_LOCKOUT_DURATION` (15 min), `COMMON_WEAK_PINS` (21 patterns)
+- All 90 PIN protection tests pass in `src/lib/__tests__/pinProtection.test.ts`
+- TypeScript compiles with no errors
+- Task was already implemented but not marked complete - now marked as [x]
