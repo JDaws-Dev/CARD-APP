@@ -1,8 +1,11 @@
-import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
+/**
+ * Badge definitions for the KidCollect achievement system
+ * This module provides type definitions and helper functions for working with badges
+ * on the client side. The source of truth for badge definitions is in convex/achievements.ts
+ */
 
 // ============================================================================
-// ACHIEVEMENT TYPE DEFINITIONS
+// TYPE DEFINITIONS
 // ============================================================================
 
 export type AchievementCategory =
@@ -21,11 +24,27 @@ export interface BadgeDefinition {
   color: string;
 }
 
+export interface EarnedBadge {
+  key: string;
+  definition: BadgeDefinition;
+  earnedAt: Date;
+  data?: Record<string, unknown>;
+}
+
+export interface BadgeProgress {
+  key: string;
+  definition: BadgeDefinition;
+  current: number;
+  percentage: number;
+  isEarned: boolean;
+  earnedAt?: Date;
+}
+
 // ============================================================================
-// ACHIEVEMENT DEFINITIONS
+// BADGE DEFINITIONS (mirrored from convex/achievements.ts for client-side use)
 // ============================================================================
 
-export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
+export const BADGE_DEFINITIONS: Record<string, BadgeDefinition> = {
   // Set Completion Badges
   set_explorer: {
     type: 'set_completion',
@@ -33,7 +52,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 25% of a set',
     threshold: 25,
     icon: '🗺️',
-    color: '#78C850', // Green
+    color: '#78C850',
   },
   set_adventurer: {
     type: 'set_completion',
@@ -41,7 +60,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 50% of a set',
     threshold: 50,
     icon: '🎒',
-    color: '#6890F0', // Blue
+    color: '#6890F0',
   },
   set_master: {
     type: 'set_completion',
@@ -49,7 +68,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 75% of a set',
     threshold: 75,
     icon: '🏅',
-    color: '#A040A0', // Purple
+    color: '#A040A0',
   },
   set_champion: {
     type: 'set_completion',
@@ -57,7 +76,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Complete a set 100%',
     threshold: 100,
     icon: '🏆',
-    color: '#F8D030', // Gold
+    color: '#F8D030',
   },
 
   // Collector Milestone Badges
@@ -67,7 +86,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Add your first card',
     threshold: 1,
     icon: '🎯',
-    color: '#A8A878', // Normal gray
+    color: '#A8A878',
   },
   starter_collector: {
     type: 'collector_milestone',
@@ -75,7 +94,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10 cards',
     threshold: 10,
     icon: '⭐',
-    color: '#78C850', // Green
+    color: '#78C850',
   },
   rising_trainer: {
     type: 'collector_milestone',
@@ -83,7 +102,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 50 cards',
     threshold: 50,
     icon: '🌟',
-    color: '#6890F0', // Blue
+    color: '#6890F0',
   },
   pokemon_trainer: {
     type: 'collector_milestone',
@@ -91,7 +110,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 100 cards',
     threshold: 100,
     icon: '💫',
-    color: '#A040A0', // Purple
+    color: '#A040A0',
   },
   elite_collector: {
     type: 'collector_milestone',
@@ -99,7 +118,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 250 cards',
     threshold: 250,
     icon: '🎖️',
-    color: '#F08030', // Orange
+    color: '#F08030',
   },
   pokemon_master: {
     type: 'collector_milestone',
@@ -107,7 +126,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 500 cards',
     threshold: 500,
     icon: '👑',
-    color: '#F8D030', // Gold
+    color: '#F8D030',
   },
   legendary_collector: {
     type: 'collector_milestone',
@@ -115,7 +134,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 1000 cards',
     threshold: 1000,
     icon: '🌈',
-    color: '#7038F8', // Dragon purple
+    color: '#7038F8',
   },
 
   // Type Specialist Badges
@@ -125,7 +144,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Fire-type cards',
     threshold: 10,
     icon: '🔥',
-    color: '#F08030', // Fire orange
+    color: '#F08030',
   },
   water_trainer: {
     type: 'type_specialist',
@@ -133,7 +152,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Water-type cards',
     threshold: 10,
     icon: '💧',
-    color: '#6890F0', // Water blue
+    color: '#6890F0',
   },
   grass_trainer: {
     type: 'type_specialist',
@@ -141,7 +160,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Grass-type cards',
     threshold: 10,
     icon: '🌿',
-    color: '#78C850', // Grass green
+    color: '#78C850',
   },
   electric_trainer: {
     type: 'type_specialist',
@@ -149,7 +168,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Electric-type cards',
     threshold: 10,
     icon: '⚡',
-    color: '#F8D030', // Electric yellow
+    color: '#F8D030',
   },
   psychic_trainer: {
     type: 'type_specialist',
@@ -157,7 +176,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Psychic-type cards',
     threshold: 10,
     icon: '🔮',
-    color: '#F85888', // Psychic pink
+    color: '#F85888',
   },
   fighting_trainer: {
     type: 'type_specialist',
@@ -165,7 +184,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Fighting-type cards',
     threshold: 10,
     icon: '🥊',
-    color: '#C03028', // Fighting red
+    color: '#C03028',
   },
   darkness_trainer: {
     type: 'type_specialist',
@@ -173,7 +192,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Darkness-type cards',
     threshold: 10,
     icon: '🌑',
-    color: '#705848', // Dark brown
+    color: '#705848',
   },
   metal_trainer: {
     type: 'type_specialist',
@@ -181,7 +200,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Metal-type cards',
     threshold: 10,
     icon: '⚙️',
-    color: '#B8B8D0', // Steel gray
+    color: '#B8B8D0',
   },
   dragon_trainer: {
     type: 'type_specialist',
@@ -189,7 +208,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Dragon-type cards',
     threshold: 10,
     icon: '🐉',
-    color: '#7038F8', // Dragon purple
+    color: '#7038F8',
   },
   fairy_trainer: {
     type: 'type_specialist',
@@ -197,7 +216,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Fairy-type cards',
     threshold: 10,
     icon: '🧚',
-    color: '#EE99AC', // Fairy pink
+    color: '#EE99AC',
   },
   colorless_trainer: {
     type: 'type_specialist',
@@ -205,7 +224,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Colorless-type cards',
     threshold: 10,
     icon: '⚪',
-    color: '#A8A878', // Normal gray
+    color: '#A8A878',
   },
 
   // Pokemon Fan Badges
@@ -215,7 +234,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 5+ Pikachu cards',
     threshold: 5,
     icon: '⚡',
-    color: '#F8D030', // Electric yellow
+    color: '#F8D030',
   },
   eevee_fan: {
     type: 'pokemon_fan',
@@ -223,7 +242,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 5+ Eevee/Eeveelution cards',
     threshold: 5,
     icon: '🦊',
-    color: '#A8A878', // Normal gray
+    color: '#A8A878',
   },
   charizard_fan: {
     type: 'pokemon_fan',
@@ -231,7 +250,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 3+ Charizard cards',
     threshold: 3,
     icon: '🔥',
-    color: '#F08030', // Fire orange
+    color: '#F08030',
   },
   mewtwo_fan: {
     type: 'pokemon_fan',
@@ -239,7 +258,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 3+ Mewtwo cards',
     threshold: 3,
     icon: '🔮',
-    color: '#F85888', // Psychic pink
+    color: '#F85888',
   },
   legendary_fan: {
     type: 'pokemon_fan',
@@ -247,7 +266,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Collect 10+ Legendary Pokemon cards',
     threshold: 10,
     icon: '✨',
-    color: '#7038F8', // Dragon purple
+    color: '#7038F8',
   },
 
   // Streak Badges
@@ -257,7 +276,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Add cards 3 days in a row',
     threshold: 3,
     icon: '🔥',
-    color: '#F08030', // Orange
+    color: '#F08030',
   },
   streak_7: {
     type: 'streak',
@@ -265,7 +284,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Add cards 7 days in a row',
     threshold: 7,
     icon: '📅',
-    color: '#6890F0', // Blue
+    color: '#6890F0',
   },
   streak_14: {
     type: 'streak',
@@ -273,7 +292,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Add cards 14 days in a row',
     threshold: 14,
     icon: '💪',
-    color: '#A040A0', // Purple
+    color: '#A040A0',
   },
   streak_30: {
     type: 'streak',
@@ -281,7 +300,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
     description: 'Add cards 30 days in a row',
     threshold: 30,
     icon: '🏆',
-    color: '#F8D030', // Gold
+    color: '#F8D030',
   },
 };
 
@@ -290,50 +309,76 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
 // ============================================================================
 
 /**
- * Get all badge definitions for a specific category
+ * Get a badge definition by its key
+ */
+export function getBadge(key: string): BadgeDefinition | undefined {
+  return BADGE_DEFINITIONS[key];
+}
+
+/**
+ * Get all badges of a specific category
  */
 export function getBadgesByCategory(category: AchievementCategory): BadgeDefinition[] {
-  return Object.values(ACHIEVEMENT_DEFINITIONS).filter((badge) => badge.type === category);
+  return Object.values(BADGE_DEFINITIONS).filter((badge) => badge.type === category);
 }
 
 /**
- * Get a specific badge definition by key
+ * Get all badge keys
  */
-export function getBadgeDefinition(key: string): BadgeDefinition | undefined {
-  return ACHIEVEMENT_DEFINITIONS[key];
+export function getAllBadgeKeys(): string[] {
+  return Object.keys(BADGE_DEFINITIONS);
 }
 
 /**
- * Get all badge keys for a specific category
- */
-export function getBadgeKeysByCategory(category: AchievementCategory): string[] {
-  return Object.entries(ACHIEVEMENT_DEFINITIONS)
-    .filter(([, badge]) => badge.type === category)
-    .map(([key]) => key);
-}
-
-/**
- * Get the milestone badges sorted by threshold
+ * Get milestone badges sorted by threshold (ascending)
  */
 export function getMilestoneBadges(): Array<{ key: string } & BadgeDefinition> {
-  return Object.entries(ACHIEVEMENT_DEFINITIONS)
+  return Object.entries(BADGE_DEFINITIONS)
     .filter(([, badge]) => badge.type === 'collector_milestone')
     .map(([key, badge]) => ({ key, ...badge }))
     .sort((a, b) => a.threshold - b.threshold);
 }
 
 /**
- * Get the set completion badges sorted by threshold
+ * Get set completion badges sorted by threshold (ascending)
  */
 export function getSetCompletionBadges(): Array<{ key: string } & BadgeDefinition> {
-  return Object.entries(ACHIEVEMENT_DEFINITIONS)
+  return Object.entries(BADGE_DEFINITIONS)
     .filter(([, badge]) => badge.type === 'set_completion')
     .map(([key, badge]) => ({ key, ...badge }))
     .sort((a, b) => a.threshold - b.threshold);
 }
 
 /**
- * Get the type specialist badge key for a given Pokemon card type
+ * Get streak badges sorted by threshold (ascending)
+ */
+export function getStreakBadges(): Array<{ key: string } & BadgeDefinition> {
+  return Object.entries(BADGE_DEFINITIONS)
+    .filter(([, badge]) => badge.type === 'streak')
+    .map(([key, badge]) => ({ key, ...badge }))
+    .sort((a, b) => a.threshold - b.threshold);
+}
+
+/**
+ * Get all type specialist badges
+ */
+export function getTypeSpecialistBadges(): Array<{ key: string } & BadgeDefinition> {
+  return Object.entries(BADGE_DEFINITIONS)
+    .filter(([, badge]) => badge.type === 'type_specialist')
+    .map(([key, badge]) => ({ key, ...badge }));
+}
+
+/**
+ * Get all Pokemon fan badges
+ */
+export function getPokemonFanBadges(): Array<{ key: string } & BadgeDefinition> {
+  return Object.entries(BADGE_DEFINITIONS)
+    .filter(([, badge]) => badge.type === 'pokemon_fan')
+    .map(([key, badge]) => ({ key, ...badge }));
+}
+
+/**
+ * Map Pokemon card type to type specialist badge key
  */
 export function getTypeSpecialistKey(pokemonType: string): string | undefined {
   const typeMap: Record<string, string> = {
@@ -353,148 +398,70 @@ export function getTypeSpecialistKey(pokemonType: string): string | undefined {
 }
 
 /**
- * Get all Pokemon types that have associated badges
+ * Calculate progress towards a milestone badge based on total cards
  */
-export function getTypesWithBadges(): string[] {
-  return [
-    'Fire',
-    'Water',
-    'Grass',
-    'Lightning',
-    'Psychic',
-    'Fighting',
-    'Darkness',
-    'Metal',
-    'Dragon',
-    'Fairy',
-    'Colorless',
-  ];
+export function calculateMilestoneProgress(totalCards: number): BadgeProgress[] {
+  const milestones = getMilestoneBadges();
+  return milestones.map((milestone) => ({
+    key: milestone.key,
+    definition: milestone,
+    current: totalCards,
+    percentage: Math.min(100, Math.round((totalCards / milestone.threshold) * 100)),
+    isEarned: totalCards >= milestone.threshold,
+  }));
 }
 
-// ============================================================================
-// QUERIES
-// ============================================================================
+/**
+ * Calculate progress towards a set completion badge based on percentage
+ */
+export function calculateSetCompletionProgress(
+  setPercentage: number,
+  setId: string
+): BadgeProgress[] {
+  const setCompletionBadges = getSetCompletionBadges();
+  return setCompletionBadges.map((badge) => ({
+    key: `${badge.key}_${setId}`,
+    definition: badge,
+    current: setPercentage,
+    percentage: Math.min(100, Math.round((setPercentage / badge.threshold) * 100)),
+    isEarned: setPercentage >= badge.threshold,
+  }));
+}
 
-export const getAchievements = query({
-  args: { profileId: v.id('profiles') },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query('achievements')
-      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
-      .collect();
-  },
-});
+/**
+ * Get the next unearned milestone badge
+ */
+export function getNextMilestoneBadge(
+  totalCards: number
+): ({ key: string } & BadgeDefinition) | null {
+  const milestones = getMilestoneBadges();
+  return milestones.find((milestone) => totalCards < milestone.threshold) || null;
+}
 
-export const hasAchievement = query({
-  args: { profileId: v.id('profiles'), achievementKey: v.string() },
-  handler: async (ctx, args) => {
-    const achievement = await ctx.db
-      .query('achievements')
-      .withIndex('by_profile_and_key', (q) =>
-        q.eq('profileId', args.profileId).eq('achievementKey', args.achievementKey)
-      )
-      .first();
+/**
+ * Get the count of total badges available
+ */
+export function getTotalBadgeCount(): number {
+  return Object.keys(BADGE_DEFINITIONS).length;
+}
 
-    return !!achievement;
-  },
-});
+/**
+ * Get category display name
+ */
+export function getCategoryDisplayName(category: AchievementCategory): string {
+  const names: Record<AchievementCategory, string> = {
+    set_completion: 'Set Completion',
+    collector_milestone: 'Collector Milestones',
+    type_specialist: 'Type Specialists',
+    pokemon_fan: 'Pokemon Fans',
+    streak: 'Streaks',
+  };
+  return names[category];
+}
 
-// ============================================================================
-// MUTATIONS
-// ============================================================================
-
-export const awardAchievement = mutation({
-  args: {
-    profileId: v.id('profiles'),
-    achievementType: v.union(
-      v.literal('set_completion'),
-      v.literal('collector_milestone'),
-      v.literal('type_specialist'),
-      v.literal('pokemon_fan'),
-      v.literal('streak')
-    ),
-    achievementKey: v.string(),
-    achievementData: v.optional(v.any()),
-  },
-  handler: async (ctx, args) => {
-    // Check if already earned
-    const existing = await ctx.db
-      .query('achievements')
-      .withIndex('by_profile_and_key', (q) =>
-        q.eq('profileId', args.profileId).eq('achievementKey', args.achievementKey)
-      )
-      .first();
-
-    if (existing) {
-      return existing._id;
-    }
-
-    // Award the achievement
-    const achievementId = await ctx.db.insert('achievements', {
-      profileId: args.profileId,
-      achievementType: args.achievementType,
-      achievementKey: args.achievementKey,
-      achievementData: args.achievementData,
-      earnedAt: Date.now(),
-    });
-
-    // Log activity
-    await ctx.db.insert('activityLogs', {
-      profileId: args.profileId,
-      action: 'achievement_earned',
-      metadata: { achievementKey: args.achievementKey },
-    });
-
-    return achievementId;
-  },
-});
-
-// Check and award milestone achievements based on total cards
-export const checkMilestoneAchievements = mutation({
-  args: { profileId: v.id('profiles') },
-  handler: async (ctx, args) => {
-    // Get total unique cards
-    const cards = await ctx.db
-      .query('collectionCards')
-      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
-      .collect();
-
-    const totalCards = cards.length;
-    const awarded: string[] = [];
-
-    // Check each milestone
-    const milestones = [
-      { key: 'first_catch', threshold: 1 },
-      { key: 'starter_collector', threshold: 10 },
-      { key: 'rising_trainer', threshold: 50 },
-      { key: 'pokemon_trainer', threshold: 100 },
-      { key: 'elite_collector', threshold: 250 },
-      { key: 'pokemon_master', threshold: 500 },
-      { key: 'legendary_collector', threshold: 1000 },
-    ];
-
-    for (const milestone of milestones) {
-      if (totalCards >= milestone.threshold) {
-        const existing = await ctx.db
-          .query('achievements')
-          .withIndex('by_profile_and_key', (q) =>
-            q.eq('profileId', args.profileId).eq('achievementKey', milestone.key)
-          )
-          .first();
-
-        if (!existing) {
-          await ctx.db.insert('achievements', {
-            profileId: args.profileId,
-            achievementType: 'collector_milestone',
-            achievementKey: milestone.key,
-            achievementData: { totalCards },
-            earnedAt: Date.now(),
-          });
-          awarded.push(milestone.key);
-        }
-      }
-    }
-
-    return awarded;
-  },
-});
+/**
+ * Get all categories
+ */
+export function getAllCategories(): AchievementCategory[] {
+  return ['collector_milestone', 'set_completion', 'type_specialist', 'pokemon_fan', 'streak'];
+}
