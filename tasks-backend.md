@@ -105,7 +105,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [x] "New in collection" tracking - Query for cards added in last 7 days
 - [x] Random card query - Return random card from user's collection
 - [ ] Rarity filter support - Add rarity indexing for efficient filtering
-- [ ] Fair trading calculator - Price comparison logic for "Is this trade fair?" tool
+- [x] Fair trading calculator - Price comparison logic for "Is this trade fair?" tool
 
 ### Launch Prep
 
@@ -1430,3 +1430,35 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Change detection and enrichment
   - Integration scenarios: New User Onboarding Flow, Adding a New Game, Disabling a Game, Viewing Game Stats
 - All 2890 tests pass, linter clean
+
+### 2026-01-16: Fair trading calculator - Price comparison logic for "Is this trade fair?" tool
+
+- Created `src/lib/tradingCalculator.ts` with comprehensive pure utility functions:
+  - Types: `TradeCard`, `TradeSide`, `TradeFairnessResult`, `FairnessRating`, `TradeRecommendation`, `TradeSummary`
+  - Constants: `FAIRNESS_THRESHOLDS` (10% fair, 25% slight, 50% unfair), `MIN_TRADE_VALUE_FOR_EVALUATION` ($0.50)
+  - Trade side calculation: `calculateTradeSide`, `buildTradeCards`
+  - Fairness calculation: `getFairnessRating`, `isTradeFair`, `getTradeRecommendation`, `calculatePercentDifference`
+  - Main evaluation: `evaluateTrade`, `evaluateTradeFromInputs`
+  - Kid-friendly messages: `getTradeMessage`, `getDetailedTradeMessage` (e.g., "This trade looks fair!", "Stop! You're giving away a lot more")
+  - Display helpers: `getFairnessEmoji`, `getFairnessColor`, `getFairnessDisplayLabel`, `getRecommendationDisplayLabel`
+  - Trade analysis: `getMostValuableTradeCard`, `calculateValueNeededForFairTrade`, `suggestBalancingCards`
+  - Reliability checking: `hasReliablePricing`, `getPricingWarning`
+  - Summary: `createTradeSummary`, `formatValueDifference`
+  - Helpers: `roundToCents`, `formatCurrency`, `isValidTrade`, `getTotalCardCount`, `hasCompletePricing`
+- Created `convex/tradingCalculator.ts` with Convex queries:
+  - `evaluateTrade`: Full trade evaluation with card data enrichment from `cachedCards`
+  - `getCardPrices`: Fetch pricing data for trade UI building
+  - `isTradeBalanced`: Lightweight fairness check returning just boolean and rating
+  - Returns complete summary with formatted values for UI display
+- Added 84 tests in `src/lib/__tests__/tradingCalculator.test.ts` covering:
+  - Constants validation (FAIRNESS_THRESHOLDS, MIN_TRADE_VALUE_FOR_EVALUATION, DEFAULT_VARIANT)
+  - Helper functions (roundToCents, formatCurrency, isValidTrade)
+  - Trade side calculation (calculateTradeSide, buildTradeCards, getTotalCardCount, hasCompletePricing)
+  - Fairness calculation (calculatePercentDifference, getFairnessRating, isTradeFair, getTradeRecommendation)
+  - Main evaluation (evaluateTrade, evaluateTradeFromInputs)
+  - Message generation (getTradeMessage, getDetailedTradeMessage, all display helpers)
+  - Trade analysis (getMostValuableTradeCard, calculateValueNeededForFairTrade, suggestBalancingCards)
+  - Reliability checking (hasReliablePricing, getPricingWarning)
+  - Summary creation (createTradeSummary, formatValueDifference)
+  - Integration scenarios: Kids trading Pikachu cards, Fair trade between siblings, Trade with unpriced cards, Large quantity trade, Parent checking trade fairness
+- All 3038 tests pass, linter clean
