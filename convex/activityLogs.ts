@@ -35,6 +35,77 @@ export const getRecentActivity = query({
 });
 
 /**
+ * Get recent activity logs with card names enriched from cachedCards.
+ * This ensures that even legacy logs without cardName in metadata
+ * will display proper card names instead of IDs.
+ */
+export const getRecentActivityWithNames = query({
+  args: {
+    profileId: v.id('profiles'),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 50;
+
+    const logs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .order('desc')
+      .take(limit);
+
+    // Collect all unique cardIds that need name lookup
+    const cardIdsToLookup = new Set<string>();
+    for (const log of logs) {
+      if (log.action === 'card_added' || log.action === 'card_removed') {
+        const metadata = log.metadata as { cardId?: string; cardName?: string } | undefined;
+        // Only look up if we have a cardId but no cardName in metadata
+        if (metadata?.cardId && !metadata?.cardName) {
+          cardIdsToLookup.add(metadata.cardId);
+        }
+      }
+    }
+
+    // Fetch card names from cachedCards
+    const cardNameMap = new Map<string, string>();
+    if (cardIdsToLookup.size > 0) {
+      const cardLookups = await Promise.all(
+        Array.from(cardIdsToLookup).map((cardId) =>
+          ctx.db
+            .query('cachedCards')
+            .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+            .first()
+        )
+      );
+
+      for (const card of cardLookups) {
+        if (card) {
+          cardNameMap.set(card.cardId, card.name);
+        }
+      }
+    }
+
+    // Enrich logs with card names
+    return logs.map((log) => {
+      if (log.action === 'card_added' || log.action === 'card_removed') {
+        const metadata = log.metadata as { cardId?: string; cardName?: string; [key: string]: unknown } | undefined;
+        if (metadata?.cardId) {
+          // If cardName is missing, look it up from our map
+          const cardName = metadata.cardName ?? cardNameMap.get(metadata.cardId) ?? metadata.cardId;
+          return {
+            ...log,
+            metadata: {
+              ...metadata,
+              cardName,
+            },
+          };
+        }
+      }
+      return log;
+    });
+  },
+});
+
+/**
  * Get activity logs for a profile within a date range
  * Useful for parent dashboard and streak calculation
  */
@@ -89,6 +160,90 @@ export const getFamilyActivity = query({
       const profile = profiles.find((p) => p._id === log.profileId);
       return {
         ...log,
+        profileName: profile?.displayName ?? 'Unknown',
+      };
+    });
+
+    return enrichedLogs;
+  },
+});
+
+/**
+ * Get activity logs for all profiles in a family with card names enriched.
+ * This ensures legacy logs display card names instead of IDs.
+ */
+export const getFamilyActivityWithNames = query({
+  args: {
+    familyId: v.id('families'),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 100;
+
+    // Get all profiles in the family
+    const profiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', (q) => q.eq('familyId', args.familyId))
+      .collect();
+
+    const profileIds = new Set(profiles.map((p) => p._id));
+
+    // Get all activity logs and filter by family profiles
+    const allLogs = await ctx.db.query('activityLogs').order('desc').take(limit * 4);
+
+    const familyLogs = allLogs
+      .filter((log) => profileIds.has(log.profileId))
+      .slice(0, limit);
+
+    // Collect all unique cardIds that need name lookup
+    const cardIdsToLookup = new Set<string>();
+    for (const log of familyLogs) {
+      if (log.action === 'card_added' || log.action === 'card_removed') {
+        const metadata = log.metadata as { cardId?: string; cardName?: string } | undefined;
+        if (metadata?.cardId && !metadata?.cardName) {
+          cardIdsToLookup.add(metadata.cardId);
+        }
+      }
+    }
+
+    // Fetch card names from cachedCards
+    const cardNameMap = new Map<string, string>();
+    if (cardIdsToLookup.size > 0) {
+      const cardLookups = await Promise.all(
+        Array.from(cardIdsToLookup).map((cardId) =>
+          ctx.db
+            .query('cachedCards')
+            .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+            .first()
+        )
+      );
+
+      for (const card of cardLookups) {
+        if (card) {
+          cardNameMap.set(card.cardId, card.name);
+        }
+      }
+    }
+
+    // Enrich with profile names and card names
+    const enrichedLogs = familyLogs.map((log) => {
+      const profile = profiles.find((p) => p._id === log.profileId);
+      let enrichedMetadata = log.metadata;
+
+      if (log.action === 'card_added' || log.action === 'card_removed') {
+        const metadata = log.metadata as { cardId?: string; cardName?: string; [key: string]: unknown } | undefined;
+        if (metadata?.cardId) {
+          const cardName = metadata.cardName ?? cardNameMap.get(metadata.cardId) ?? metadata.cardId;
+          enrichedMetadata = {
+            ...metadata,
+            cardName,
+          };
+        }
+      }
+
+      return {
+        ...log,
+        metadata: enrichedMetadata,
         profileName: profile?.displayName ?? 'Unknown',
       };
     });
@@ -195,6 +350,7 @@ export const logCardAdded = mutation({
   args: {
     profileId: v.id('profiles'),
     cardId: v.string(),
+    cardName: v.optional(v.string()),
     variant: v.optional(v.string()),
     quantity: v.optional(v.number()),
   },
@@ -204,6 +360,7 @@ export const logCardAdded = mutation({
       action: 'card_added',
       metadata: {
         cardId: args.cardId,
+        cardName: args.cardName ?? args.cardId,
         variant: args.variant ?? 'normal',
         quantity: args.quantity ?? 1,
       },
@@ -220,11 +377,15 @@ export const logCardRemoved = mutation({
   args: {
     profileId: v.id('profiles'),
     cardId: v.string(),
+    cardName: v.optional(v.string()),
     variant: v.optional(v.string()),
     variantsRemoved: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const metadata: Record<string, unknown> = { cardId: args.cardId };
+    const metadata: Record<string, unknown> = {
+      cardId: args.cardId,
+      cardName: args.cardName ?? args.cardId,
+    };
 
     if (args.variant) {
       metadata.variant = args.variant;

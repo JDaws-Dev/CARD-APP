@@ -258,6 +258,137 @@ export function countActionsByType(
 }
 
 // ============================================================================
+// CARD NAME EXTRACTION
+// ============================================================================
+
+/**
+ * Metadata structure for card-related activity logs
+ */
+export interface CardActivityMetadata {
+  cardId?: string;
+  cardName?: string;
+  variant?: string;
+  quantity?: number;
+  variantsRemoved?: number;
+}
+
+/**
+ * Extract card name from activity log metadata.
+ * Returns cardName if present, otherwise falls back to cardId.
+ * Returns null if no card information is available.
+ */
+export function getCardNameFromMetadata(metadata: Record<string, unknown> | undefined): string | null {
+  if (!metadata) return null;
+
+  const cardName = metadata.cardName as string | undefined;
+  const cardId = metadata.cardId as string | undefined;
+
+  if (cardName) return cardName;
+  if (cardId) return cardId;
+  return null;
+}
+
+/**
+ * Extract card ID from activity log metadata.
+ * Returns null if no cardId is present.
+ */
+export function getCardIdFromMetadata(metadata: Record<string, unknown> | undefined): string | null {
+  if (!metadata) return null;
+  return (metadata.cardId as string | undefined) ?? null;
+}
+
+/**
+ * Check if an activity log has card information in metadata
+ */
+export function hasCardMetadata(metadata: Record<string, unknown> | undefined): boolean {
+  if (!metadata) return false;
+  return typeof metadata.cardId === 'string';
+}
+
+/**
+ * Build a display-friendly card label from metadata.
+ * Includes variant and quantity if available.
+ */
+export function buildCardDisplayLabel(metadata: Record<string, unknown> | undefined): string {
+  if (!metadata) return 'Unknown card';
+
+  const cardName = getCardNameFromMetadata(metadata);
+  if (!cardName) return 'Unknown card';
+
+  const variant = metadata.variant as string | undefined;
+  const quantity = metadata.quantity as number | undefined;
+
+  let label = cardName;
+
+  // Add variant if not normal
+  if (variant && variant !== 'normal') {
+    label += ` (${formatVariantForDisplay(variant)})`;
+  }
+
+  // Add quantity if more than 1
+  if (quantity && quantity > 1) {
+    label += ` x${quantity}`;
+  }
+
+  return label;
+}
+
+/**
+ * Format variant name for display (e.g., "reverseHolofoil" -> "Reverse Holofoil")
+ */
+export function formatVariantForDisplay(variant: string): string {
+  switch (variant) {
+    case 'normal':
+      return 'Normal';
+    case 'holofoil':
+      return 'Holofoil';
+    case 'reverseHolofoil':
+      return 'Reverse Holofoil';
+    case '1stEditionHolofoil':
+      return '1st Edition Holofoil';
+    case '1stEditionNormal':
+      return '1st Edition Normal';
+    default:
+      // Convert camelCase to Title Case
+      return variant.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();
+  }
+}
+
+/**
+ * Format a complete activity log entry for display.
+ * Returns a human-readable string describing the activity.
+ */
+export function formatActivityLogForDisplay(log: ActivityLog): string {
+  const action = formatActionForDisplay(log.action);
+  const metadata = log.metadata as Record<string, unknown> | undefined;
+
+  switch (log.action) {
+    case 'card_added': {
+      const cardLabel = buildCardDisplayLabel(metadata);
+      return `${action}: ${cardLabel}`;
+    }
+    case 'card_removed': {
+      const cardName = getCardNameFromMetadata(metadata);
+      const variantsRemoved = metadata?.variantsRemoved as number | undefined;
+      if (variantsRemoved && variantsRemoved > 1) {
+        return `${action}: ${cardName ?? 'Unknown'} (${variantsRemoved} variants)`;
+      }
+      const variant = metadata?.variant as string | undefined;
+      if (variant && variant !== 'normal') {
+        return `${action}: ${cardName ?? 'Unknown'} (${formatVariantForDisplay(variant)})`;
+      }
+      return `${action}: ${cardName ?? 'Unknown'}`;
+    }
+    case 'achievement_earned': {
+      const achievementKey = metadata?.achievementKey as string | undefined;
+      return `${action}: ${achievementKey ?? 'Unknown achievement'}`;
+    }
+    default:
+      return action;
+  }
+}
+
+// ============================================================================
 // FORMATTING
 // ============================================================================
 

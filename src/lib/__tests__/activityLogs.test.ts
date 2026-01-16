@@ -14,6 +14,12 @@ import {
   countActionsByType,
   formatActionForDisplay,
   formatRelativeTime,
+  getCardNameFromMetadata,
+  getCardIdFromMetadata,
+  hasCardMetadata,
+  buildCardDisplayLabel,
+  formatVariantForDisplay,
+  formatActivityLogForDisplay,
   type ActivityLog,
 } from '../activityLogs';
 
@@ -483,5 +489,202 @@ describe('formatRelativeTime', () => {
     const now = Date.now();
     expect(formatRelativeTime(now - 30 * 24 * 60 * 60 * 1000)).toBe('1 month ago');
     expect(formatRelativeTime(now - 60 * 24 * 60 * 60 * 1000)).toBe('2 months ago');
+  });
+});
+
+// ============================================================================
+// CARD NAME EXTRACTION TESTS
+// ============================================================================
+
+describe('getCardNameFromMetadata', () => {
+  it('should return null for undefined metadata', () => {
+    expect(getCardNameFromMetadata(undefined)).toBeNull();
+  });
+
+  it('should return null for empty metadata', () => {
+    expect(getCardNameFromMetadata({})).toBeNull();
+  });
+
+  it('should return cardName when present', () => {
+    expect(getCardNameFromMetadata({ cardName: 'Pikachu', cardId: 'sv1-25' })).toBe('Pikachu');
+  });
+
+  it('should fall back to cardId when cardName is missing', () => {
+    expect(getCardNameFromMetadata({ cardId: 'sv1-25' })).toBe('sv1-25');
+  });
+
+  it('should prefer cardName over cardId', () => {
+    expect(getCardNameFromMetadata({ cardName: 'Charizard', cardId: 'sv1-100' })).toBe('Charizard');
+  });
+
+  it('should return null when neither cardName nor cardId is present', () => {
+    expect(getCardNameFromMetadata({ variant: 'holofoil' })).toBeNull();
+  });
+});
+
+describe('getCardIdFromMetadata', () => {
+  it('should return null for undefined metadata', () => {
+    expect(getCardIdFromMetadata(undefined)).toBeNull();
+  });
+
+  it('should return null for empty metadata', () => {
+    expect(getCardIdFromMetadata({})).toBeNull();
+  });
+
+  it('should return cardId when present', () => {
+    expect(getCardIdFromMetadata({ cardId: 'sv1-25', cardName: 'Pikachu' })).toBe('sv1-25');
+  });
+
+  it('should return null when cardId is missing', () => {
+    expect(getCardIdFromMetadata({ cardName: 'Pikachu' })).toBeNull();
+  });
+});
+
+describe('hasCardMetadata', () => {
+  it('should return false for undefined metadata', () => {
+    expect(hasCardMetadata(undefined)).toBe(false);
+  });
+
+  it('should return false for empty metadata', () => {
+    expect(hasCardMetadata({})).toBe(false);
+  });
+
+  it('should return true when cardId is present', () => {
+    expect(hasCardMetadata({ cardId: 'sv1-25' })).toBe(true);
+  });
+
+  it('should return false when cardId is not a string', () => {
+    expect(hasCardMetadata({ cardId: 123 })).toBe(false);
+  });
+
+  it('should return false when only cardName is present', () => {
+    expect(hasCardMetadata({ cardName: 'Pikachu' })).toBe(false);
+  });
+});
+
+describe('formatVariantForDisplay', () => {
+  it('should format normal variant', () => {
+    expect(formatVariantForDisplay('normal')).toBe('Normal');
+  });
+
+  it('should format holofoil variant', () => {
+    expect(formatVariantForDisplay('holofoil')).toBe('Holofoil');
+  });
+
+  it('should format reverseHolofoil variant', () => {
+    expect(formatVariantForDisplay('reverseHolofoil')).toBe('Reverse Holofoil');
+  });
+
+  it('should format 1stEditionHolofoil variant', () => {
+    expect(formatVariantForDisplay('1stEditionHolofoil')).toBe('1st Edition Holofoil');
+  });
+
+  it('should format 1stEditionNormal variant', () => {
+    expect(formatVariantForDisplay('1stEditionNormal')).toBe('1st Edition Normal');
+  });
+
+  it('should handle unknown variants with camelCase conversion', () => {
+    expect(formatVariantForDisplay('someNewVariant')).toBe('Some New Variant');
+  });
+});
+
+describe('buildCardDisplayLabel', () => {
+  it('should return "Unknown card" for undefined metadata', () => {
+    expect(buildCardDisplayLabel(undefined)).toBe('Unknown card');
+  });
+
+  it('should return "Unknown card" for empty metadata', () => {
+    expect(buildCardDisplayLabel({})).toBe('Unknown card');
+  });
+
+  it('should return card name only for normal variant with quantity 1', () => {
+    expect(buildCardDisplayLabel({ cardName: 'Pikachu', variant: 'normal', quantity: 1 })).toBe('Pikachu');
+  });
+
+  it('should include variant for non-normal variants', () => {
+    expect(buildCardDisplayLabel({ cardName: 'Charizard', variant: 'holofoil', quantity: 1 })).toBe('Charizard (Holofoil)');
+  });
+
+  it('should include quantity when greater than 1', () => {
+    expect(buildCardDisplayLabel({ cardName: 'Bulbasaur', variant: 'normal', quantity: 3 })).toBe('Bulbasaur x3');
+  });
+
+  it('should include both variant and quantity', () => {
+    expect(buildCardDisplayLabel({ cardName: 'Mewtwo', variant: 'reverseHolofoil', quantity: 2 })).toBe('Mewtwo (Reverse Holofoil) x2');
+  });
+
+  it('should use cardId as fallback when cardName is missing', () => {
+    expect(buildCardDisplayLabel({ cardId: 'sv1-25', variant: 'holofoil' })).toBe('sv1-25 (Holofoil)');
+  });
+
+  it('should handle missing variant (defaults to not showing it)', () => {
+    expect(buildCardDisplayLabel({ cardName: 'Squirtle' })).toBe('Squirtle');
+  });
+
+  it('should handle missing quantity (defaults to not showing it)', () => {
+    expect(buildCardDisplayLabel({ cardName: 'Charmander', variant: 'holofoil' })).toBe('Charmander (Holofoil)');
+  });
+});
+
+describe('formatActivityLogForDisplay', () => {
+  const createLog = (
+    action: 'card_added' | 'card_removed' | 'achievement_earned',
+    metadata?: Record<string, unknown>
+  ): ActivityLog => ({
+    profileId: 'profile1',
+    action,
+    metadata,
+    _creationTime: Date.now(),
+  });
+
+  describe('card_added action', () => {
+    it('should format card_added with name and variant', () => {
+      const log = createLog('card_added', { cardName: 'Pikachu', variant: 'holofoil', quantity: 1 });
+      expect(formatActivityLogForDisplay(log)).toBe('Added card: Pikachu (Holofoil)');
+    });
+
+    it('should format card_added with quantity', () => {
+      const log = createLog('card_added', { cardName: 'Bulbasaur', variant: 'normal', quantity: 3 });
+      expect(formatActivityLogForDisplay(log)).toBe('Added card: Bulbasaur x3');
+    });
+
+    it('should handle missing metadata', () => {
+      const log = createLog('card_added', undefined);
+      expect(formatActivityLogForDisplay(log)).toBe('Added card: Unknown card');
+    });
+  });
+
+  describe('card_removed action', () => {
+    it('should format card_removed with name', () => {
+      const log = createLog('card_removed', { cardName: 'Charizard', cardId: 'sv1-100' });
+      expect(formatActivityLogForDisplay(log)).toBe('Removed card: Charizard');
+    });
+
+    it('should format card_removed with variant', () => {
+      const log = createLog('card_removed', { cardName: 'Mewtwo', variant: 'holofoil' });
+      expect(formatActivityLogForDisplay(log)).toBe('Removed card: Mewtwo (Holofoil)');
+    });
+
+    it('should format card_removed with multiple variants removed', () => {
+      const log = createLog('card_removed', { cardName: 'Squirtle', variantsRemoved: 3 });
+      expect(formatActivityLogForDisplay(log)).toBe('Removed card: Squirtle (3 variants)');
+    });
+
+    it('should handle missing metadata', () => {
+      const log = createLog('card_removed', undefined);
+      expect(formatActivityLogForDisplay(log)).toBe('Removed card: Unknown');
+    });
+  });
+
+  describe('achievement_earned action', () => {
+    it('should format achievement_earned with key', () => {
+      const log = createLog('achievement_earned', { achievementKey: 'sv1_100', achievementType: 'set_completion' });
+      expect(formatActivityLogForDisplay(log)).toBe('Earned achievement: sv1_100');
+    });
+
+    it('should handle missing metadata', () => {
+      const log = createLog('achievement_earned', undefined);
+      expect(formatActivityLogForDisplay(log)).toBe('Earned achievement: Unknown achievement');
+    });
   });
 });
