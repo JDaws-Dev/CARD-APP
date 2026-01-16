@@ -10,6 +10,7 @@ import { HighContrastToggle } from '@/components/layout/HighContrastToggle';
 import { ReducedMotionToggle } from '@/components/layout/ReducedMotionToggle';
 import { FocusModeToggle } from '@/components/layout/FocusModeToggle';
 import { GameSettingsToggle } from '@/components/settings/GameSettingsToggle';
+import { SleepModeSettings } from '@/components/settings/SleepModeSettings';
 
 export default function SettingsPage() {
   return (
@@ -155,6 +156,23 @@ export default function SettingsPage() {
               Choose which trading card games to show in your collection.
             </p>
             <GameSettingsToggle />
+          </section>
+
+          {/* Family Controls */}
+          <section
+            className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+            aria-labelledby="family-settings-heading"
+          >
+            <h2
+              id="family-settings-heading"
+              className="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
+            >
+              Family Controls
+            </h2>
+            <p className="mb-4 text-sm text-gray-600 dark:text-slate-400">
+              Parent-controlled features for healthy app usage.
+            </p>
+            <SleepModeSettings />
           </section>
 
           {/* Notifications Settings (placeholder for future) */}

@@ -19,6 +19,8 @@ import { GraceDayProvider } from '@/components/providers/GraceDayProvider';
 import { DailyStampProvider } from '@/components/providers/DailyStampProvider';
 import { ComebackProvider } from '@/components/gamification/ComebackRewards';
 import { PackEffectsProvider } from '@/components/providers/PackEffectsProvider';
+import { SleepModeProvider } from '@/components/providers/SleepModeProvider';
+import { SleepModeOverlay } from '@/components/family/SleepModeOverlay';
 import { AuthAwareHeader } from '@/components/layout/AuthAwareHeader';
 import { LiveRegionProvider } from '@/components/accessibility/LiveRegion';
 import './globals.css';
@@ -59,7 +61,9 @@ export default function RootLayout({
                                         <DailyStampProvider>
                                           <ComebackProvider>
                                             <PackEffectsProvider>
+                                              <SleepModeProvider>
                                           <LiveRegionProvider>
+                                          <SleepModeOverlay />
                                           {/* Skip link for keyboard navigation - visually hidden until focused */}
                                           <a
                                             href="#main-content"
@@ -70,6 +74,7 @@ export default function RootLayout({
                                           <AuthAwareHeader />
                                           <main id="main-content">{children}</main>
                                         </LiveRegionProvider>
+                                              </SleepModeProvider>
                                             </PackEffectsProvider>
                                           </ComebackProvider>
                                         </DailyStampProvider>
