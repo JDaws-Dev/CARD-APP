@@ -1,4 +1,4 @@
-# KidCollect UI Tasks
+# CardDex UI Tasks
 
 ## Coding Guidelines
 
@@ -44,13 +44,56 @@
 - [x] Create wishlist UI - mark cards as wanted with heart icon
 - [x] Build priority starring UI for wishlist items (max 5 stars)
 - [x] Create public wishlist view page (read-only, shareable)
+- [ ] **My Wishlist page** (`/my-wishlist`) - Dedicated page to view all wishlisted cards, generate share link, manage priorities
+- [ ] **Export/print wishlist PDF** - Button to export wishlist as printable PDF (for sharing with family)
+- [ ] **Copy wishlist share link button** - Generate and copy shareable link from My Wishlist page
 - [x] Build duplicate finder UI comparing sibling collections side-by-side
-- [ ] Create export/print checklist PDF button and preview
+- [x] Create export/print checklist PDF button and preview
 - [x] Add pricing toggle UI for parent dashboard (show/hide TCGPlayer prices)
-- [ ] Add responsive design for mobile-first experience (test all pages on mobile)
+- [x] Add responsive design for mobile-first experience (test all pages on mobile)
 - [x] Add loading states and skeleton screens to all data-fetching components
 - [x] Implement user-friendly error messages and error boundaries
 - [x] Accessibility audit and fixes (WCAG 2.1 AA) - focus states, aria labels, color contrast
+
+## NEW - Core Features (from competitor research)
+
+- [ ] **"Just Pulled" mode** - Quick-add flow for pack openings (tap cards rapid-fire with minimal UI)
+- [x] **Random card button** - Shows a random card from collection (fun for kids to browse)
+- [ ] **Rarity filter UI** - Filter collection by rarity (Common → Uncommon → Rare → Ultra Rare → Secret Rare)
+- [ ] **"New in collection" badge** - Cards added in last 7 days get sparkle/shimmer effect
+- [ ] **Kid mode / age toggle** - Simplified interface option for younger users (6-8) vs full features (12-14)
+- [ ] **Japanese promo cards display** - Show Japanese promos correctly (competitor gap)
+
+## NEW - Gamification UI
+
+- [ ] **Visible daily streak counter** - Fire icon + "5 day streak!" prominently in header/nav
+- [ ] **Level-up system UI** - XP bar, level display, XP gain notifications when adding cards
+- [ ] **Collection milestones celebrations** - First 10, 50, 100, 500 cards with big celebration modals
+- [ ] **Unlockable avatar items UI** - Profile customization with earned hats, frames, badges
+
+## NEW - Educational Features UI
+
+- [ ] **"Learn to Collect" tutorials** - Interactive guide screens for card organization, binder setup, card care
+- [ ] **Rarity explainer tooltips** - Hover/tap tooltips explaining what Common/Uncommon/Rare/Ultra Rare means
+- [ ] **Set structure intro** - Onboarding flow explaining how sets work, what a "master set" is
+- [ ] **Card condition basics guide** - Visual guide showing NM/LP/MP/HP differences (age-appropriate)
+
+## NEW - Navigation & Dashboard Architecture
+
+- [ ] **Create MarketingHeader component** - For landing page only: Logo, Features, Pricing (anchor links), Login, Sign Up. NO app navigation.
+- [ ] **Create AppHeader component** - For logged-in users: Logo, My Collection, Browse Sets, Badges, Wishlist, Search, Profile menu
+- [ ] **Auth-aware header switching** - Show MarketingHeader when not logged in, AppHeader when logged in
+- [ ] **Kid Dashboard page** (`/dashboard`) - After login landing page with: collection stats, recent activity, badge progress, streak counter, quick actions
+- [ ] **Update Header to show "CardDex" instead of "KidCollect"** - Rebrand to new name
+- [ ] **Remove app nav links from landing page** - Currently shows Browse Sets, My Collection etc. to visitors who can't use them
+- [ ] **Parent Dashboard access** - Only show Parent Dashboard link for parent accounts, not kid profiles
+
+## NEW - Polish & UX
+
+- [ ] **Dark mode toggle** - System preference detection + manual toggle (kids love it, parents appreciate for bedtime)
+- [ ] **Offline viewing indicator** - Show when viewing cached data, sync status indicator
+- [ ] **Update landing page with new tagline** - "The collection app built for kids (and the parents who love them)"
+- [ ] **Add trust signals to landing page** - COPPA compliant badge, "No ads ever" shield, "Cloud backup" icon
 
 ---
 
@@ -79,3 +122,6 @@
 - **2026-01-16**: Replaced all unicode characters and inline SVGs with Heroicons - Replaced unicode left arrows (←) with ArrowLeftIcon in all back navigation links across 7 pages (collection, search, compare, browse, badges, sets detail). Replaced unicode right arrows (→) with ArrowRightIcon in CTAs and "View Set" links. Replaced inline SVG checkmarks with CheckIcon in CardGrid, SearchResults, and IconLegend. Replaced inline SVG X marks with XMarkIcon in FilterChips and search input. Replaced inline SVG magnifying glass with MagnifyingGlassIcon. Replaced inline SVG plus/minus with PlusIcon/MinusIcon in quantity controls. All icons now use consistent Heroicons library for professional, accessible UI. Commit: fd6a67a
 - **2026-01-16**: Added pricing toggle UI to parent dashboard - Enhanced ParentDashboard component (src/components/dashboard/ParentDashboard.tsx) with toggle to show/hide TCGPlayer prices. Features: PricingVisibilityContext to propagate toggle state to all ChildProfileCards; PricingToggle button component with EyeIcon/EyeSlashIcon and amber/gray styling based on state; toggle control card showing descriptive text for current visibility state; collection value display in ChildProfileCard shows "---" / "Hidden" when prices are hidden. Parents can now control visibility of estimated card values across the dashboard. Uses Heroicons (EyeIcon, EyeSlashIcon, CurrencyDollarIcon). Accessible aria-labels and tooltips on toggle button. Commit: 8a090c1
 - **2026-01-16**: Completed accessibility audit and WCAG 2.1 AA fixes - Comprehensive accessibility improvements across all UI components. Added visible focus-visible ring styles for keyboard navigation in globals.css. Added skip link allowing screen readers to jump to main content. Added prefers-reduced-motion media query to disable animations for users who prefer reduced motion. Added proper aria-labels to all interactive elements including card buttons, wishlist/priority toggles, quantity controls, filter buttons. Added aria-pressed, aria-expanded, aria-controls attributes to toggle buttons and menus. Added role attributes for navigation ("banner", "menu", "menubar"), dialogs ("dialog"), and interactive regions ("search", "group", "list"). Added aria-live regions for dynamic content (quantity changes, filter chips). Improved color contrast by upgrading gray-400 to gray-500 for better WCAG compliance. Added keyboard support (Enter/Space) to card click interactions. Added aria-hidden to decorative icons and elements (floating cards, stars). Added proper form labeling with htmlFor/id pairs for inputs. Updated 10 files: globals.css, layout.tsx, page.tsx, Header.tsx, CardGrid.tsx, SearchResults.tsx, FilterPanel.tsx, FilterChips.tsx, TrophyCase.tsx, SetsList.tsx. Commit: 4aa8b81
+- **2026-01-16**: Created export/print checklist PDF button and preview - Built ExportChecklistButton component (src/components/collection/ExportChecklist.tsx) with modal preview and print functionality. Features: Export Checklist button on collection page header using DocumentArrowDownIcon; modal dialog with print preview showing collection grouped by set; toggle options for showing quantities and checkboxes; proper print CSS @media rules in globals.css for clean PDF output with page breaks and margins; fetches card data when modal opens for standalone operation; loading states with skeleton screens; error handling with retry functionality; accessible with ARIA labels, role="dialog", and Escape key to close; Print/Save PDF button uses browser's native print dialog for PDF generation. Uses Heroicons throughout (DocumentArrowDownIcon, PrinterIcon, XMarkIcon, CheckIcon, Square3Stack3DIcon, ArrowPathIcon, ExclamationTriangleIcon, DocumentTextIcon). Commit: 12f2f25
+- **2026-01-16**: Added random card button feature - Created RandomCardButton component (src/components/collection/RandomCardButton.tsx) that shows a random card from the user's collection. Features: purple/pink gradient button with SparklesIcon in CollectionView; modal with shuffle animation using animated card stack with spinning cards; card reveal with glow effect and sparkle decorations around the card; displays card name, set, number, and rarity badge; "Shuffle Again" button with ArrowPathIcon for endless browsing fun. Full accessibility support with ARIA labels, keyboard navigation (Escape to close), and focus-visible states. Uses Heroicons (SparklesIcon, ArrowPathIcon, XMarkIcon, Square3Stack3DIcon). Integrated into CollectionView component above the value banner. Commit: 201a243
+- **2026-01-16**: Added responsive design for mobile-first experience - Comprehensive responsive improvements across 9 UI files. Header: reduced logo/text sizing on mobile (h-8/text-lg → h-10/text-xl at sm:). Collection page: 3-column stats grid on all screens with responsive padding (p-3 → p-6 at sm:), smaller text sizes (text-2xl → text-4xl at sm:). CardGrid: stats bar uses mobile grid layout that converts to flex at sm:, hidden dividers on mobile, responsive text sizing. FilterPanel: reduced padding/spacing on mobile. Browse page: responsive headings and layout gaps. SearchResults: smaller gaps (gap-2 → gap-4 at sm:) in card grid. SetsList: responsive card padding, logo sizing, and grid gaps. ParentDashboard: mobile-optimized family overview with 3-col grid, responsive profile cards with smaller avatars/text/padding on mobile, pricing toggle stacks vertically on mobile. Home page: responsive hero padding, smaller headings (text-3xl → text-5xl → text-6xl → text-7xl), smaller step circles (h-24 → h-32), and compact feature cards. All changes follow mobile-first pattern using sm: breakpoint. Commit: af7937e
