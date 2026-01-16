@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { ConvexClientProvider } from '@/components/providers/ConvexClientProvider';
 import { CelebrationProvider } from '@/components/ui/CelebrationAnimation';
 import { LevelUpProvider } from '@/components/gamification/LevelSystem';
+import { MilestoneProvider } from '@/components/gamification/MilestoneCelebration';
 import { Header } from '@/components/layout/Header';
 import './globals.css';
 
@@ -26,12 +27,14 @@ export default function RootLayout({
         <ConvexClientProvider>
           <CelebrationProvider>
             <LevelUpProvider>
-              {/* Skip link for keyboard navigation */}
-              <a href="#main-content" className="skip-link">
-                Skip to main content
-              </a>
-              <Header />
-              <main id="main-content">{children}</main>
+              <MilestoneProvider>
+                {/* Skip link for keyboard navigation */}
+                <a href="#main-content" className="skip-link">
+                  Skip to main content
+                </a>
+                <Header />
+                <main id="main-content">{children}</main>
+              </MilestoneProvider>
             </LevelUpProvider>
           </CelebrationProvider>
         </ConvexClientProvider>
