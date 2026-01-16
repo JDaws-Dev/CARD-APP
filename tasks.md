@@ -24,7 +24,7 @@
 - [x] Connect card tracking to Convex backend (persist data)
 - [x] Create "My Collection" view aggregating all owned cards
 - [x] Add search functionality for finding Pokemon by name
-- [ ] Create filter system (by set, type, Pokemon)
+- [x] Create filter system (by set, type, Pokemon)
 
 ## Phase 3: Achievement System (Weeks 5-6)
 
@@ -168,3 +168,29 @@
 - `src/components/search/SearchResults.tsx` - Search results display component
 
 **Next steps:** Create filter system (by set, type, Pokemon)
+
+### 2026-01-15 - Filter System
+
+**Completed tasks:**
+
+- Created filter API endpoint (`/api/filter`) with validation for set, type, and name filters
+- Created sets API endpoint (`/api/sets`) for fetching Scarlet & Violet sets
+- Built FilterPanel component with name input, set dropdown, and type selection buttons
+- Built FilterChips component to display active filters with clear buttons
+- Created browse page (`/browse`) with filter panel sidebar and results grid
+- Added `filterCards` function and `POKEMON_TYPES` constant to pokemon-tcg library
+- Added "Browse & Filter" link to home page navigation
+- Implemented comprehensive test suite for filter API (14 tests passing)
+- All 33 tests passing, ESLint and Prettier checks passing
+
+**Files created:**
+
+- `src/app/api/filter/route.ts` - Filter API endpoint
+- `src/app/api/filter/__tests__/route.test.ts` - Filter API tests (14 tests)
+- `src/app/api/sets/route.ts` - Sets API endpoint
+- `src/app/browse/page.tsx` - Browse & filter page
+- `src/components/filter/FilterPanel.tsx` - Filter panel component
+- `src/components/filter/FilterChips.tsx` - Active filter chips component
+- `src/components/filter/index.ts` - Component exports
+
+**Next steps:** Design achievement data model and badge definitions
