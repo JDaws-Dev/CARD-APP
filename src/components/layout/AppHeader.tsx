@@ -13,12 +13,15 @@ import {
   ArrowRightOnRectangleIcon,
   UserGroupIcon,
   Cog6ToothIcon,
+  ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { hasParentAccess } from '@/lib/profiles';
+import { DarkModeToggle } from './DarkModeToggle';
+import { KidModeToggle } from './KidModeToggle';
 
 // Custom card stack icon for logo (shared across all headers)
 function CardStackIcon({ className }: { className?: string }) {
@@ -57,6 +60,7 @@ export function AppHeader() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [quickSettingsOpen, setQuickSettingsOpen] = useState(false);
   const { signOut } = useAuthActions();
 
   // Fetch current user's profile to check if they're a parent
@@ -113,19 +117,74 @@ export function AppHeader() {
           })}
         </div>
 
-        {/* Right side: Settings gear icon, Profile Menu */}
+        {/* Right side: Quick Settings popover, Profile Menu */}
         <div className="hidden items-center gap-2 lg:flex">
-          {/* Settings gear icon */}
-          <Link
-            href="/settings"
-            className={`flex items-center justify-center rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800 ${
-              pathname === '/settings' ? 'bg-kid-primary/10 text-kid-primary' : ''
-            }`}
-            aria-label="Settings"
-            title="Settings"
-          >
-            <Cog6ToothIcon className="h-5 w-5" aria-hidden="true" />
-          </Link>
+          {/* Quick Settings popover */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setQuickSettingsOpen(!quickSettingsOpen)}
+              className={`flex items-center justify-center rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800 ${
+                pathname === '/settings' || quickSettingsOpen ? 'bg-kid-primary/10 text-kid-primary' : ''
+              }`}
+              aria-label="Quick settings"
+              aria-expanded={quickSettingsOpen}
+              aria-haspopup="true"
+              aria-controls="quick-settings-menu"
+              title="Quick settings"
+            >
+              <Cog6ToothIcon className="h-5 w-5" aria-hidden="true" />
+            </button>
+
+            {quickSettingsOpen && (
+              <>
+                {/* Backdrop to close menu when clicking outside */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setQuickSettingsOpen(false)}
+                  aria-hidden="true"
+                />
+                <div
+                  id="quick-settings-menu"
+                  className="absolute right-0 top-full z-20 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-lg dark:border-slate-700 dark:bg-slate-800"
+                  role="dialog"
+                  aria-label="Quick settings"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      Quick Settings
+                    </span>
+                  </div>
+
+                  {/* Dark Mode toggle */}
+                  <div className="mb-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-slate-700/50">
+                    <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                      Dark Mode
+                    </span>
+                    <DarkModeToggle />
+                  </div>
+
+                  {/* Kid Mode toggle */}
+                  <div className="mb-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-slate-700/50">
+                    <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                      Kid Mode
+                    </span>
+                    <KidModeToggle />
+                  </div>
+
+                  {/* Link to all settings */}
+                  <Link
+                    href="/settings"
+                    onClick={() => setQuickSettingsOpen(false)}
+                    className="flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-kid-primary to-kid-secondary px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+                  >
+                    All Settings
+                    <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
           <div className="h-6 w-px bg-gray-200 dark:bg-slate-600" aria-hidden="true" />
 
           {/* Profile Menu Dropdown */}
@@ -315,8 +374,23 @@ export function AppHeader() {
             )}
           </div>
 
-          {/* Mobile Settings link */}
+          {/* Mobile Quick Settings */}
           <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
+            <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+              Quick Settings
+            </div>
+            <div className="mb-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2.5 dark:bg-slate-700/50">
+              <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                Dark Mode
+              </span>
+              <DarkModeToggle />
+            </div>
+            <div className="mb-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2.5 dark:bg-slate-700/50">
+              <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                Kid Mode
+              </span>
+              <KidModeToggle />
+            </div>
             <Link
               href="/settings"
               onClick={() => setMobileMenuOpen(false)}
@@ -328,7 +402,7 @@ export function AppHeader() {
               role="menuitem"
             >
               <Cog6ToothIcon className="h-5 w-5" aria-hidden="true" />
-              Settings
+              All Settings
             </Link>
           </div>
 
