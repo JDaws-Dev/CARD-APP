@@ -1146,3 +1146,44 @@ body {
     transition: revert !important;
   }
 }
+
+/* ============================================================================
+ * FOCUS MODE
+ * Accessibility feature for users who find gamification elements overwhelming.
+ * Hides streaks, levels, achievements, milestones, and progress indicators.
+ * ============================================================================ */
+
+/* Base focus mode indicator */
+.focus-mode {
+  /* Marker class to indicate focus mode is active */
+}
+
+/* ============================================================================
+ * FOCUS MODE UTILITY CLASSES
+ * ============================================================================ */
+
+@layer utilities {
+  /* Hide gamification elements when focus mode is active */
+  .focus-mode .hide-in-focus-mode {
+    display: none !important;
+  }
+
+  /* Show element only when focus mode is active */
+  .show-in-focus-mode {
+    display: none !important;
+  }
+  .focus-mode .show-in-focus-mode {
+    display: block !important;
+  }
+
+  /* Gamification-specific hide classes for focus mode */
+  /* These can be applied to elements that should be hidden in focus mode */
+  .focus-mode .gamification-streak,
+  .focus-mode .gamification-level,
+  .focus-mode .gamification-achievement,
+  .focus-mode .gamification-milestone,
+  .focus-mode .gamification-celebration,
+  .focus-mode .gamification-progress {
+    display: none !important;
+  }
+}
