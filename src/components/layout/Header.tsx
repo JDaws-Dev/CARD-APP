@@ -6,6 +6,7 @@ import { ArrowRightOnRectangleIcon, Bars3Icon, XMarkIcon } from '@heroicons/reac
 import { UserPlusIcon } from '@heroicons/react/24/solid';
 import { useState } from 'react';
 import { StreakCounter } from '@/components/gamification/StreakCounter';
+import { LevelDisplay } from '@/components/gamification/LevelSystem';
 
 // Custom card stack icon for logo
 function CardStackIcon({ className }: { className?: string }) {
@@ -76,8 +77,9 @@ export function Header() {
           ))}
         </div>
 
-        {/* Streak Counter & Auth Buttons - Desktop */}
+        {/* Level, Streak & Auth Buttons - Desktop */}
         <div className="hidden items-center gap-3 md:flex">
+          <LevelDisplay />
           <StreakCounter />
           <div className="h-6 w-px bg-gray-200" aria-hidden="true" />
           <Link
@@ -139,9 +141,10 @@ export function Header() {
               </Link>
             ))}
           </div>
-          {/* Mobile streak counter */}
+          {/* Mobile level and streak counter */}
           <div className="border-t border-gray-200 px-4 py-3">
-            <div className="mb-3 flex items-center justify-center">
+            <div className="mb-3 flex items-center justify-center gap-3">
+              <LevelDisplay />
               <StreakCounter />
             </div>
           </div>

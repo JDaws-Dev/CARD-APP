@@ -27,6 +27,7 @@ import {
 import { MapIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { CardGridSkeleton, StatsBarSkeleton } from '@/components/ui/Skeleton';
 import { IconLegend } from './IconLegend';
+import { useLevelUp } from '@/components/gamification/LevelSystem';
 
 // Variant type definition
 type CardVariant =
@@ -355,6 +356,7 @@ interface CardGridProps {
 
 export function CardGrid({ cards, setId, setName }: CardGridProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
+  const { showXPGain } = useLevelUp();
 
   // State for variant selector popup
   const [selectedCard, setSelectedCard] = useState<PokemonCard | null>(null);
