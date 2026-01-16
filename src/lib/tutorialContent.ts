@@ -633,3 +633,699 @@ export function getTotalEstimatedTime(guideIds: string[]): string {
   }
   return `${totalMinutes} min`;
 }
+
+// ============================================================================
+// EXTENDED TYPES FOR PROGRESS TRACKING
+// ============================================================================
+
+/** Progress tracking for a single guide */
+export interface GuideProgress {
+  guideId: string;
+  completedSteps: string[];
+  isComplete: boolean;
+  startedAt?: number;
+  completedAt?: number;
+  lastStepViewed: string;
+}
+
+/** Overall tutorial progress */
+export interface TutorialProgress {
+  completedGuideIds: string[];
+  guideProgress: Record<string, GuideProgress>;
+  totalGuidesComplete: number;
+  totalGuidesAvailable: number;
+  percentComplete: number;
+  totalTimeSpentMinutes: number;
+  badgesEarned: string[];
+}
+
+/** Guide with enriched progress info */
+export interface GuideWithProgress extends TutorialGuide {
+  progress: {
+    isComplete: boolean;
+    stepsComplete: number;
+    totalSteps: number;
+    percentComplete: number;
+    isStarted: boolean;
+    lastStepViewed: string;
+  };
+}
+
+/** Category progress summary */
+export interface CategoryProgressSummary {
+  categoryId: string;
+  guidesComplete: number;
+  guidesTotal: number;
+  percentComplete: number;
+  isComplete: boolean;
+}
+
+// ============================================================================
+// VALIDATION FUNCTIONS
+// ============================================================================
+
+/** All valid category IDs */
+export const VALID_CATEGORY_IDS = ['basics', 'organization', 'storage', 'care'] as const;
+export type ValidCategoryId = (typeof VALID_CATEGORY_IDS)[number];
+
+/**
+ * Check if a string is a valid category ID.
+ */
+export function isValidCategoryId(id: string): id is ValidCategoryId {
+  return VALID_CATEGORY_IDS.includes(id as ValidCategoryId);
+}
+
+/**
+ * Check if a guide ID format is valid (lowercase with hyphens).
+ */
+export function isValidGuideIdFormat(guideId: string): boolean {
+  if (!guideId || typeof guideId !== 'string') {
+    return false;
+  }
+  return /^[a-z][a-z0-9-]*[a-z0-9]$/.test(guideId);
+}
+
+/**
+ * Validate a guide object has required fields.
+ */
+export function isValidGuide(guide: unknown): guide is TutorialGuide {
+  if (!guide || typeof guide !== 'object') {
+    return false;
+  }
+
+  const g = guide as Record<string, unknown>;
+
+  return (
+    typeof g.id === 'string' &&
+    typeof g.title === 'string' &&
+    typeof g.shortDescription === 'string' &&
+    typeof g.fullDescription === 'string' &&
+    typeof g.category === 'string' &&
+    typeof g.difficulty === 'string' &&
+    typeof g.estimatedTime === 'string' &&
+    Array.isArray(g.steps) &&
+    Array.isArray(g.tips) &&
+    Array.isArray(g.funFacts)
+  );
+}
+
+/**
+ * Validate a step object has required fields.
+ */
+export function isValidStep(step: unknown): step is TutorialStep {
+  if (!step || typeof step !== 'object') {
+    return false;
+  }
+
+  const s = step as Record<string, unknown>;
+
+  return (
+    typeof s.id === 'string' &&
+    typeof s.title === 'string' &&
+    typeof s.description === 'string' &&
+    typeof s.summary === 'string' &&
+    typeof s.tip === 'string'
+  );
+}
+
+/**
+ * Validate step ID exists within a guide.
+ */
+export function isValidStepId(guide: TutorialGuide, stepId: string): boolean {
+  return guide.steps.some((s) => s.id === stepId);
+}
+
+// ============================================================================
+// ADDITIONAL LOOKUP FUNCTIONS
+// ============================================================================
+
+/**
+ * Get a specific step from a guide.
+ */
+export function getStep(guide: TutorialGuide, stepId: string): TutorialStep | null {
+  return guide.steps.find((s) => s.id === stepId) ?? null;
+}
+
+/**
+ * Get the step index (1-based) for display.
+ */
+export function getStepIndex(guide: TutorialGuide, stepId: string): number {
+  const index = guide.steps.findIndex((s) => s.id === stepId);
+  return index === -1 ? 0 : index + 1;
+}
+
+/**
+ * Get guides that have a completion badge.
+ */
+export function getGuidesWithBadges(): TutorialGuide[] {
+  return TUTORIAL_GUIDES.filter((g) => g.completionBadgeId !== undefined);
+}
+
+/**
+ * Get the badge ID for a guide, if it has one.
+ */
+export function getGuideBadgeId(guide: TutorialGuide): string | null {
+  return guide.completionBadgeId ?? null;
+}
+
+/**
+ * Check if a guide ID exists.
+ */
+export function guideExists(guideId: string): boolean {
+  return TUTORIAL_GUIDES.some((g) => g.id === guideId);
+}
+
+/**
+ * Check if a category ID exists.
+ */
+export function categoryExists(categoryId: string): boolean {
+  return TUTORIAL_CATEGORIES.some((c) => c.id === categoryId);
+}
+
+// ============================================================================
+// SORTING FUNCTIONS
+// ============================================================================
+
+/** Recommended category order for learning path */
+export const CATEGORY_SORT_ORDER: Record<string, number> = {
+  basics: 1,
+  organization: 2,
+  storage: 3,
+  care: 4,
+};
+
+/**
+ * Sort guides by category order (basics first, then organization, storage, care).
+ */
+export function sortGuidesByCategory(guides: readonly TutorialGuide[]): TutorialGuide[] {
+  return [...guides].sort((a, b) => {
+    const catSortA = CATEGORY_SORT_ORDER[a.category] ?? 999;
+    const catSortB = CATEGORY_SORT_ORDER[b.category] ?? 999;
+    return catSortA - catSortB;
+  });
+}
+
+/**
+ * Sort guides by estimated time (shortest first).
+ */
+export function sortGuidesByDuration(guides: readonly TutorialGuide[]): TutorialGuide[] {
+  return [...guides].sort((a, b) => {
+    const timeA = parseInt(a.estimatedTime, 10) || 0;
+    const timeB = parseInt(b.estimatedTime, 10) || 0;
+    return timeA - timeB;
+  });
+}
+
+/**
+ * Sort guides by step count (fewest first).
+ */
+export function sortGuidesByStepCount(guides: readonly TutorialGuide[]): TutorialGuide[] {
+  return [...guides].sort((a, b) => a.steps.length - b.steps.length);
+}
+
+/**
+ * Sort guides by difficulty (beginner first).
+ */
+export function sortGuidesByDifficulty(guides: readonly TutorialGuide[]): TutorialGuide[] {
+  const difficultyOrder: Record<string, number> = {
+    beginner: 1,
+    intermediate: 2,
+    advanced: 3,
+  };
+  return [...guides].sort((a, b) => {
+    return (difficultyOrder[a.difficulty] ?? 999) - (difficultyOrder[b.difficulty] ?? 999);
+  });
+}
+
+/**
+ * Sort categories by recommended order.
+ */
+export function sortCategories(categories: readonly TutorialCategory[]): TutorialCategory[] {
+  return [...categories].sort((a, b) => {
+    return (CATEGORY_SORT_ORDER[a.id] ?? 999) - (CATEGORY_SORT_ORDER[b.id] ?? 999);
+  });
+}
+
+// ============================================================================
+// FILTERING FUNCTIONS
+// ============================================================================
+
+/**
+ * Filter guides by estimated time (max minutes).
+ */
+export function filterByMaxDuration(
+  guides: readonly TutorialGuide[],
+  maxMinutes: number
+): TutorialGuide[] {
+  return guides.filter((g) => {
+    const minutes = parseInt(g.estimatedTime, 10);
+    return !isNaN(minutes) && minutes <= maxMinutes;
+  });
+}
+
+/**
+ * Filter to incomplete guides only.
+ */
+export function filterIncompleteGuides(
+  guides: readonly TutorialGuide[],
+  completedGuideIds: readonly string[]
+): TutorialGuide[] {
+  const completedSet = new Set(completedGuideIds);
+  return guides.filter((g) => !completedSet.has(g.id));
+}
+
+/**
+ * Filter to completed guides only.
+ */
+export function filterCompletedGuides(
+  guides: readonly TutorialGuide[],
+  completedGuideIds: readonly string[]
+): TutorialGuide[] {
+  const completedSet = new Set(completedGuideIds);
+  return guides.filter((g) => completedSet.has(g.id));
+}
+
+// ============================================================================
+// PROGRESS TRACKING FUNCTIONS
+// ============================================================================
+
+/**
+ * Calculate overall tutorial progress from completed guide IDs.
+ */
+export function calculateTutorialProgress(
+  completedGuideIds: readonly string[],
+  guideProgress?: Record<string, GuideProgress>
+): TutorialProgress {
+  const completedSet = new Set(completedGuideIds);
+  const completedGuides = TUTORIAL_GUIDES.filter((g) => completedSet.has(g.id));
+
+  let totalTimeSpentMinutes = 0;
+  for (const guide of completedGuides) {
+    const minutes = parseInt(guide.estimatedTime, 10);
+    if (!isNaN(minutes)) {
+      totalTimeSpentMinutes += minutes;
+    }
+  }
+
+  const badgesEarned = completedGuides
+    .filter((g) => g.completionBadgeId !== undefined)
+    .map((g) => g.completionBadgeId!);
+
+  return {
+    completedGuideIds: [...completedGuideIds],
+    guideProgress: guideProgress ?? {},
+    totalGuidesComplete: completedGuideIds.length,
+    totalGuidesAvailable: TUTORIAL_GUIDES.length,
+    percentComplete:
+      TUTORIAL_GUIDES.length > 0
+        ? Math.round((completedGuideIds.length / TUTORIAL_GUIDES.length) * 100)
+        : 0,
+    totalTimeSpentMinutes,
+    badgesEarned,
+  };
+}
+
+/**
+ * Calculate progress for a specific guide.
+ */
+export function calculateGuideProgress(
+  guide: TutorialGuide,
+  completedSteps: readonly string[],
+  startedAt?: number,
+  completedAt?: number
+): GuideProgress {
+  const totalSteps = guide.steps.length;
+  const validCompletedSteps = completedSteps.filter((s) => isValidStepId(guide, s));
+
+  return {
+    guideId: guide.id,
+    completedSteps: [...validCompletedSteps],
+    isComplete: validCompletedSteps.length >= totalSteps,
+    startedAt,
+    completedAt,
+    lastStepViewed: validCompletedSteps[validCompletedSteps.length - 1] ?? '',
+  };
+}
+
+/**
+ * Calculate progress for a category.
+ */
+export function calculateCategoryProgress(
+  categoryId: string,
+  completedGuideIds: readonly string[]
+): CategoryProgressSummary {
+  const categoryGuides = getGuidesByCategory(categoryId);
+  const completedSet = new Set(completedGuideIds);
+  const guidesComplete = categoryGuides.filter((g) => completedSet.has(g.id)).length;
+  const guidesTotal = categoryGuides.length;
+
+  return {
+    categoryId,
+    guidesComplete,
+    guidesTotal,
+    percentComplete: guidesTotal > 0 ? Math.round((guidesComplete / guidesTotal) * 100) : 0,
+    isComplete: guidesComplete >= guidesTotal && guidesTotal > 0,
+  };
+}
+
+/**
+ * Enrich guides with progress information.
+ */
+export function enrichGuidesWithProgress(
+  guides: readonly TutorialGuide[],
+  completedGuideIds: readonly string[],
+  guideProgress?: Record<string, GuideProgress>
+): GuideWithProgress[] {
+  const completedSet = new Set(completedGuideIds);
+
+  return guides.map((guide) => {
+    const progress = guideProgress?.[guide.id];
+    const isComplete = completedSet.has(guide.id);
+    const stepsComplete = progress?.completedSteps.length ?? (isComplete ? guide.steps.length : 0);
+
+    return {
+      ...guide,
+      progress: {
+        isComplete,
+        stepsComplete,
+        totalSteps: guide.steps.length,
+        percentComplete:
+          guide.steps.length > 0 ? Math.round((stepsComplete / guide.steps.length) * 100) : 0,
+        isStarted: stepsComplete > 0 || isComplete,
+        lastStepViewed: progress?.lastStepViewed ?? '',
+      },
+    };
+  });
+}
+
+/**
+ * Get the next recommended guide to complete.
+ */
+export function getNextRecommendedGuide(
+  completedGuideIds: readonly string[]
+): TutorialGuide | null {
+  const sortedGuides = sortGuidesByCategory(TUTORIAL_GUIDES);
+  const completedSet = new Set(completedGuideIds);
+
+  return sortedGuides.find((g) => !completedSet.has(g.id)) ?? null;
+}
+
+/**
+ * Check if all guides in a category are complete.
+ */
+export function isCategoryComplete(
+  categoryId: string,
+  completedGuideIds: readonly string[]
+): boolean {
+  const categoryGuides = getGuidesByCategory(categoryId);
+  if (categoryGuides.length === 0) {
+    return false;
+  }
+
+  const completedSet = new Set(completedGuideIds);
+  return categoryGuides.every((g) => completedSet.has(g.id));
+}
+
+/**
+ * Check if all tutorials are complete.
+ */
+export function areAllTutorialsComplete(completedGuideIds: readonly string[]): boolean {
+  if (TUTORIAL_GUIDES.length === 0) {
+    return false;
+  }
+
+  const completedSet = new Set(completedGuideIds);
+  return TUTORIAL_GUIDES.every((g) => completedSet.has(g.id));
+}
+
+// ============================================================================
+// NAVIGATION FUNCTIONS
+// ============================================================================
+
+/**
+ * Get navigation info for a step within a guide.
+ */
+export function getStepNavigation(
+  guide: TutorialGuide,
+  currentStepId: string
+): {
+  totalSteps: number;
+  currentStep: number;
+  hasPrevious: boolean;
+  hasNext: boolean;
+  isFirstStep: boolean;
+  isLastStep: boolean;
+  nextStepId: string | null;
+  previousStepId: string | null;
+} {
+  const totalSteps = guide.steps.length;
+  const currentIndex = guide.steps.findIndex((s) => s.id === currentStepId);
+
+  if (currentIndex === -1) {
+    return {
+      totalSteps,
+      currentStep: 0,
+      hasPrevious: false,
+      hasNext: false,
+      isFirstStep: false,
+      isLastStep: false,
+      nextStepId: null,
+      previousStepId: null,
+    };
+  }
+
+  const isFirst = currentIndex === 0;
+  const isLast = currentIndex === totalSteps - 1;
+
+  return {
+    totalSteps,
+    currentStep: currentIndex + 1,
+    hasPrevious: !isFirst,
+    hasNext: !isLast,
+    isFirstStep: isFirst,
+    isLastStep: isLast,
+    nextStepId: isLast ? null : guide.steps[currentIndex + 1].id,
+    previousStepId: isFirst ? null : guide.steps[currentIndex - 1].id,
+  };
+}
+
+/**
+ * Get the next guide in the recommended order.
+ */
+export function getNextGuide(currentGuideId: string): TutorialGuide | null {
+  const sortedGuides = sortGuidesByCategory(TUTORIAL_GUIDES);
+  const currentIndex = sortedGuides.findIndex((g) => g.id === currentGuideId);
+
+  if (currentIndex === -1 || currentIndex >= sortedGuides.length - 1) {
+    return null;
+  }
+
+  return sortedGuides[currentIndex + 1];
+}
+
+/**
+ * Get the previous guide in the recommended order.
+ */
+export function getPreviousGuide(currentGuideId: string): TutorialGuide | null {
+  const sortedGuides = sortGuidesByCategory(TUTORIAL_GUIDES);
+  const currentIndex = sortedGuides.findIndex((g) => g.id === currentGuideId);
+
+  if (currentIndex <= 0) {
+    return null;
+  }
+
+  return sortedGuides[currentIndex - 1];
+}
+
+// ============================================================================
+// ADDITIONAL DISPLAY HELPERS
+// ============================================================================
+
+/**
+ * Format estimated time for display (parse and format).
+ */
+export function formatEstimatedTime(estimatedTime: string): string {
+  const minutes = parseInt(estimatedTime, 10);
+  if (isNaN(minutes) || minutes < 1) {
+    return 'Less than 1 min';
+  }
+  if (minutes === 1) {
+    return '1 min';
+  }
+  return `${minutes} mins`;
+}
+
+/**
+ * Format progress percentage for display.
+ */
+export function formatProgressPercent(percent: number): string {
+  return `${Math.round(percent)}%`;
+}
+
+/**
+ * Get a progress message based on completion status.
+ */
+export function getProgressMessage(
+  completedCount: number,
+  totalCount: number,
+  isAllComplete: boolean
+): string {
+  if (isAllComplete) {
+    return 'Congratulations! You completed all tutorials!';
+  }
+  if (completedCount === 0) {
+    return 'Start your collecting journey!';
+  }
+  const remaining = totalCount - completedCount;
+  if (remaining === 1) {
+    return 'Just 1 guide left - you can do it!';
+  }
+  return `${remaining} guides remaining`;
+}
+
+/**
+ * Get step indicator text (e.g., "Step 2 of 4").
+ */
+export function getStepIndicator(currentStep: number, totalSteps: number): string {
+  return `Step ${currentStep} of ${totalSteps}`;
+}
+
+/**
+ * Get a category display label with icon.
+ */
+export function getCategoryDisplayLabel(category: TutorialCategory): string {
+  return category.name;
+}
+
+/**
+ * Get a guide display label with gradient styling info.
+ */
+export function getGuideDisplayLabel(guide: TutorialGuide): string {
+  return guide.title;
+}
+
+/**
+ * Get completion badge display text.
+ */
+export function getBadgeEarnedMessage(badgeId: string): string {
+  return `You earned the ${badgeId.replace(/-/g, ' ')} badge!`;
+}
+
+// ============================================================================
+// SEARCH FUNCTIONS
+// ============================================================================
+
+/**
+ * Search guides by keyword (searches title, description, and step content).
+ */
+export function searchGuides(searchTerm: string): TutorialGuide[] {
+  const term = searchTerm.toLowerCase().trim();
+  if (!term) {
+    return [];
+  }
+
+  return TUTORIAL_GUIDES.filter((guide) => {
+    // Search title and descriptions
+    if (
+      guide.title.toLowerCase().includes(term) ||
+      guide.shortDescription.toLowerCase().includes(term) ||
+      guide.fullDescription.toLowerCase().includes(term)
+    ) {
+      return true;
+    }
+
+    // Search step content
+    for (const step of guide.steps) {
+      if (
+        step.title.toLowerCase().includes(term) ||
+        step.description.toLowerCase().includes(term) ||
+        step.summary.toLowerCase().includes(term) ||
+        step.tip.toLowerCase().includes(term)
+      ) {
+        return true;
+      }
+    }
+
+    // Search tips and fun facts
+    for (const tip of guide.tips) {
+      if (tip.toLowerCase().includes(term)) {
+        return true;
+      }
+    }
+    for (const fact of guide.funFacts) {
+      if (fact.toLowerCase().includes(term)) {
+        return true;
+      }
+    }
+
+    return false;
+  });
+}
+
+/**
+ * Count total steps across all guides.
+ */
+export function countTotalSteps(): number {
+  return TUTORIAL_GUIDES.reduce((sum, g) => sum + g.steps.length, 0);
+}
+
+/**
+ * Calculate total estimated time across all guides (in minutes).
+ */
+export function calculateTotalTimeMinutes(): number {
+  return TUTORIAL_GUIDES.reduce((sum, g) => {
+    const minutes = parseInt(g.estimatedTime, 10);
+    return sum + (isNaN(minutes) ? 0 : minutes);
+  }, 0);
+}
+
+// ============================================================================
+// CATEGORY HELPERS
+// ============================================================================
+
+/**
+ * Get progress summary for all categories.
+ */
+export function getAllCategoryProgress(
+  completedGuideIds: readonly string[]
+): CategoryProgressSummary[] {
+  return TUTORIAL_CATEGORIES.map((category) =>
+    calculateCategoryProgress(category.id, completedGuideIds)
+  );
+}
+
+/**
+ * Get guide count per category.
+ */
+export function getGuideCountByCategory(): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const category of TUTORIAL_CATEGORIES) {
+    counts[category.id] = category.guides.length;
+  }
+  return counts;
+}
+
+/**
+ * Get all guides grouped by category for overview display.
+ */
+export function getGuidesGroupedByCategory(): Array<{
+  category: TutorialCategory;
+  guides: TutorialGuide[];
+  totalMinutes: number;
+}> {
+  return sortCategories(TUTORIAL_CATEGORIES).map((category) => {
+    const guides = getGuidesByCategory(category.id);
+    let totalMinutes = 0;
+    for (const guide of guides) {
+      const minutes = parseInt(guide.estimatedTime, 10);
+      if (!isNaN(minutes)) {
+        totalMinutes += minutes;
+      }
+    }
+    return {
+      category,
+      guides,
+      totalMinutes,
+    };
+  });
+}
