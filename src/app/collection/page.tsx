@@ -5,6 +5,7 @@ import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { CollectionView } from '@/components/collection/CollectionView';
 import { ExportChecklistButton } from '@/components/collection/ExportChecklist';
+import { CollectionSnapshotShare } from '@/components/collection/CollectionSnapshotShare';
 import Link from 'next/link';
 import type { Id } from '../../../convex/_generated/dataModel';
 import {
@@ -119,6 +120,7 @@ export default function MyCollectionPage() {
                 <ArrowsRightLeftIcon className="h-5 w-5" />
                 Compare Collections
               </Link>
+              <CollectionSnapshotShare />
               <ExportChecklistButton collection={collection} stats={stats} />
             </div>
           </div>

@@ -25,6 +25,7 @@ import { StreakCounter } from '@/components/gamification/StreakCounter';
 import { LevelDisplay } from '@/components/gamification/LevelSystem';
 import { MilestoneProgress } from '@/components/gamification/MilestoneCelebration';
 import { StreakCalendar, StreakCalendarSkeleton } from '@/components/gamification/StreakCalendar';
+import { CollectionSnapshotShare } from '@/components/collection/CollectionSnapshotShare';
 import { cn } from '@/lib/utils';
 
 // ============================================================================
@@ -416,21 +417,24 @@ export function KidDashboard() {
           </div>
         </div>
 
-        {/* Streak encouragement */}
-        {currentStreak > 0 && (
-          <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2">
-            <FireIcon className="h-5 w-5 text-orange-300" aria-hidden="true" />
-            <span className="text-sm">
-              {currentStreak === 1
-                ? 'You started a streak! Come back tomorrow to keep it going!'
-                : currentStreak < 7
-                  ? `${currentStreak} day streak! Keep it up!`
-                  : currentStreak < 14
-                    ? `Amazing ${currentStreak} day streak! You're on fire!`
-                    : `Incredible ${currentStreak} day streak! You're a legend!`}
-            </span>
-          </div>
-        )}
+        {/* Streak encouragement and share */}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          {currentStreak > 0 && (
+            <div className="flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2">
+              <FireIcon className="h-5 w-5 text-orange-300" aria-hidden="true" />
+              <span className="text-sm">
+                {currentStreak === 1
+                  ? 'You started a streak! Come back tomorrow to keep it going!'
+                  : currentStreak < 7
+                    ? `${currentStreak} day streak! Keep it up!`
+                    : currentStreak < 14
+                      ? `Amazing ${currentStreak} day streak! You're on fire!`
+                      : `Incredible ${currentStreak} day streak! You're a legend!`}
+              </span>
+            </div>
+          )}
+          <CollectionSnapshotShare className="ml-auto bg-white/20 hover:bg-white/30" />
+        </div>
       </div>
 
       {/* Stats Grid */}
