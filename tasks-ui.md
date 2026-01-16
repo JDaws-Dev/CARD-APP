@@ -16,16 +16,16 @@
 | **Forgiving Streak System**          | 5        | **0**     |
 | **Virtual Experience Features**      | 6        | **0**     |
 | **Collection Timeline & Story**      | 0        | **5**     |
-| **Family & Social Features**         | 0        | **5**     |
+| **Family & Social Features**         | 1        | **4**     |
 | **Financial Literacy**               | 0        | **4**     |
 | **Educational Mini-Games**           | 0        | **5**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
 | **Engagement & Retention**           | 4        | **0**     |
-| **TOTAL**                            | **89**   | **21**    |
+| **TOTAL**                            | **90**   | **20**    |
 
 ### Priority Order for Remaining Tasks
 
-1. **Family & Social Features** (5 tasks) - Family goals, trade suggestions - Multi-user value
+1. **Family & Social Features** (4 tasks) - Sleep mode, trade suggestions - Multi-user value
 2. **Educational Mini-Games** (5 tasks) - Grade Like a Pro, rarity guessing - Learning through play
 3. **Financial Literacy** (4 tasks) - Savings calculator, budget alternatives - Parent-friendly
 4. **Collection Timeline & Story** (5 tasks) - Timeline view, adventure map - Nice-to-have features
@@ -176,7 +176,7 @@
 
 ### Family & Social Features
 
-- [ ] Family Collection goals - Shared collection goal between parent and child accounts with combined progress bar
+- [x] Family Collection goals - Shared collection goal between parent and child accounts with combined progress bar
 - [ ] Sleep mode scheduling - Parent-controlled quiet hours where app shows calming "Time for bed!" screen
 - [ ] Trade suggestion engine - Suggest trades between siblings based on wishlists and duplicate cards
 - [ ] Family leaderboard - Opt-in friendly competition between family members (cards collected this week)
@@ -303,3 +303,4 @@
 - **2026-01-16**: Added collection snapshot sharing for social media - Created CollectionSnapshotShare component (src/components/collection/CollectionSnapshotShare.tsx) generating shareable images of collection stats using HTML Canvas API. Features: 1080x1080px Instagram-friendly square format; 4 theme options (Galaxy purple, Ocean blue, Forest green, Sunset orange); displays profile name, total cards, unique cards, day streak, badges earned, sets started with progress bar; CardDex branding and tagline; date stamp; download as PNG, copy to clipboard, or share via Web Share API on mobile; modal preview with theme selector; integrated into Dashboard welcome header and Collection page header; skeleton loading state while data loads. Uses Heroicons (ShareIcon, XMarkIcon, ArrowDownTrayIcon, ClipboardDocumentIcon, CheckIcon, SparklesIcon, Square3Stack3DIcon, TrophyIcon, FireIcon, StarIcon). Commit: 0006c18
 - **2026-01-16**: Added virtual pack opening simulator - Created PackOpeningSimulator component (src/components/virtual/PackOpeningSimulator.tsx) with interactive pack opening experience. Features: 2 free daily packs that reset at midnight with localStorage persistence; sealed pack with holographic shimmer effect and lock overlay when exhausted; 10-card reveal grid with 3D flip animations; card back design with sparkle icon; rare card detection with amber glow effects and star badge; rares sorted to end of pack like real packs; auto-reveal all button; open another pack flow; empty collection state with guidance; respects reduced motion preferences; accessible with keyboard navigation and ARIA labels. Integrated into KidDashboard with PackOpeningButton showing remaining pack count. Uses Heroicons (SparklesIcon, XMarkIcon, GiftIcon, ArrowPathIcon, StarIcon, LockClosedIcon). Commit: fd44b9e
 - **2026-01-16**: Added virtual trophy room - Created VirtualTrophyRoom component (src/components/virtual/VirtualTrophyRoom.tsx) displaying user's top 10 most valuable cards on 3D-style display shelves. Features: two-row trophy shelf layout (5 cards each) with wooden shelf effect; rank badges (gold #1, silver #2, bronze #3, indigo #4-10); rarity-based glow effects using RARITY_GLOW_COLORS mapping (yellow for Rare Holo, purple for Ultra Rare, rainbow for Rare Rainbow, etc.); hover animations with -translate-y-2 scale effect; shimmer overlay for holo cards; total collection value display with SparklesIcon header badge; empty state with placeholder message; empty slot placeholders with dashed border and StarIcon; skeleton loading state; respects reduced motion preferences with prefersReducedMotion check; accessible with meaningful image alt text. Integrated into My Collection page above stats overview. Uses getMostValuableCards Convex query for card data. Uses Heroicons (TrophyIcon, SparklesIcon, CurrencyDollarIcon, StarIcon, Square3Stack3DIcon). Commit: f531734
+- **2026-01-16**: Added family collection goals - Created FamilyCollectionGoal component (src/components/family/FamilyCollectionGoal.tsx) showing shared collection goal between parent and child accounts with combined progress bar. Features: multi-colored segmented progress bar with each family member's contribution shown in different colors (indigo, pink, emerald, amber, purple); expandable member breakdown showing individual card counts and percentages; goal completion celebration with trophy icon and sparkle message; compact variant for kid dashboard and full variant for parent dashboard; default 500-card goal target; uses MemberStatsCollector pattern with useEffect to fetch each profile's stats independently; skeleton loading state. Integrated into KidDashboard progress section and ParentDashboard below family overview. Uses Heroicons (FlagIcon, UserGroupIcon, TrophyIcon, SparklesIcon, ChevronDownIcon, ChevronUpIcon). Commit: f6ac316
