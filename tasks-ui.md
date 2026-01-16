@@ -15,13 +15,13 @@
 | **UI Cleanup & Settings (PRIORITY)** | 6        | **0**     |
 | **Forgiving Streak System**          | 5        | **0**     |
 | **Virtual Experience Features**      | 6        | **0**     |
-| **Collection Timeline & Story**      | 2        | **3**     |
+| **Collection Timeline & Story**      | 3        | **2**     |
 | **Family & Social Features**         | 4        | **1**     |
 | **Financial Literacy**               | 0        | **4**     |
 | **Educational Mini-Games**           | 0        | **5**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
 | **Engagement & Retention**           | 4        | **0**     |
-| **TOTAL**                            | **94**   | **16**    |
+| **TOTAL**                            | **95**   | **15**    |
 
 ### Priority Order for Remaining Tasks
 
@@ -171,7 +171,7 @@
 - [x] Timeline View - Chronological view of when cards were added with month markers and "collection anniversaries"
 - [x] First card celebration - Special permanent badge/display for user's very first card (nostalgia feature)
 - [x] Collector's Journey Story Mode - Adventure narrative that unlocks chapters based on collection milestones
-- [ ] Adventure Map visualization - Visual map showing Pokemon regions unlocked based on sets/types collected
+- [x] Adventure Map visualization - Visual map showing Pokemon regions unlocked based on sets/types collected
 - [ ] Collection stats over time - Graphs showing collection growth, cards per month, value over time
 
 ### Family & Social Features
@@ -217,6 +217,7 @@
 
 ## Progress
 
+- **2026-01-16**: Completed Adventure Map visualization - Created AdventureMap component (src/components/collection/AdventureMap.tsx) showing Pokemon regions unlocked based on card types collected. Features: 9 regions (Kanto, Johto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar, Paldea) each requiring 5 cards of a specific type to unlock (Fire, Grass, Water, Psychic, Electric, Fairy, Fighting, Metal, Dragon), interactive map with positioned region nodes, SVG path connections between regions, progress rings on locked regions, region detail panel with unlock requirements, overall progress header. Uses Heroicons (MapIcon, LockClosedIcon, CheckCircleIcon, SparklesIcon). Commit: a1b7618
 - **2026-01-16**: Completed Collector's Journey Story Mode - Created CollectorsJourneyStory component (src/components/collection/CollectorsJourneyStory.tsx) with adventure narrative that unlocks chapters based on collection milestones. Features: 7 story chapters (1 card to 500 cards), animated chapter cards with progress bars for locked chapters, immersive story reader modal with decorative background patterns, journey header with overall progress tracking, milestone-based unlock system using existing getMilestoneProgress query, gradient themes per chapter, skeleton loading state, next chapter hints. Uses Heroicons (BookOpenIcon, LockClosedIcon, SparklesIcon, CheckCircleIcon, ChevronRightIcon, MapIcon, StarIcon, TrophyIcon, FireIcon, BoltIcon, RocketLaunchIcon, GlobeAltIcon). Commit: 89e2e3e
 - **2026-01-16**: Completed trade suggestion engine - Created TradeSuggestionEngine component (src/components/family/TradeSuggestionEngine.tsx) that suggests trades between siblings based on wishlists and duplicate cards. Features: collapsible panel in ParentDashboard, suggests cards where one sibling has duplicates (quantity > 1) that another sibling might want, visual badges for wishlist matches (rose "Wanted") vs extra cards (emerald "Extra"), card images with quantity badges, sorted by priority (wishlist first then by quantity), skeleton loading state, empty state messaging, responsive design. Added to ParentDashboard component. Uses Heroicons (LightBulbIcon, HeartIcon, CheckCircleIcon, ArrowsRightLeftIcon). Commit: 4f437c1
 - **2026-01-15**: Completed loading states and skeleton screens - Created reusable Skeleton component library (src/components/ui/Skeleton.tsx) with animated shimmer effects. Added CardSkeleton, CardGridSkeleton, StatsBarSkeleton, SetCardSkeleton, CollectionGroupSkeleton, SearchResultsSkeleton, and FilterPanelSkeleton. Updated CardGrid, SearchResults, CollectionView, collection page, and browse page to use skeleton screens instead of basic loading spinners. Also replaced browse page emoji with FunnelIcon SVG. Commit: bd35695
