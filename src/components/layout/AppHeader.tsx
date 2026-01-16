@@ -22,11 +22,6 @@ import { StreakCounter } from '@/components/gamification/StreakCounter';
 import { LevelDisplay } from '@/components/gamification/LevelSystem';
 import { KidModeToggle } from '@/components/layout/KidModeToggle';
 import { DarkModeToggle } from '@/components/layout/DarkModeToggle';
-import { LowStimulationToggle } from '@/components/layout/LowStimulationToggle';
-import { DyslexicFontToggle } from '@/components/layout/DyslexicFontToggle';
-import { HighContrastToggle } from '@/components/layout/HighContrastToggle';
-import { ReducedMotionToggle } from '@/components/layout/ReducedMotionToggle';
-import { FocusModeToggle } from '@/components/layout/FocusModeToggle';
 import { useFocusMode } from '@/components/providers/FocusModeProvider';
 import { OfflineIndicator } from '@/components/layout/OfflineIndicator';
 
@@ -126,17 +121,12 @@ export function AppHeader() {
           })}
         </div>
 
-        {/* Right side: Level, Streak, Offline Status, Kid Mode, Calm Mode, Focus Mode, Dark Mode, Profile Menu */}
+        {/* Right side: Level, Streak, Offline Status, Kid Mode, Dark Mode, Profile Menu */}
         <div className="hidden items-center gap-2 lg:flex">
           {showLevels && <LevelDisplay />}
           {showStreaks && <StreakCounter />}
           <OfflineIndicator />
           <KidModeToggle />
-          <LowStimulationToggle compact />
-          <FocusModeToggle compact />
-          <ReducedMotionToggle compact />
-          <DyslexicFontToggle compact />
-          <HighContrastToggle compact />
           <DarkModeToggle compact />
           <div className="h-6 w-px bg-gray-200 dark:bg-slate-600" aria-hidden="true" />
 
@@ -316,18 +306,13 @@ export function AppHeader() {
             )}
           </div>
 
-          {/* Mobile level, streak, offline status, kid mode, calm mode, focus mode, and dark mode */}
+          {/* Mobile level, streak, offline status, kid mode, and dark mode */}
           <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
             <div className="mb-3 flex flex-wrap items-center justify-center gap-3">
               {showLevels && <LevelDisplay />}
               {showStreaks && <StreakCounter />}
               <OfflineIndicator />
               <KidModeToggle />
-              <LowStimulationToggle compact />
-              <FocusModeToggle compact />
-              <ReducedMotionToggle compact />
-              <DyslexicFontToggle compact />
-              <HighContrastToggle compact />
               <DarkModeToggle compact />
             </div>
           </div>
