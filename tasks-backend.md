@@ -72,10 +72,38 @@
 
 ## NEW - Multi-TCG Architecture
 
-- [ ] **Add `games` table to schema** - id, name ("pokemon", "onepiece", "dragonball"), display_name, api_source, is_active
+**Database Schema:**
+
+```
+Table: games
+- id (PK)
+- slug ("pokemon", "yugioh", "onepiece", "dragonball", "lorcana", "digimon", "mtg")
+- display_name ("Pokémon TCG", "Yu-Gi-Oh!", "One Piece Card Game", etc.)
+- api_source ("pokemontcg.io", "ygoprodeck", "optcgapi", "apitcg", "lorcast", "digimoncard.io", "scryfall")
+- primary_color ("#FFCB05", "#7B5BA6", "#E31837", etc.)
+- is_active (boolean)
+- release_order (int) -- for display sorting
+
+Table: profile_games (many-to-many)
+- profile_id (FK)
+- game_id (FK)
+- enabled_at (timestamp)
+```
+
+**Tasks:**
+
+- [ ] **Add `games` table to Convex schema** - With all fields above
+- [ ] **Add `profile_games` junction table** - Track which games each profile collects
 - [ ] **Add game_id foreign key to sets table** - Link sets to games
 - [ ] **Add game_id foreign key to cached_cards table** - Link cards to games
-- [ ] **Create game-agnostic API abstraction** - Fetch functions that work across different card game APIs
+- [ ] **Create game-agnostic API abstraction** - Unified fetch interface that routes to correct API
+- [ ] **API adapter for YGOPRODeck** - Yu-Gi-Oh! cards
+- [ ] **API adapter for OPTCG API** - One Piece cards
+- [ ] **API adapter for ApiTCG** - Dragon Ball, possibly others
+- [ ] **API adapter for Lorcast** - Disney Lorcana cards
+- [ ] **API adapter for DigimonCard.io** - Digimon cards
+- [ ] **API adapter for Scryfall** - Magic: The Gathering cards
+- [ ] **Evaluate unified APIs** - Test if ApiTCG.com or JustTCG can replace multiple adapters
 
 ## NEW - Gamification Backend
 
@@ -92,7 +120,7 @@
 ## NEW - Additional Features
 
 - [ ] **Japanese promo support** - Proper detection and categorization of Japanese promos (competitor gap)
-- [ ] **"New in collection" tracking** - Query for cards added in last 7 days
+- [x] **"New in collection" tracking** - Query for cards added in last 7 days
 - [ ] **Random card query** - Return random card from user's collection
 - [ ] **Rarity filter support** - Add rarity indexing for efficient filtering
 - [ ] **Fair trading calculator** - Price comparison logic for "Is this trade fair?" tool
@@ -102,12 +130,19 @@
 - [ ] **Free tier limitations** - Enforce 3 sets max, 1 child profile for free tier
 - [ ] **Subscription validation** - Check subscription status before premium features
 - [ ] **TCGPlayer affiliate link generation** - Add affiliate tracking to wishlist share links
+- [ ] **Stripe subscription integration** - Payment processing for Family tier ($4.99/mo or $39.99/yr)
+- [ ] **Set up production environment** - Vercel deployment configuration
+- [ ] **Configure environment variables** - Production secrets and API keys
+- [ ] **Set up error monitoring (Sentry)** - Error tracking and alerting
+- [ ] **Set up analytics (Plausible or PostHog)** - Usage tracking, kid-safe analytics
+- [ ] **Write E2E tests** - Critical user flows (add card, create wishlist, share link)
 
 ---
 
 ## Progress
 
 ### 2026-01-15: Add priority starring logic (max 5 starred items per profile)
+
 - Added `MAX_PRIORITY_ITEMS = 5` constant to `convex/wishlist.ts`
 - Updated `togglePriority` mutation to enforce max 5 limit when toggling ON priority
 - Updated `addToWishlist` mutation to check limit when adding with `isPriority: true`
@@ -117,6 +152,7 @@
 - All 111 tests pass, linter clean
 
 ### 2026-01-15: Create activity log mutations (log card additions with timestamps)
+
 - Created `convex/activityLogs.ts` with full query/mutation support:
   - `getRecentActivity`: Get paginated activity for a profile (newest first)
   - `getActivityByDateRange`: Filter activity by date range
@@ -135,6 +171,7 @@
 - All 152 tests pass, linter clean
 
 ### 2026-01-15: Build duplicate finder query (compare two profiles, find matching cardIds)
+
 - Added `findDuplicateCards` query to `convex/collections.ts`:
   - Takes two profileIds and returns cards that exist in both collections
   - Includes quantity and variant breakdown for each profile
@@ -156,6 +193,7 @@
 - All 190 tests pass, linter clean
 
 ### 2026-01-15: Fix activity log to show card names instead of IDs
+
 - Added `getRecentActivityWithNames` query to `convex/activityLogs.ts`:
   - Enriches activity logs with card names from `cachedCards` table
   - Only performs lookups when cardName is missing from metadata
@@ -174,6 +212,7 @@
 - All 279 tests pass, linter clean
 
 ### 2026-01-15: Write unit tests for achievement awarding logic
+
 - Created `src/lib/achievements.ts` with pure utility functions for:
   - Milestone badge checking (`checkMilestoneAchievements`, `getHighestMilestone`, `getNextMilestone`)
   - Set completion badge checking (`calculateSetCompletion`, `checkSetCompletionAchievements`, `createSetBadgeKey`, `parseSetBadgeKey`)
@@ -194,6 +233,7 @@
 - All 373 tests pass, linter clean
 
 ### 2026-01-15: Implement set completion badge awarding logic
+
 - Added `checkSetCompletionAchievements` mutation to `convex/achievements.ts`:
   - Takes profileId and setId, checks collection completion percentage
   - Awards badges at 25% (set_explorer), 50% (set_adventurer), 75% (set_master), 100% (set_champion)
@@ -217,6 +257,7 @@
 - All 413 tests pass, linter clean
 
 ### 2026-01-16: Create collector milestone badge awarding (trigger on card count thresholds)
+
 - Enhanced `checkMilestoneAchievements` mutation in `convex/achievements.ts`:
   - Now logs `achievement_earned` activity with badge name, type, and metadata
   - Counts unique cardIds (ignoring variants) for accurate milestone tracking
@@ -244,6 +285,7 @@
 - All 462 tests pass, linter clean
 
 ### 2026-01-16: Build type specialist badge logic (count cards by type, award at 10+)
+
 - Added `checkTypeSpecialistAchievements` mutation to `convex/achievements.ts`:
   - Counts unique cards by Pokemon type from `cachedCards` table
   - Awards badges at 10+ cards threshold for each of 11 types (Fire, Water, Grass, Lightning, Psychic, Fighting, Darkness, Metal, Dragon, Fairy, Colorless)
@@ -274,6 +316,7 @@
 - All 538 tests pass, linter clean
 
 ### 2026-01-16: Add Pokemon fan badge logic (count specific Pokemon across sets)
+
 - Added `checkPokemonFanAchievements` mutation to `convex/achievements.ts`:
   - Counts unique cards by Pokemon name from `cachedCards` table
   - Awards badges for specific Pokemon: Pikachu Fan (5+), Eevee Fan (5+), Charizard Fan (3+), Mewtwo Fan (3+), Legendary Fan (10+)
@@ -314,6 +357,7 @@
 - All 630 tests pass, linter clean
 
 ### 2026-01-16: Implement streak tracking system (track daily activity, award streak badges)
+
 - Added `checkStreakAchievements` mutation to `convex/achievements.ts`:
   - Calculates streak from card_added activity logs (last 60 days)
   - Awards badges at streak thresholds: streak_3 (3 days), streak_7 (7 days), streak_14 (14 days), streak_30 (30 days)
@@ -350,6 +394,7 @@
 - All 700 tests pass, linter clean
 
 ### 2026-01-16: Add badge earned date tracking to schema and mutations
+
 - Added new Convex queries to `convex/achievements.ts`:
   - `getAchievementsWithDates`: Returns all achievements sorted by earnedAt (newest first) with enriched data
     - Includes formatted date (e.g., "Jan 15, 2026") and relative date (e.g., "2 days ago")
@@ -393,6 +438,7 @@
 - All 737 tests pass, linter clean
 
 ### 2026-01-16: Write integration tests for collection CRUD operations
+
 - Created `src/lib/collections.ts` with pure utility functions for:
   - Validation: `isValidVariant`, `isValidCardId`, `isValidQuantity`
   - Extraction: `extractSetId`, `extractCardNumber`
@@ -419,6 +465,7 @@
 - All 806 tests pass, linter clean
 
 ### 2026-01-16: Create query to get collection grouped by card+variant
+
 - Added `getCollectionGroupedByVariant` query to `convex/collections.ts`:
   - Returns cards with enriched data (name, imageSmall, setId) from cachedCards table
   - Each unique (cardId, variant) pair is a separate entry
@@ -447,3 +494,53 @@
   - Sorting by variant order
   - Integration scenarios: displaying collection by variant, filtering collection view, complete variant statistics
 - All 843 tests pass, linter clean
+
+### 2026-01-16: Add "New in collection" tracking query
+
+- Added `getNewlyAddedCards` query to `convex/collections.ts`:
+  - Returns cards added in the last N days (default 7) with enriched data
+  - Includes card name, image, set, rarity, variant, quantity, addedAt timestamp
+  - Joins activity logs with cachedCards for card details
+  - Returns summary stats: totalAdditions, uniqueCards, daysSearched, oldest/newest addition
+- Added `getNewlyAddedCardsSummary` query:
+  - Returns daily summaries grouped by date for calendar/activity display
+  - Includes additionCount, uniqueCardsCount, totalQuantity per day
+  - Returns totals with daysWithActivity count
+- Added `hasNewCards` query:
+  - Lightweight query for showing "New!" badge in UI
+  - Returns hasNew boolean and count of additions in time window
+- Added utility functions to `src/lib/collections.ts`:
+  - Types: `CardAdditionLog`, `NewlyAddedCard`, `NewlyAddedSummary`, `DailyAdditionSummary`
+  - Constants: `DEFAULT_NEW_CARDS_DAYS` (7), `MAX_NEW_CARDS_DAYS` (30)
+  - `getCutoffTimestamp`: Calculate cutoff for N days ago
+  - `filterRecentCardAdditions`: Filter activity logs to card_added events within window
+  - `extractCardAddition`, `parseCardAdditions`: Parse activity log metadata
+  - `groupAdditionsByDate`, `getDailySummaries`: Group by date for calendar display
+  - `calculateNewlyAddedSummary`: Get summary stats for additions
+  - `getUniqueCardIdsFromAdditions`: Get unique card IDs
+  - `enrichCardAdditions`: Add card details from cache lookup
+  - `isWithinNewWindow`: Check if timestamp is within "new" window
+  - `formatAddedAtRelative`, `formatAddedAtAbsolute`: Display formatting helpers
+  - `sortByAddedAt`, `groupNewlyAddedByDay`, `countNewCardsBySet`: Sorting and grouping
+  - `getNewCardsBadgeText`, `hasAnyNewCards`: UI display helpers
+- Added 67 tests in `src/lib/__tests__/collections.test.ts` covering:
+  - Constants validation (DEFAULT_NEW_CARDS_DAYS, MAX_NEW_CARDS_DAYS)
+  - getCutoffTimestamp calculations for various day counts
+  - filterRecentCardAdditions filtering logic with mixed log types
+  - extractCardAddition parsing with defaults for missing fields
+  - parseCardAdditions with logs missing cardId
+  - groupAdditionsByDate grouping and counting (unique cards, total quantity)
+  - getDailySummaries sorting by date descending
+  - calculateNewlyAddedSummary stats (oldest/newest addition, unique cards)
+  - getUniqueCardIdsFromAdditions deduplication
+  - enrichCardAdditions with card data map and fallbacks
+  - isWithinNewWindow with default and custom day parameters
+  - formatAddedAtRelative (just now, minutes, hours, yesterday, days ago, absolute fallback)
+  - formatAddedAtAbsolute date formatting
+  - sortByAddedAt ascending/descending, non-mutating
+  - groupNewlyAddedByDay grouping
+  - countNewCardsBySet counting
+  - getNewCardsBadgeText formatting (singular/plural)
+  - hasAnyNewCards boolean check
+  - Integration scenarios: processing activity logs, daily activity summary, badge display, time window detection
+- All 898 tests pass, linter clean
