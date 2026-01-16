@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/solid';
 import { cn } from '@/lib/utils';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
+import { RarityBadge } from '@/components/ui/RarityTooltip';
 
 interface CollectionCard {
   _id: string;
@@ -217,9 +218,9 @@ export function RandomCardButton({ collection, cardData, className }: RandomCard
                   {selectedCard.set.name} · #{selectedCard.number}
                 </p>
                 {selectedCard.rarity && (
-                  <span className="mt-2 inline-block rounded-full bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1 text-xs font-medium text-purple-700">
-                    {selectedCard.rarity}
-                  </span>
+                  <div className="mt-2">
+                    <RarityBadge rarity={selectedCard.rarity} size="md" showTooltip={true} />
+                  </div>
                 )}
               </div>
             )}
