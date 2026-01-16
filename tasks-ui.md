@@ -20,12 +20,12 @@
 | **Financial Literacy**               | 0        | **4**     |
 | **Educational Mini-Games**           | 0        | **5**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
-| **Engagement & Retention**           | 1        | **3**     |
-| **TOTAL**                            | **82**   | **28**    |
+| **Engagement & Retention**           | 2        | **2**     |
+| **TOTAL**                            | **83**   | **27**    |
 
 ### Priority Order for Remaining Tasks
 
-1. **Engagement & Retention** (4 tasks) - Daily stamps, weekly challenges - Key for daily active users
+1. **Engagement & Retention** (2 tasks) - Comeback rewards, snapshot sharing - Key for daily active users
 2. **Virtual Experience Features** (6 tasks) - Pack opening simulator, trophy room - Fun differentiators
 3. **Family & Social Features** (5 tasks) - Family goals, trade suggestions - Multi-user value
 4. **Educational Mini-Games** (5 tasks) - Grade Like a Pro, rarity guessing - Learning through play
@@ -211,7 +211,7 @@
 ### Engagement & Retention
 
 - [x] Daily stamp collection - Non-consecutive stamp system (collect 5 stamps in a week for reward, doesn't need to be consecutive)
-- [ ] Weekly challenges - "Add 3 water-type cards this week" with themed rewards
+- [x] Weekly challenges - "Add 3 water-type cards this week" with themed rewards
 - [ ] Comeback rewards - Special welcome back celebration and bonus XP for returning after absence
 - [ ] Collection snapshot sharing - Generate shareable image of collection stats/highlights for social media
 
@@ -296,3 +296,4 @@
 - **2026-01-16**: Completed UI Cleanup & Settings section - Settings page sections already organized into Display (dark mode, kid mode), Accessibility (low-stim, dyslexic font, high contrast, reduced motion, focus mode), Games (TCG selection), and Notifications. Added quick settings popover from header gear icon with DarkModeToggle and KidModeToggle for fast access without leaving current page. Desktop shows popover on gear click; mobile menu includes Quick Settings section with same toggles. Commit: b835962
 - **2026-01-16**: Added streak repair with XP - Created comprehensive streak repair system (src/lib/streakRepair.ts, src/components/gamification/StreakRepair.tsx) allowing users to spend accumulated XP to repair a recently broken streak. Features: 48-hour repair window after streak breaks; cost formula scales with streak length (base cost + streak bonus); cost breakdown display showing base cost and streak multiplier; urgency indicators (critical/high styling when time running low); StreakRepairStatus card with XP cost, time remaining, repair button; RepairSuccessModal with celebration animation when streak restored; StreakRepairIndicator compact version for inline display; localStorage persistence for repair state and history. Integrated into /streak page below calendar, updated info card and tips section to mention repair feature. Uses Heroicons (WrenchScrewdriverIcon, BoltIcon, ClockIcon, FireIcon, ExclamationTriangleIcon, CheckCircleIcon, SparklesIcon). Commit: cd9db31
 - **2026-01-16**: Added daily stamp collection system - Created non-consecutive stamp system where users collect 5 stamps in any week for bonus XP reward. Features: dailyStamps.ts utility library with stamp tracking, week boundaries, and progress calculations; DailyStampProvider context for app-wide state management; DailyStampCollection component with weekly 7-day stamp grid, interactive collect-today cells with pulse animation, progress bar with smooth transitions, reward claim modal with celebration animation; stamp milestones at 10/25/50/100 total stamps with progress indicators; localStorage persistence with automatic cleanup of old data (>8 weeks); integrated into /streak page with skeleton loading states; added tip about daily stamps to tips section. Uses Heroicons (CalendarDaysIcon, GiftIcon, SparklesIcon, CheckCircleIcon, StarIcon, FireIcon, BoltIcon). Commit: fb6ee0d
+- **2026-01-16**: Added weekly challenges system - Created themed weekly challenges like "Add 3 Water-type cards this week" with XP rewards. Features: weeklyChallenges.ts library with 14 challenge templates covering type collection (fire, water, grass, lightning, psychic, fighting, dragon), rarity hunts (rare, ultra rare), variant collection (holofoil, reverse holo), and general challenges (set explorer, variety collector, card enthusiast); deterministic weekly selection using seeded random based on week start date; WeeklyChallenges component with ChallengeCard displaying progress bars, status indicators, and claim buttons; reward modal with celebration animation; tracks all-time completed challenges and total XP earned; localStorage persistence with auto-cleanup of old data; integrated into /streak page below daily stamps with skeleton loading state; added tip about weekly challenges. Uses Heroicons (TrophyIcon, SparklesIcon, CheckCircleIcon, ClockIcon, GiftIcon, BoltIcon, FireIcon, GlobeAltIcon, StarIcon, ShieldCheckIcon, HeartIcon, RocketLaunchIcon). Commit: 266caa9
