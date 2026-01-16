@@ -1,0 +1,174 @@
+// KidCollect Database Schema
+// Family-friendly Pokemon card collection tracker
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// FAMILY & AUTHENTICATION
+// ============================================================================
+
+model Family {
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  passwordHash         String    @map("password_hash")
+  subscriptionTier     String    @default("free") @map("subscription_tier")
+  subscriptionExpiresAt DateTime? @map("subscription_expires_at")
+  parentPinHash        String?   @map("parent_pin_hash")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  profiles Profile[]
+
+  @@map("families")
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  familyId    String   @map("family_id")
+  displayName String   @map("display_name")
+  avatarUrl   String?  @map("avatar_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  family         Family           @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  collectionCards CollectionCard[]
+  wishlistCards   WishlistCard[]
+  achievements    Achievement[]
+  wishlistShares  WishlistShare[]
+
+  @@map("profiles")
+}
+
+// ============================================================================
+// COLLECTION TRACKING
+// ============================================================================
+
+model CollectionCard {
+  id        String   @id @default(uuid())
+  profileId String   @map("profile_id")
+  cardId    String   @map("card_id") // Pokemon TCG API card ID (e.g., "sv1-1")
+  quantity  Int      @default(1)
+  addedAt   DateTime @default(now()) @map("added_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, cardId])
+  @@map("collection_cards")
+}
+
+// ============================================================================
+// WISHLIST
+// ============================================================================
+
+model WishlistCard {
+  id         String   @id @default(uuid())
+  profileId  String   @map("profile_id")
+  cardId     String   @map("card_id") // Pokemon TCG API card ID
+  isPriority Boolean  @default(false) @map("is_priority")
+  addedAt    DateTime @default(now()) @map("added_at")
+
+  // Relations
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, cardId])
+  @@map("wishlist_cards")
+}
+
+model WishlistShare {
+  id         String    @id @default(uuid())
+  profileId  String    @map("profile_id")
+  shareToken String    @unique @map("share_token")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  expiresAt  DateTime? @map("expires_at")
+
+  // Relations
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("wishlist_shares")
+}
+
+// ============================================================================
+// ACHIEVEMENTS
+// ============================================================================
+
+model Achievement {
+  id              String   @id @default(uuid())
+  profileId       String   @map("profile_id")
+  achievementType String   @map("achievement_type") // e.g., "set_completion", "milestone", "type_specialist"
+  achievementKey  String   @map("achievement_key")  // e.g., "sv1_25", "cards_100", "fire_trainer"
+  achievementData Json?    @map("achievement_data") // Flexible data (set ID, count, etc.)
+  earnedAt        DateTime @default(now()) @map("earned_at")
+
+  // Relations
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, achievementKey])
+  @@map("achievements")
+}
+
+// ============================================================================
+// ACTIVITY TRACKING (for streaks and parent dashboard)
+// ============================================================================
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  profileId String   @map("profile_id")
+  action    String   // "card_added", "card_removed", "achievement_earned"
+  metadata  Json?    // Additional data about the action
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([profileId, createdAt])
+  @@map("activity_logs")
+}
+
+// ============================================================================
+// CACHED CARD DATA (optional, for offline support)
+// ============================================================================
+
+model CachedSet {
+  id           String   @id // Pokemon TCG API set ID (e.g., "sv1")
+  name         String
+  series       String
+  releaseDate  String   @map("release_date")
+  totalCards   Int      @map("total_cards")
+  logoUrl      String?  @map("logo_url")
+  symbolUrl    String?  @map("symbol_url")
+  cachedAt     DateTime @default(now()) @map("cached_at")
+
+  // Relations
+  cards CachedCard[]
+
+  @@map("cached_sets")
+}
+
+model CachedCard {
+  id           String  @id // Pokemon TCG API card ID (e.g., "sv1-1")
+  setId        String  @map("set_id")
+  name         String
+  number       String
+  supertype    String  // Pokemon, Trainer, Energy
+  subtypes     String[] // Basic, Stage 1, etc.
+  types        String[] // Fire, Water, etc.
+  rarity       String?
+  imageSmall   String  @map("image_small")
+  imageLarge   String  @map("image_large")
+  tcgPlayerUrl String? @map("tcgplayer_url")
+  priceMarket  Float?  @map("price_market") // Optional pricing for parent view
+
+  // Relations
+  set CachedSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  @@index([setId])
+  @@map("cached_cards")
+}
