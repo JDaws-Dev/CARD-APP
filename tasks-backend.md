@@ -4,7 +4,7 @@
 
 | Section | Complete | Remaining |
 |---------|----------|-----------|
-| HIGH PRIORITY - Auth & Pricing | 7 | **3** |
+| HIGH PRIORITY - Auth & Pricing | 8 | **2** |
 | Card Variants | 3 | 0 |
 | Achievement System | 6 | 0 |
 | Wishlist & Sharing | 4 | 0 |
@@ -16,10 +16,10 @@
 | Educational Content | 3 | 0 |
 | Additional Features | 5 | 0 |
 | Launch Prep | 3 | **6** |
-| **TOTAL** | **51** | **14** |
+| **TOTAL** | **52** | **13** |
 
 ### Critical Path for Launch
-1. **Authentication (2 tasks)** - Email/password login, parent registration (child profiles and PIN protection complete)
+1. **Authentication (1 task)** - Parent registration with email verification (email/password login, child profiles, and PIN protection complete)
 2. **Launch Prep (6 tasks)** - Stripe integration, production deploy, monitoring, E2E tests
 3. **Data Persistence (3 tasks)** - Cloud backup, sync, conflict resolution
 4. **TCGPlayer Pricing (1 task)** - Fetch real pricing data from TCGPlayer API
@@ -51,7 +51,7 @@
 ### HIGH PRIORITY - Authentication & Pricing
 
 - [x] Fix activity log to show card names instead of IDs (store cardName in metadata when logging)
-- [ ] Implement authentication system with Convex Auth (email/password login)
+- [x] Implement authentication system with Convex Auth (email/password login)
 - [ ] Create parent account registration flow with email verification
 - [x] Build child profile creation (up to 4 per family) with validation
 - [x] Implement parent PIN protection logic (store hashed PIN, verify on access)
@@ -1793,4 +1793,30 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Constants: `MIN_PIN_LENGTH` (4), `MAX_PIN_LENGTH` (6), `MAX_PIN_ATTEMPTS` (5), `PIN_LOCKOUT_DURATION` (15 min), `COMMON_WEAK_PINS` (21 patterns)
 - All 90 PIN protection tests pass in `src/lib/__tests__/pinProtection.test.ts`
 - TypeScript compiles with no errors
+- Task was already implemented but not marked complete - now marked as [x]
+
+
+### 2026-01-16: Mark authentication system task as complete (already implemented)
+
+- Verified `convex/auth.ts` is fully implemented with:
+  - Convex Auth configuration using `convexAuth` from `@convex-dev/auth/server`
+  - Password provider from `@convex-dev/auth/providers/Password`
+  - Exports: `auth`, `signIn`, `signOut`, `store`, `isAuthenticated`
+- Verified `convex/http.ts` has auth HTTP routes configured
+- Verified `src/components/auth/AuthForm.tsx` has complete UI:
+  - Email/password form with sign in and sign up modes
+  - Uses `useAuthActions` hook from `@convex-dev/auth/react`
+  - Handles loading states and error display
+  - Toggle between sign in and sign up flows
+- Verified `src/components/providers/ConvexClientProvider.tsx`:
+  - Wraps app with `ConvexProvider` and `ConvexAuthProvider`
+  - Handles missing CONVEX_URL gracefully
+- Verified `convex/profiles.ts` has authentication-aware mutations:
+  - `getCurrentUserProfile`: Gets authenticated user's profile using `getAuthUserId`
+  - `isUserAuthenticated`: Lightweight auth state check
+  - `getCurrentUserProfiles`: Returns all profiles for authenticated user
+  - `getOrCreateAuthenticatedUserProfile`: Creates family/profile on first login
+- Verified schema has `authTables` imported from Convex Auth
+- TypeScript compiles with no errors
+- Build succeeds
 - Task was already implemented but not marked complete - now marked as [x]
