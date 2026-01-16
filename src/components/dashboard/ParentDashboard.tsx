@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, createContext, useContext } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -18,8 +19,17 @@ import {
   FireIcon,
   HeartIcon,
   ChartBarIcon,
+  EyeIcon,
+  EyeSlashIcon,
 } from '@heroicons/react/24/solid';
 import { Skeleton } from '@/components/ui/Skeleton';
+
+// Context for pricing visibility
+const PricingVisibilityContext = createContext<boolean>(true);
+
+function usePricingVisibility() {
+  return useContext(PricingVisibilityContext);
+}
 
 // Profile card skeleton for loading state
 function ProfileCardSkeleton() {
@@ -68,6 +78,9 @@ interface ChildProfileCardProps {
 }
 
 function ChildProfileCard({ profileId, displayName, avatarUrl }: ChildProfileCardProps) {
+  // Get pricing visibility from context
+  const showPricing = usePricingVisibility();
+
   // Fetch collection stats for this profile
   const stats = useQuery(api.collections.getCollectionStats, { profileId });
   const collectionValue = useQuery(api.collections.getCollectionValue, { profileId });
@@ -206,10 +219,19 @@ function ChildProfileCard({ profileId, displayName, avatarUrl }: ChildProfileCar
         {/* Collection value */}
         <div className="rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 p-4 text-center">
           <CurrencyDollarIcon className="mx-auto mb-1 h-5 w-5 text-amber-500" />
-          <div className="text-2xl font-bold text-gray-800">
-            ${collectionValue.totalValue.toFixed(0)}
-          </div>
-          <div className="text-xs text-gray-500">Est. Value</div>
+          {showPricing ? (
+            <>
+              <div className="text-2xl font-bold text-gray-800">
+                ${collectionValue.totalValue.toFixed(0)}
+              </div>
+              <div className="text-xs text-gray-500">Est. Value</div>
+            </>
+          ) : (
+            <>
+              <div className="text-2xl font-bold text-gray-400">---</div>
+              <div className="text-xs text-gray-400">Hidden</div>
+            </>
+          )}
         </div>
       </div>
 
@@ -279,12 +301,49 @@ export function ParentDashboardSkeleton() {
   );
 }
 
+// Pricing toggle component
+interface PricingToggleProps {
+  showPricing: boolean;
+  onToggle: () => void;
+}
+
+function PricingToggle({ showPricing, onToggle }: PricingToggleProps) {
+  return (
+    <button
+      onClick={onToggle}
+      className={cn(
+        'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all',
+        showPricing
+          ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+      )}
+      aria-label={showPricing ? 'Hide prices' : 'Show prices'}
+      title={showPricing ? 'Hide TCGPlayer prices' : 'Show TCGPlayer prices'}
+    >
+      {showPricing ? (
+        <>
+          <EyeIcon className="h-4 w-4" />
+          <span>Prices Visible</span>
+        </>
+      ) : (
+        <>
+          <EyeSlashIcon className="h-4 w-4" />
+          <span>Prices Hidden</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 // Main parent dashboard component
 interface ParentDashboardProps {
   familyId: Id<'families'>;
 }
 
 export function ParentDashboard({ familyId }: ParentDashboardProps) {
+  // State for pricing visibility toggle
+  const [showPricing, setShowPricing] = useState(true);
+
   // Fetch family data
   const family = useQuery(api.profiles.getFamily, { familyId });
   const profiles = useQuery(api.profiles.getProfilesByFamily, { familyId });
@@ -298,87 +357,105 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
   const totalProfiles = profiles.length;
 
   return (
-    <div className="space-y-8">
-      {/* Family overview header */}
-      <div className="rounded-2xl bg-gradient-to-r from-indigo-100 via-purple-50 to-pink-100 p-6">
-        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
-          {/* Total profiles */}
-          <div className="text-center">
-            <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 shadow-lg">
-              <UserGroupIcon className="h-7 w-7 text-white" />
+    <PricingVisibilityContext.Provider value={showPricing}>
+      <div className="space-y-8">
+        {/* Family overview header */}
+        <div className="rounded-2xl bg-gradient-to-r from-indigo-100 via-purple-50 to-pink-100 p-6">
+          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+            {/* Total profiles */}
+            <div className="text-center">
+              <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 shadow-lg">
+                <UserGroupIcon className="h-7 w-7 text-white" />
+              </div>
+              <div className="text-3xl font-bold text-gray-800">{totalProfiles}</div>
+              <div className="text-sm text-gray-500">Collector{totalProfiles !== 1 ? 's' : ''}</div>
             </div>
-            <div className="text-3xl font-bold text-gray-800">{totalProfiles}</div>
-            <div className="text-sm text-gray-500">Collector{totalProfiles !== 1 ? 's' : ''}</div>
-          </div>
 
-          {/* Divider */}
-          <div className="hidden h-16 w-px bg-gray-200/50 sm:block" />
+            {/* Divider */}
+            <div className="hidden h-16 w-px bg-gray-200/50 sm:block" />
 
-          {/* Subscription tier */}
-          <div className="text-center">
-            <div
-              className={cn(
-                'mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full shadow-lg',
-                family.subscriptionTier === 'family'
-                  ? 'bg-gradient-to-br from-amber-400 to-orange-500'
-                  : 'bg-gradient-to-br from-emerald-400 to-teal-500'
-              )}
-            >
-              {family.subscriptionTier === 'family' ? (
-                <StarIcon className="h-7 w-7 text-white" />
-              ) : (
-                <HeartIcon className="h-7 w-7 text-white" />
-              )}
+            {/* Subscription tier */}
+            <div className="text-center">
+              <div
+                className={cn(
+                  'mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full shadow-lg',
+                  family.subscriptionTier === 'family'
+                    ? 'bg-gradient-to-br from-amber-400 to-orange-500'
+                    : 'bg-gradient-to-br from-emerald-400 to-teal-500'
+                )}
+              >
+                {family.subscriptionTier === 'family' ? (
+                  <StarIcon className="h-7 w-7 text-white" />
+                ) : (
+                  <HeartIcon className="h-7 w-7 text-white" />
+                )}
+              </div>
+              <div className="text-xl font-bold capitalize text-gray-800">
+                {family.subscriptionTier}
+              </div>
+              <div className="text-sm text-gray-500">Plan</div>
             </div>
-            <div className="text-xl font-bold capitalize text-gray-800">
-              {family.subscriptionTier}
-            </div>
-            <div className="text-sm text-gray-500">Plan</div>
-          </div>
 
-          {/* Divider */}
-          <div className="hidden h-16 w-px bg-gray-200/50 sm:block" />
+            {/* Divider */}
+            <div className="hidden h-16 w-px bg-gray-200/50 sm:block" />
 
-          {/* Profile slots */}
-          <div className="text-center">
-            <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-500 shadow-lg">
-              <FireIcon className="h-7 w-7 text-white" />
+            {/* Profile slots */}
+            <div className="text-center">
+              <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-500 shadow-lg">
+                <FireIcon className="h-7 w-7 text-white" />
+              </div>
+              <div className="text-3xl font-bold text-gray-800">
+                {family.subscriptionTier === 'family' ? 5 - totalProfiles : 1 - totalProfiles}
+              </div>
+              <div className="text-sm text-gray-500">Slots Available</div>
             </div>
-            <div className="text-3xl font-bold text-gray-800">
-              {family.subscriptionTier === 'family' ? 5 - totalProfiles : 1 - totalProfiles}
-            </div>
-            <div className="text-sm text-gray-500">Slots Available</div>
           </div>
         </div>
+
+        {/* Pricing toggle control */}
+        <div className="flex items-center justify-between rounded-xl bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <CurrencyDollarIcon className="h-5 w-5 text-amber-500" />
+            <div>
+              <div className="font-medium text-gray-800">TCGPlayer Prices</div>
+              <div className="text-sm text-gray-500">
+                {showPricing
+                  ? 'Estimated card values are visible'
+                  : 'Prices are hidden from display'}
+              </div>
+            </div>
+          </div>
+          <PricingToggle showPricing={showPricing} onToggle={() => setShowPricing(!showPricing)} />
+        </div>
+
+        {/* Profile cards grid */}
+        {profiles.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {profiles.map((profile) => (
+              <ChildProfileCard
+                key={profile._id}
+                profileId={profile._id}
+                displayName={profile.displayName}
+                avatarUrl={profile.avatarUrl}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
+              <UserGroupIcon className="h-10 w-10 text-gray-300" />
+            </div>
+            <h3 className="mb-2 text-xl font-bold text-gray-800">No Collectors Yet</h3>
+            <p className="mb-6 text-gray-500">
+              Add profiles for your kids to start tracking their Pokemon card collections!
+            </p>
+            <button className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-kid-primary to-purple-500 px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg">
+              <UserGroupIcon className="h-5 w-5" />
+              Add First Collector
+            </button>
+          </div>
+        )}
       </div>
-
-      {/* Profile cards grid */}
-      {profiles.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {profiles.map((profile) => (
-            <ChildProfileCard
-              key={profile._id}
-              profileId={profile._id}
-              displayName={profile.displayName}
-              avatarUrl={profile.avatarUrl}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
-            <UserGroupIcon className="h-10 w-10 text-gray-300" />
-          </div>
-          <h3 className="mb-2 text-xl font-bold text-gray-800">No Collectors Yet</h3>
-          <p className="mb-6 text-gray-500">
-            Add profiles for your kids to start tracking their Pokemon card collections!
-          </p>
-          <button className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-kid-primary to-purple-500 px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg">
-            <UserGroupIcon className="h-5 w-5" />
-            Add First Collector
-          </button>
-        </div>
-      )}
-    </div>
+    </PricingVisibilityContext.Provider>
   );
 }
