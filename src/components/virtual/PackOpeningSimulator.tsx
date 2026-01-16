@@ -14,8 +14,11 @@ import {
   GiftIcon,
   ArrowPathIcon,
   StarIcon,
+  SpeakerWaveIcon,
+  SpeakerXMarkIcon,
 } from '@heroicons/react/24/solid';
-import { LockClosedIcon } from '@heroicons/react/24/outline';
+import { LockClosedIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
+import { usePackEffects } from '@/components/providers/PackEffectsProvider';
 
 // Pack states
 type PackState = 'sealed' | 'opening' | 'revealing' | 'revealed';
@@ -200,9 +203,10 @@ interface CardRevealProps {
   index: number;
   onReveal: () => void;
   autoReveal?: boolean;
+  onCardRevealEffect?: (isRare: boolean) => void;
 }
 
-function CardReveal({ card, index, onReveal, autoReveal }: CardRevealProps) {
+function CardReveal({ card, index, onReveal, autoReveal, onCardRevealEffect }: CardRevealProps) {
   const { prefersReducedMotion } = useReducedMotion();
   const [isFlipping, setIsFlipping] = useState(false);
 
@@ -210,15 +214,17 @@ function CardReveal({ card, index, onReveal, autoReveal }: CardRevealProps) {
     if (autoReveal && !card.revealed) {
       const timer = setTimeout(() => {
         setIsFlipping(true);
+        onCardRevealEffect?.(card.isRare);
         setTimeout(onReveal, prefersReducedMotion ? 0 : 300);
       }, index * (prefersReducedMotion ? 100 : 200));
       return () => clearTimeout(timer);
     }
-  }, [autoReveal, card.revealed, index, onReveal, prefersReducedMotion]);
+  }, [autoReveal, card.revealed, index, onReveal, prefersReducedMotion, onCardRevealEffect, card.isRare]);
 
   const handleClick = () => {
     if (!card.revealed) {
       setIsFlipping(true);
+      onCardRevealEffect?.(card.isRare);
       setTimeout(onReveal, prefersReducedMotion ? 0 : 300);
     }
   };
@@ -316,6 +322,15 @@ export function PackOpeningSimulator({ isOpen, onClose }: PackOpeningSimulatorPr
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { prefersReducedMotion } = useReducedMotion();
   const { packsRemaining, consumePack } = usePacksRemaining();
+  const {
+    soundEnabled,
+    hapticsEnabled,
+    toggleSound,
+    toggleHaptics,
+    onPackOpen,
+    onCardReveal,
+    onPackComplete,
+  } = usePackEffects();
 
   const [packState, setPackState] = useState<PackState>('sealed');
   const [revealedCards, setRevealedCards] = useState<RevealedCard[]>([]);
@@ -357,9 +372,10 @@ export function PackOpeningSimulator({ isOpen, onClose }: PackOpeningSimulatorPr
   const handleOpenPack = useCallback(() => {
     if (packsRemaining <= 0) return;
     consumePack();
+    onPackOpen();
     setPackState('opening');
     setAutoReveal(false);
-  }, [packsRemaining, consumePack]);
+  }, [packsRemaining, consumePack, onPackOpen]);
 
   // Handle card reveal
   const handleRevealCard = useCallback((index: number) => {
@@ -378,8 +394,9 @@ export function PackOpeningSimulator({ isOpen, onClose }: PackOpeningSimulatorPr
   useEffect(() => {
     if (allRevealed && packState === 'revealing') {
       setPackState('revealed');
+      onPackComplete();
     }
-  }, [allRevealed, packState]);
+  }, [allRevealed, packState, onPackComplete]);
 
   // Handle reveal all
   const handleRevealAll = useCallback(() => {
@@ -432,13 +449,48 @@ export function PackOpeningSimulator({ isOpen, onClose }: PackOpeningSimulatorPr
             <span className="text-sm font-bold text-white">Virtual Pack Opening</span>
           </div>
         </div>
-        <button
-          onClick={handleClose}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-          aria-label="Close pack opening"
-        >
-          <XMarkIcon className="h-6 w-6" />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Sound toggle */}
+          <button
+            onClick={toggleSound}
+            className={cn(
+              'flex h-10 w-10 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+              soundEnabled
+                ? 'bg-white/20 text-white hover:bg-white/30'
+                : 'bg-white/10 text-white/50 hover:bg-white/15'
+            )}
+            aria-label={soundEnabled ? 'Disable sound effects' : 'Enable sound effects'}
+            aria-pressed={soundEnabled}
+          >
+            {soundEnabled ? (
+              <SpeakerWaveIcon className="h-5 w-5" />
+            ) : (
+              <SpeakerXMarkIcon className="h-5 w-5" />
+            )}
+          </button>
+          {/* Haptics toggle */}
+          <button
+            onClick={toggleHaptics}
+            className={cn(
+              'flex h-10 w-10 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+              hapticsEnabled
+                ? 'bg-white/20 text-white hover:bg-white/30'
+                : 'bg-white/10 text-white/50 hover:bg-white/15'
+            )}
+            aria-label={hapticsEnabled ? 'Disable vibration' : 'Enable vibration'}
+            aria-pressed={hapticsEnabled}
+          >
+            <DevicePhoneMobileIcon className={cn('h-5 w-5', hapticsEnabled && 'animate-pulse')} />
+          </button>
+          {/* Close button */}
+          <button
+            onClick={handleClose}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            aria-label="Close pack opening"
+          >
+            <XMarkIcon className="h-6 w-6" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -479,6 +531,7 @@ export function PackOpeningSimulator({ isOpen, onClose }: PackOpeningSimulatorPr
                   index={index}
                   onReveal={() => handleRevealCard(index)}
                   autoReveal={autoReveal}
+                  onCardRevealEffect={onCardReveal}
                 />
               ))}
             </div>
