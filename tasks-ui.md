@@ -1,0 +1,75 @@
+# KidCollect UI Tasks
+
+## Coding Guidelines
+
+**READ THESE BEFORE STARTING ANY TASK:**
+
+1. **No Emojis in UI** - Use SVG icons instead of emojis for a professional look. Use Heroicons (`@heroicons/react`) or create custom SVGs.
+
+2. **Icon Library** - Example:
+
+   ```tsx
+   import { CheckCircleIcon, StarIcon } from '@heroicons/react/24/solid';
+   ```
+
+3. **Replace existing emojis** - When working on a file that contains emojis, replace them with appropriate SVG icons.
+
+4. **Kid-friendly but professional** - Use color and animation instead of emojis to convey fun.
+
+5. **File Focus** - Only modify files in `src/app/`, `src/components/`, and styling files. Do NOT modify `convex/` or API routes.
+
+---
+
+## HIGH PRIORITY - Landing Page & Card Values
+
+- [x] Redesign home page as kid-focused marketing landing page (hero with excited kid imagery, colorful, fun animations)
+- [x] Add "How it works" section: 1) Pick your sets 2) Tap cards you own 3) Earn badges & share wishlists
+- [x] Create feature highlights section (achievements, family sharing, wishlist for gifts)
+- [x] Add login/signup buttons to site header (sticky nav)
+- [x] Create pricing section showing Free vs Family plan with kid-friendly icons
+- [x] Add testimonials/social proof section (can be placeholder for now)
+- [x] Display card market value on each card in CardGrid (show "$X.XX" badge from tcgplayer.prices)
+- [x] Show total collection value on My Collection page ("Your collection is worth $XX!")
+- [x] Add "Most Valuable Cards" section to collection page (top 5 by price)
+
+## UI Tasks
+
+- [ ] Replace all emojis with SVG icons across the codebase (search for emoji patterns in tsx files)
+- [x] Update CardGrid UI to show variant selector when adding cards (only show variants that exist based on tcgplayer.prices)
+- [x] Display owned variants on card (e.g., "Normal x2, Reverse x1") with distinct visual indicators
+- [ ] Create celebration animations for badge unlocks (confetti, glow effects)
+- [ ] Build Trophy Case UI showing all earned/locked badges with progress indicators
+- [ ] Build parent dashboard UI with collection overview cards per child
+- [x] Add activity feed component showing recent cards added with timestamps
+- [x] Create wishlist UI - mark cards as wanted with heart icon
+- [x] Build priority starring UI for wishlist items (max 5 stars)
+- [x] Create public wishlist view page (read-only, shareable)
+- [x] Build duplicate finder UI comparing sibling collections side-by-side
+- [ ] Create export/print checklist PDF button and preview
+- [ ] Add pricing toggle UI for parent dashboard (show/hide TCGPlayer prices)
+- [ ] Add responsive design for mobile-first experience (test all pages on mobile)
+- [x] Add loading states and skeleton screens to all data-fetching components
+- [x] Implement user-friendly error messages and error boundaries
+- [ ] Accessibility audit and fixes (WCAG 2.1 AA) - focus states, aria labels, color contrast
+
+---
+
+## Progress
+
+- **2026-01-15**: Completed loading states and skeleton screens - Created reusable Skeleton component library (src/components/ui/Skeleton.tsx) with animated shimmer effects. Added CardSkeleton, CardGridSkeleton, StatsBarSkeleton, SetCardSkeleton, CollectionGroupSkeleton, SearchResultsSkeleton, and FilterPanelSkeleton. Updated CardGrid, SearchResults, CollectionView, collection page, and browse page to use skeleton screens instead of basic loading spinners. Also replaced browse page emoji with FunnelIcon SVG. Commit: bd35695
+- **2026-01-15**: Completed priority starring UI - Added star icon button next to heart on wishlisted cards. Star toggles priority status (max 5 items). Added priority count indicator in stats bar showing 5 stars visual. Disabled state when max reached. Also replaced progress indicator emojis with SVG icons (Crown, Trophy, Map, Compass) and loading state emoji with custom CardIcon SVG. Commit: 672daef
+- **2026-01-15**: Completed wishlist UI - Added heart icon button to CardGrid component. Heart appears on hover, fills rose when wishlisted. Uses Heroicons and Convex mutations for toggle functionality. Commit: 7dfeddb
+- **2026-01-15**: Completed error boundaries and user-friendly error messages - Created reusable ErrorBoundary component with ErrorFallback UI (src/components/ui/ErrorBoundary.tsx). Added InlineError for compact error display with retry buttons. Created error.tsx pages for /sets and /sets/[setId] routes with friendly messaging. Added global-error.tsx for root layout errors and not-found.tsx for 404 pages. Updated search and browse pages to use InlineError with retry functionality. Updated CollectionView to use ErrorFallback with proper retry logic. All error states use Heroicons (ExclamationTriangleIcon, ArrowPathIcon) and include recovery options. Commit: b6acecf
+- **2026-01-15**: Completed activity feed component - Created ActivityFeed component (src/components/activity/ActivityFeed.tsx) displaying recent collection activity with timestamps. Features color-coded action types (green for card_added, orange for card_removed, amber for achievement_earned), relative time formatting ("2 hours ago", "Just now"), skeleton loading states via ActivityFeedSkeleton, and empty state messaging. Integrated as sticky sidebar on collection page with responsive 4-column grid layout. Uses Heroicons (PlusCircleIcon, MinusCircleIcon, TrophyIcon, ClockIcon). Commit: a082dc6
+- **2026-01-15**: Completed public wishlist view page - Created read-only, shareable wishlist page at /wishlist/[token]. Features: fetches wishlist data via share token using Convex getWishlistByToken query, displays profile name with total wanted cards and priority count, shows priority (starred) items in separate "Most Wanted" section, fetches card images from Pokemon TCG API, copy link button with visual feedback, loading states with skeleton screens, error handling with friendly messaging and retry options, invalid/expired link handling with clear UX. Rose/pink gradient theme to distinguish from main app. Includes loading.tsx and error.tsx route files. Uses Heroicons (HeartIcon, StarIcon, GiftIcon, LinkIcon, CheckIcon). Commit: b0aade8
+- **2026-01-15**: Completed duplicate finder UI - Created DuplicateFinder component (src/components/collection/DuplicateFinder.tsx) for comparing collections between family members side-by-side. Features: profile selector dropdowns to pick two profiles to compare, stats overview showing shared cards and unique cards per profile, visual display of duplicate cards both profiles own with quantity badges (indigo for profile1, pink for profile2), tradeable cards sections showing unique cards that could be traded, hover tooltips showing ownership details, loading skeletons via DuplicateFinderSkeleton, error handling. Added /compare page with loading.tsx and error.tsx. Updated collection page with "Compare Collections" button. Uses Heroicons (ArrowsRightLeftIcon, UserGroupIcon, CheckCircleIcon, ArrowRightIcon, ArrowLeftIcon, ExclamationTriangleIcon). Commit: 55105af
+- **2026-01-15**: Completed card market value display - Added price badge to CardGrid showing TCGPlayer market value for each card. Features: getCardMarketPrice() helper extracts best price (prefers normal > holofoil > reverseHolofoil), formatPrice() handles smart decimal formatting, price badge displays next to card number with CurrencyDollarIcon, high-value cards ($10+) use amber/gold gradient styling, regular cards use emerald badge, tooltip shows full price on hover. Commit: f0fb1f9
+- **2026-01-15**: Completed total collection value display - Added prominent value banner to CollectionView (src/components/collection/CollectionView.tsx) showing "Your collection is worth $XX!" message. Features: emerald-to-cyan gradient banner with CurrencyDollarIcon and SparklesIcon, calculates total value from all cards multiplied by quantity, shows count of priced cards, displays notice when some cards lack price data, includes loading skeleton state matching banner layout. Uses useMemo for efficient value calculation, reuses getCardMarketPrice() helper for consistency with card-level pricing. Commit: 9f17316
+- **2026-01-15**: Completed Most Valuable Cards section - Added prominent "Most Valuable Cards" section to CollectionView showing top 5 highest-value cards. Features: rank badges with gradient styling (gold #1 with FireIcon, silver #2, bronze #3, gray #4-5), responsive grid layout (2 cols mobile, 5 cols desktop), card images with quantity badges, price display in emerald green, amber/orange gradient background with decorative elements, skeleton loading state. Uses TrophyIcon for section header. Sorts cards by TCGPlayer market price descending. Commit: 01f4068
+- **2026-01-15**: Completed login/signup buttons in site header - Created Header component (src/components/layout/Header.tsx) with sticky navigation bar. Features: site logo with gradient branding, desktop nav links (Browse Sets, My Collection, Search, Browse) with active state highlighting, Login button with ArrowRightOnRectangleIcon, Sign Up button with UserPlusIcon and kid-primary gradient styling, mobile-responsive hamburger menu with full navigation and auth buttons, backdrop blur effect on scroll. Added Header to root layout. Adjusted home page to account for header height. Uses Heroicons throughout. Commit: b2c2f9a
+- **2026-01-15**: Redesigned home page as kid-focused marketing landing page - Completely overhauled src/app/page.tsx with colorful, engaging design. Features: hero section with gradient background and animated decorative elements (FloatingCard and FloatingStar components with float/twinkle CSS animations), "Made for young collectors" badge, large headline with gradient text, prominent CTAs ("Start Collecting Free" with RocketLaunchIcon, "View My Collection"), social proof indicators (kid-safe, badges, wishlists). Added feature cards section with 3 colorful cards (Track Every Card, Earn Cool Badges, Share Wishlists) with hover effects and decorative circles. Added stats/trust section (500+ sets, 20,000+ cards, 100% free) with purple gradient background. Added final CTA section and simple footer with disclaimer. Added float and twinkle keyframe animations to globals.css. Uses Heroicons (SparklesIcon, StarIcon, HeartIcon, RocketLaunchIcon, etc.). Commit: 507b41a
+- **2026-01-15**: Added "How it works" section to home page - Created three-step guide between hero and feature cards sections. Features: Step 1 "Pick Your Sets" with RectangleStackIcon, Step 2 "Tap Cards You Own" with HandRaisedIcon, Step 3 "Earn Badges & Share" with TrophyIcon and ShareIcon. Each step displayed in colorful gradient circle with numbered badge (1, 2, 3). Horizontal connecting line on desktop using gradient. Responsive grid layout (stacked on mobile, 3 columns on desktop). Uses kid-friendly color gradients (kid-primary, purple, kid-secondary, pink). Commit: 8b085c8
+- **2026-01-16**: Added feature highlights section - Created comprehensive feature highlights section on home page showcasing three key features: (1) Achievement System with badge previews (Set Master, Card Hunter, Speed Collector), progress bar, and bullet points for set completion badges, milestone rewards, and rare card badges; (2) Family Sharing with profile cards showing multiple children's collections, duplicate finder preview ("12 cards to trade between siblings!"), and info on parent dashboard; (3) Wishlist for Gifts with interactive preview showing prioritized wishlist items with star ratings, shareable link CTA button. Each section uses alternating left/right layout on desktop, gradient backgrounds (amber/orange for achievements, indigo/purple for family, rose/pink for wishlist), decorative circles, and appropriate Heroicons (TrophyIcon, UserGroupIcon, GiftIcon, CheckBadgeIcon, BoltIcon, ArrowsRightLeftIcon, LockClosedIcon, CakeIcon, etc.). Commit: 6924737
+- **2026-01-16**: Added pricing section - Created two-column pricing comparison between Free vs Family plan on home page. Free plan card ($0/mo): 1 profile, unlimited cards, badges, wishlist with green CheckIcon indicators; grayed XMarkIcon for unavailable features. Family plan card ($4.99/mo): up to 5 profiles, parent dashboard, sibling duplicate finder with pink CheckIcon indicators and "BEST VALUE" ribbon badge. Uses emerald/teal gradient header with CurrencyDollarIcon, kid-secondary gradient for Family plan. Added trust badges (Secure & Private with ShieldCheckIcon, Kid-Safe with HeartIcon, Cancel Anytime with BoltIcon). Rounded-3xl cards with hover effects and decorative circles. Commit: 48f3256
+- **2026-01-16**: Added testimonials/social proof section - Created testimonials section on home page between pricing and final CTA. Features: 3 testimonial cards (2 parents, 1 kid) with 5-star ratings using StarIcon, gradient avatar initials, decorative quote marks and icon decorations (TrophyIcon, HeartIcon). Each card has distinct background (white, amber/orange gradient, pink/rose gradient) with hover lift effect. Added social proof stats bar below testimonials showing "10,000+ Happy collectors", "4.9/5 Average rating", "2,500+ Families using" with colored text and dividers. Uses ChatBubbleLeftRightIcon for section badge. Responsive 3-column grid on desktop, stacked on mobile. Commit: 6f8ea01
+- **2026-01-16**: Added variant selector UI for cards - Implemented VariantSelector popup component in CardGrid that shows when clicking cards with multiple variants. Only displays variants that exist based on tcgplayer.prices data (normal, holofoil, reverseHolofoil). Each variant row shows label, gradient icon (SparklesIcon for holos), and market price. Plus/minus buttons for adding/removing each variant quantity. Shows total owned count indicator and per-variant quantity. Single-variant cards add directly without popup. Owned cards display variant badges below card info showing abbreviations (N=Normal, H=Holofoil, R=Reverse) with quantities. Uses Heroicons (XMarkIcon, PlusIcon, MinusIcon, SparklesIcon, CheckCircleIcon). Optimized with useMemo for collection map building. Commit: b8d428d
