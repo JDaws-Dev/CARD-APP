@@ -10,6 +10,8 @@ import {
   type TutorialGuide,
   type TutorialCategory,
 } from '@/lib/tutorialContent';
+import { getStepExamples, guideHasExamples } from '@/lib/tutorialExamples';
+import { TutorialExampleCards } from './TutorialExampleCards';
 import {
   BookOpenIcon,
   CheckCircleIcon,
@@ -23,9 +25,9 @@ import {
   ShieldCheckIcon,
   SparklesIcon,
   StarIcon,
-  XMarkIcon,
   CheckIcon,
   ArrowLeftIcon,
+  PhotoIcon,
 } from '@heroicons/react/24/solid';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 
@@ -119,6 +121,7 @@ interface GuideCardProps {
 
 function GuideCard({ guide, isCompleted, onSelect }: GuideCardProps) {
   const difficultyInfo = getDifficultyInfo(guide.difficulty);
+  const hasExamples = guideHasExamples(guide.id);
 
   return (
     <button
@@ -132,7 +135,7 @@ function GuideCard({ guide, isCompleted, onSelect }: GuideCardProps) {
           ? 'border-emerald-300 bg-emerald-50'
           : 'border-gray-200 bg-white hover:border-gray-300'
       )}
-      aria-label={`${guide.title}${isCompleted ? ' - Completed' : ''}`}
+      aria-label={`${guide.title}${isCompleted ? ' - Completed' : ''}${hasExamples ? ' - Includes card examples' : ''}`}
     >
       {/* Completed badge */}
       {isCompleted && (
@@ -159,7 +162,7 @@ function GuideCard({ guide, isCompleted, onSelect }: GuideCardProps) {
         <p className="line-clamp-2 text-sm text-gray-600">{guide.shortDescription}</p>
 
         {/* Metadata */}
-        <div className="flex items-center gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           <span
             className={cn(
               'inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium',
@@ -174,6 +177,12 @@ function GuideCard({ guide, isCompleted, onSelect }: GuideCardProps) {
             <ClockIcon className="h-3.5 w-3.5" aria-hidden="true" />
             {guide.estimatedTime}
           </span>
+          {hasExamples && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 font-medium text-indigo-600">
+              <PhotoIcon className="h-3 w-3" aria-hidden="true" />
+              Cards
+            </span>
+          )}
         </div>
 
         {/* Steps count */}
@@ -421,6 +430,23 @@ function GuideViewer({ guide, initialStep = 0, onComplete, onBack }: GuideViewer
 
         {/* Description */}
         <p className="mb-6 leading-relaxed text-gray-700">{step.description}</p>
+
+        {/* Step-specific example cards */}
+        {(() => {
+          const stepExamples = getStepExamples(guide.id, step.id);
+          if (stepExamples) {
+            return (
+              <div className="mb-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 p-4">
+                <TutorialExampleCards
+                  exampleSet={stepExamples}
+                  variant="carousel"
+                  showNote={true}
+                />
+              </div>
+            );
+          }
+          return null;
+        })()}
 
         {/* Tip box */}
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
