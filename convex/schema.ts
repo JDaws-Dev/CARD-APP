@@ -68,6 +68,22 @@ export default defineSchema({
     parentPinHash: v.optional(v.string()),
   }).index('by_email', ['email']),
 
+  /**
+   * Email verification tokens for parent registration
+   * Stores verification tokens and tracks verification status
+   */
+  emailVerifications: defineTable({
+    familyId: v.id('families'),
+    email: v.string(), // Denormalized for easier lookup
+    token: v.string(), // Secure random token
+    expiresAt: v.number(), // Unix timestamp when token expires
+    createdAt: v.number(), // Unix timestamp when token was created
+    verifiedAt: v.optional(v.number()), // Unix timestamp when email was verified
+  })
+    .index('by_family', ['familyId'])
+    .index('by_token', ['token'])
+    .index('by_email', ['email']),
+
   profiles: defineTable({
     familyId: v.id('families'),
     displayName: v.string(),

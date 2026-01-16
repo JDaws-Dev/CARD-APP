@@ -4,7 +4,7 @@
 
 | Section                        | Complete | Remaining |
 | ------------------------------ | -------- | --------- |
-| HIGH PRIORITY - Auth & Pricing | 8        | **2**     |
+| HIGH PRIORITY - Auth & Pricing | 9        | **1**     |
 | Card Variants                  | 3        | 0         |
 | Achievement System             | 6        | 0         |
 | Wishlist & Sharing             | 4        | 0         |
@@ -16,11 +16,11 @@
 | Educational Content            | 3        | 0         |
 | Additional Features            | 5        | 0         |
 | Launch Prep                    | 4        | **5**     |
-| **TOTAL**                      | **57**   | **15**    |
+| **TOTAL**                      | **58**   | **14**    |
 
 ### Critical Path for Launch
 
-1. **Authentication (1 task)** - Parent registration with email verification (email/password login, child profiles, and PIN protection complete)
+1. ~~**Authentication (1 task)** - Parent registration with email verification~~ COMPLETE
 2. **Launch Prep (5 tasks)** - Stripe integration, production deploy, monitoring (E2E tests complete)
 3. **Data Persistence (1 task)** - Data persistence guarantee, conflict resolution (cloud backup complete)
 4. **TCGPlayer Pricing (1 task)** - Fetch real pricing data from TCGPlayer API
@@ -53,7 +53,7 @@
 
 - [x] Fix activity log to show card names instead of IDs (store cardName in metadata when logging)
 - [x] Implement authentication system with Convex Auth (email/password login)
-- [ ] Create parent account registration flow with email verification
+- [x] Create parent account registration flow with email verification
 - [x] Build child profile creation (up to 4 per family) with validation
 - [x] Implement parent PIN protection logic (store hashed PIN, verify on access)
 - [x] **Profile type field** - Add `profileType: "parent" | "child"` to profiles schema for role-based UI

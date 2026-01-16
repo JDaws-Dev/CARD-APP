@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+set -e
+
+# =============================================================================
+# Ralph TCG - Multi-TCG API Adapter Agent
+# Usage: ./ralph-tcg.sh [max_iterations]
+# =============================================================================
+
+MAX_ITERATIONS=${1:-10}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROGRESS_FILE="$SCRIPT_DIR/progress-tcg.txt"
+ARCHIVE_DIR="$SCRIPT_DIR/archive"
+
+# Initialize progress file if it doesn't exist
+if [ ! -f "$PROGRESS_FILE" ]; then
+  echo "# Ralph TCG Progress Log" > "$PROGRESS_FILE"
+  echo "Started: $(date)" >> "$PROGRESS_FILE"
+  echo "---" >> "$PROGRESS_FILE"
+fi
+
+echo "═══════════════════════════════════════════════════════"
+echo "  Starting Ralph TCG - Max iterations: $MAX_ITERATIONS"
+echo "  Focus: Multi-TCG API adapters and schema"
+echo "═══════════════════════════════════════════════════════"
+
+for i in $(seq 1 $MAX_ITERATIONS); do
+  echo ""
+  echo "═══════════════════════════════════════════════════════"
+  echo "  Ralph TCG - Iteration $i of $MAX_ITERATIONS"
+  echo "═══════════════════════════════════════════════════════"
+
+  # Clear Next.js cache to ensure fresh state
+  rm -rf .next
+
+  # The prompt for Claude
+  AGENT_PROMPT=$(cat <<'PROMPT'
+Read tasks-backend.md and find the "Multi-TCG Architecture" section. Choose ONE incomplete task from that section only.
+
+Your job:
+1. Implement the Multi-TCG feature (schema, API adapter, or abstraction)
+2. Follow existing patterns in src/lib/pokemon-tcg.ts for API adapters
+3. Run linters/formatters (ESLint, Prettier)
+4. **VERIFY THE BUILD WORKS:**
+   - Run `npm run build` and fix ANY errors before committing
+   - Run `npx tsc --noEmit` to check for TypeScript errors
+   - If the build fails, fix the issues - do NOT commit broken code
+5. Commit the changes with a descriptive message
+6. Update tasks-backend.md:
+   - Mark the completed task with `- [x]`
+   - Add a Progress entry at the bottom with timestamp and description
+
+Important:
+- Focus on ONE task only from the Multi-TCG Architecture section
+- For API adapters, create typed interfaces matching the external API
+- Include rate limiting based on API documentation
+- Use the same caching patterns as pokemon-tcg.ts
+- If an API requires a key, document it but make it optional like Pokemon TCG API
+- NEVER commit if the build is broken - fix errors first
+
+If there are NO remaining incomplete Multi-TCG tasks, output <promise>COMPLETE</promise> and exit.
+PROMPT
+)
+
+  # Run Claude with the prompt
+  OUTPUT=$(echo "$AGENT_PROMPT" | claude --print --dangerously-skip-permissions 2>&1 | tee /dev/stderr) || true
+
+  # Log iteration to progress file
+  echo "" >> "$PROGRESS_FILE"
+  echo "### Iteration $i - $(date)" >> "$PROGRESS_FILE"
+
+  # Check for completion signal
+  if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
+    echo ""
+    echo "═══════════════════════════════════════════════════════"
+    echo "  Ralph TCG completed all Multi-TCG tasks!"
+    echo "  Completed at iteration $i of $MAX_ITERATIONS"
+    echo "═══════════════════════════════════════════════════════"
+    echo "COMPLETED at iteration $i - $(date)" >> "$PROGRESS_FILE"
+
+    # Archive the run
+    mkdir -p "$ARCHIVE_DIR"
+    cp "$PROGRESS_FILE" "$ARCHIVE_DIR/progress-tcg-$(date +%Y-%m-%d-%H%M%S).txt"
+
+    exit 0
+  fi
+
+  echo "Iteration $i complete. Continuing..."
+  sleep 2
+done
+
+echo ""
+echo "═══════════════════════════════════════════════════════"
+echo "  Ralph TCG reached max iterations ($MAX_ITERATIONS)"
+echo "  Check $PROGRESS_FILE for status"
+echo "═══════════════════════════════════════════════════════"
+exit 1
