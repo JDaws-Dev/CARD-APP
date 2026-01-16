@@ -1348,6 +1348,281 @@ export const getPokemonFanProgress = query({
   },
 });
 
+// ============================================================================
+// STREAK ACHIEVEMENTS
+// ============================================================================
+
+// Streak badge thresholds
+const STREAK_BADGES = [
+  { key: 'streak_3', threshold: 3, name: '3-Day Streak' },
+  { key: 'streak_7', threshold: 7, name: 'Week Warrior' },
+  { key: 'streak_14', threshold: 14, name: 'Dedicated Collector' },
+  { key: 'streak_30', threshold: 30, name: 'Monthly Master' },
+] as const;
+
+/**
+ * Helper function to calculate streak from activity dates.
+ * Dates should be in YYYY-MM-DD format, sorted ascending.
+ */
+function calculateStreakFromDates(activityDates: string[]): {
+  currentStreak: number;
+  longestStreak: number;
+  isActiveToday: boolean;
+  lastActiveDate: string | null;
+} {
+  if (activityDates.length === 0) {
+    return {
+      currentStreak: 0,
+      longestStreak: 0,
+      isActiveToday: false,
+      lastActiveDate: null,
+    };
+  }
+
+  // Sort dates in descending order (most recent first)
+  const sortedDates = [...activityDates].sort((a, b) => b.localeCompare(a));
+  const today = new Date().toISOString().split('T')[0];
+  const yesterdayDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const yesterday = yesterdayDate.toISOString().split('T')[0];
+
+  const isActiveToday = sortedDates[0] === today;
+  const lastActiveDate = sortedDates[0];
+
+  // Helper to check if two dates are consecutive
+  function areConsecutive(date1: string, date2: string): boolean {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    const diffMs = Math.abs(d2.getTime() - d1.getTime());
+    const diffDays = diffMs / (24 * 60 * 60 * 1000);
+    return diffDays === 1;
+  }
+
+  // Calculate current streak (only if active today or yesterday)
+  let currentStreak = 0;
+  if (sortedDates[0] === today || sortedDates[0] === yesterday) {
+    currentStreak = 1;
+    for (let i = 1; i < sortedDates.length; i++) {
+      if (areConsecutive(sortedDates[i], sortedDates[i - 1])) {
+        currentStreak++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  // Calculate longest streak (looking at all dates in ascending order)
+  const ascendingDates = [...activityDates].sort();
+  let longestStreak = ascendingDates.length > 0 ? 1 : 0;
+  let currentRun = 1;
+
+  for (let i = 1; i < ascendingDates.length; i++) {
+    if (areConsecutive(ascendingDates[i - 1], ascendingDates[i])) {
+      currentRun++;
+      longestStreak = Math.max(longestStreak, currentRun);
+    } else {
+      currentRun = 1;
+    }
+  }
+
+  return {
+    currentStreak,
+    longestStreak,
+    isActiveToday,
+    lastActiveDate,
+  };
+}
+
+/**
+ * Check and award streak badges based on daily activity.
+ * Should be called after adding a card to check for newly earned streak badges.
+ */
+export const checkStreakAchievements = mutation({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get activity logs for the last 60 days (to calculate longest streak)
+    const sixtyDaysAgo = Date.now() - 60 * 24 * 60 * 60 * 1000;
+
+    const logs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Filter to card_added actions in the date range
+    const recentCardAdds = logs.filter(
+      (log) => log._creationTime >= sixtyDaysAgo && log.action === 'card_added'
+    );
+
+    // Extract unique dates (YYYY-MM-DD format)
+    const uniqueDates = new Set<string>();
+    for (const log of recentCardAdds) {
+      const date = new Date(log._creationTime);
+      const dateStr = date.toISOString().split('T')[0];
+      uniqueDates.add(dateStr);
+    }
+
+    const activityDates = Array.from(uniqueDates).sort();
+
+    // Calculate streaks
+    const streakInfo = calculateStreakFromDates(activityDates);
+
+    const awarded: string[] = [];
+
+    // Check each streak badge
+    for (const badge of STREAK_BADGES) {
+      if (streakInfo.currentStreak >= badge.threshold) {
+        // Check if already earned
+        const existing = await ctx.db
+          .query('achievements')
+          .withIndex('by_profile_and_key', (q) =>
+            q.eq('profileId', args.profileId).eq('achievementKey', badge.key)
+          )
+          .first();
+
+        if (!existing) {
+          await ctx.db.insert('achievements', {
+            profileId: args.profileId,
+            achievementType: 'streak',
+            achievementKey: badge.key,
+            achievementData: {
+              streakDays: streakInfo.currentStreak,
+              threshold: badge.threshold,
+              lastActiveDate: streakInfo.lastActiveDate,
+            },
+            earnedAt: Date.now(),
+          });
+
+          // Log activity for achievement earned
+          await ctx.db.insert('activityLogs', {
+            profileId: args.profileId,
+            action: 'achievement_earned',
+            metadata: {
+              achievementKey: badge.key,
+              achievementName: badge.name,
+              achievementType: 'streak',
+              streakDays: streakInfo.currentStreak,
+              threshold: badge.threshold,
+            },
+          });
+
+          awarded.push(badge.key);
+        }
+      }
+    }
+
+    // Calculate next badge
+    const nextBadge = STREAK_BADGES.find((b) => streakInfo.currentStreak < b.threshold);
+
+    return {
+      awarded,
+      currentStreak: streakInfo.currentStreak,
+      longestStreak: streakInfo.longestStreak,
+      isActiveToday: streakInfo.isActiveToday,
+      lastActiveDate: streakInfo.lastActiveDate,
+      nextBadge: nextBadge
+        ? {
+            key: nextBadge.key,
+            name: nextBadge.name,
+            threshold: nextBadge.threshold,
+            daysNeeded: nextBadge.threshold - streakInfo.currentStreak,
+          }
+        : null,
+      totalStreakBadgesEarned: STREAK_BADGES.filter((b) => streakInfo.currentStreak >= b.threshold).length,
+      totalStreakBadgesAvailable: STREAK_BADGES.length,
+    };
+  },
+});
+
+/**
+ * Query to get streak progress for a profile (for UI display).
+ * Returns current streak, longest streak, and badge progress.
+ */
+export const getStreakProgress = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get activity logs for the last 60 days
+    const sixtyDaysAgo = Date.now() - 60 * 24 * 60 * 60 * 1000;
+
+    const logs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Filter to card_added actions in the date range
+    const recentCardAdds = logs.filter(
+      (log) => log._creationTime >= sixtyDaysAgo && log.action === 'card_added'
+    );
+
+    // Extract unique dates
+    const uniqueDates = new Set<string>();
+    for (const log of recentCardAdds) {
+      const date = new Date(log._creationTime);
+      const dateStr = date.toISOString().split('T')[0];
+      uniqueDates.add(dateStr);
+    }
+
+    const activityDates = Array.from(uniqueDates).sort();
+
+    // Calculate streaks
+    const streakInfo = calculateStreakFromDates(activityDates);
+
+    // Get earned streak achievements
+    const earnedAchievements = await ctx.db
+      .query('achievements')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .filter((q) => q.eq(q.field('achievementType'), 'streak'))
+      .collect();
+
+    const earnedKeys = new Set(earnedAchievements.map((a) => a.achievementKey));
+
+    // Build streak progress list
+    const streakProgress = STREAK_BADGES.map((badge) => {
+      const earned = earnedKeys.has(badge.key);
+      const earnedAchievement = earned
+        ? earnedAchievements.find((a) => a.achievementKey === badge.key)
+        : null;
+
+      return {
+        key: badge.key,
+        name: badge.name,
+        threshold: badge.threshold,
+        earned,
+        earnedAt: earnedAchievement?.earnedAt ?? null,
+        progress: Math.min(100, Math.round((streakInfo.currentStreak / badge.threshold) * 100)),
+        daysNeeded: earned ? 0 : Math.max(0, badge.threshold - streakInfo.currentStreak),
+      };
+    });
+
+    // Find current and next badge
+    const currentBadge = [...STREAK_BADGES]
+      .reverse()
+      .find((b) => streakInfo.currentStreak >= b.threshold);
+    const nextBadge = STREAK_BADGES.find((b) => streakInfo.currentStreak < b.threshold);
+
+    return {
+      currentStreak: streakInfo.currentStreak,
+      longestStreak: streakInfo.longestStreak,
+      isActiveToday: streakInfo.isActiveToday,
+      lastActiveDate: streakInfo.lastActiveDate,
+      activityDates,
+      streakBadges: streakProgress,
+      currentBadge: currentBadge
+        ? { key: currentBadge.key, name: currentBadge.name, threshold: currentBadge.threshold }
+        : null,
+      nextBadge: nextBadge
+        ? {
+            key: nextBadge.key,
+            name: nextBadge.name,
+            threshold: nextBadge.threshold,
+            daysNeeded: nextBadge.threshold - streakInfo.currentStreak,
+            percentProgress: Math.round((streakInfo.currentStreak / nextBadge.threshold) * 100),
+          }
+        : null,
+      totalStreakBadgesEarned: earnedAchievements.length,
+      totalStreakBadgesAvailable: STREAK_BADGES.length,
+    };
+  },
+});
+
 // Query to get set completion progress for a profile
 export const getSetCompletionProgress = query({
   args: {

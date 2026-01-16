@@ -26,6 +26,22 @@ import {
   // Streak functions
   checkStreakAchievements,
   getHighestStreakBadge,
+  // Streak badge utilities
+  STREAK_BADGE_DEFINITIONS,
+  getStreakBadgesToAward,
+  getStreakProgressSummary,
+  getStreakBadgeDefinition,
+  getCurrentStreakTitle,
+  daysNeededForStreakBadge,
+  getStreakPercentProgress,
+  hasStreakBadgeBeenEarned,
+  getAllEarnedStreakKeys,
+  countEarnedStreakBadges,
+  getNextStreakBadge,
+  getStreakBadgeThresholds,
+  isStreakActive,
+  getStreakStatusMessage,
+  formatStreakCount,
   // Pokemon fan functions
   checkPokemonFanAchievements,
   // Display utilities
@@ -2714,6 +2730,479 @@ describe('Pokemon Fan Badge Utilities', () => {
       );
       expect(summary.totalPokemonFanBadgesEarned).toBe(5);
       expect(summary.nearbyBadges).toHaveLength(0);
+    });
+  });
+});
+
+// ============================================================================
+// STREAK BADGE UTILITIES
+// ============================================================================
+
+describe('Streak Badge Utilities', () => {
+  describe('STREAK_BADGE_DEFINITIONS', () => {
+    it('should have 4 streak badge levels', () => {
+      expect(STREAK_BADGE_DEFINITIONS).toHaveLength(4);
+    });
+
+    it('should be sorted by threshold ascending', () => {
+      for (let i = 1; i < STREAK_BADGE_DEFINITIONS.length; i++) {
+        expect(STREAK_BADGE_DEFINITIONS[i].threshold).toBeGreaterThan(
+          STREAK_BADGE_DEFINITIONS[i - 1].threshold
+        );
+      }
+    });
+
+    it('should have expected thresholds', () => {
+      expect(STREAK_BADGE_DEFINITIONS.map((b) => b.threshold)).toEqual([3, 7, 14, 30]);
+    });
+
+    it('should have unique keys', () => {
+      const keys = STREAK_BADGE_DEFINITIONS.map((b) => b.key);
+      expect(new Set(keys).size).toBe(keys.length);
+    });
+
+    it('should have names for all badges', () => {
+      for (const badge of STREAK_BADGE_DEFINITIONS) {
+        expect(badge.name).toBeTruthy();
+        expect(typeof badge.name).toBe('string');
+      }
+    });
+  });
+
+  describe('getStreakBadgesToAward', () => {
+    it('should return no badges for 0 day streak', () => {
+      const badges = getStreakBadgesToAward(0);
+      expect(badges).toEqual([]);
+    });
+
+    it('should return no badges for 2 day streak', () => {
+      const badges = getStreakBadgesToAward(2);
+      expect(badges).toEqual([]);
+    });
+
+    it('should return streak_3 for 3 day streak', () => {
+      const badges = getStreakBadgesToAward(3);
+      expect(badges).toContain('streak_3');
+      expect(badges).toHaveLength(1);
+    });
+
+    it('should return streak_3 and streak_7 for 7 day streak', () => {
+      const badges = getStreakBadgesToAward(7);
+      expect(badges).toContain('streak_3');
+      expect(badges).toContain('streak_7');
+      expect(badges).toHaveLength(2);
+    });
+
+    it('should return all badges for 30 day streak', () => {
+      const badges = getStreakBadgesToAward(30);
+      expect(badges).toContain('streak_3');
+      expect(badges).toContain('streak_7');
+      expect(badges).toContain('streak_14');
+      expect(badges).toContain('streak_30');
+      expect(badges).toHaveLength(4);
+    });
+
+    it('should exclude already earned badges', () => {
+      const badges = getStreakBadgesToAward(30, ['streak_3', 'streak_7']);
+      expect(badges).not.toContain('streak_3');
+      expect(badges).not.toContain('streak_7');
+      expect(badges).toContain('streak_14');
+      expect(badges).toContain('streak_30');
+      expect(badges).toHaveLength(2);
+    });
+
+    it('should return empty array if all eligible badges are already earned', () => {
+      const badges = getStreakBadgesToAward(5, ['streak_3']);
+      expect(badges).toEqual([]);
+    });
+  });
+
+  describe('getStreakProgressSummary', () => {
+    it('should return correct summary for no streak', () => {
+      const summary = getStreakProgressSummary(0, 0, false, null);
+      expect(summary.currentStreak).toBe(0);
+      expect(summary.longestStreak).toBe(0);
+      expect(summary.isActiveToday).toBe(false);
+      expect(summary.lastActiveDate).toBeNull();
+      expect(summary.currentBadge).toBeNull();
+      expect(summary.nextBadge?.key).toBe('streak_3');
+      expect(summary.nextBadge?.daysNeeded).toBe(3);
+      expect(summary.totalStreakBadgesEarned).toBe(0);
+      expect(summary.totalStreakBadgesAvailable).toBe(4);
+    });
+
+    it('should return correct summary for active 3 day streak', () => {
+      const summary = getStreakProgressSummary(3, 3, true, '2026-01-16', ['streak_3']);
+      expect(summary.currentStreak).toBe(3);
+      expect(summary.longestStreak).toBe(3);
+      expect(summary.isActiveToday).toBe(true);
+      expect(summary.currentBadge?.key).toBe('streak_3');
+      expect(summary.currentBadge?.name).toBe('3-Day Streak');
+      expect(summary.nextBadge?.key).toBe('streak_7');
+      expect(summary.nextBadge?.daysNeeded).toBe(4);
+      expect(summary.totalStreakBadgesEarned).toBe(1);
+    });
+
+    it('should return correct summary for 14 day streak', () => {
+      const summary = getStreakProgressSummary(14, 14, true, '2026-01-16', ['streak_3', 'streak_7', 'streak_14']);
+      expect(summary.currentBadge?.key).toBe('streak_14');
+      expect(summary.currentBadge?.name).toBe('Dedicated Collector');
+      expect(summary.nextBadge?.key).toBe('streak_30');
+      expect(summary.nextBadge?.daysNeeded).toBe(16);
+      expect(summary.totalStreakBadgesEarned).toBe(3);
+    });
+
+    it('should return null nextBadge for 30 day streak', () => {
+      const summary = getStreakProgressSummary(30, 30, true, '2026-01-16', ['streak_3', 'streak_7', 'streak_14', 'streak_30']);
+      expect(summary.currentBadge?.key).toBe('streak_30');
+      expect(summary.nextBadge).toBeNull();
+      expect(summary.totalStreakBadgesEarned).toBe(4);
+    });
+
+    it('should show correct progress percentages', () => {
+      const summary = getStreakProgressSummary(5, 5, true, '2026-01-16');
+      const streak3Badge = summary.streakBadges.find((b) => b.key === 'streak_3');
+      const streak7Badge = summary.streakBadges.find((b) => b.key === 'streak_7');
+      expect(streak3Badge?.progress).toBe(100);
+      expect(streak7Badge?.progress).toBe(71); // 5/7 = 71%
+    });
+
+    it('should track longest streak separately from current', () => {
+      const summary = getStreakProgressSummary(3, 15, true, '2026-01-16');
+      expect(summary.currentStreak).toBe(3);
+      expect(summary.longestStreak).toBe(15);
+    });
+  });
+
+  describe('getStreakBadgeDefinition', () => {
+    it('should return definition for valid key', () => {
+      const def = getStreakBadgeDefinition('streak_7');
+      expect(def).not.toBeNull();
+      expect(def?.key).toBe('streak_7');
+      expect(def?.name).toBe('Week Warrior');
+      expect(def?.threshold).toBe(7);
+    });
+
+    it('should return null for invalid key', () => {
+      expect(getStreakBadgeDefinition('invalid_key')).toBeNull();
+      expect(getStreakBadgeDefinition('')).toBeNull();
+    });
+  });
+
+  describe('getCurrentStreakTitle', () => {
+    it('should return "No Streak" for 0 days', () => {
+      expect(getCurrentStreakTitle(0)).toBe('No Streak');
+    });
+
+    it('should return "No Streak" for 2 days', () => {
+      expect(getCurrentStreakTitle(2)).toBe('No Streak');
+    });
+
+    it('should return "3-Day Streak" for 3-6 days', () => {
+      expect(getCurrentStreakTitle(3)).toBe('3-Day Streak');
+      expect(getCurrentStreakTitle(6)).toBe('3-Day Streak');
+    });
+
+    it('should return "Week Warrior" for 7-13 days', () => {
+      expect(getCurrentStreakTitle(7)).toBe('Week Warrior');
+      expect(getCurrentStreakTitle(13)).toBe('Week Warrior');
+    });
+
+    it('should return "Dedicated Collector" for 14-29 days', () => {
+      expect(getCurrentStreakTitle(14)).toBe('Dedicated Collector');
+      expect(getCurrentStreakTitle(29)).toBe('Dedicated Collector');
+    });
+
+    it('should return "Monthly Master" for 30+ days', () => {
+      expect(getCurrentStreakTitle(30)).toBe('Monthly Master');
+      expect(getCurrentStreakTitle(100)).toBe('Monthly Master');
+    });
+  });
+
+  describe('daysNeededForStreakBadge', () => {
+    it('should return correct days needed for streak_3', () => {
+      expect(daysNeededForStreakBadge(0, 'streak_3')).toBe(3);
+      expect(daysNeededForStreakBadge(1, 'streak_3')).toBe(2);
+      expect(daysNeededForStreakBadge(2, 'streak_3')).toBe(1);
+      expect(daysNeededForStreakBadge(3, 'streak_3')).toBe(0);
+      expect(daysNeededForStreakBadge(5, 'streak_3')).toBe(0);
+    });
+
+    it('should return correct days needed for streak_30', () => {
+      expect(daysNeededForStreakBadge(0, 'streak_30')).toBe(30);
+      expect(daysNeededForStreakBadge(15, 'streak_30')).toBe(15);
+      expect(daysNeededForStreakBadge(30, 'streak_30')).toBe(0);
+    });
+
+    it('should return 0 for invalid badge key', () => {
+      expect(daysNeededForStreakBadge(5, 'invalid')).toBe(0);
+    });
+  });
+
+  describe('getStreakPercentProgress', () => {
+    it('should return 0% for 0 days', () => {
+      expect(getStreakPercentProgress(0, 'streak_3')).toBe(0);
+    });
+
+    it('should return correct percentage', () => {
+      expect(getStreakPercentProgress(1, 'streak_3')).toBe(33);
+      expect(getStreakPercentProgress(2, 'streak_3')).toBe(67);
+      expect(getStreakPercentProgress(3, 'streak_3')).toBe(100);
+    });
+
+    it('should cap at 100%', () => {
+      expect(getStreakPercentProgress(10, 'streak_3')).toBe(100);
+      expect(getStreakPercentProgress(50, 'streak_30')).toBe(100);
+    });
+
+    it('should return 0 for invalid badge key', () => {
+      expect(getStreakPercentProgress(5, 'invalid')).toBe(0);
+    });
+  });
+
+  describe('hasStreakBadgeBeenEarned', () => {
+    it('should return false if streak is below threshold', () => {
+      expect(hasStreakBadgeBeenEarned(2, 'streak_3')).toBe(false);
+      expect(hasStreakBadgeBeenEarned(6, 'streak_7')).toBe(false);
+    });
+
+    it('should return true if streak meets threshold', () => {
+      expect(hasStreakBadgeBeenEarned(3, 'streak_3')).toBe(true);
+      expect(hasStreakBadgeBeenEarned(7, 'streak_7')).toBe(true);
+    });
+
+    it('should return true if streak exceeds threshold', () => {
+      expect(hasStreakBadgeBeenEarned(10, 'streak_3')).toBe(true);
+      expect(hasStreakBadgeBeenEarned(50, 'streak_30')).toBe(true);
+    });
+
+    it('should return false for invalid badge key', () => {
+      expect(hasStreakBadgeBeenEarned(100, 'invalid')).toBe(false);
+    });
+  });
+
+  describe('getAllEarnedStreakKeys', () => {
+    it('should return empty array for 0 days', () => {
+      expect(getAllEarnedStreakKeys(0)).toEqual([]);
+    });
+
+    it('should return empty array for 2 days', () => {
+      expect(getAllEarnedStreakKeys(2)).toEqual([]);
+    });
+
+    it('should return streak_3 for 3-6 days', () => {
+      expect(getAllEarnedStreakKeys(3)).toEqual(['streak_3']);
+      expect(getAllEarnedStreakKeys(6)).toEqual(['streak_3']);
+    });
+
+    it('should return streak_3 and streak_7 for 7-13 days', () => {
+      expect(getAllEarnedStreakKeys(7)).toEqual(['streak_3', 'streak_7']);
+      expect(getAllEarnedStreakKeys(13)).toEqual(['streak_3', 'streak_7']);
+    });
+
+    it('should return all keys for 30+ days', () => {
+      expect(getAllEarnedStreakKeys(30)).toEqual(['streak_3', 'streak_7', 'streak_14', 'streak_30']);
+      expect(getAllEarnedStreakKeys(100)).toEqual(['streak_3', 'streak_7', 'streak_14', 'streak_30']);
+    });
+  });
+
+  describe('countEarnedStreakBadges', () => {
+    it('should return 0 for 0 days', () => {
+      expect(countEarnedStreakBadges(0)).toBe(0);
+    });
+
+    it('should return 1 for 3-6 days', () => {
+      expect(countEarnedStreakBadges(3)).toBe(1);
+      expect(countEarnedStreakBadges(6)).toBe(1);
+    });
+
+    it('should return 2 for 7-13 days', () => {
+      expect(countEarnedStreakBadges(7)).toBe(2);
+      expect(countEarnedStreakBadges(13)).toBe(2);
+    });
+
+    it('should return 3 for 14-29 days', () => {
+      expect(countEarnedStreakBadges(14)).toBe(3);
+      expect(countEarnedStreakBadges(29)).toBe(3);
+    });
+
+    it('should return 4 for 30+ days', () => {
+      expect(countEarnedStreakBadges(30)).toBe(4);
+      expect(countEarnedStreakBadges(100)).toBe(4);
+    });
+  });
+
+  describe('getNextStreakBadge', () => {
+    it('should return streak_3 for 0 days', () => {
+      const next = getNextStreakBadge(0);
+      expect(next?.key).toBe('streak_3');
+      expect(next?.daysNeeded).toBe(3);
+    });
+
+    it('should return streak_7 for 3-6 days', () => {
+      const next = getNextStreakBadge(5);
+      expect(next?.key).toBe('streak_7');
+      expect(next?.daysNeeded).toBe(2);
+    });
+
+    it('should return streak_14 for 7-13 days', () => {
+      const next = getNextStreakBadge(10);
+      expect(next?.key).toBe('streak_14');
+      expect(next?.daysNeeded).toBe(4);
+    });
+
+    it('should return streak_30 for 14-29 days', () => {
+      const next = getNextStreakBadge(20);
+      expect(next?.key).toBe('streak_30');
+      expect(next?.daysNeeded).toBe(10);
+    });
+
+    it('should return null for 30+ days', () => {
+      expect(getNextStreakBadge(30)).toBeNull();
+      expect(getNextStreakBadge(100)).toBeNull();
+    });
+  });
+
+  describe('getStreakBadgeThresholds', () => {
+    it('should return all threshold values', () => {
+      expect(getStreakBadgeThresholds()).toEqual([3, 7, 14, 30]);
+    });
+  });
+
+  describe('isStreakActive', () => {
+    it('should return false for null date', () => {
+      expect(isStreakActive(null)).toBe(false);
+    });
+
+    it('should return true for today', () => {
+      const today = new Date().toISOString().split('T')[0];
+      expect(isStreakActive(today)).toBe(true);
+    });
+
+    it('should return true for yesterday', () => {
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      expect(isStreakActive(yesterday)).toBe(true);
+    });
+
+    it('should return false for two days ago', () => {
+      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      expect(isStreakActive(twoDaysAgo)).toBe(false);
+    });
+  });
+
+  describe('getStreakStatusMessage', () => {
+    it('should return start message for 0 streak', () => {
+      const msg = getStreakStatusMessage(0, false);
+      expect(msg).toBe('Start your streak by adding a card today!');
+    });
+
+    it('should return great start message for 1 day streak active today', () => {
+      const msg = getStreakStatusMessage(1, true);
+      expect(msg).toBe('Great start! Come back tomorrow to continue your streak.');
+    });
+
+    it('should return streak count message for active streak', () => {
+      const msg = getStreakStatusMessage(5, true);
+      expect(msg).toBe('5-day streak! Come back tomorrow to keep it going.');
+    });
+
+    it('should return at risk message for 1 day streak not active today', () => {
+      const msg = getStreakStatusMessage(1, false);
+      expect(msg).toBe('Add a card today to continue your streak!');
+    });
+
+    it('should return at risk message for multi-day streak not active today', () => {
+      const msg = getStreakStatusMessage(7, false);
+      expect(msg).toBe('7-day streak at risk! Add a card today to keep it going.');
+    });
+  });
+
+  describe('formatStreakCount', () => {
+    it('should return "No streak" for 0 days', () => {
+      expect(formatStreakCount(0)).toBe('No streak');
+    });
+
+    it('should return "1 day" for 1 day', () => {
+      expect(formatStreakCount(1)).toBe('1 day');
+    });
+
+    it('should return plural form for multiple days', () => {
+      expect(formatStreakCount(2)).toBe('2 days');
+      expect(formatStreakCount(7)).toBe('7 days');
+      expect(formatStreakCount(30)).toBe('30 days');
+    });
+  });
+});
+
+describe('Streak Badge Integration Scenarios', () => {
+  describe('Streak Building Journey', () => {
+    it('should show correct progression as streak builds', () => {
+      // Day 1 - Starting streak
+      let summary = getStreakProgressSummary(1, 1, true, '2026-01-16');
+      expect(summary.currentBadge).toBeNull();
+      expect(summary.nextBadge?.key).toBe('streak_3');
+      expect(summary.nextBadge?.daysNeeded).toBe(2);
+      expect(summary.totalStreakBadgesEarned).toBe(0);
+
+      // Day 3 - First badge
+      summary = getStreakProgressSummary(3, 3, true, '2026-01-18', ['streak_3']);
+      expect(summary.currentBadge?.key).toBe('streak_3');
+      expect(summary.nextBadge?.key).toBe('streak_7');
+      expect(summary.nextBadge?.daysNeeded).toBe(4);
+      expect(summary.totalStreakBadgesEarned).toBe(1);
+
+      // Day 7 - Week warrior
+      summary = getStreakProgressSummary(7, 7, true, '2026-01-22', ['streak_3', 'streak_7']);
+      expect(summary.currentBadge?.key).toBe('streak_7');
+      expect(summary.nextBadge?.key).toBe('streak_14');
+      expect(summary.totalStreakBadgesEarned).toBe(2);
+
+      // Day 30 - All badges earned
+      summary = getStreakProgressSummary(30, 30, true, '2026-02-14', ['streak_3', 'streak_7', 'streak_14', 'streak_30']);
+      expect(summary.currentBadge?.key).toBe('streak_30');
+      expect(summary.nextBadge).toBeNull();
+      expect(summary.totalStreakBadgesEarned).toBe(4);
+    });
+
+    it('should handle streak break and restart', () => {
+      // Had a 10 day streak (longest), now starting fresh
+      let summary = getStreakProgressSummary(1, 10, true, '2026-01-16');
+      expect(summary.currentStreak).toBe(1);
+      expect(summary.longestStreak).toBe(10);
+      expect(summary.currentBadge).toBeNull();
+      expect(summary.nextBadge?.daysNeeded).toBe(2);
+
+      // Building back up
+      summary = getStreakProgressSummary(5, 10, true, '2026-01-20');
+      expect(summary.currentStreak).toBe(5);
+      expect(summary.longestStreak).toBe(10);
+      expect(summary.currentBadge?.key).toBe('streak_3');
+      expect(summary.nextBadge?.key).toBe('streak_7');
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle exactly at threshold values', () => {
+      expect(getAllEarnedStreakKeys(3)).toEqual(['streak_3']);
+      expect(getAllEarnedStreakKeys(7)).toEqual(['streak_3', 'streak_7']);
+      expect(getAllEarnedStreakKeys(14)).toEqual(['streak_3', 'streak_7', 'streak_14']);
+      expect(getAllEarnedStreakKeys(30)).toEqual(['streak_3', 'streak_7', 'streak_14', 'streak_30']);
+    });
+
+    it('should handle one below threshold values', () => {
+      expect(getAllEarnedStreakKeys(2)).toEqual([]);
+      expect(getAllEarnedStreakKeys(6)).toEqual(['streak_3']);
+      expect(getAllEarnedStreakKeys(13)).toEqual(['streak_3', 'streak_7']);
+      expect(getAllEarnedStreakKeys(29)).toEqual(['streak_3', 'streak_7', 'streak_14']);
+    });
+
+    it('should handle very long streaks', () => {
+      const summary = getStreakProgressSummary(365, 365, true, '2026-01-16', ['streak_3', 'streak_7', 'streak_14', 'streak_30']);
+      expect(summary.currentStreak).toBe(365);
+      expect(summary.longestStreak).toBe(365);
+      expect(summary.currentBadge?.key).toBe('streak_30');
+      expect(summary.nextBadge).toBeNull();
+      expect(summary.totalStreakBadgesEarned).toBe(4);
     });
   });
 });

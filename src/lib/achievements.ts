@@ -1438,3 +1438,254 @@ export function getNearbyPokemonFanBadges(
 export function getPokemonWithFanBadges(): string[] {
   return POKEMON_FAN_BADGE_DEFINITIONS.map((b) => b.pokemon);
 }
+
+// ============================================================================
+// STREAK BADGE UTILITIES
+// ============================================================================
+
+export interface StreakProgress {
+  key: string;
+  name: string;
+  threshold: number;
+  earned: boolean;
+  daysNeeded: number;
+  progress: number;
+}
+
+export interface StreakProgressSummary {
+  currentStreak: number;
+  longestStreak: number;
+  isActiveToday: boolean;
+  lastActiveDate: string | null;
+  streakBadges: StreakProgress[];
+  currentBadge: { key: string; name: string; threshold: number } | null;
+  nextBadge: {
+    key: string;
+    name: string;
+    threshold: number;
+    daysNeeded: number;
+    percentProgress: number;
+  } | null;
+  totalStreakBadgesEarned: number;
+  totalStreakBadgesAvailable: number;
+}
+
+/**
+ * Streak badge definitions with names for display
+ */
+export const STREAK_BADGE_DEFINITIONS = [
+  { key: 'streak_3', threshold: 3, name: '3-Day Streak' },
+  { key: 'streak_7', threshold: 7, name: 'Week Warrior' },
+  { key: 'streak_14', threshold: 14, name: 'Dedicated Collector' },
+  { key: 'streak_30', threshold: 30, name: 'Monthly Master' },
+] as const;
+
+/**
+ * Determines which streak badges should be awarded based on current streak.
+ * Returns badge keys to award (new badges only, excludes already earned).
+ */
+export function getStreakBadgesToAward(
+  currentStreak: number,
+  alreadyEarned: string[] = []
+): string[] {
+  const earnedSet = new Set(alreadyEarned);
+  const badgesToAward: string[] = [];
+
+  for (const badge of STREAK_BADGE_DEFINITIONS) {
+    if (currentStreak >= badge.threshold && !earnedSet.has(badge.key)) {
+      badgesToAward.push(badge.key);
+    }
+  }
+
+  return badgesToAward;
+}
+
+/**
+ * Gets streak progress summary for display.
+ * Takes current streak, longest streak, and list of already earned badge keys.
+ */
+export function getStreakProgressSummary(
+  currentStreak: number,
+  longestStreak: number,
+  isActiveToday: boolean,
+  lastActiveDate: string | null,
+  earnedBadgeKeys: string[] = []
+): StreakProgressSummary {
+  const earnedSet = new Set(earnedBadgeKeys);
+
+  const streakBadges: StreakProgress[] = STREAK_BADGE_DEFINITIONS.map((badge) => {
+    const earned = earnedSet.has(badge.key);
+    return {
+      key: badge.key,
+      name: badge.name,
+      threshold: badge.threshold,
+      earned,
+      daysNeeded: earned ? 0 : Math.max(0, badge.threshold - currentStreak),
+      progress: Math.min(100, Math.round((currentStreak / badge.threshold) * 100)),
+    };
+  });
+
+  // Find current badge (highest earned based on current streak)
+  const currentBadge = [...STREAK_BADGE_DEFINITIONS]
+    .reverse()
+    .find((b) => currentStreak >= b.threshold);
+
+  // Find next badge
+  const nextBadge = STREAK_BADGE_DEFINITIONS.find((b) => currentStreak < b.threshold);
+
+  return {
+    currentStreak,
+    longestStreak,
+    isActiveToday,
+    lastActiveDate,
+    streakBadges,
+    currentBadge: currentBadge
+      ? { key: currentBadge.key, name: currentBadge.name, threshold: currentBadge.threshold }
+      : null,
+    nextBadge: nextBadge
+      ? {
+          key: nextBadge.key,
+          name: nextBadge.name,
+          threshold: nextBadge.threshold,
+          daysNeeded: nextBadge.threshold - currentStreak,
+          percentProgress: Math.round((currentStreak / nextBadge.threshold) * 100),
+        }
+      : null,
+    totalStreakBadgesEarned: earnedBadgeKeys.filter((k) =>
+      STREAK_BADGE_DEFINITIONS.some((b) => b.key === k)
+    ).length,
+    totalStreakBadgesAvailable: STREAK_BADGE_DEFINITIONS.length,
+  };
+}
+
+/**
+ * Gets the streak badge definition for a given key.
+ */
+export function getStreakBadgeDefinition(
+  key: string
+): { key: string; name: string; threshold: number } | null {
+  const badge = STREAK_BADGE_DEFINITIONS.find((b) => b.key === key);
+  return badge ? { key: badge.key, name: badge.name, threshold: badge.threshold } : null;
+}
+
+/**
+ * Gets the current streak badge title based on streak count.
+ * Returns a friendly name like "Week Warrior" for display.
+ */
+export function getCurrentStreakTitle(currentStreak: number): string {
+  const currentBadge = [...STREAK_BADGE_DEFINITIONS]
+    .reverse()
+    .find((b) => currentStreak >= b.threshold);
+  return currentBadge?.name ?? 'No Streak';
+}
+
+/**
+ * Calculates how many more days are needed to reach a specific streak badge.
+ */
+export function daysNeededForStreakBadge(currentStreak: number, badgeKey: string): number {
+  const badge = STREAK_BADGE_DEFINITIONS.find((b) => b.key === badgeKey);
+  if (!badge) return 0;
+  return Math.max(0, badge.threshold - currentStreak);
+}
+
+/**
+ * Gets percentage progress toward a specific streak badge.
+ */
+export function getStreakPercentProgress(currentStreak: number, badgeKey: string): number {
+  const badge = STREAK_BADGE_DEFINITIONS.find((b) => b.key === badgeKey);
+  if (!badge) return 0;
+  return Math.min(100, Math.round((currentStreak / badge.threshold) * 100));
+}
+
+/**
+ * Checks if a specific streak badge has been earned.
+ */
+export function hasStreakBadgeBeenEarned(currentStreak: number, badgeKey: string): boolean {
+  const badge = STREAK_BADGE_DEFINITIONS.find((b) => b.key === badgeKey);
+  if (!badge) return false;
+  return currentStreak >= badge.threshold;
+}
+
+/**
+ * Gets all streak badge keys that should be earned at a given streak count.
+ */
+export function getAllEarnedStreakKeys(currentStreak: number): string[] {
+  return STREAK_BADGE_DEFINITIONS.filter((b) => currentStreak >= b.threshold).map((b) => b.key);
+}
+
+/**
+ * Gets the number of streak badges earned at a given streak count.
+ */
+export function countEarnedStreakBadges(currentStreak: number): number {
+  return STREAK_BADGE_DEFINITIONS.filter((b) => currentStreak >= b.threshold).length;
+}
+
+/**
+ * Gets the next streak badge to earn.
+ */
+export function getNextStreakBadge(
+  currentStreak: number
+): { key: string; name: string; threshold: number; daysNeeded: number } | null {
+  const nextBadge = STREAK_BADGE_DEFINITIONS.find((b) => currentStreak < b.threshold);
+  if (!nextBadge) return null;
+
+  return {
+    key: nextBadge.key,
+    name: nextBadge.name,
+    threshold: nextBadge.threshold,
+    daysNeeded: nextBadge.threshold - currentStreak,
+  };
+}
+
+/**
+ * Gets all streak badge thresholds.
+ */
+export function getStreakBadgeThresholds(): number[] {
+  return STREAK_BADGE_DEFINITIONS.map((b) => b.threshold);
+}
+
+/**
+ * Checks if a streak is currently active (today or yesterday).
+ */
+export function isStreakActive(lastActiveDate: string | null): boolean {
+  if (!lastActiveDate) return false;
+
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+  return lastActiveDate === today || lastActiveDate === yesterday;
+}
+
+/**
+ * Gets streak status message based on current state.
+ */
+export function getStreakStatusMessage(
+  currentStreak: number,
+  isActiveToday: boolean
+): string {
+  if (currentStreak === 0) {
+    return 'Start your streak by adding a card today!';
+  }
+
+  if (isActiveToday) {
+    if (currentStreak === 1) {
+      return 'Great start! Come back tomorrow to continue your streak.';
+    }
+    return `${currentStreak}-day streak! Come back tomorrow to keep it going.`;
+  }
+
+  // Active yesterday but not today
+  if (currentStreak === 1) {
+    return 'Add a card today to continue your streak!';
+  }
+  return `${currentStreak}-day streak at risk! Add a card today to keep it going.`;
+}
+
+/**
+ * Formats a streak count for display (e.g., "7 days", "1 day").
+ */
+export function formatStreakCount(days: number): string {
+  if (days === 0) return 'No streak';
+  if (days === 1) return '1 day';
+  return `${days} days`;
+}
