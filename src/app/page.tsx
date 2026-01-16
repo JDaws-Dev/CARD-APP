@@ -1,6 +1,8 @@
+import Link from 'next/link';
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-indigo-50 to-purple-50 p-8">
       <div className="text-center">
         {/* Logo placeholder */}
         <div className="mb-8 text-6xl">🎴</div>
@@ -14,9 +16,12 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <button className="touch-target rounded-full bg-kid-primary px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-kid-primary/90 hover:shadow-xl">
+          <Link
+            href="/sets"
+            className="touch-target rounded-full bg-kid-primary px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-kid-primary/90 hover:shadow-xl"
+          >
             Start Collecting
-          </button>
+          </Link>
 
           <button className="touch-target rounded-full border-2 border-kid-primary px-8 py-4 text-lg font-semibold text-kid-primary transition hover:bg-kid-primary/10">
             Parent Login

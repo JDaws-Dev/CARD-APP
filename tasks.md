@@ -3,9 +3,10 @@
 ## Phase 1: Foundation (Weeks 1-2)
 
 - [x] Initialize project with Next.js 14, TypeScript, and Tailwind CSS
-- [x] Set up PostgreSQL database with Prisma ORM
+- [x] Set up Convex database backend
 - [x] Create database schema (families, profiles, collection_cards, wishlist_cards, achievements, wishlist_shares)
-- [ ] Implement authentication system with email/password (Supabase Auth or Auth0)
+- [x] Create Convex functions for collections, wishlist, profiles, achievements
+- [ ] Implement authentication system with Convex Auth
 - [ ] Create parent account registration flow with email verification
 - [ ] Build child profile creation (up to 4 per family)
 - [x] Integrate Pokemon TCG API with caching layer
@@ -13,14 +14,15 @@
 
 ## Phase 2: Core Collection (Weeks 3-4)
 
-- [ ] Build set browser page with grid view of all Scarlet & Violet sets
-- [ ] Create card grid component with large, tap-friendly images
-- [ ] Implement tap-to-add functionality for marking cards as owned
-- [ ] Add visual feedback (checkmark, highlight) for owned cards
-- [ ] Build quantity tracking with +/- controls for duplicates
+- [x] Build set browser page with grid view of all Scarlet & Violet sets
+- [x] Create card grid component with large, tap-friendly images
+- [x] Implement tap-to-add functionality for marking cards as owned
+- [x] Add visual feedback (checkmark, highlight) for owned cards
+- [x] Build quantity tracking with +/- controls for duplicates
+- [x] Add progress bar component showing X of Y cards collected
+- [x] Implement set completion percentage display
+- [ ] Connect card tracking to Convex backend (persist data)
 - [ ] Create "My Collection" view aggregating all owned cards
-- [ ] Add progress bar component showing X of Y cards collected
-- [ ] Implement set completion percentage display
 - [ ] Add search functionality for finding Pokemon by name
 - [ ] Create filter system (by set, type, Pokemon)
 
@@ -100,3 +102,21 @@
 - `ralph.sh` - Automated task runner script
 
 **Next steps:** Implement authentication system with Supabase Auth
+
+### 2026-01-15 - Switched to Convex
+**Completed tasks:**
+- Migrated from Prisma/PostgreSQL to Convex backend
+- Created Convex schema with all tables
+- Implemented Convex functions: collections.ts, wishlist.ts, profiles.ts, achievements.ts
+- Set up ConvexClientProvider for Next.js
+- Deployed to Convex cloud (pokemon-project)
+
+**Files created/modified:**
+- `convex/schema.ts` - Database schema
+- `convex/collections.ts` - Card collection mutations/queries
+- `convex/wishlist.ts` - Wishlist management
+- `convex/profiles.ts` - Family and profile CRUD
+- `convex/achievements.ts` - Badge definitions and awarding
+- `src/components/providers/ConvexClientProvider.tsx` - React provider
+
+**Next steps:** Build set browser page with grid view
