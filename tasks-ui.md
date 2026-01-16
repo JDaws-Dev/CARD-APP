@@ -20,8 +20,8 @@
 | **Financial Literacy**               | 0        | **4**     |
 | **Educational Mini-Games**           | 0        | **5**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
-| **Engagement & Retention**           | 0        | **4**     |
-| **TOTAL**                            | **81**   | **29**    |
+| **Engagement & Retention**           | 1        | **3**     |
+| **TOTAL**                            | **82**   | **28**    |
 
 ### Priority Order for Remaining Tasks
 
@@ -210,7 +210,7 @@
 
 ### Engagement & Retention
 
-- [ ] Daily stamp collection - Non-consecutive stamp system (collect 5 stamps in a week for reward, doesn't need to be consecutive)
+- [x] Daily stamp collection - Non-consecutive stamp system (collect 5 stamps in a week for reward, doesn't need to be consecutive)
 - [ ] Weekly challenges - "Add 3 water-type cards this week" with themed rewards
 - [ ] Comeback rewards - Special welcome back celebration and bonus XP for returning after absence
 - [ ] Collection snapshot sharing - Generate shareable image of collection stats/highlights for social media
@@ -295,3 +295,4 @@
 - **2026-01-16**: Added Settings link to profile dropdown menu - Quick access to Settings page from anywhere in the app via profile dropdown. Link appears with Cog6ToothIcon after Learn to Collect and before Sign Out divider. Matches existing menu item styling with active state highlighting. Commit: 70b0a86
 - **2026-01-16**: Completed UI Cleanup & Settings section - Settings page sections already organized into Display (dark mode, kid mode), Accessibility (low-stim, dyslexic font, high contrast, reduced motion, focus mode), Games (TCG selection), and Notifications. Added quick settings popover from header gear icon with DarkModeToggle and KidModeToggle for fast access without leaving current page. Desktop shows popover on gear click; mobile menu includes Quick Settings section with same toggles. Commit: b835962
 - **2026-01-16**: Added streak repair with XP - Created comprehensive streak repair system (src/lib/streakRepair.ts, src/components/gamification/StreakRepair.tsx) allowing users to spend accumulated XP to repair a recently broken streak. Features: 48-hour repair window after streak breaks; cost formula scales with streak length (base cost + streak bonus); cost breakdown display showing base cost and streak multiplier; urgency indicators (critical/high styling when time running low); StreakRepairStatus card with XP cost, time remaining, repair button; RepairSuccessModal with celebration animation when streak restored; StreakRepairIndicator compact version for inline display; localStorage persistence for repair state and history. Integrated into /streak page below calendar, updated info card and tips section to mention repair feature. Uses Heroicons (WrenchScrewdriverIcon, BoltIcon, ClockIcon, FireIcon, ExclamationTriangleIcon, CheckCircleIcon, SparklesIcon). Commit: cd9db31
+- **2026-01-16**: Added daily stamp collection system - Created non-consecutive stamp system where users collect 5 stamps in any week for bonus XP reward. Features: dailyStamps.ts utility library with stamp tracking, week boundaries, and progress calculations; DailyStampProvider context for app-wide state management; DailyStampCollection component with weekly 7-day stamp grid, interactive collect-today cells with pulse animation, progress bar with smooth transitions, reward claim modal with celebration animation; stamp milestones at 10/25/50/100 total stamps with progress indicators; localStorage persistence with automatic cleanup of old data (>8 weeks); integrated into /streak page with skeleton loading states; added tip about daily stamps to tips section. Uses Heroicons (CalendarDaysIcon, GiftIcon, SparklesIcon, CheckCircleIcon, StarIcon, FireIcon, BoltIcon). Commit: fb6ee0d
