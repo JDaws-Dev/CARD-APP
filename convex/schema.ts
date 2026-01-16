@@ -6,6 +6,57 @@ export default defineSchema({
   ...authTables,
 
   // ============================================================================
+  // MULTI-TCG GAME CONFIGURATION
+  // ============================================================================
+
+  /**
+   * Supported trading card games
+   * Each game has its own API adapter and configuration
+   */
+  games: defineTable({
+    slug: v.union(
+      v.literal('pokemon'),
+      v.literal('yugioh'),
+      v.literal('mtg'),
+      v.literal('onepiece'),
+      v.literal('lorcana'),
+      v.literal('digimon'),
+      v.literal('dragonball')
+    ),
+    displayName: v.string(), // User-friendly name (e.g., "Pokémon TCG")
+    apiSource: v.string(), // API source domain (e.g., "pokemontcg.io")
+    primaryColor: v.string(), // Hex color for branding (e.g., "#FFCB05")
+    secondaryColor: v.optional(v.string()), // Optional secondary color
+    isActive: v.boolean(), // Whether the game is currently enabled
+    releaseOrder: v.number(), // Sort order for display (1 = first released TCG supported)
+  })
+    .index('by_slug', ['slug'])
+    .index('by_active', ['isActive'])
+    .index('by_release_order', ['releaseOrder']),
+
+  /**
+   * Junction table tracking which games each profile collects
+   * Allows profiles to enable/disable specific TCGs
+   */
+  profileGames: defineTable({
+    profileId: v.id('profiles'),
+    gameSlug: v.union(
+      v.literal('pokemon'),
+      v.literal('yugioh'),
+      v.literal('mtg'),
+      v.literal('onepiece'),
+      v.literal('lorcana'),
+      v.literal('digimon'),
+      v.literal('dragonball')
+    ),
+    enabledAt: v.number(), // Unix timestamp when this game was enabled for the profile
+    isActive: v.optional(v.boolean()), // Can be disabled without removing history (default true)
+  })
+    .index('by_profile', ['profileId'])
+    .index('by_profile_and_game', ['profileId', 'gameSlug'])
+    .index('by_game', ['gameSlug']),
+
+  // ============================================================================
   // FAMILY & AUTHENTICATION
   // ============================================================================
 
