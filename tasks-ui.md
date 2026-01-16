@@ -18,14 +18,14 @@
 | **Collection Timeline & Story**      | 5        | **0**     |
 | **Family & Social Features**         | 5        | **0**     |
 | **Financial Literacy**               | 0        | **4**     |
-| **Educational Mini-Games**           | 0        | **5**     |
+| **Educational Mini-Games**           | 1        | **4**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
 | **Engagement & Retention**           | 4        | **0**     |
-| **TOTAL**                            | **97**   | **9**     |
+| **TOTAL**                            | **98**   | **8**     |
 
 ### Priority Order for Remaining Tasks
 
-1. **Educational Mini-Games** (5 tasks) - Grade Like a Pro, rarity guessing - Learning through play
+1. **Educational Mini-Games** (4 tasks) - Rarity guessing, set symbols, type quiz, price estimation - Learning through play
 2. **Financial Literacy** (4 tasks) - Savings calculator, budget alternatives - Parent-friendly
 
 ---
@@ -189,7 +189,7 @@
 
 ### Educational Mini-Games
 
-- [ ] "Grade Like a Pro" mini-game - Show card images, user guesses condition (NM/LP/MP/HP), earn XP for correct answers
+- [x] "Grade Like a Pro" mini-game - Show card images, user guesses condition (NM/LP/MP/HP), earn XP for correct answers
 - [ ] Rarity guessing game - Show card artwork only, guess the rarity before reveal
 - [ ] Set symbol matching game - Match set symbols to set names for learning
 - [ ] Pokemon type quiz - Quick quiz on Pokemon types based on cards in collection
@@ -215,6 +215,7 @@
 
 ## Progress
 
+- **2026-01-16**: Completed Grade Like a Pro mini-game - Created GradeLikeAProGame component (src/components/games/GradeLikeAProGame.tsx) for educational card condition grading practice. Features: intro screen explaining XP rewards (25 XP per correct, 50 bonus for perfect), 5-round gameplay showing Pokemon card images and asking user to guess condition (NM/LP/MP/HP), hint system with toggle button, instant feedback showing correct answer with explanation, progress bar and score tracking, results screen with performance summary and XP earned, play again functionality. Added prominent mini-game banner to Learn page with GradeLikeAProButton launcher. Uses Heroicons (AcademicCapIcon, StarIcon, BoltIcon, LightBulbIcon, CheckIcon, XMarkIcon, TrophyIcon, ChevronRightIcon, ArrowPathIcon, PlayIcon, SparklesIcon). Commit: 56e6704
 - **2026-01-16**: Completed Adventure Map visualization - Created AdventureMap component (src/components/collection/AdventureMap.tsx) showing Pokemon regions unlocked based on card types collected. Features: 9 regions (Kanto, Johto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar, Paldea) each requiring 5 cards of a specific type to unlock (Fire, Grass, Water, Psychic, Electric, Fairy, Fighting, Metal, Dragon), interactive map with positioned region nodes, SVG path connections between regions, progress rings on locked regions, region detail panel with unlock requirements, overall progress header. Uses Heroicons (MapIcon, LockClosedIcon, CheckCircleIcon, SparklesIcon). Commit: a1b7618
 - **2026-01-16**: Completed Collector's Journey Story Mode - Created CollectorsJourneyStory component (src/components/collection/CollectorsJourneyStory.tsx) with adventure narrative that unlocks chapters based on collection milestones. Features: 7 story chapters (1 card to 500 cards), animated chapter cards with progress bars for locked chapters, immersive story reader modal with decorative background patterns, journey header with overall progress tracking, milestone-based unlock system using existing getMilestoneProgress query, gradient themes per chapter, skeleton loading state, next chapter hints. Uses Heroicons (BookOpenIcon, LockClosedIcon, SparklesIcon, CheckCircleIcon, ChevronRightIcon, MapIcon, StarIcon, TrophyIcon, FireIcon, BoltIcon, RocketLaunchIcon, GlobeAltIcon). Commit: 89e2e3e
 - **2026-01-16**: Completed trade suggestion engine - Created TradeSuggestionEngine component (src/components/family/TradeSuggestionEngine.tsx) that suggests trades between siblings based on wishlists and duplicate cards. Features: collapsible panel in ParentDashboard, suggests cards where one sibling has duplicates (quantity > 1) that another sibling might want, visual badges for wishlist matches (rose "Wanted") vs extra cards (emerald "Extra"), card images with quantity badges, sorted by priority (wishlist first then by quantity), skeleton loading state, empty state messaging, responsive design. Added to ParentDashboard component. Uses Heroicons (LightBulbIcon, HeartIcon, CheckCircleIcon, ArrowsRightLeftIcon). Commit: 4f437c1
