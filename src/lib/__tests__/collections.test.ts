@@ -41,6 +41,34 @@ import {
   getRandomCardMessage,
   cardSelectionProbability,
   RandomCardResult,
+  // Collection value calculation
+  CardWithPrice,
+  CollectionValueResult,
+  ValuedCardEntry,
+  SetValueEntry,
+  isValidPrice,
+  roundToCents,
+  calculateTotalValue,
+  calculateCollectionValue,
+  addPriceToCard,
+  addPricesToCollection,
+  createValuedCardEntry,
+  getMostValuableCardsFromCollection,
+  getMostValuableByUnitPrice,
+  calculateValueBySet,
+  calculateSetValuePercentage,
+  calculateAverageCardValue,
+  calculateMedianCardValue,
+  formatCurrency,
+  formatValueChange,
+  calculateValueChange,
+  getCardsAboveValue,
+  countHighValueCards,
+  calculatePricedPercentage,
+  getValueSummaryMessage,
+  hasValuedCards,
+  getTopSetsByValue,
+  filterSetsByMinValue,
 } from '../collections';
 
 // ============================================================================
@@ -2255,9 +2283,7 @@ describe('Random Card Selection', () => {
       expect(validateRandomCardOptions()).toBeNull();
       expect(validateRandomCardOptions({ count: 5 })).toBeNull();
       expect(validateRandomCardOptions({ variant: 'holofoil' })).toBeNull();
-      expect(
-        validateRandomCardOptions({ count: 3, setId: 'sv1', variant: 'normal' })
-      ).toBeNull();
+      expect(validateRandomCardOptions({ count: 3, setId: 'sv1', variant: 'normal' })).toBeNull();
     });
 
     it('should return error for invalid count', () => {
@@ -2494,9 +2520,7 @@ describe('Random Card Integration Scenarios', () => {
 
   describe('Single Card Collection', () => {
     it('should always return the same card', () => {
-      const collection: CollectionCard[] = [
-        { cardId: 'sv1-1', quantity: 1, variant: 'holofoil' },
-      ];
+      const collection: CollectionCard[] = [{ cardId: 'sv1-1', quantity: 1, variant: 'holofoil' }];
 
       for (let i = 0; i < 5; i++) {
         const selected = selectRandomCard(collection);
@@ -2504,6 +2528,753 @@ describe('Random Card Integration Scenarios', () => {
         expect(selected!.cardId).toBe('sv1-1');
         expect(selected!.variant).toBe('holofoil');
       }
+    });
+  });
+});
+
+// ============================================================================
+// COLLECTION VALUE CALCULATION
+// ============================================================================
+
+function createCardWithPrice(
+  cardId: string,
+  quantity: number,
+  price?: number,
+  variant: CardVariant = 'normal'
+): CardWithPrice {
+  return { cardId, quantity, variant, price };
+}
+
+function createSampleValueCollection(): CardWithPrice[] {
+  return [
+    createCardWithPrice('sv1-1', 3, 5.99), // Pikachu - $17.97 total
+    createCardWithPrice('sv1-25', 1, 125.0, 'holofoil'), // Charizard holo - $125.00 total
+    createCardWithPrice('sv2-10', 2, 2.5), // Common - $5.00 total
+    createCardWithPrice('sv2-50', 4, undefined), // No price
+    createCardWithPrice('sv3-1', 1, 50.0, '1stEditionHolofoil'), // 1st ed - $50.00 total
+  ];
+}
+
+describe('Collection Value Calculation', () => {
+  describe('isValidPrice', () => {
+    it('should return true for positive numbers', () => {
+      expect(isValidPrice(0.01)).toBe(true);
+      expect(isValidPrice(1)).toBe(true);
+      expect(isValidPrice(100.5)).toBe(true);
+      expect(isValidPrice(1000000)).toBe(true);
+    });
+
+    it('should return false for zero', () => {
+      expect(isValidPrice(0)).toBe(false);
+    });
+
+    it('should return false for negative numbers', () => {
+      expect(isValidPrice(-1)).toBe(false);
+      expect(isValidPrice(-0.01)).toBe(false);
+    });
+
+    it('should return false for non-numbers', () => {
+      expect(isValidPrice(undefined)).toBe(false);
+      expect(isValidPrice(null)).toBe(false);
+      expect(isValidPrice('10')).toBe(false);
+      expect(isValidPrice(NaN)).toBe(false);
+      expect(isValidPrice(Infinity)).toBe(false);
+    });
+  });
+
+  describe('roundToCents', () => {
+    it('should round to 2 decimal places', () => {
+      expect(roundToCents(10.999)).toBe(11);
+      expect(roundToCents(10.994)).toBe(10.99);
+      expect(roundToCents(10.995)).toBe(11);
+      expect(roundToCents(10.991)).toBe(10.99);
+    });
+
+    it('should handle whole numbers', () => {
+      expect(roundToCents(10)).toBe(10);
+      expect(roundToCents(0)).toBe(0);
+    });
+
+    it('should handle numbers with 2 decimal places', () => {
+      expect(roundToCents(10.99)).toBe(10.99);
+      expect(roundToCents(10.01)).toBe(10.01);
+    });
+  });
+
+  describe('calculateTotalValue', () => {
+    it('should calculate total value correctly', () => {
+      const cards = createSampleValueCollection();
+      // 3*5.99 + 1*125 + 2*2.5 + 0 + 1*50 = 17.97 + 125 + 5 + 50 = 197.97
+      expect(calculateTotalValue(cards)).toBe(197.97);
+    });
+
+    it('should return 0 for empty collection', () => {
+      expect(calculateTotalValue([])).toBe(0);
+    });
+
+    it('should return 0 when no cards have prices', () => {
+      const cards = [
+        createCardWithPrice('sv1-1', 1, undefined),
+        createCardWithPrice('sv1-2', 2, undefined),
+      ];
+      expect(calculateTotalValue(cards)).toBe(0);
+    });
+
+    it('should handle single card', () => {
+      const cards = [createCardWithPrice('sv1-1', 2, 10.5)];
+      expect(calculateTotalValue(cards)).toBe(21);
+    });
+  });
+
+  describe('calculateCollectionValue', () => {
+    it('should return complete value statistics', () => {
+      const cards = createSampleValueCollection();
+      const result = calculateCollectionValue(cards);
+
+      expect(result.totalValue).toBe(197.97);
+      expect(result.valuedCardsCount).toBe(4);
+      expect(result.unvaluedCardsCount).toBe(1);
+      expect(result.totalCardsCount).toBe(5);
+    });
+
+    it('should handle empty collection', () => {
+      const result = calculateCollectionValue([]);
+
+      expect(result.totalValue).toBe(0);
+      expect(result.valuedCardsCount).toBe(0);
+      expect(result.unvaluedCardsCount).toBe(0);
+      expect(result.totalCardsCount).toBe(0);
+    });
+
+    it('should handle collection with no prices', () => {
+      const cards = [
+        createCardWithPrice('sv1-1', 1, undefined),
+        createCardWithPrice('sv1-2', 2, undefined),
+      ];
+      const result = calculateCollectionValue(cards);
+
+      expect(result.totalValue).toBe(0);
+      expect(result.valuedCardsCount).toBe(0);
+      expect(result.unvaluedCardsCount).toBe(2);
+      expect(result.totalCardsCount).toBe(2);
+    });
+
+    it('should handle collection with all prices', () => {
+      const cards = [createCardWithPrice('sv1-1', 1, 10), createCardWithPrice('sv1-2', 2, 5)];
+      const result = calculateCollectionValue(cards);
+
+      expect(result.totalValue).toBe(20);
+      expect(result.valuedCardsCount).toBe(2);
+      expect(result.unvaluedCardsCount).toBe(0);
+    });
+  });
+
+  describe('addPriceToCard', () => {
+    it('should add price from map', () => {
+      const card: CollectionCard = { cardId: 'sv1-1', quantity: 2, variant: 'holofoil' };
+      const priceMap = new Map([['sv1-1', 10.5]]);
+
+      const result = addPriceToCard(card, priceMap);
+
+      expect(result.cardId).toBe('sv1-1');
+      expect(result.quantity).toBe(2);
+      expect(result.variant).toBe('holofoil');
+      expect(result.price).toBe(10.5);
+    });
+
+    it('should return undefined price when not in map', () => {
+      const card: CollectionCard = { cardId: 'sv1-1', quantity: 2, variant: 'holofoil' };
+      const priceMap = new Map<string, number>();
+
+      const result = addPriceToCard(card, priceMap);
+
+      expect(result.price).toBeUndefined();
+    });
+
+    it('should default variant to normal', () => {
+      const card: CollectionCard = { cardId: 'sv1-1', quantity: 1, variant: 'normal' };
+      const priceMap = new Map<string, number>();
+
+      const result = addPriceToCard(card, priceMap);
+
+      expect(result.variant).toBe('normal');
+    });
+  });
+
+  describe('addPricesToCollection', () => {
+    it('should add prices to all cards', () => {
+      const cards: CollectionCard[] = [
+        { cardId: 'sv1-1', quantity: 1, variant: 'normal' },
+        { cardId: 'sv1-2', quantity: 2, variant: 'holofoil' },
+      ];
+      const priceMap = new Map([
+        ['sv1-1', 10],
+        ['sv1-2', 25],
+      ]);
+
+      const result = addPricesToCollection(cards, priceMap);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].price).toBe(10);
+      expect(result[1].price).toBe(25);
+    });
+  });
+
+  describe('createValuedCardEntry', () => {
+    it('should create valued card entry with price', () => {
+      const card: CardWithPrice = {
+        cardId: 'sv1-25',
+        quantity: 2,
+        variant: 'holofoil',
+        price: 125,
+      };
+      const cardData = { name: 'Charizard', imageSmall: 'char.png' };
+
+      const result = createValuedCardEntry(card, cardData);
+
+      expect(result).not.toBeNull();
+      expect(result!.cardId).toBe('sv1-25');
+      expect(result!.name).toBe('Charizard');
+      expect(result!.imageSmall).toBe('char.png');
+      expect(result!.variant).toBe('holofoil');
+      expect(result!.quantity).toBe(2);
+      expect(result!.unitPrice).toBe(125);
+      expect(result!.totalValue).toBe(250);
+    });
+
+    it('should return null when no price', () => {
+      const card: CardWithPrice = {
+        cardId: 'sv1-1',
+        quantity: 1,
+        variant: 'normal',
+        price: undefined,
+      };
+
+      const result = createValuedCardEntry(card);
+
+      expect(result).toBeNull();
+    });
+
+    it('should use fallbacks when no card data', () => {
+      const card: CardWithPrice = {
+        cardId: 'sv1-1',
+        quantity: 1,
+        variant: 'normal',
+        price: 10,
+      };
+
+      const result = createValuedCardEntry(card);
+
+      expect(result!.name).toBe('sv1-1');
+      expect(result!.imageSmall).toBe('');
+    });
+  });
+
+  describe('getMostValuableCardsFromCollection', () => {
+    it('should return cards sorted by total value', () => {
+      const cards = createSampleValueCollection();
+      const result = getMostValuableCardsFromCollection(cards, 10);
+
+      expect(result).toHaveLength(4); // 4 cards have prices
+      expect(result[0].cardId).toBe('sv1-25'); // Charizard $125
+      expect(result[1].cardId).toBe('sv3-1'); // 1st ed $50
+      expect(result[2].cardId).toBe('sv1-1'); // Pikachu 3x$5.99 = $17.97
+      expect(result[3].cardId).toBe('sv2-10'); // Common 2x$2.5 = $5
+    });
+
+    it('should respect limit', () => {
+      const cards = createSampleValueCollection();
+      const result = getMostValuableCardsFromCollection(cards, 2);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].cardId).toBe('sv1-25');
+      expect(result[1].cardId).toBe('sv3-1');
+    });
+
+    it('should return empty for collection with no prices', () => {
+      const cards = [createCardWithPrice('sv1-1', 1, undefined)];
+      const result = getMostValuableCardsFromCollection(cards);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should enrich with card data', () => {
+      const cards = [createCardWithPrice('sv1-25', 1, 125)];
+      const cardDataMap = new Map([['sv1-25', { name: 'Charizard', imageSmall: 'char.png' }]]);
+
+      const result = getMostValuableCardsFromCollection(cards, 10, cardDataMap);
+
+      expect(result[0].name).toBe('Charizard');
+      expect(result[0].imageSmall).toBe('char.png');
+    });
+  });
+
+  describe('getMostValuableByUnitPrice', () => {
+    it('should sort by unit price not total value', () => {
+      const cards = [
+        createCardWithPrice('sv1-1', 10, 5), // 10x$5 = $50 total
+        createCardWithPrice('sv1-25', 1, 100), // 1x$100 = $100 total
+      ];
+
+      const result = getMostValuableByUnitPrice(cards);
+
+      // sv1-25 has higher unit price even though same total
+      expect(result[0].cardId).toBe('sv1-25');
+      expect(result[0].unitPrice).toBe(100);
+    });
+  });
+
+  describe('calculateValueBySet', () => {
+    it('should group and calculate value by set', () => {
+      const cards = createSampleValueCollection();
+      const result = calculateValueBySet(cards);
+
+      // Should have 3 sets: sv1, sv2, sv3
+      expect(result.length).toBe(3);
+
+      // sv1: 3*5.99 + 1*125 = 142.97
+      const sv1 = result.find((s) => s.setId === 'sv1');
+      expect(sv1).toBeDefined();
+      expect(sv1!.totalValue).toBe(142.97);
+      expect(sv1!.cardCount).toBe(2);
+
+      // sv2: 2*2.5 + 0 = 5 (one card has no price)
+      const sv2 = result.find((s) => s.setId === 'sv2');
+      expect(sv2).toBeDefined();
+      expect(sv2!.totalValue).toBe(5);
+      expect(sv2!.cardCount).toBe(2);
+
+      // sv3: 1*50 = 50
+      const sv3 = result.find((s) => s.setId === 'sv3');
+      expect(sv3).toBeDefined();
+      expect(sv3!.totalValue).toBe(50);
+      expect(sv3!.cardCount).toBe(1);
+    });
+
+    it('should sort by value descending', () => {
+      const cards = createSampleValueCollection();
+      const result = calculateValueBySet(cards);
+
+      // sv1 > sv3 > sv2
+      expect(result[0].setId).toBe('sv1');
+      expect(result[1].setId).toBe('sv3');
+      expect(result[2].setId).toBe('sv2');
+    });
+
+    it('should use set names from map', () => {
+      const cards = [createCardWithPrice('sv1-1', 1, 10)];
+      const setNameMap = new Map([['sv1', 'Scarlet & Violet']]);
+
+      const result = calculateValueBySet(cards, setNameMap);
+
+      expect(result[0].setName).toBe('Scarlet & Violet');
+    });
+
+    it('should fallback to setId when name not in map', () => {
+      const cards = [createCardWithPrice('sv1-1', 1, 10)];
+
+      const result = calculateValueBySet(cards);
+
+      expect(result[0].setName).toBe('sv1');
+    });
+  });
+
+  describe('calculateSetValuePercentage', () => {
+    it('should calculate percentage correctly', () => {
+      const entry: SetValueEntry = {
+        setId: 'sv1',
+        setName: 'Scarlet',
+        totalValue: 50,
+        cardCount: 5,
+      };
+
+      expect(calculateSetValuePercentage(entry, 100)).toBe(50);
+      expect(calculateSetValuePercentage(entry, 200)).toBe(25);
+    });
+
+    it('should return 0 when total is 0', () => {
+      const entry: SetValueEntry = {
+        setId: 'sv1',
+        setName: 'Scarlet',
+        totalValue: 50,
+        cardCount: 5,
+      };
+
+      expect(calculateSetValuePercentage(entry, 0)).toBe(0);
+    });
+  });
+
+  describe('calculateAverageCardValue', () => {
+    it('should calculate average of priced cards', () => {
+      const cards = [
+        createCardWithPrice('sv1-1', 1, 10),
+        createCardWithPrice('sv1-2', 1, 20),
+        createCardWithPrice('sv1-3', 1, undefined),
+      ];
+
+      expect(calculateAverageCardValue(cards)).toBe(15);
+    });
+
+    it('should return 0 for empty collection', () => {
+      expect(calculateAverageCardValue([])).toBe(0);
+    });
+
+    it('should return 0 when no priced cards', () => {
+      const cards = [createCardWithPrice('sv1-1', 1, undefined)];
+      expect(calculateAverageCardValue(cards)).toBe(0);
+    });
+  });
+
+  describe('calculateMedianCardValue', () => {
+    it('should return median for odd count', () => {
+      const cards = [
+        createCardWithPrice('sv1-1', 1, 10),
+        createCardWithPrice('sv1-2', 1, 20),
+        createCardWithPrice('sv1-3', 1, 30),
+      ];
+
+      expect(calculateMedianCardValue(cards)).toBe(20);
+    });
+
+    it('should return average of middle two for even count', () => {
+      const cards = [
+        createCardWithPrice('sv1-1', 1, 10),
+        createCardWithPrice('sv1-2', 1, 20),
+        createCardWithPrice('sv1-3', 1, 30),
+        createCardWithPrice('sv1-4', 1, 40),
+      ];
+
+      expect(calculateMedianCardValue(cards)).toBe(25);
+    });
+
+    it('should return 0 for empty collection', () => {
+      expect(calculateMedianCardValue([])).toBe(0);
+    });
+
+    it('should ignore unpriced cards', () => {
+      const cards = [
+        createCardWithPrice('sv1-1', 1, 10),
+        createCardWithPrice('sv1-2', 1, undefined),
+        createCardWithPrice('sv1-3', 1, 30),
+      ];
+
+      expect(calculateMedianCardValue(cards)).toBe(20);
+    });
+  });
+
+  describe('formatCurrency', () => {
+    it('should format USD by default', () => {
+      expect(formatCurrency(10)).toBe('$10.00');
+      expect(formatCurrency(10.5)).toBe('$10.50');
+      expect(formatCurrency(1000)).toBe('$1,000.00');
+      expect(formatCurrency(0)).toBe('$0.00');
+    });
+
+    it('should handle decimal values', () => {
+      expect(formatCurrency(10.99)).toBe('$10.99');
+      expect(formatCurrency(10.1)).toBe('$10.10');
+    });
+  });
+
+  describe('formatValueChange', () => {
+    it('should format positive change with plus', () => {
+      expect(formatValueChange(10)).toBe('+$10.00');
+      expect(formatValueChange(0.5)).toBe('+$0.50');
+    });
+
+    it('should format negative change with minus', () => {
+      expect(formatValueChange(-10)).toBe('-$10.00');
+      expect(formatValueChange(-0.5)).toBe('-$0.50');
+    });
+
+    it('should format zero without sign', () => {
+      expect(formatValueChange(0)).toBe('$0.00');
+    });
+  });
+
+  describe('calculateValueChange', () => {
+    it('should calculate change and percent', () => {
+      const result = calculateValueChange(100, 150);
+
+      expect(result.change).toBe(50);
+      expect(result.percentChange).toBe(50);
+    });
+
+    it('should handle decrease', () => {
+      const result = calculateValueChange(100, 75);
+
+      expect(result.change).toBe(-25);
+      expect(result.percentChange).toBe(-25);
+    });
+
+    it('should handle zero previous value', () => {
+      const result = calculateValueChange(0, 100);
+
+      expect(result.change).toBe(100);
+      expect(result.percentChange).toBe(0);
+    });
+  });
+
+  describe('getCardsAboveValue', () => {
+    it('should filter cards above threshold', () => {
+      const cards = [
+        createCardWithPrice('sv1-1', 1, 5),
+        createCardWithPrice('sv1-2', 1, 15),
+        createCardWithPrice('sv1-3', 1, 25),
+      ];
+
+      const result = getCardsAboveValue(cards, 10);
+
+      expect(result).toHaveLength(2);
+      expect(result.map((c) => c.cardId)).toEqual(['sv1-2', 'sv1-3']);
+    });
+
+    it('should exclude unpriced cards', () => {
+      const cards = [
+        createCardWithPrice('sv1-1', 1, undefined),
+        createCardWithPrice('sv1-2', 1, 15),
+      ];
+
+      const result = getCardsAboveValue(cards, 10);
+
+      expect(result).toHaveLength(1);
+    });
+
+    it('should include cards at exactly threshold', () => {
+      const cards = [createCardWithPrice('sv1-1', 1, 10)];
+
+      const result = getCardsAboveValue(cards, 10);
+
+      expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('countHighValueCards', () => {
+    it('should count cards above default threshold (10)', () => {
+      const cards = [
+        createCardWithPrice('sv1-1', 1, 5),
+        createCardWithPrice('sv1-2', 1, 15),
+        createCardWithPrice('sv1-3', 1, 25),
+      ];
+
+      expect(countHighValueCards(cards)).toBe(2);
+    });
+
+    it('should use custom threshold', () => {
+      const cards = [
+        createCardWithPrice('sv1-1', 1, 5),
+        createCardWithPrice('sv1-2', 1, 15),
+        createCardWithPrice('sv1-3', 1, 25),
+      ];
+
+      expect(countHighValueCards(cards, 20)).toBe(1);
+    });
+  });
+
+  describe('calculatePricedPercentage', () => {
+    it('should calculate percentage of priced cards', () => {
+      const result: CollectionValueResult = {
+        totalValue: 100,
+        valuedCardsCount: 75,
+        unvaluedCardsCount: 25,
+        totalCardsCount: 100,
+      };
+
+      expect(calculatePricedPercentage(result)).toBe(75);
+    });
+
+    it('should return 0 for empty collection', () => {
+      const result: CollectionValueResult = {
+        totalValue: 0,
+        valuedCardsCount: 0,
+        unvaluedCardsCount: 0,
+        totalCardsCount: 0,
+      };
+
+      expect(calculatePricedPercentage(result)).toBe(0);
+    });
+  });
+
+  describe('getValueSummaryMessage', () => {
+    it('should return clean message when all cards priced', () => {
+      const result: CollectionValueResult = {
+        totalValue: 150.5,
+        valuedCardsCount: 10,
+        unvaluedCardsCount: 0,
+        totalCardsCount: 10,
+      };
+
+      expect(getValueSummaryMessage(result)).toBe('Collection valued at $150.50');
+    });
+
+    it('should mention unpriced cards', () => {
+      const result: CollectionValueResult = {
+        totalValue: 150.5,
+        valuedCardsCount: 8,
+        unvaluedCardsCount: 2,
+        totalCardsCount: 10,
+      };
+
+      expect(getValueSummaryMessage(result)).toBe(
+        'Collection valued at $150.50 (2 cards without pricing)'
+      );
+    });
+  });
+
+  describe('hasValuedCards', () => {
+    it('should return true when collection has valued cards', () => {
+      const result: CollectionValueResult = {
+        totalValue: 100,
+        valuedCardsCount: 5,
+        unvaluedCardsCount: 0,
+        totalCardsCount: 5,
+      };
+
+      expect(hasValuedCards(result)).toBe(true);
+    });
+
+    it('should return false when no valued cards', () => {
+      const result: CollectionValueResult = {
+        totalValue: 0,
+        valuedCardsCount: 0,
+        unvaluedCardsCount: 5,
+        totalCardsCount: 5,
+      };
+
+      expect(hasValuedCards(result)).toBe(false);
+    });
+  });
+
+  describe('getTopSetsByValue', () => {
+    it('should return top N sets', () => {
+      const sets: SetValueEntry[] = [
+        { setId: 'sv1', setName: 'Scarlet', totalValue: 100, cardCount: 10 },
+        { setId: 'sv2', setName: 'Violet', totalValue: 80, cardCount: 8 },
+        { setId: 'sv3', setName: 'Paldea', totalValue: 60, cardCount: 6 },
+      ];
+
+      const result = getTopSetsByValue(sets, 2);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].setId).toBe('sv1');
+      expect(result[1].setId).toBe('sv2');
+    });
+
+    it('should return all when limit exceeds count', () => {
+      const sets: SetValueEntry[] = [
+        { setId: 'sv1', setName: 'Scarlet', totalValue: 100, cardCount: 10 },
+      ];
+
+      const result = getTopSetsByValue(sets, 5);
+
+      expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('filterSetsByMinValue', () => {
+    it('should filter sets below minimum', () => {
+      const sets: SetValueEntry[] = [
+        { setId: 'sv1', setName: 'Scarlet', totalValue: 100, cardCount: 10 },
+        { setId: 'sv2', setName: 'Violet', totalValue: 50, cardCount: 8 },
+        { setId: 'sv3', setName: 'Paldea', totalValue: 25, cardCount: 6 },
+      ];
+
+      const result = filterSetsByMinValue(sets, 50);
+
+      expect(result).toHaveLength(2);
+      expect(result.map((s) => s.setId)).toEqual(['sv1', 'sv2']);
+    });
+  });
+});
+
+describe('Collection Value Integration Scenarios', () => {
+  describe('Parent Dashboard Value Display', () => {
+    it('should calculate complete value stats for dashboard', () => {
+      // Simulating a real collection with mixed pricing
+      const cards: CardWithPrice[] = [
+        createCardWithPrice('sv1-1', 3, 5.99, 'normal'),
+        createCardWithPrice('sv1-25', 1, 125.0, 'holofoil'),
+        createCardWithPrice('sv1-100', 1, 350.0, '1stEditionHolofoil'),
+        createCardWithPrice('sv2-50', 2, 15.0, 'reverseHolofoil'),
+        createCardWithPrice('sv2-75', 1, undefined), // Promo without price
+        createCardWithPrice('sv3-1', 4, 2.5, 'normal'),
+      ];
+
+      const cardDataMap = new Map([
+        ['sv1-1', { name: 'Pikachu', imageSmall: 'pika.png' }],
+        ['sv1-25', { name: 'Charizard', imageSmall: 'char.png' }],
+        ['sv1-100', { name: 'Charizard VMAX', imageSmall: 'char-vmax.png' }],
+        ['sv2-50', { name: 'Mewtwo', imageSmall: 'mewtwo.png' }],
+        ['sv3-1', { name: 'Bulbasaur', imageSmall: 'bulb.png' }],
+      ]);
+
+      const setNameMap = new Map([
+        ['sv1', 'Scarlet & Violet Base'],
+        ['sv2', 'Paldea Evolved'],
+        ['sv3', 'Obsidian Flames'],
+      ]);
+
+      // Calculate overall value
+      const valueResult = calculateCollectionValue(cards);
+      expect(valueResult.totalValue).toBe(532.97); // 17.97 + 125 + 350 + 30 + 10
+      expect(valueResult.valuedCardsCount).toBe(5);
+      expect(valueResult.unvaluedCardsCount).toBe(1);
+
+      // Get top valuable cards
+      const topCards = getMostValuableCardsFromCollection(cards, 3, cardDataMap);
+      expect(topCards[0].name).toBe('Charizard VMAX');
+      expect(topCards[0].totalValue).toBe(350);
+      expect(topCards[1].name).toBe('Charizard');
+      expect(topCards[2].name).toBe('Mewtwo');
+
+      // Get value by set
+      const setValues = calculateValueBySet(cards, setNameMap);
+      expect(setValues[0].setName).toBe('Scarlet & Violet Base'); // $492.97
+      expect(setValues[1].setName).toBe('Paldea Evolved'); // $30
+      expect(setValues[2].setName).toBe('Obsidian Flames'); // $10
+
+      // Calculate set percentages
+      const sv1Percent = calculateSetValuePercentage(setValues[0], valueResult.totalValue);
+      expect(sv1Percent).toBeGreaterThan(90); // sv1 dominates the collection
+
+      // Summary message
+      expect(getValueSummaryMessage(valueResult)).toContain('532.97');
+      expect(getValueSummaryMessage(valueResult)).toContain('1 cards without pricing');
+    });
+  });
+
+  describe('Value Change Tracking', () => {
+    it('should track collection value changes over time', () => {
+      const yesterdayValue = 500;
+      const todayValue = 550;
+
+      const change = calculateValueChange(yesterdayValue, todayValue);
+
+      expect(change.change).toBe(50);
+      expect(change.percentChange).toBe(10);
+      expect(formatValueChange(change.change)).toBe('+$50.00');
+    });
+  });
+
+  describe('High Value Card Identification', () => {
+    it('should identify high value cards for insurance', () => {
+      const cards: CardWithPrice[] = [
+        createCardWithPrice('sv1-1', 1, 5),
+        createCardWithPrice('sv1-25', 1, 150),
+        createCardWithPrice('sv1-100', 1, 500),
+        createCardWithPrice('sv2-1', 1, 75),
+      ];
+
+      // Cards worth $100+
+      const highValue = getCardsAboveValue(cards, 100);
+      expect(highValue).toHaveLength(2);
+
+      // Count of premium cards
+      expect(countHighValueCards(cards, 100)).toBe(2);
+
+      // Average and median for reporting
+      expect(calculateAverageCardValue(cards)).toBe(182.5);
+      expect(calculateMedianCardValue(cards)).toBe(112.5);
     });
   });
 });

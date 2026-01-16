@@ -187,7 +187,7 @@ export function groupCardsByCardId(cards: CollectionCard[]): GroupedCard[] {
  * Gets unique card IDs from a collection.
  */
 export function getUniqueCardIds(cards: CollectionCard[]): string[] {
-  return [...new Set(cards.map((card) => card.cardId))];
+  return Array.from(new Set(cards.map((card) => card.cardId)));
 }
 
 /**
@@ -395,7 +395,7 @@ export function findSharedCards(
   const cardIds1 = new Set(collection1.map((c) => c.cardId));
   const cardIds2 = new Set(collection2.map((c) => c.cardId));
 
-  return [...cardIds1].filter((id) => cardIds2.has(id));
+  return Array.from(cardIds1).filter((id) => cardIds2.has(id));
 }
 
 /**
@@ -408,7 +408,7 @@ export function findUniqueCards(
   const cardIds2 = new Set(collection2.map((c) => c.cardId));
   const cardIds1 = new Set(collection1.map((c) => c.cardId));
 
-  return [...cardIds1].filter((id) => !cardIds2.has(id));
+  return Array.from(cardIds1).filter((id) => !cardIds2.has(id));
 }
 
 /**
@@ -884,7 +884,7 @@ export function groupAdditionsByDate(
 
   // Convert to DailyAdditionSummary
   const result = new Map<string, DailyAdditionSummary>();
-  for (const [date, data] of byDate) {
+  for (const [date, data] of Array.from(byDate)) {
     result.set(date, {
       date,
       additionCount: data.count,
@@ -937,7 +937,7 @@ export function calculateNewlyAddedSummary(
  * Gets unique card IDs from additions.
  */
 export function getUniqueCardIdsFromAdditions(additions: CardAdditionLog[]): string[] {
-  return [...new Set(additions.map((a) => a.cardId))];
+  return Array.from(new Set(additions.map((a) => a.cardId)));
 }
 
 /**
@@ -1327,4 +1327,384 @@ export function estimateInclusionProbability(
   }
 
   return inclusions / simulations;
+}
+
+// ============================================================================
+// COLLECTION VALUE CALCULATION
+// ============================================================================
+
+/** Card with price data for value calculations */
+export interface CardWithPrice {
+  cardId: string;
+  quantity: number;
+  variant: CardVariant;
+  price?: number;
+}
+
+/** Result of collection value calculation */
+export interface CollectionValueResult {
+  totalValue: number;
+  valuedCardsCount: number;
+  unvaluedCardsCount: number;
+  totalCardsCount: number;
+}
+
+/** Card value entry for "most valuable" display */
+export interface ValuedCardEntry {
+  cardId: string;
+  name: string;
+  imageSmall: string;
+  variant: CardVariant;
+  quantity: number;
+  unitPrice: number;
+  totalValue: number;
+}
+
+/** Value breakdown by set */
+export interface SetValueEntry {
+  setId: string;
+  setName: string;
+  totalValue: number;
+  cardCount: number;
+}
+
+/**
+ * Checks if a price value is valid (positive number).
+ */
+export function isValidPrice(price: unknown): price is number {
+  return typeof price === 'number' && price > 0 && isFinite(price);
+}
+
+/**
+ * Rounds a value to cents (2 decimal places).
+ */
+export function roundToCents(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+/**
+ * Calculates the total value of cards with prices.
+ * Multiplies unit price by quantity for each card.
+ */
+export function calculateTotalValue(cards: CardWithPrice[]): number {
+  let total = 0;
+  for (const card of cards) {
+    if (isValidPrice(card.price)) {
+      total += card.price * card.quantity;
+    }
+  }
+  return roundToCents(total);
+}
+
+/**
+ * Calculates collection value statistics.
+ * Returns total value and counts of valued/unvalued cards.
+ */
+export function calculateCollectionValue(cards: CardWithPrice[]): CollectionValueResult {
+  let totalValue = 0;
+  let valuedCardsCount = 0;
+  let unvaluedCardsCount = 0;
+
+  for (const card of cards) {
+    if (isValidPrice(card.price)) {
+      totalValue += card.price * card.quantity;
+      valuedCardsCount++;
+    } else {
+      unvaluedCardsCount++;
+    }
+  }
+
+  return {
+    totalValue: roundToCents(totalValue),
+    valuedCardsCount,
+    unvaluedCardsCount,
+    totalCardsCount: cards.length,
+  };
+}
+
+/**
+ * Creates a CardWithPrice entry from a collection card and price map.
+ */
+export function addPriceToCard(card: CollectionCard, priceMap: Map<string, number>): CardWithPrice {
+  return {
+    cardId: card.cardId,
+    quantity: card.quantity,
+    variant: card.variant ?? DEFAULT_VARIANT,
+    price: priceMap.get(card.cardId),
+  };
+}
+
+/**
+ * Adds prices to collection cards from a price map.
+ */
+export function addPricesToCollection(
+  cards: CollectionCard[],
+  priceMap: Map<string, number>
+): CardWithPrice[] {
+  return cards.map((card) => addPriceToCard(card, priceMap));
+}
+
+/**
+ * Creates a ValuedCardEntry from a card with enriched data.
+ */
+export function createValuedCardEntry(
+  card: CardWithPrice,
+  cardData?: { name?: string; imageSmall?: string }
+): ValuedCardEntry | null {
+  if (!isValidPrice(card.price)) {
+    return null;
+  }
+
+  return {
+    cardId: card.cardId,
+    name: cardData?.name ?? card.cardId,
+    imageSmall: cardData?.imageSmall ?? '',
+    variant: card.variant ?? DEFAULT_VARIANT,
+    quantity: card.quantity,
+    unitPrice: card.price,
+    totalValue: roundToCents(card.price * card.quantity),
+  };
+}
+
+/**
+ * Gets the most valuable cards from a collection.
+ * Returns cards sorted by total value (price × quantity) descending.
+ */
+export function getMostValuableCardsFromCollection(
+  cards: CardWithPrice[],
+  limit = 10,
+  cardDataMap?: Map<string, { name?: string; imageSmall?: string }>
+): ValuedCardEntry[] {
+  const valuedCards: ValuedCardEntry[] = [];
+
+  for (const card of cards) {
+    const entry = createValuedCardEntry(card, cardDataMap?.get(card.cardId));
+    if (entry) {
+      valuedCards.push(entry);
+    }
+  }
+
+  // Sort by total value descending
+  valuedCards.sort((a, b) => b.totalValue - a.totalValue);
+
+  return valuedCards.slice(0, limit);
+}
+
+/**
+ * Gets the most valuable cards by unit price (single card value).
+ * Useful for identifying high-value individual cards regardless of quantity.
+ */
+export function getMostValuableByUnitPrice(
+  cards: CardWithPrice[],
+  limit = 10,
+  cardDataMap?: Map<string, { name?: string; imageSmall?: string }>
+): ValuedCardEntry[] {
+  const valuedCards: ValuedCardEntry[] = [];
+
+  for (const card of cards) {
+    const entry = createValuedCardEntry(card, cardDataMap?.get(card.cardId));
+    if (entry) {
+      valuedCards.push(entry);
+    }
+  }
+
+  // Sort by unit price descending
+  valuedCards.sort((a, b) => b.unitPrice - a.unitPrice);
+
+  return valuedCards.slice(0, limit);
+}
+
+/**
+ * Groups cards by set and calculates value per set.
+ */
+export function calculateValueBySet(
+  cards: CardWithPrice[],
+  setNameMap?: Map<string, string>
+): SetValueEntry[] {
+  // Group cards by set
+  const cardsBySet = new Map<string, CardWithPrice[]>();
+  for (const card of cards) {
+    const setId = extractSetId(card.cardId);
+    const existing = cardsBySet.get(setId) ?? [];
+    existing.push(card);
+    cardsBySet.set(setId, existing);
+  }
+
+  // Calculate value per set
+  const setValues: SetValueEntry[] = [];
+  for (const [setId, setCards] of cardsBySet) {
+    let setValue = 0;
+    for (const card of setCards) {
+      if (isValidPrice(card.price)) {
+        setValue += card.price * card.quantity;
+      }
+    }
+
+    setValues.push({
+      setId,
+      setName: setNameMap?.get(setId) ?? setId,
+      totalValue: roundToCents(setValue),
+      cardCount: setCards.length,
+    });
+  }
+
+  // Sort by value descending
+  setValues.sort((a, b) => b.totalValue - a.totalValue);
+
+  return setValues;
+}
+
+/**
+ * Calculates the percentage of collection value that comes from a set.
+ */
+export function calculateSetValuePercentage(
+  setValueEntry: SetValueEntry,
+  totalCollectionValue: number
+): number {
+  if (totalCollectionValue <= 0) {
+    return 0;
+  }
+  return roundToCents((setValueEntry.totalValue / totalCollectionValue) * 100);
+}
+
+/**
+ * Gets the average card value in a collection.
+ * Only counts cards with valid prices.
+ */
+export function calculateAverageCardValue(cards: CardWithPrice[]): number {
+  let totalValue = 0;
+  let count = 0;
+
+  for (const card of cards) {
+    if (isValidPrice(card.price)) {
+      totalValue += card.price;
+      count++;
+    }
+  }
+
+  if (count === 0) {
+    return 0;
+  }
+
+  return roundToCents(totalValue / count);
+}
+
+/**
+ * Gets the median card value in a collection.
+ * Only counts cards with valid prices.
+ */
+export function calculateMedianCardValue(cards: CardWithPrice[]): number {
+  const prices = cards
+    .filter((card) => isValidPrice(card.price))
+    .map((card) => card.price as number)
+    .sort((a, b) => a - b);
+
+  if (prices.length === 0) {
+    return 0;
+  }
+
+  const mid = Math.floor(prices.length / 2);
+  if (prices.length % 2 === 0) {
+    return roundToCents((prices[mid - 1] + prices[mid]) / 2);
+  }
+  return prices[mid];
+}
+
+/**
+ * Formats a monetary value for display.
+ */
+export function formatCurrency(value: number, currency = 'USD'): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+/**
+ * Formats a value change (positive or negative) for display.
+ */
+export function formatValueChange(change: number): string {
+  const formatted = formatCurrency(Math.abs(change));
+  if (change > 0) {
+    return `+${formatted}`;
+  } else if (change < 0) {
+    return `-${formatted}`;
+  }
+  return formatted;
+}
+
+/**
+ * Calculates the value change between two totals.
+ */
+export function calculateValueChange(
+  previousValue: number,
+  currentValue: number
+): { change: number; percentChange: number } {
+  const change = currentValue - previousValue;
+  const percentChange = previousValue > 0 ? (change / previousValue) * 100 : 0;
+  return {
+    change: roundToCents(change),
+    percentChange: roundToCents(percentChange),
+  };
+}
+
+/**
+ * Gets cards above a certain value threshold.
+ */
+export function getCardsAboveValue(cards: CardWithPrice[], threshold: number): CardWithPrice[] {
+  return cards.filter((card) => isValidPrice(card.price) && card.price >= threshold);
+}
+
+/**
+ * Gets the count of "high value" cards (above a threshold).
+ */
+export function countHighValueCards(cards: CardWithPrice[], threshold = 10): number {
+  return getCardsAboveValue(cards, threshold).length;
+}
+
+/**
+ * Calculates what percentage of cards have pricing data.
+ */
+export function calculatePricedPercentage(result: CollectionValueResult): number {
+  if (result.totalCardsCount === 0) {
+    return 0;
+  }
+  return roundToCents((result.valuedCardsCount / result.totalCardsCount) * 100);
+}
+
+/**
+ * Gets a summary message about collection value.
+ */
+export function getValueSummaryMessage(result: CollectionValueResult): string {
+  const formatted = formatCurrency(result.totalValue);
+  if (result.unvaluedCardsCount === 0) {
+    return `Collection valued at ${formatted}`;
+  }
+  return `Collection valued at ${formatted} (${result.unvaluedCardsCount} cards without pricing)`;
+}
+
+/**
+ * Checks if a collection has any valued cards.
+ */
+export function hasValuedCards(result: CollectionValueResult): boolean {
+  return result.valuedCardsCount > 0;
+}
+
+/**
+ * Gets the top N sets by value.
+ */
+export function getTopSetsByValue(setValues: SetValueEntry[], limit = 5): SetValueEntry[] {
+  return setValues.slice(0, limit);
+}
+
+/**
+ * Filters set values to only include sets above a minimum value.
+ */
+export function filterSetsByMinValue(
+  setValues: SetValueEntry[],
+  minValue: number
+): SetValueEntry[] {
+  return setValues.filter((set) => set.totalValue >= minValue);
 }

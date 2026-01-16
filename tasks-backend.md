@@ -26,8 +26,8 @@
 - [x] **Profile type field** - Add `profileType: "parent" | "child"` to profiles schema for role-based UI
 - [x] **Get current user profile query** - Return profile with type for header/dashboard routing
 - [x] **Kid dashboard stats query** - Return collection count, badge count, current streak, recent activity for dashboard
-- [ ] Create collection value calculation query (sum tcgplayer.prices for all owned cards)
-- [ ] Add "most valuable cards" query (return top N cards by market price)
+- [x] Create collection value calculation query (sum tcgplayer.prices for all owned cards)
+- [x] Add "most valuable cards" query (return top N cards by market price)
 
 ### Card Variants
 
@@ -78,7 +78,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [ ] Add `profile_games` junction table (profile_id, game_id, enabled_at) - Track which games each profile collects
 - [ ] Add game_id field to cachedSets table - Link sets to games
 - [ ] Add game_id field to cachedCards table - Link cards to games
-- [ ] Create game-agnostic API abstraction in src/lib/tcg-api.ts - Unified fetch interface that routes to correct API based on game
+- [x] Create game-agnostic API abstraction in src/lib/tcg-api.ts - Unified fetch interface that routes to correct API based on game
 - [x] API adapter for YGOPRODeck (src/lib/yugioh-api.ts) - Yu-Gi-Oh! cards, 20 req/sec rate limit
 - [x] API adapter for OPTCG API (src/lib/onepiece-api.ts) - One Piece cards, 10 req/sec rate limit (conservative)
 - [x] API adapter for ApiTCG (src/lib/dragonball-api.ts) - Dragon Ball Fusion World cards, 10 req/sec rate limit (conservative)
@@ -1217,3 +1217,99 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Set extraction
   - Integration scenarios: Building a deck view, Card search and display, Collection filtering, Feature analysis
 - All tests pass, linter clean
+
+### 2026-01-16: Game-agnostic API abstraction for Multi-TCG support
+
+- Created `src/lib/tcg-api.ts` with unified interface for all 7 supported TCGs:
+  - Pokemon (pokemontcg.io)
+  - Yu-Gi-Oh! (ygoprodeck.com)
+  - Magic: The Gathering (scryfall.com)
+  - One Piece (optcg-api)
+  - Disney Lorcana (lorcast.com)
+  - Digimon (digimoncard.io)
+  - Dragon Ball Fusion World (apitcg.com)
+- Unified Types:
+  - `UnifiedCard`: Normalized card interface with id, dexId, game, name, images, set info, rarity, type, pricing, originalData
+  - `UnifiedSet`: Normalized set interface with id, dexId, game, name, code, cardCount, releaseDate, iconUrl, originalData
+  - `GameConfig`: Game configuration with slug, displayName, apiSource, primaryColor, secondaryColor, releaseOrder, isActive
+  - `GameSlug`: Union type of all supported game identifiers
+- DexId System for globally unique card identifiers:
+  - Format: `{game}-{cardId}` (e.g., "pokemon-sv1-1", "yugioh-46986414", "mtg-neo-1")
+  - `parseDexId`: Extract game and cardId from dexId
+  - `createDexId`: Create dexId from game and cardId
+  - `getCardByDexId`, `getSetByDexId`: Fetch by global identifier
+- Normalization functions for each game:
+  - `normalizePokemonCard`, `normalizeYugiohCard`, `normalizeMtgCard`, `normalizeOnepieceCard`, `normalizeLorcanaCard`, `normalizeDigimonCard`, `normalizeDragonballCard`
+  - `normalizePokemonSet`, `normalizeYugiohSet`, `normalizeMtgSet`, `normalizeOnepieceSet`, `normalizeLorcanaSet`, `normalizeDigimonSet`, `normalizeDragonballSet`
+- Unified API functions that route to correct adapter:
+  - `getSets(game)`: Get all sets for a game
+  - `getSet(game, setId)`: Get single set by ID
+  - `getCardsInSet(game, setId)`: Get all cards in a set
+  - `getCard(game, cardId)`: Get single card by ID
+  - `searchCards(game, query, limit)`: Search cards by name
+  - `getCardsByIds(game, cardIds)`: Batch fetch cards
+- Game configuration constants:
+  - `GAME_CONFIGS`: Full config for each game with colors, display names, API sources
+  - `GAME_SLUGS`: Array of all valid game slugs
+  - `ACTIVE_GAMES`: Active games sorted by release order
+- Validation helpers:
+  - `isValidGameSlug`: Type guard for game slugs
+  - `getGameConfig`, `getGameConfigSafe`: Get config with/without throwing
+- Display helpers:
+  - `getGameDisplayName`, `getGamePrimaryColor`, `getActiveGames`, `getGameFromDexId`
+- Added 59 tests in `src/lib/__tests__/tcg-api.test.ts` covering:
+  - GAME_CONFIGS constant validation (7 games, unique release orders, valid hex colors)
+  - GAME_SLUGS and ACTIVE_GAMES arrays
+  - isValidGameSlug validation (valid and invalid slugs)
+  - getGameConfig and getGameConfigSafe (valid input, error handling)
+  - parseDexId (all 7 games, invalid inputs, edge cases)
+  - createDexId (all 7 games)
+  - parseDexId/createDexId roundtrip verification
+  - getGameDisplayName, getGamePrimaryColor display helpers
+  - getActiveGames sorting verification
+  - getGameFromDexId lookup
+  - UnifiedCard and UnifiedSet type validation (required/optional fields)
+  - Integration scenarios: Multi-game collection, game filtering, display info, error handling
+  - Game-specific config verification for all 7 games
+- All 2702 tests pass, linter clean
+
+### 2026-01-16: Collection value calculation queries and most valuable cards query
+
+- Verified existing Convex queries in `convex/collections.ts`:
+  - `getCollectionValue`: Calculates total value from `priceMarket` field in `cachedCards`
+    - Returns: totalValue, valuedCardsCount, unvaluedCardsCount, totalCardsCount
+    - Uses quantity multiplier for cards owned multiple times
+    - Rounds to cents for accurate currency display
+  - `getMostValuableCards`: Returns top N cards by market value
+    - Includes enriched data: cardId, name, imageSmall, variant, quantity, unitPrice, totalValue
+    - Sorted by total value (price × quantity) descending
+  - `getCollectionValueBySet`: Breaks down collection value by set
+    - Groups cards by setId, calculates value per set
+    - Includes set names from cachedSets table
+    - Sorted by value descending
+- Created comprehensive utility functions in `src/lib/collections.ts`:
+  - Types: `CardWithPrice`, `CollectionValueResult`, `ValuedCardEntry`, `SetValueEntry`
+  - Validation: `isValidPrice` (checks for positive finite numbers), `roundToCents`
+  - Core calculation: `calculateTotalValue`, `calculateCollectionValue`
+  - Price mapping: `addPriceToCard`, `addPricesToCollection`
+  - Most valuable: `getMostValuableCardsFromCollection`, `getMostValuableByUnitPrice`, `createValuedCardEntry`
+  - Set breakdown: `calculateValueBySet`, `calculateSetValuePercentage`, `getTopSetsByValue`, `filterSetsByMinValue`
+  - Statistics: `calculateAverageCardValue`, `calculateMedianCardValue`, `countHighValueCards`, `getCardsAboveValue`
+  - Display helpers: `formatCurrency` (USD formatting with commas), `formatValueChange` (+/- formatting)
+  - Change tracking: `calculateValueChange` (returns change and percentChange)
+  - Summary helpers: `calculatePricedPercentage`, `getValueSummaryMessage`, `hasValuedCards`
+- Added 60 tests in `src/lib/__tests__/collections.test.ts` covering:
+  - Price validation (positive, zero, negative, non-numbers, Infinity, NaN)
+  - Rounding to cents with various decimal places
+  - Total value calculation (single, multiple, empty, no prices)
+  - Collection value result structure and edge cases
+  - Price mapping from card collections
+  - Most valuable cards sorting and limiting
+  - Value by set grouping and sorting
+  - Set percentage calculations
+  - Average and median value calculations
+  - Currency formatting
+  - Value change calculations
+  - High value card filtering
+  - Integration scenarios: Parent Dashboard Value Display, Value Change Tracking, High Value Card Identification
+- All 2702 tests pass, linter clean
