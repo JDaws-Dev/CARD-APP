@@ -35,6 +35,14 @@ import {
   groupAchievementsByCategory,
   countAchievementsByCategory,
   getTotalBadgesForCategory,
+  // Set completion badge utilities
+  getSetCompletionBadgesToAward,
+  getCurrentSetCompletionTier,
+  getNextSetCompletionTier,
+  cardsNeededForPercentage,
+  getSetCompletionSummary,
+  isSetComplete,
+  getAllEarnedBadgeKeysForCompletion,
 } from '../achievements';
 
 describe('Achievement Constants', () => {
@@ -705,6 +713,292 @@ describe('Integration Scenarios', () => {
 
       // Water should not be in earned (already earned)
       expect(result.earnedBadges).not.toContain('water_trainer');
+    });
+  });
+});
+
+describe('Set Completion Badge Utilities', () => {
+  describe('getSetCompletionBadgesToAward', () => {
+    it('should return no badges for 0 cards owned', () => {
+      const result = getSetCompletionBadgesToAward('sv1', 0, 100);
+      expect(result.badgesToAward).toEqual([]);
+      expect(result.allBadges.every((b) => !b.earned)).toBe(true);
+    });
+
+    it('should return set_explorer badge at 25%', () => {
+      const result = getSetCompletionBadgesToAward('sv1', 25, 100);
+      expect(result.badgesToAward).toContain('sv1_set_explorer');
+      expect(result.badgesToAward).toHaveLength(1);
+    });
+
+    it('should return multiple badges when appropriate', () => {
+      const result = getSetCompletionBadgesToAward('sv1', 50, 100);
+      expect(result.badgesToAward).toContain('sv1_set_explorer');
+      expect(result.badgesToAward).toContain('sv1_set_adventurer');
+      expect(result.badgesToAward).toHaveLength(2);
+    });
+
+    it('should return all badges at 100%', () => {
+      const result = getSetCompletionBadgesToAward('sv1', 100, 100);
+      expect(result.badgesToAward).toHaveLength(4);
+      expect(result.badgesToAward).toContain('sv1_set_explorer');
+      expect(result.badgesToAward).toContain('sv1_set_adventurer');
+      expect(result.badgesToAward).toContain('sv1_set_master');
+      expect(result.badgesToAward).toContain('sv1_set_champion');
+    });
+
+    it('should exclude already earned badges', () => {
+      const result = getSetCompletionBadgesToAward('sv1', 100, 100, [
+        'sv1_set_explorer',
+        'sv1_set_adventurer',
+      ]);
+      expect(result.badgesToAward).toHaveLength(2);
+      expect(result.badgesToAward).not.toContain('sv1_set_explorer');
+      expect(result.badgesToAward).not.toContain('sv1_set_adventurer');
+      expect(result.badgesToAward).toContain('sv1_set_master');
+      expect(result.badgesToAward).toContain('sv1_set_champion');
+    });
+
+    it('should calculate cards needed for each badge', () => {
+      const result = getSetCompletionBadgesToAward('sv1', 10, 100);
+      const explorerBadge = result.allBadges.find((b) => b.key === 'set_explorer');
+      expect(explorerBadge?.cardsNeeded).toBe(15); // Need 25, have 10
+    });
+
+    it('should handle different set IDs', () => {
+      const result1 = getSetCompletionBadgesToAward('sv1', 50, 100);
+      const result2 = getSetCompletionBadgesToAward('base1', 50, 100);
+      expect(result1.badgesToAward[0]).toBe('sv1_set_explorer');
+      expect(result2.badgesToAward[0]).toBe('base1_set_explorer');
+    });
+
+    it('should handle sets with non-round numbers', () => {
+      // Set with 198 cards, 50 owned = 25.25%
+      const result = getSetCompletionBadgesToAward('sv1', 50, 198);
+      expect(result.badgesToAward).toContain('sv1_set_explorer');
+    });
+  });
+
+  describe('getCurrentSetCompletionTier', () => {
+    it('should return null for 0%', () => {
+      expect(getCurrentSetCompletionTier(0)).toBeNull();
+    });
+
+    it('should return null for completion below 25%', () => {
+      expect(getCurrentSetCompletionTier(24)).toBeNull();
+    });
+
+    it('should return set_explorer for 25-49%', () => {
+      expect(getCurrentSetCompletionTier(25)?.key).toBe('set_explorer');
+      expect(getCurrentSetCompletionTier(49)?.key).toBe('set_explorer');
+    });
+
+    it('should return set_adventurer for 50-74%', () => {
+      expect(getCurrentSetCompletionTier(50)?.key).toBe('set_adventurer');
+      expect(getCurrentSetCompletionTier(74)?.key).toBe('set_adventurer');
+    });
+
+    it('should return set_master for 75-99%', () => {
+      expect(getCurrentSetCompletionTier(75)?.key).toBe('set_master');
+      expect(getCurrentSetCompletionTier(99)?.key).toBe('set_master');
+    });
+
+    it('should return set_champion for 100%', () => {
+      expect(getCurrentSetCompletionTier(100)?.key).toBe('set_champion');
+    });
+
+    it('should include threshold in result', () => {
+      const result = getCurrentSetCompletionTier(60);
+      expect(result?.threshold).toBe(50);
+    });
+  });
+
+  describe('getNextSetCompletionTier', () => {
+    it('should return set_explorer for 0%', () => {
+      const result = getNextSetCompletionTier(0);
+      expect(result?.key).toBe('set_explorer');
+      expect(result?.threshold).toBe(25);
+      expect(result?.percentageNeeded).toBe(25);
+    });
+
+    it('should return set_adventurer after 25%', () => {
+      const result = getNextSetCompletionTier(25);
+      expect(result?.key).toBe('set_adventurer');
+      expect(result?.percentageNeeded).toBe(25);
+    });
+
+    it('should return set_champion after 75%', () => {
+      const result = getNextSetCompletionTier(75);
+      expect(result?.key).toBe('set_champion');
+      expect(result?.percentageNeeded).toBe(25);
+    });
+
+    it('should return null at 100%', () => {
+      expect(getNextSetCompletionTier(100)).toBeNull();
+    });
+
+    it('should calculate correct percentageNeeded', () => {
+      const result = getNextSetCompletionTier(40);
+      expect(result?.percentageNeeded).toBe(10); // Need 50, have 40
+    });
+  });
+
+  describe('cardsNeededForPercentage', () => {
+    it('should return 0 for empty set', () => {
+      expect(cardsNeededForPercentage(25, 0, 0)).toBe(0);
+    });
+
+    it('should calculate correctly for 25% of 100', () => {
+      expect(cardsNeededForPercentage(25, 0, 100)).toBe(25);
+      expect(cardsNeededForPercentage(25, 10, 100)).toBe(15);
+      expect(cardsNeededForPercentage(25, 25, 100)).toBe(0);
+    });
+
+    it('should return 0 if already at target', () => {
+      expect(cardsNeededForPercentage(50, 60, 100)).toBe(0);
+    });
+
+    it('should round up for non-integer results', () => {
+      // 25% of 37 = 9.25, should need 10
+      expect(cardsNeededForPercentage(25, 0, 37)).toBe(10);
+    });
+
+    it('should handle 100%', () => {
+      expect(cardsNeededForPercentage(100, 50, 100)).toBe(50);
+    });
+  });
+
+  describe('getSetCompletionSummary', () => {
+    it('should return complete summary for empty collection', () => {
+      const summary = getSetCompletionSummary('sv1', 0, 100);
+      expect(summary.setId).toBe('sv1');
+      expect(summary.cardsOwned).toBe(0);
+      expect(summary.totalCards).toBe(100);
+      expect(summary.completionPercentage).toBe(0);
+      expect(summary.currentTier).toBeNull();
+      expect(summary.nextTier?.key).toBe('set_explorer');
+      expect(summary.earnedBadgeKeys).toHaveLength(0);
+    });
+
+    it('should show correct progress at 30%', () => {
+      const summary = getSetCompletionSummary('sv1', 30, 100);
+      expect(summary.completionPercentage).toBe(30);
+      expect(summary.currentTier?.key).toBe('set_explorer');
+      expect(summary.nextTier?.key).toBe('set_adventurer');
+      expect(summary.nextTier?.cardsNeeded).toBe(20);
+    });
+
+    it('should include all earned badges at 100%', () => {
+      const summary = getSetCompletionSummary('sv1', 100, 100);
+      expect(summary.earnedBadgeKeys).toHaveLength(4);
+      expect(summary.nextTier).toBeNull();
+    });
+
+    it('should account for previously earned badges', () => {
+      const summary = getSetCompletionSummary('sv1', 50, 100, ['sv1_set_explorer']);
+      // Still shows all earned badges based on completion
+      expect(summary.earnedBadgeKeys).toContain('sv1_set_explorer');
+      expect(summary.earnedBadgeKeys).toContain('sv1_set_adventurer');
+    });
+  });
+
+  describe('isSetComplete', () => {
+    it('should return false for empty set', () => {
+      expect(isSetComplete(0, 0)).toBe(false);
+    });
+
+    it('should return false for partial completion', () => {
+      expect(isSetComplete(50, 100)).toBe(false);
+      expect(isSetComplete(99, 100)).toBe(false);
+    });
+
+    it('should return true at exactly 100%', () => {
+      expect(isSetComplete(100, 100)).toBe(true);
+    });
+
+    it('should return true when over 100% (duplicates)', () => {
+      expect(isSetComplete(150, 100)).toBe(true);
+    });
+  });
+
+  describe('getAllEarnedBadgeKeysForCompletion', () => {
+    it('should return empty array for 0%', () => {
+      expect(getAllEarnedBadgeKeysForCompletion('sv1', 0)).toEqual([]);
+    });
+
+    it('should return one key at 25%', () => {
+      const keys = getAllEarnedBadgeKeysForCompletion('sv1', 25);
+      expect(keys).toEqual(['sv1_set_explorer']);
+    });
+
+    it('should return two keys at 50%', () => {
+      const keys = getAllEarnedBadgeKeysForCompletion('sv1', 50);
+      expect(keys).toEqual(['sv1_set_explorer', 'sv1_set_adventurer']);
+    });
+
+    it('should return all four keys at 100%', () => {
+      const keys = getAllEarnedBadgeKeysForCompletion('sv1', 100);
+      expect(keys).toHaveLength(4);
+    });
+
+    it('should format keys with correct setId', () => {
+      const keys = getAllEarnedBadgeKeysForCompletion('base1', 100);
+      expect(keys.every((k) => k.startsWith('base1_'))).toBe(true);
+    });
+  });
+
+  describe('Set Completion Badge Awarding Journey', () => {
+    it('should award badges progressively as collection grows', () => {
+      const setId = 'sv1';
+      const totalCards = 200;
+      let earned: string[] = [];
+
+      // At 40 cards (20%) - no badges yet
+      let result = getSetCompletionBadgesToAward(setId, 40, totalCards, earned);
+      expect(result.badgesToAward).toHaveLength(0);
+
+      // At 50 cards (25%) - first badge
+      result = getSetCompletionBadgesToAward(setId, 50, totalCards, earned);
+      expect(result.badgesToAward).toEqual(['sv1_set_explorer']);
+      earned = [...earned, ...result.badgesToAward];
+
+      // At 100 cards (50%) - second badge only (first already earned)
+      result = getSetCompletionBadgesToAward(setId, 100, totalCards, earned);
+      expect(result.badgesToAward).toEqual(['sv1_set_adventurer']);
+      earned = [...earned, ...result.badgesToAward];
+
+      // At 150 cards (75%) - third badge only
+      result = getSetCompletionBadgesToAward(setId, 150, totalCards, earned);
+      expect(result.badgesToAward).toEqual(['sv1_set_master']);
+      earned = [...earned, ...result.badgesToAward];
+
+      // At 200 cards (100%) - final badge only
+      result = getSetCompletionBadgesToAward(setId, 200, totalCards, earned);
+      expect(result.badgesToAward).toEqual(['sv1_set_champion']);
+      earned = [...earned, ...result.badgesToAward];
+
+      // No more badges to award
+      result = getSetCompletionBadgesToAward(setId, 200, totalCards, earned);
+      expect(result.badgesToAward).toHaveLength(0);
+    });
+
+    it('should handle collecting multiple sets simultaneously', () => {
+      const earnedBadges: string[] = [];
+
+      // Add to set 1
+      let result1 = getSetCompletionBadgesToAward('sv1', 50, 100, earnedBadges);
+      expect(result1.badgesToAward).toContain('sv1_set_explorer');
+      expect(result1.badgesToAward).toContain('sv1_set_adventurer');
+
+      // Add earned badges
+      earnedBadges.push(...result1.badgesToAward);
+
+      // Add to set 2
+      let result2 = getSetCompletionBadgesToAward('sv2', 25, 100, earnedBadges);
+      expect(result2.badgesToAward).toContain('sv2_set_explorer');
+
+      // Set 2 badges should not be blocked by set 1 badges
+      expect(result2.badgesToAward).not.toContain('sv1_set_explorer');
     });
   });
 });

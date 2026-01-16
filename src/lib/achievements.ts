@@ -523,3 +523,187 @@ export function getTotalBadgesForCategory(category: AchievementCategory): number
       return 0;
   }
 }
+
+// ============================================================================
+// SET COMPLETION BADGE UTILITIES
+// ============================================================================
+
+export interface SetCompletionBadgeResult {
+  badgesToAward: string[];
+  allBadges: Array<{
+    key: string;
+    fullKey: string;
+    threshold: number;
+    earned: boolean;
+    cardsNeeded: number;
+  }>;
+}
+
+/**
+ * Determines which set completion badges should be awarded for a specific set.
+ * Returns badge keys that should be newly awarded (excludes already earned).
+ * Badge keys are formatted as "setId_badge_key" (e.g., "sv1_set_explorer").
+ */
+export function getSetCompletionBadgesToAward(
+  setId: string,
+  cardsOwned: number,
+  totalCards: number,
+  alreadyEarned: string[] = []
+): SetCompletionBadgeResult {
+  const completionPercentage = calculateSetCompletion(cardsOwned, totalCards);
+  const earnedSet = new Set(alreadyEarned);
+  const badgesToAward: string[] = [];
+  const allBadges: SetCompletionBadgeResult['allBadges'] = [];
+
+  for (const badge of SET_COMPLETION_THRESHOLDS) {
+    const fullKey = createSetBadgeKey(setId, badge.key);
+    const earned = completionPercentage >= badge.threshold;
+    const shouldAward = earned && !earnedSet.has(fullKey);
+
+    if (shouldAward) {
+      badgesToAward.push(fullKey);
+    }
+
+    const cardsNeededForThreshold = Math.ceil((badge.threshold / 100) * totalCards);
+    allBadges.push({
+      key: badge.key,
+      fullKey,
+      threshold: badge.threshold,
+      earned,
+      cardsNeeded: earned ? 0 : cardsNeededForThreshold - cardsOwned,
+    });
+  }
+
+  return { badgesToAward, allBadges };
+}
+
+/**
+ * Gets the current set completion tier (highest badge level reached).
+ * Returns null if no badge tier reached yet.
+ */
+export function getCurrentSetCompletionTier(
+  completionPercentage: number
+): { key: string; threshold: number } | null {
+  let currentTier: { key: string; threshold: number } | null = null;
+
+  for (const badge of SET_COMPLETION_THRESHOLDS) {
+    if (completionPercentage >= badge.threshold) {
+      currentTier = { key: badge.key, threshold: badge.threshold };
+    }
+  }
+
+  return currentTier;
+}
+
+/**
+ * Gets the next set completion tier to achieve.
+ * Returns null if all tiers achieved (100% completion).
+ */
+export function getNextSetCompletionTier(
+  completionPercentage: number
+): { key: string; threshold: number; percentageNeeded: number } | null {
+  const nextTier = SET_COMPLETION_THRESHOLDS.find(
+    (badge) => completionPercentage < badge.threshold
+  );
+
+  if (!nextTier) return null;
+
+  return {
+    key: nextTier.key,
+    threshold: nextTier.threshold,
+    percentageNeeded: nextTier.threshold - completionPercentage,
+  };
+}
+
+/**
+ * Calculates how many more cards are needed to reach a specific percentage.
+ */
+export function cardsNeededForPercentage(
+  targetPercentage: number,
+  cardsOwned: number,
+  totalCards: number
+): number {
+  if (totalCards <= 0) return 0;
+  const cardsNeeded = Math.ceil((targetPercentage / 100) * totalCards);
+  return Math.max(0, cardsNeeded - cardsOwned);
+}
+
+/**
+ * Gets set completion summary with all badge progress.
+ */
+export interface SetCompletionSummary {
+  setId: string;
+  cardsOwned: number;
+  totalCards: number;
+  completionPercentage: number;
+  currentTier: { key: string; threshold: number } | null;
+  nextTier: { key: string; threshold: number; cardsNeeded: number } | null;
+  earnedBadgeKeys: string[];
+  allBadgeProgress: Array<{
+    key: string;
+    fullKey: string;
+    threshold: number;
+    earned: boolean;
+    cardsNeeded: number;
+  }>;
+}
+
+export function getSetCompletionSummary(
+  setId: string,
+  cardsOwned: number,
+  totalCards: number,
+  earnedBadgeKeys: string[] = []
+): SetCompletionSummary {
+  const completionPercentage = calculateSetCompletion(cardsOwned, totalCards);
+  const currentTier = getCurrentSetCompletionTier(completionPercentage);
+  const nextTierInfo = getNextSetCompletionTier(completionPercentage);
+
+  const { allBadges } = getSetCompletionBadgesToAward(
+    setId,
+    cardsOwned,
+    totalCards,
+    earnedBadgeKeys
+  );
+
+  return {
+    setId,
+    cardsOwned,
+    totalCards,
+    completionPercentage,
+    currentTier,
+    nextTier: nextTierInfo
+      ? {
+          key: nextTierInfo.key,
+          threshold: nextTierInfo.threshold,
+          cardsNeeded: cardsNeededForPercentage(nextTierInfo.threshold, cardsOwned, totalCards),
+        }
+      : null,
+    earnedBadgeKeys: allBadges.filter((b) => b.earned).map((b) => b.fullKey),
+    allBadgeProgress: allBadges,
+  };
+}
+
+/**
+ * Checks if a set is fully completed (100%).
+ */
+export function isSetComplete(cardsOwned: number, totalCards: number): boolean {
+  return totalCards > 0 && cardsOwned >= totalCards;
+}
+
+/**
+ * Gets list of all set badge keys that would be earned at a given completion level.
+ */
+export function getAllEarnedBadgeKeysForCompletion(
+  setId: string,
+  completionPercentage: number
+): string[] {
+  const earnedKeys: string[] = [];
+
+  for (const badge of SET_COMPLETION_THRESHOLDS) {
+    if (completionPercentage >= badge.threshold) {
+      earnedKeys.push(createSetBadgeKey(setId, badge.key));
+    }
+  }
+
+  return earnedKeys;
+}

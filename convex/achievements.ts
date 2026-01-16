@@ -498,3 +498,296 @@ export const checkMilestoneAchievements = mutation({
     return awarded;
   },
 });
+
+// Set completion badge thresholds (25%, 50%, 75%, 100%)
+const SET_COMPLETION_BADGES = [
+  { key: 'set_explorer', threshold: 25 },
+  { key: 'set_adventurer', threshold: 50 },
+  { key: 'set_master', threshold: 75 },
+  { key: 'set_champion', threshold: 100 },
+] as const;
+
+// Check and award set completion badges for a specific set
+export const checkSetCompletionAchievements = mutation({
+  args: {
+    profileId: v.id('profiles'),
+    setId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Get the set info to know total cards
+    const cachedSet = await ctx.db
+      .query('cachedSets')
+      .withIndex('by_set_id', (q) => q.eq('setId', args.setId))
+      .first();
+
+    if (!cachedSet) {
+      return { awarded: [], error: 'Set not found', setId: args.setId };
+    }
+
+    const totalCardsInSet = cachedSet.totalCards;
+    if (totalCardsInSet <= 0) {
+      return { awarded: [], error: 'Set has no cards', setId: args.setId };
+    }
+
+    // Get owned cards for this set (cardId format is "setId-number")
+    const ownedCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Filter to cards from this set and get unique cardIds
+    const setPrefix = args.setId + '-';
+    const uniqueCardIds = new Set<string>();
+    for (const card of ownedCards) {
+      if (card.cardId.startsWith(setPrefix)) {
+        uniqueCardIds.add(card.cardId);
+      }
+    }
+    const cardsOwnedInSet = uniqueCardIds.size;
+
+    // Calculate completion percentage
+    const completionPercentage = Math.round((cardsOwnedInSet / totalCardsInSet) * 100);
+
+    const awarded: string[] = [];
+
+    // Check each completion level
+    for (const badge of SET_COMPLETION_BADGES) {
+      if (completionPercentage >= badge.threshold) {
+        // Create set-specific achievement key (e.g., "sv1_set_explorer")
+        const achievementKey = `${args.setId}_${badge.key}`;
+
+        // Check if already earned
+        const existing = await ctx.db
+          .query('achievements')
+          .withIndex('by_profile_and_key', (q) =>
+            q.eq('profileId', args.profileId).eq('achievementKey', achievementKey)
+          )
+          .first();
+
+        if (!existing) {
+          await ctx.db.insert('achievements', {
+            profileId: args.profileId,
+            achievementType: 'set_completion',
+            achievementKey,
+            achievementData: {
+              setId: args.setId,
+              setName: cachedSet.name,
+              cardsOwned: cardsOwnedInSet,
+              totalCards: totalCardsInSet,
+              completionPercentage,
+              badgeLevel: badge.key,
+            },
+            earnedAt: Date.now(),
+          });
+
+          // Log activity
+          await ctx.db.insert('activityLogs', {
+            profileId: args.profileId,
+            action: 'achievement_earned',
+            metadata: {
+              achievementKey,
+              setId: args.setId,
+              setName: cachedSet.name,
+              badgeLevel: badge.key,
+              completionPercentage,
+            },
+          });
+
+          awarded.push(achievementKey);
+        }
+      }
+    }
+
+    return {
+      awarded,
+      setId: args.setId,
+      setName: cachedSet.name,
+      cardsOwned: cardsOwnedInSet,
+      totalCards: totalCardsInSet,
+      completionPercentage,
+    };
+  },
+});
+
+// Check set completion for all sets a profile has cards in
+export const checkAllSetCompletionAchievements = mutation({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    const ownedCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Group cards by set (extract setId from cardId format "setId-number")
+    const cardsBySet = new Map<string, Set<string>>();
+    for (const card of ownedCards) {
+      const setId = card.cardId.split('-')[0];
+      if (!cardsBySet.has(setId)) {
+        cardsBySet.set(setId, new Set());
+      }
+      cardsBySet.get(setId)!.add(card.cardId);
+    }
+
+    const results: Array<{
+      setId: string;
+      setName: string;
+      awarded: string[];
+      completionPercentage: number;
+    }> = [];
+    const allAwarded: string[] = [];
+
+    // Check each set
+    for (const [setId, cardIds] of cardsBySet) {
+      // Get set info
+      const cachedSet = await ctx.db
+        .query('cachedSets')
+        .withIndex('by_set_id', (q) => q.eq('setId', setId))
+        .first();
+
+      if (!cachedSet || cachedSet.totalCards <= 0) {
+        continue;
+      }
+
+      const cardsOwnedInSet = cardIds.size;
+      const completionPercentage = Math.round((cardsOwnedInSet / cachedSet.totalCards) * 100);
+      const awarded: string[] = [];
+
+      // Check each completion level
+      for (const badge of SET_COMPLETION_BADGES) {
+        if (completionPercentage >= badge.threshold) {
+          const achievementKey = `${setId}_${badge.key}`;
+
+          // Check if already earned
+          const existing = await ctx.db
+            .query('achievements')
+            .withIndex('by_profile_and_key', (q) =>
+              q.eq('profileId', args.profileId).eq('achievementKey', achievementKey)
+            )
+            .first();
+
+          if (!existing) {
+            await ctx.db.insert('achievements', {
+              profileId: args.profileId,
+              achievementType: 'set_completion',
+              achievementKey,
+              achievementData: {
+                setId,
+                setName: cachedSet.name,
+                cardsOwned: cardsOwnedInSet,
+                totalCards: cachedSet.totalCards,
+                completionPercentage,
+                badgeLevel: badge.key,
+              },
+              earnedAt: Date.now(),
+            });
+
+            // Log activity
+            await ctx.db.insert('activityLogs', {
+              profileId: args.profileId,
+              action: 'achievement_earned',
+              metadata: {
+                achievementKey,
+                setId,
+                setName: cachedSet.name,
+                badgeLevel: badge.key,
+                completionPercentage,
+              },
+            });
+
+            awarded.push(achievementKey);
+            allAwarded.push(achievementKey);
+          }
+        }
+      }
+
+      results.push({
+        setId,
+        setName: cachedSet.name,
+        awarded,
+        completionPercentage,
+      });
+    }
+
+    return {
+      results,
+      totalAwarded: allAwarded,
+      setsChecked: results.length,
+    };
+  },
+});
+
+// Query to get set completion progress for a profile
+export const getSetCompletionProgress = query({
+  args: {
+    profileId: v.id('profiles'),
+    setId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Get the set info
+    const cachedSet = await ctx.db
+      .query('cachedSets')
+      .withIndex('by_set_id', (q) => q.eq('setId', args.setId))
+      .first();
+
+    if (!cachedSet) {
+      return null;
+    }
+
+    // Get owned cards for this set
+    const ownedCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Filter to cards from this set
+    const setPrefix = args.setId + '-';
+    const uniqueCardIds = new Set<string>();
+    for (const card of ownedCards) {
+      if (card.cardId.startsWith(setPrefix)) {
+        uniqueCardIds.add(card.cardId);
+      }
+    }
+
+    const cardsOwned = uniqueCardIds.size;
+    const totalCards = cachedSet.totalCards;
+    const completionPercentage = totalCards > 0 ? Math.round((cardsOwned / totalCards) * 100) : 0;
+
+    // Get earned badges for this set
+    const earnedAchievements = await ctx.db
+      .query('achievements')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .filter((q) => q.eq(q.field('achievementType'), 'set_completion'))
+      .collect();
+
+    const earnedBadges = earnedAchievements
+      .filter((a) => a.achievementKey.startsWith(args.setId + '_'))
+      .map((a) => {
+        const badgeKey = a.achievementKey.substring(args.setId.length + 1);
+        return {
+          key: a.achievementKey,
+          badgeKey,
+          earnedAt: a.earnedAt,
+        };
+      });
+
+    // Find next badge to earn
+    const nextBadge = SET_COMPLETION_BADGES.find((badge) => completionPercentage < badge.threshold);
+
+    return {
+      setId: args.setId,
+      setName: cachedSet.name,
+      cardsOwned,
+      totalCards,
+      completionPercentage,
+      earnedBadges,
+      nextBadge: nextBadge
+        ? {
+            key: nextBadge.key,
+            threshold: nextBadge.threshold,
+            cardsNeeded: Math.ceil((nextBadge.threshold / 100) * totalCards) - cardsOwned,
+          }
+        : null,
+    };
+  },
+});
