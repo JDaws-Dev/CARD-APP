@@ -83,7 +83,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [x] API adapter for OPTCG API (src/lib/onepiece-api.ts) - One Piece cards, 10 req/sec rate limit (conservative)
 - [ ] API adapter for ApiTCG (src/lib/dragonball-api.ts) - Dragon Ball Fusion World cards
 - [x] API adapter for Lorcast (src/lib/lorcana-api.ts) - Disney Lorcana cards, 10 req/sec rate limit
-- [ ] API adapter for DigimonCard.io (src/lib/digimon-api.ts) - Digimon cards, 15 req/10sec rate limit
+- [x] API adapter for DigimonCard.io (src/lib/digimon-api.ts) - Digimon cards, 15 req/10sec rate limit
 - [x] API adapter for Scryfall (src/lib/mtg-api.ts) - Magic: The Gathering cards, 10 req/sec rate limit
 - [ ] Evaluate unified APIs - Test if ApiTCG.com or JustTCG can replace multiple adapters
 
@@ -1093,3 +1093,70 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Deck statistics calculation
   - Integration scenarios: Card display preparation, Floodborn card detection, Song card mechanics, Collection filtering, Deck building analysis
 - All tests pass, linter clean
+
+### 2026-01-16: API adapter for DigimonCard.io (Digimon TCG cards)
+
+- Created `src/lib/digimon-api.ts` with full DigimonCard.io API client:
+  - Rate limiting: 15 req/10 sec (700ms minimum between requests, conservative)
+  - No API key required, publicly accessible API
+  - Documentation: https://digimoncard.io/index.php/api-documentation
+- Defined comprehensive TypeScript types:
+  - `DigimonCard`: Full card object with id, name, type, level, play_cost, evolution_cost, evolution_color, evolution_level, color, color2, digi_type, digi_type2, form, dp, attribute, rarity, stage, main_effect, source_effect, alt_effect, series, set_name, tcgplayer_id
+  - `DigimonCardBasic`: Simplified card from getAllCards endpoint
+  - `DigimonSet`: Set info extracted from card data
+  - `DigimonColor`: Red, Blue, Yellow, Green, Purple, Black, White, Colorless
+  - `DigimonCardType`: Digimon, Option, Tamer, Digi-Egg
+  - `DigimonRarity`: C, U, R, SR, SEC, P (with display names and sort order)
+  - `DigimonAttribute`: Vaccine, Virus, Data, Free, Variable, Unknown
+  - `DigimonStage`: Digi-Egg, In-Training, Rookie, Champion, Ultimate, Mega, Armor, Hybrid, Unknown (with evolution order)
+  - `DigimonFilterOptions`: Full filter interface for card search
+- Card API functions:
+  - `searchCards`: Search with full filter support
+  - `getAllCardsBasic`: Get all cards (name and number only)
+  - `getCardByNumber`, `getCardsByNumbers`: Batch fetch cards
+  - `searchCardsByName`, `getCardsInSet`: Search helpers
+  - `getCardsByColor`, `getCardsByType`, `getCardsByDigimonType`, `getCardsByAttribute`, `getCardsByLevel`, `getCardsByStage`: Filter functions
+  - `getRandomCard`: Get random card
+- Set functions:
+  - `extractSetsFromCards`: Extract unique sets from card data
+  - `searchSets`: Search sets by name (via card search)
+- Helper functions:
+  - `extractSetCode`, `extractCardNumber`: Parse card IDs (e.g., "BT1" from "BT1-001")
+  - `getCardDexId`, `parseCardDexId`: Generate/parse unique identifiers
+  - `getCardImage`: Get image URL
+  - `isDigimonCard`, `isOptionCard`, `isTamerCard`, `isDigiEggCard`: Type checking
+  - `isDualColor`, `getCardColors`: Color helpers for dual-color cards
+  - `hasEvolutionCost`, `getEvolutionRequirements`, `canEvolveFrom`: Evolution chain helpers
+  - `getDigimonTypes`: Get all Digimon types for a card
+  - `getColorInfo`, `getRarityDisplayName`, `getTypeDisplayName`, `getAttributeDisplayName`, `getStageDisplayName`: Display helpers
+  - `formatPlayCost`, `formatEvolutionCost`, `formatDP`, `formatLevel`: Formatting helpers
+  - `getCardSummary`, `getFullEffectText`: Card display helpers
+  - `sortByCardNumber`, `sortByRarity`, `sortByLevel`, `sortByDP`, `sortByPlayCost`, `sortByStage`: Sorting functions (non-mutating)
+  - `filterByColor`, `filterByDigimonType`: Client-side filtering
+  - `getUniqueColors`, `getUniqueDigimonTypes`: Extract unique values
+  - `calculateDeckStats`: Calculate deck statistics (digimon, options, tamers, digiEggs, avgPlayCost, avgDP, levelDistribution)
+  - `getTCGPlayerUrl`, `getDigimonCardIoUrl`: External URL helpers
+- Added constants:
+  - `DIGIMON_COLORS`: 8 colors with hex codes
+  - `DIGIMON_CARD_TYPES`: 4 types with descriptions
+  - `DIGIMON_RARITIES`: 6 rarities with names and sort order
+  - `DIGIMON_ATTRIBUTES`: 6 attributes
+  - `DIGIMON_STAGES`: 9 stages with evolution order
+- Added 103 tests in `src/lib/__tests__/digimon-api.test.ts` covering:
+  - Constants validation (colors, types, rarities, attributes, stages)
+  - Card ID extraction (set code, card number)
+  - Card type checking (Digimon, Option, Tamer, Digi-Egg)
+  - Color functions (dual-color, getCardColors, colorInfo)
+  - Evolution functions (hasEvolutionCost, getEvolutionRequirements, canEvolveFrom)
+  - Digimon type functions
+  - Display name functions
+  - Formatting functions
+  - Card summary and effect text
+  - Sorting functions (non-mutating verified)
+  - Filtering functions
+  - Unique value extraction
+  - Deck statistics calculation
+  - URL functions
+  - Set extraction
+  - Integration scenarios: Card display preparation, Evolution chain analysis, Deck building analysis, Collection filtering
+- All 2488 tests pass, linter clean
