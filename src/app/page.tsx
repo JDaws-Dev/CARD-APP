@@ -23,7 +23,7 @@ import {
   ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/solid';
 
-// Decorative floating card component
+// Decorative floating card component (purely decorative, hidden from screen readers)
 function FloatingCard({ className, delay = '0s' }: { className?: string; delay?: string }) {
   return (
     <div
@@ -32,6 +32,7 @@ function FloatingCard({ className, delay = '0s' }: { className?: string; delay?:
         animation: `float 3s ease-in-out infinite`,
         animationDelay: delay,
       }}
+      aria-hidden="true"
     >
       <div className="flex h-full w-full items-center justify-center">
         <SparklesIcon className="h-6 w-6 text-pokemon-yellow" />
@@ -40,7 +41,7 @@ function FloatingCard({ className, delay = '0s' }: { className?: string; delay?:
   );
 }
 
-// Decorative star component
+// Decorative star component (purely decorative, hidden from screen readers)
 function FloatingStar({
   className,
   delay = '0s',
@@ -57,13 +58,14 @@ function FloatingStar({
         animation: `twinkle 2s ease-in-out infinite`,
         animationDelay: delay,
       }}
+      aria-hidden="true"
     />
   );
 }
 
 export default function Home() {
   return (
-    <main className="flex min-h-[calc(100vh-65px)] flex-col overflow-hidden">
+    <div className="flex min-h-[calc(100vh-65px)] flex-col overflow-hidden">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-b from-indigo-100 via-purple-50 to-pink-50 px-4 pb-16 pt-12 sm:px-8 sm:pb-24 sm:pt-20">
         {/* Decorative elements */}
@@ -111,14 +113,17 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/sets"
-              className="touch-target group flex items-center gap-2 rounded-full bg-gradient-to-r from-kid-primary to-purple-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-kid-primary/30 transition-all hover:scale-105 hover:shadow-xl hover:shadow-kid-primary/40"
+              className="touch-target group flex items-center gap-2 rounded-full bg-gradient-to-r from-kid-primary to-purple-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-kid-primary/30 transition-all hover:scale-105 hover:shadow-xl hover:shadow-kid-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-kid-primary"
             >
-              <RocketLaunchIcon className="h-5 w-5 transition-transform group-hover:-translate-y-1" />
+              <RocketLaunchIcon
+                className="h-5 w-5 transition-transform group-hover:-translate-y-1"
+                aria-hidden="true"
+              />
               Start Collecting Free
             </Link>
             <Link
               href="/collection"
-              className="touch-target rounded-full border-2 border-gray-300 bg-white px-8 py-4 text-lg font-semibold text-gray-700 shadow-sm transition-all hover:border-kid-primary hover:text-kid-primary hover:shadow-md"
+              className="touch-target rounded-full border-2 border-gray-300 bg-white px-8 py-4 text-lg font-semibold text-gray-700 shadow-sm transition-all hover:border-kid-primary hover:text-kid-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
             >
               View My Collection
             </Link>
@@ -882,10 +887,13 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 px-4 py-8 text-center text-sm text-gray-400">
+      <footer
+        className="bg-gray-900 px-4 py-8 text-center text-sm text-gray-400"
+        role="contentinfo"
+      >
         <p>KidCollect is not affiliated with The Pokemon Company or Nintendo.</p>
         <p className="mt-2">Made with love for young collectors everywhere.</p>
       </footer>
-    </main>
+    </div>
   );
 }

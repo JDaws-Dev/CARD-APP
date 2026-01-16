@@ -24,8 +24,12 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <ConvexClientProvider>
           <CelebrationProvider>
+            {/* Skip link for keyboard navigation */}
+            <a href="#main-content" className="skip-link">
+              Skip to main content
+            </a>
             <Header />
-            {children}
+            <main id="main-content">{children}</main>
           </CelebrationProvider>
         </ConvexClientProvider>
       </body>

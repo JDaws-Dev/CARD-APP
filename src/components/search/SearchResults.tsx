@@ -92,13 +92,22 @@ export function SearchResults({ cards, isLoading }: SearchResultsProps) {
           return (
             <div
               key={card.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`${card.name} from ${card.set.name}, ${isOwned ? `owned ${quantity} copies` : 'not owned'}. Click to ${isOwned ? 'remove from' : 'add to'} collection`}
               className={cn(
-                'group relative cursor-pointer rounded-xl bg-white p-2 shadow-sm transition-all',
+                'group relative cursor-pointer rounded-xl bg-white p-2 shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2',
                 isOwned
                   ? 'ring-2 ring-kid-success ring-offset-2'
                   : 'opacity-80 hover:opacity-100 hover:shadow-md'
               )}
               onClick={() => handleToggleCard(card.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleToggleCard(card.id);
+                }
+              }}
             >
               {/* Card Image */}
               <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg">
@@ -140,21 +149,31 @@ export function SearchResults({ cards, isLoading }: SearchResultsProps) {
               {/* Quantity Controls - Show on hover when owned */}
               {isOwned && (
                 <div
-                  className="absolute bottom-12 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-white/95 px-2 py-1 opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                  className="absolute bottom-12 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-white/95 px-2 py-1 opacity-0 shadow-lg transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
                   onClick={(e) => e.stopPropagation()}
+                  role="group"
+                  aria-label={`Quantity controls for ${card.name}`}
                 >
                   <button
-                    className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1"
                     onClick={() => handleUpdateQuantity(card.id, -1)}
+                    aria-label={`Remove one copy of ${card.name}`}
                   >
-                    <MinusIcon className="h-4 w-4" />
+                    <MinusIcon className="h-4 w-4" aria-hidden="true" />
                   </button>
-                  <span className="min-w-[1.5rem] text-center text-sm font-medium">{quantity}</span>
-                  <button
-                    className="flex h-6 w-6 items-center justify-center rounded-full bg-kid-primary text-white hover:bg-kid-primary/90"
-                    onClick={() => handleUpdateQuantity(card.id, 1)}
+                  <span
+                    className="min-w-[1.5rem] text-center text-sm font-medium"
+                    aria-live="polite"
+                    aria-atomic="true"
                   >
-                    <PlusIcon className="h-4 w-4" />
+                    {quantity}
+                  </span>
+                  <button
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-kid-primary text-white hover:bg-kid-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1"
+                    onClick={() => handleUpdateQuantity(card.id, 1)}
+                    aria-label={`Add one more copy of ${card.name}`}
+                  >
+                    <PlusIcon className="h-4 w-4" aria-hidden="true" />
                   </button>
                 </div>
               )}

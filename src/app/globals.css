@@ -134,3 +134,57 @@ body {
 .animate-glow-pulse {
   animation: glow-pulse 2s ease-in-out infinite;
 }
+
+/* Accessibility: Focus styles for keyboard navigation */
+@layer base {
+  /* Focus-visible ring for interactive elements */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-kid-primary ring-offset-2;
+  }
+
+  /* Skip link for keyboard users */
+  .skip-link {
+    @apply absolute -top-10 left-0 z-[100] rounded bg-kid-primary px-4 py-2 text-white transition-all focus:top-0;
+  }
+
+  /* Screen reader only utility */
+  .sr-only {
+    @apply absolute h-px w-px overflow-hidden whitespace-nowrap border-0 p-0;
+    clip: rect(0, 0, 0, 0);
+  }
+}
+
+/* Accessibility: Focus styles for buttons and interactive elements */
+@layer components {
+  /* Base button focus styles */
+  .btn-focus {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2;
+  }
+
+  /* Card focus styles for keyboard navigation */
+  .card-focus {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2;
+  }
+
+  /* Link focus styles */
+  .link-focus {
+    @apply focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1;
+  }
+}
+
+/* Accessibility: Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-confetti,
+  .animate-badge-entrance,
+  .animate-glow-pulse {
+    animation: none !important;
+  }
+}

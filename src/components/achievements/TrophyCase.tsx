@@ -484,21 +484,28 @@ function BadgeCard({
 
       {/* Description or earned date */}
       {earned && earnedAt ? (
-        <p className="text-center text-xs text-gray-400">{formatRelativeDate(earnedAt)}</p>
+        <p className="text-center text-xs text-gray-500">{formatRelativeDate(earnedAt)}</p>
       ) : (
-        <p className="text-center text-xs text-gray-400">{badge.description}</p>
+        <p className="text-center text-xs text-gray-500">{badge.description}</p>
       )}
 
       {/* Progress bar for unearned badges */}
       {!earned && progress > 0 && (
         <div className="mt-2 w-full">
-          <div className="h-1.5 overflow-hidden rounded-full bg-gray-200">
+          <div
+            className="h-1.5 overflow-hidden rounded-full bg-gray-200"
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${Math.round(progress)}% complete`}
+          >
             <div
               className="h-full rounded-full bg-gradient-to-r from-kid-primary to-kid-secondary transition-all duration-500"
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
           </div>
-          <p className="mt-1 text-center text-[10px] text-gray-400">
+          <p className="mt-1 text-center text-[10px] text-gray-500">
             {current}/{badgeThreshold}
           </p>
         </div>
@@ -780,7 +787,7 @@ export function TrophyCase({ profileId }: TrophyCaseProps) {
                 {BADGE_DEFINITIONS[recentAchievement.achievementKey]?.name}
               </span>
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-500">
               {formatRelativeDate(recentAchievement.earnedAt)}
             </span>
           </div>

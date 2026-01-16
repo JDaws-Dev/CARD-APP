@@ -42,25 +42,37 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+    <header
+      className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm"
+      role="banner"
+    >
+      <nav
+        className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
+        aria-label="Main navigation"
+      >
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <CardStackIcon className="h-10 w-10" />
+        <Link
+          href="/"
+          className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+          aria-label="KidCollect - Go to home page"
+        >
+          <CardStackIcon className="h-10 w-10" aria-hidden="true" />
           <span className="bg-gradient-to-r from-kid-primary to-kid-secondary bg-clip-text text-xl font-bold text-transparent">
             KidCollect
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-6 md:flex" role="menubar">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium transition-colors hover:text-kid-primary ${
+              className={`rounded-md px-2 py-1 text-sm font-medium transition-colors hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
                 pathname === link.href ? 'text-kid-primary' : 'text-gray-600'
               }`}
+              aria-current={pathname === link.href ? 'page' : undefined}
+              role="menuitem"
             >
               {link.label}
             </Link>
@@ -71,16 +83,16 @@ export function Header() {
         <div className="hidden items-center gap-3 md:flex">
           <Link
             href="/login"
-            className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+            className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
           >
-            <ArrowRightOnRectangleIcon className="h-4 w-4" />
+            <ArrowRightOnRectangleIcon className="h-4 w-4" aria-hidden="true" />
             Log In
           </Link>
           <Link
             href="/signup"
-            className="flex items-center gap-1.5 rounded-lg bg-kid-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-kid-primary/90"
+            className="flex items-center gap-1.5 rounded-lg bg-kid-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-kid-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
           >
-            <UserPlusIcon className="h-4 w-4" />
+            <UserPlusIcon className="h-4 w-4" aria-hidden="true" />
             Sign Up
           </Link>
         </div>
@@ -88,28 +100,41 @@ export function Header() {
         {/* Mobile Menu Button */}
         <button
           type="button"
-          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
+          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-menu"
         >
-          {mobileMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+          {mobileMenuOpen ? (
+            <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+          ) : (
+            <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+          )}
         </button>
       </nav>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="border-t border-gray-200 bg-white md:hidden">
+        <div
+          id="mobile-menu"
+          className="border-t border-gray-200 bg-white md:hidden"
+          role="menu"
+          aria-label="Mobile navigation"
+        >
           <div className="space-y-1 px-4 py-3">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`block rounded-lg px-3 py-2 text-base font-medium transition-colors ${
+                className={`block rounded-lg px-3 py-2 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
                   pathname === link.href
                     ? 'bg-kid-primary/10 text-kid-primary'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
+                aria-current={pathname === link.href ? 'page' : undefined}
+                role="menuitem"
               >
                 {link.label}
               </Link>
@@ -119,18 +144,18 @@ export function Header() {
             <div className="flex flex-col gap-2">
               <Link
                 href="/login"
-                className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+                className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                <ArrowRightOnRectangleIcon className="h-4 w-4" aria-hidden="true" />
                 Log In
               </Link>
               <Link
                 href="/signup"
-                className="flex items-center justify-center gap-2 rounded-lg bg-kid-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-kid-primary/90"
+                className="flex items-center justify-center gap-2 rounded-lg bg-kid-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-kid-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <UserPlusIcon className="h-4 w-4" />
+                <UserPlusIcon className="h-4 w-4" aria-hidden="true" />
                 Sign Up Free
               </Link>
             </div>

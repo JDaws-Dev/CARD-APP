@@ -206,6 +206,9 @@ function VariantSelector({
   return (
     <div
       ref={popupRef}
+      role="dialog"
+      aria-labelledby="variant-selector-title"
+      aria-modal="true"
       className="fixed z-50 w-64 rounded-xl bg-white p-3 shadow-2xl ring-1 ring-black/5"
       style={{
         top: position.top,
@@ -216,30 +219,35 @@ function VariantSelector({
       {/* Header */}
       <div className="mb-3 flex items-start justify-between">
         <div className="min-w-0 flex-1">
-          <h4 className="truncate text-sm font-semibold text-gray-800">{card.name}</h4>
+          <h4 id="variant-selector-title" className="truncate text-sm font-semibold text-gray-800">
+            {card.name}
+          </h4>
           <p className="text-xs text-gray-500">
             #{card.number} {setName && `· ${setName}`}
           </p>
         </div>
         <button
           onClick={onClose}
-          className="ml-2 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-          aria-label="Close"
+          className="ml-2 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1"
+          aria-label="Close variant selector"
         >
-          <XMarkIcon className="h-4 w-4" />
+          <XMarkIcon className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
 
       {/* Total owned indicator */}
       {totalOwned > 0 && (
-        <div className="mb-3 flex items-center gap-2 rounded-lg bg-kid-success/10 px-3 py-2">
-          <CheckCircleIcon className="h-4 w-4 text-kid-success" />
+        <div
+          className="mb-3 flex items-center gap-2 rounded-lg bg-kid-success/10 px-3 py-2"
+          aria-live="polite"
+        >
+          <CheckCircleIcon className="h-4 w-4 text-kid-success" aria-hidden="true" />
           <span className="text-xs font-medium text-kid-success">{totalOwned} total owned</span>
         </div>
       )}
 
       {/* Variant list */}
-      <div className="space-y-2">
+      <div className="space-y-2" role="list" aria-label="Available card variants">
         {availableVariants.map((variant) => {
           const config = VARIANT_CONFIG[variant];
           const quantity = ownedVariants.get(variant) ?? 0;
@@ -249,6 +257,7 @@ function VariantSelector({
           return (
             <div
               key={variant}
+              role="listitem"
               className={cn(
                 'flex items-center justify-between rounded-lg border-2 p-2 transition-colors',
                 quantity > 0 ? 'border-kid-success bg-kid-success/5' : 'border-gray-100 bg-gray-50'
@@ -260,6 +269,7 @@ function VariantSelector({
                     'flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br text-white',
                     `${config.gradient}`
                   )}
+                  aria-hidden="true"
                 >
                   {Icon ? (
                     <Icon className="h-4 w-4" />
@@ -269,34 +279,43 @@ function VariantSelector({
                 </div>
                 <div>
                   <p className="text-xs font-medium text-gray-800">{config.label}</p>
-                  {price !== null && <p className="text-xs text-gray-500">${price.toFixed(2)}</p>}
+                  {price !== null && <p className="text-xs text-gray-600">${price.toFixed(2)}</p>}
                 </div>
               </div>
 
               {/* Quantity controls */}
-              <div className="flex items-center gap-1">
+              <div
+                className="flex items-center gap-1"
+                role="group"
+                aria-label={`${config.label} quantity controls`}
+              >
                 <button
                   onClick={() => onRemoveVariant(card.id, card.name, variant)}
                   disabled={quantity === 0}
                   className={cn(
-                    'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
+                    'flex h-7 w-7 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1',
                     quantity > 0
                       ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       : 'cursor-not-allowed bg-gray-50 text-gray-300'
                   )}
-                  aria-label={`Remove ${config.label}`}
+                  aria-label={`Remove one ${config.label} copy`}
+                  aria-disabled={quantity === 0}
                 >
-                  <MinusIcon className="h-4 w-4" />
+                  <MinusIcon className="h-4 w-4" aria-hidden="true" />
                 </button>
-                <span className="min-w-[1.5rem] text-center text-sm font-semibold text-gray-800">
+                <span
+                  className="min-w-[1.5rem] text-center text-sm font-semibold text-gray-800"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
                   {quantity}
                 </span>
                 <button
                   onClick={() => onAddVariant(card.id, card.name, variant)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-kid-primary text-white transition-colors hover:bg-kid-primary/90"
-                  aria-label={`Add ${config.label}`}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-kid-primary text-white transition-colors hover:bg-kid-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1"
+                  aria-label={`Add one ${config.label} copy`}
                 >
-                  <PlusIcon className="h-4 w-4" />
+                  <PlusIcon className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -575,13 +594,22 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
           return (
             <div
               key={card.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`${card.name}, ${isOwned ? `owned ${quantity} copies` : 'not owned'}${isWishlisted ? ', on wishlist' : ''}. Click to ${isOwned ? 'manage' : 'add to collection'}`}
               className={cn(
-                'group relative cursor-pointer rounded-xl bg-white p-2 shadow-sm transition-all',
+                'group relative cursor-pointer rounded-xl bg-white p-2 shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2',
                 isOwned
                   ? 'ring-2 ring-kid-success ring-offset-2'
                   : 'opacity-60 hover:opacity-100 hover:shadow-md'
               )}
               onClick={(e) => handleCardClick(card, e)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleCardClick(card, e as unknown as React.MouseEvent);
+                }
+              }}
             >
               {/* Card Image */}
               <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg">
@@ -610,19 +638,24 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                 {/* Wishlist Heart Button */}
                 <button
                   className={cn(
-                    'absolute bottom-1 flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all',
+                    'absolute bottom-1 flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-1',
                     isWishlisted ? 'right-9' : 'right-1',
                     isWishlisted
                       ? 'bg-rose-500 text-white'
                       : 'bg-white/90 text-gray-400 opacity-0 hover:bg-white hover:text-rose-500 group-hover:opacity-100'
                   )}
                   onClick={(e) => handleToggleWishlist(card.id, e)}
-                  aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                  aria-label={
+                    isWishlisted
+                      ? `Remove ${card.name} from wishlist`
+                      : `Add ${card.name} to wishlist`
+                  }
+                  aria-pressed={isWishlisted}
                 >
                   {isWishlisted ? (
-                    <HeartIconSolid className="h-4 w-4" />
+                    <HeartIconSolid className="h-4 w-4" aria-hidden="true" />
                   ) : (
-                    <HeartIcon className="h-4 w-4" />
+                    <HeartIcon className="h-4 w-4" aria-hidden="true" />
                   )}
                 </button>
 
@@ -630,7 +663,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                 {isWishlisted && (
                   <button
                     className={cn(
-                      'absolute bottom-1 right-1 flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all',
+                      'absolute bottom-1 right-1 flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1',
                       isPriority
                         ? 'bg-amber-400 text-white'
                         : canAddPriority
@@ -639,7 +672,13 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                     )}
                     onClick={(e) => handleTogglePriority(card.id, e)}
                     disabled={!isPriority && !canAddPriority}
-                    aria-label={isPriority ? 'Remove from priority' : 'Mark as priority'}
+                    aria-label={
+                      isPriority
+                        ? `Remove ${card.name} from priority wishlist`
+                        : `Mark ${card.name} as priority wishlist item`
+                    }
+                    aria-pressed={isPriority}
+                    aria-disabled={!isPriority && !canAddPriority}
                     title={
                       isPriority
                         ? 'Remove from priority'
@@ -649,9 +688,9 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                     }
                   >
                     {isPriority ? (
-                      <StarIconSolid className="h-4 w-4" />
+                      <StarIconSolid className="h-4 w-4" aria-hidden="true" />
                     ) : (
-                      <StarIconOutline className="h-4 w-4" />
+                      <StarIconOutline className="h-4 w-4" aria-hidden="true" />
                     )}
                   </button>
                 )}
@@ -661,7 +700,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
               <div className="mt-2 text-center">
                 <p className="truncate text-xs font-medium text-gray-800">{card.name}</p>
                 <div className="flex items-center justify-center gap-1.5">
-                  <span className="text-xs text-gray-400">#{card.number}</span>
+                  <span className="text-xs text-gray-500">#{card.number}</span>
                   {marketPrice !== null && (
                     <span
                       className={cn(

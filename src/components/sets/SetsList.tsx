@@ -53,7 +53,8 @@ export function SetsList({ sets }: SetsListProps) {
           <Link
             key={set.id}
             href={`/sets/${set.id}`}
-            className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-md transition-all hover:-translate-y-1 hover:shadow-xl"
+            className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-md transition-all hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+            aria-label={`${set.name} - ${set.total} cards, ${set.series} series`}
           >
             {/* Set Logo */}
             <div className="mb-4 flex h-24 items-center justify-center">
@@ -66,7 +67,7 @@ export function SetsList({ sets }: SetsListProps) {
                   className="h-auto max-h-20 w-auto object-contain"
                 />
               ) : (
-                <div className="text-2xl font-bold text-gray-400">{set.name}</div>
+                <div className="text-2xl font-bold text-gray-500">{set.name}</div>
               )}
             </div>
 
@@ -94,7 +95,7 @@ export function SetsList({ sets }: SetsListProps) {
               </div>
 
               {/* Release Date */}
-              <p className="mt-3 text-xs text-gray-400">
+              <p className="mt-3 text-xs text-gray-500">
                 Released:{' '}
                 {new Date(set.releaseDate).toLocaleDateString('en-US', {
                   month: 'short',
