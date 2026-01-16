@@ -589,6 +589,194 @@ export const findTradeableCards = query({
 });
 
 // ============================================================================
+// RANDOM CARD - Get a random card from collection
+// ============================================================================
+
+/**
+ * Get a random card from a profile's collection.
+ * Optionally filter by set or variant.
+ * Returns enriched card data including name and image.
+ */
+export const getRandomCard = query({
+  args: {
+    profileId: v.id('profiles'),
+    setId: v.optional(v.string()),
+    variant: v.optional(cardVariant),
+  },
+  handler: async (ctx, args) => {
+    // Get all cards in the collection
+    let collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return null;
+    }
+
+    // Filter by set if specified
+    if (args.setId) {
+      collectionCards = collectionCards.filter((card) =>
+        card.cardId.startsWith(args.setId + '-')
+      );
+    }
+
+    // Filter by variant if specified
+    if (args.variant) {
+      collectionCards = collectionCards.filter(
+        (card) => (card.variant ?? 'normal') === args.variant
+      );
+    }
+
+    if (collectionCards.length === 0) {
+      return null;
+    }
+
+    // Select a random card
+    const randomIndex = Math.floor(Math.random() * collectionCards.length);
+    const selectedCard = collectionCards[randomIndex];
+
+    // Fetch card details from cache
+    const cachedCard = await ctx.db
+      .query('cachedCards')
+      .withIndex('by_card_id', (q) => q.eq('cardId', selectedCard.cardId))
+      .first();
+
+    return {
+      cardId: selectedCard.cardId,
+      variant: selectedCard.variant ?? 'normal',
+      quantity: selectedCard.quantity,
+      name: cachedCard?.name ?? selectedCard.cardId,
+      imageSmall: cachedCard?.imageSmall ?? '',
+      imageLarge: cachedCard?.imageLarge ?? '',
+      setId: cachedCard?.setId ?? selectedCard.cardId.split('-')[0],
+      rarity: cachedCard?.rarity,
+      types: cachedCard?.types ?? [],
+    };
+  },
+});
+
+/**
+ * Get multiple random cards from a profile's collection.
+ * Useful for "Featured Cards" or "Random Picks" display.
+ */
+export const getRandomCards = query({
+  args: {
+    profileId: v.id('profiles'),
+    count: v.optional(v.number()),
+    setId: v.optional(v.string()),
+    variant: v.optional(cardVariant),
+    allowDuplicates: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const count = args.count ?? 3;
+    const allowDuplicates = args.allowDuplicates ?? false;
+
+    // Get all cards in the collection
+    let collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    if (collectionCards.length === 0) {
+      return [];
+    }
+
+    // Filter by set if specified
+    if (args.setId) {
+      collectionCards = collectionCards.filter((card) =>
+        card.cardId.startsWith(args.setId + '-')
+      );
+    }
+
+    // Filter by variant if specified
+    if (args.variant) {
+      collectionCards = collectionCards.filter(
+        (card) => (card.variant ?? 'normal') === args.variant
+      );
+    }
+
+    if (collectionCards.length === 0) {
+      return [];
+    }
+
+    // Determine how many cards to select
+    const maxCards = allowDuplicates ? count : Math.min(count, collectionCards.length);
+    const selectedCards: typeof collectionCards = [];
+
+    if (allowDuplicates) {
+      // With duplicates: just pick randomly
+      for (let i = 0; i < maxCards; i++) {
+        const randomIndex = Math.floor(Math.random() * collectionCards.length);
+        selectedCards.push(collectionCards[randomIndex]);
+      }
+    } else {
+      // Without duplicates: Fisher-Yates shuffle and take first N
+      const shuffled = [...collectionCards];
+      for (let i = shuffled.length - 1; i > 0 && selectedCards.length < maxCards; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      selectedCards.push(...shuffled.slice(0, maxCards));
+    }
+
+    // Get unique card IDs for enrichment
+    const uniqueCardIds = [...new Set(selectedCards.map((c) => c.cardId))];
+
+    // Fetch card details from cache
+    const cachedCards = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Build a map for quick lookups
+    const cardDataMap = new Map<
+      string,
+      {
+        name: string;
+        imageSmall: string;
+        imageLarge: string;
+        setId: string;
+        rarity?: string;
+        types: string[];
+      }
+    >();
+    for (const cachedCard of cachedCards) {
+      if (cachedCard) {
+        cardDataMap.set(cachedCard.cardId, {
+          name: cachedCard.name,
+          imageSmall: cachedCard.imageSmall,
+          imageLarge: cachedCard.imageLarge,
+          setId: cachedCard.setId,
+          rarity: cachedCard.rarity,
+          types: cachedCard.types,
+        });
+      }
+    }
+
+    // Enrich and return
+    return selectedCards.map((card) => {
+      const cardData = cardDataMap.get(card.cardId);
+      return {
+        cardId: card.cardId,
+        variant: card.variant ?? 'normal',
+        quantity: card.quantity,
+        name: cardData?.name ?? card.cardId,
+        imageSmall: cardData?.imageSmall ?? '',
+        imageLarge: cardData?.imageLarge ?? '',
+        setId: cardData?.setId ?? card.cardId.split('-')[0],
+        rarity: cardData?.rarity,
+        types: cardData?.types ?? [],
+      };
+    });
+  },
+});
+
+// ============================================================================
 // COLLECTION VALUE - Calculate total value of owned cards
 // ============================================================================
 

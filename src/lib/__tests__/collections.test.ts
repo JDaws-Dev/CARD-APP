@@ -26,6 +26,21 @@ import {
   sortByCardId,
   sortByQuantity,
   sortBySetAndNumber,
+  // Random card selection
+  filterCollectionCards,
+  selectRandomItem,
+  selectRandomCard,
+  shuffleArray,
+  shuffleCopy,
+  selectRandomCards,
+  hasEnoughCards,
+  maxRandomCards,
+  validateRandomCardOptions,
+  enrichRandomCard,
+  enrichRandomCards,
+  getRandomCardMessage,
+  cardSelectionProbability,
+  RandomCardResult,
 } from '../collections';
 
 // ============================================================================
@@ -1968,6 +1983,527 @@ describe('New In Collection Integration Scenarios', () => {
 
       // Custom 14-day window
       expect(isWithinNewWindow(eightDaysAgo, 14)).toBe(true);
+    });
+  });
+});
+
+// ============================================================================
+// RANDOM CARD SELECTION TESTS
+// ============================================================================
+
+describe('Random Card Selection', () => {
+  // Helper to create a consistent test collection
+  const createTestCollection = (): CollectionCard[] => [
+    { cardId: 'sv1-1', quantity: 2, variant: 'normal' },
+    { cardId: 'sv1-25', quantity: 1, variant: 'holofoil' },
+    { cardId: 'sv1-50', quantity: 3, variant: 'reverseHolofoil' },
+    { cardId: 'sv2-1', quantity: 1, variant: 'normal' },
+    { cardId: 'sv2-10', quantity: 2, variant: 'holofoil' },
+    { cardId: 'sv3-5', quantity: 1, variant: '1stEditionHolofoil' },
+  ];
+
+  describe('filterCollectionCards', () => {
+    it('should return all cards when no filters applied', () => {
+      const cards = createTestCollection();
+      const filtered = filterCollectionCards(cards);
+      expect(filtered).toHaveLength(6);
+    });
+
+    it('should filter by setId', () => {
+      const cards = createTestCollection();
+      const filtered = filterCollectionCards(cards, { setId: 'sv1' });
+      expect(filtered).toHaveLength(3);
+      expect(filtered.every((c) => c.cardId.startsWith('sv1-'))).toBe(true);
+    });
+
+    it('should filter by variant', () => {
+      const cards = createTestCollection();
+      const filtered = filterCollectionCards(cards, { variant: 'holofoil' });
+      expect(filtered).toHaveLength(2);
+      expect(filtered.every((c) => c.variant === 'holofoil')).toBe(true);
+    });
+
+    it('should filter by both setId and variant', () => {
+      const cards = createTestCollection();
+      const filtered = filterCollectionCards(cards, { setId: 'sv1', variant: 'holofoil' });
+      expect(filtered).toHaveLength(1);
+      expect(filtered[0].cardId).toBe('sv1-25');
+    });
+
+    it('should return empty array when no cards match', () => {
+      const cards = createTestCollection();
+      const filtered = filterCollectionCards(cards, { setId: 'sv99' });
+      expect(filtered).toHaveLength(0);
+    });
+
+    it('should handle empty collection', () => {
+      const filtered = filterCollectionCards([]);
+      expect(filtered).toHaveLength(0);
+    });
+
+    it('should treat null variant as normal', () => {
+      const cards: CollectionCard[] = [
+        { cardId: 'sv1-1', quantity: 1, variant: 'normal' },
+        { cardId: 'sv1-2', quantity: 1, variant: 'holofoil' },
+      ];
+      const filtered = filterCollectionCards(cards, { variant: 'normal' });
+      expect(filtered).toHaveLength(1);
+      expect(filtered[0].cardId).toBe('sv1-1');
+    });
+  });
+
+  describe('selectRandomItem', () => {
+    it('should return null for empty array', () => {
+      expect(selectRandomItem([])).toBeNull();
+    });
+
+    it('should return the only item for single-item array', () => {
+      expect(selectRandomItem(['only'])).toBe('only');
+    });
+
+    it('should return an item from the array', () => {
+      const items = [1, 2, 3, 4, 5];
+      const selected = selectRandomItem(items);
+      expect(items).toContain(selected);
+    });
+
+    it('should work with different types', () => {
+      const objects = [{ id: 1 }, { id: 2 }];
+      const selected = selectRandomItem(objects);
+      expect(objects).toContain(selected);
+    });
+  });
+
+  describe('selectRandomCard', () => {
+    it('should return null for empty collection', () => {
+      expect(selectRandomCard([])).toBeNull();
+    });
+
+    it('should return null when no cards match filter', () => {
+      const cards = createTestCollection();
+      expect(selectRandomCard(cards, { setId: 'nonexistent' })).toBeNull();
+    });
+
+    it('should return a card from the collection', () => {
+      const cards = createTestCollection();
+      const selected = selectRandomCard(cards);
+      expect(selected).not.toBeNull();
+      expect(cards.some((c) => c.cardId === selected!.cardId)).toBe(true);
+    });
+
+    it('should respect setId filter', () => {
+      const cards = createTestCollection();
+      // Run multiple times to increase confidence
+      for (let i = 0; i < 10; i++) {
+        const selected = selectRandomCard(cards, { setId: 'sv2' });
+        expect(selected).not.toBeNull();
+        expect(selected!.cardId.startsWith('sv2-')).toBe(true);
+      }
+    });
+
+    it('should respect variant filter', () => {
+      const cards = createTestCollection();
+      for (let i = 0; i < 10; i++) {
+        const selected = selectRandomCard(cards, { variant: 'reverseHolofoil' });
+        expect(selected).not.toBeNull();
+        expect(selected!.variant).toBe('reverseHolofoil');
+      }
+    });
+  });
+
+  describe('shuffleArray', () => {
+    it('should return the same array reference', () => {
+      const arr = [1, 2, 3, 4, 5];
+      const result = shuffleArray(arr);
+      expect(result).toBe(arr);
+    });
+
+    it('should maintain array length', () => {
+      const arr = [1, 2, 3, 4, 5];
+      shuffleArray(arr);
+      expect(arr).toHaveLength(5);
+    });
+
+    it('should contain all original elements', () => {
+      const arr = [1, 2, 3, 4, 5];
+      const original = [...arr];
+      shuffleArray(arr);
+      expect(arr.sort()).toEqual(original.sort());
+    });
+
+    it('should handle empty array', () => {
+      const arr: number[] = [];
+      expect(shuffleArray(arr)).toEqual([]);
+    });
+
+    it('should handle single element array', () => {
+      const arr = [1];
+      shuffleArray(arr);
+      expect(arr).toEqual([1]);
+    });
+  });
+
+  describe('shuffleCopy', () => {
+    it('should return a new array reference', () => {
+      const arr = [1, 2, 3, 4, 5];
+      const result = shuffleCopy(arr);
+      expect(result).not.toBe(arr);
+    });
+
+    it('should not modify the original array', () => {
+      const arr = [1, 2, 3, 4, 5];
+      const original = [...arr];
+      shuffleCopy(arr);
+      expect(arr).toEqual(original);
+    });
+
+    it('should maintain array length', () => {
+      const arr = [1, 2, 3, 4, 5];
+      expect(shuffleCopy(arr)).toHaveLength(5);
+    });
+
+    it('should contain all original elements', () => {
+      const arr = [1, 2, 3, 4, 5];
+      const shuffled = shuffleCopy(arr);
+      expect(shuffled.sort()).toEqual(arr.sort());
+    });
+  });
+
+  describe('selectRandomCards', () => {
+    it('should return empty array for empty collection', () => {
+      expect(selectRandomCards([])).toEqual([]);
+    });
+
+    it('should return empty array when no cards match filter', () => {
+      const cards = createTestCollection();
+      expect(selectRandomCards(cards, { setId: 'nonexistent' })).toEqual([]);
+    });
+
+    it('should default to 3 cards', () => {
+      const cards = createTestCollection();
+      const selected = selectRandomCards(cards);
+      expect(selected).toHaveLength(3);
+    });
+
+    it('should respect count option', () => {
+      const cards = createTestCollection();
+      expect(selectRandomCards(cards, { count: 1 })).toHaveLength(1);
+      expect(selectRandomCards(cards, { count: 5 })).toHaveLength(5);
+    });
+
+    it('should not exceed collection size without duplicates', () => {
+      const cards = createTestCollection();
+      const selected = selectRandomCards(cards, { count: 10, allowDuplicates: false });
+      expect(selected).toHaveLength(6); // Collection has 6 cards
+    });
+
+    it('should allow more cards than collection size with duplicates', () => {
+      const cards = createTestCollection();
+      const selected = selectRandomCards(cards, { count: 10, allowDuplicates: true });
+      expect(selected).toHaveLength(10);
+    });
+
+    it('should return unique cards by default', () => {
+      const cards = createTestCollection();
+      const selected = selectRandomCards(cards, { count: 6 });
+
+      // Check all cardIds are unique
+      const cardIds = selected.map((c) => c.cardId);
+      const uniqueCardIds = new Set(cardIds);
+      expect(uniqueCardIds.size).toBe(6);
+    });
+
+    it('should apply filters correctly', () => {
+      const cards = createTestCollection();
+      const selected = selectRandomCards(cards, { setId: 'sv1', count: 10 });
+      expect(selected).toHaveLength(3); // Only 3 sv1 cards
+      expect(selected.every((c) => c.cardId.startsWith('sv1-'))).toBe(true);
+    });
+  });
+
+  describe('hasEnoughCards', () => {
+    it('should return true when collection has enough cards', () => {
+      const cards = createTestCollection();
+      expect(hasEnoughCards(cards, 3)).toBe(true);
+      expect(hasEnoughCards(cards, 6)).toBe(true);
+    });
+
+    it('should return false when collection does not have enough cards', () => {
+      const cards = createTestCollection();
+      expect(hasEnoughCards(cards, 7)).toBe(false);
+      expect(hasEnoughCards(cards, 100)).toBe(false);
+    });
+
+    it('should return true for empty count request', () => {
+      expect(hasEnoughCards([], 0)).toBe(true);
+    });
+  });
+
+  describe('maxRandomCards', () => {
+    it('should return collection length', () => {
+      const cards = createTestCollection();
+      expect(maxRandomCards(cards)).toBe(6);
+    });
+
+    it('should return 0 for empty collection', () => {
+      expect(maxRandomCards([])).toBe(0);
+    });
+  });
+
+  describe('validateRandomCardOptions', () => {
+    it('should return null for valid options', () => {
+      expect(validateRandomCardOptions()).toBeNull();
+      expect(validateRandomCardOptions({ count: 5 })).toBeNull();
+      expect(validateRandomCardOptions({ variant: 'holofoil' })).toBeNull();
+      expect(
+        validateRandomCardOptions({ count: 3, setId: 'sv1', variant: 'normal' })
+      ).toBeNull();
+    });
+
+    it('should return error for invalid count', () => {
+      expect(validateRandomCardOptions({ count: 0 })).toBe('Count must be a positive integer');
+      expect(validateRandomCardOptions({ count: -1 })).toBe('Count must be a positive integer');
+      expect(validateRandomCardOptions({ count: 1.5 })).toBe('Count must be a positive integer');
+    });
+
+    it('should return error for invalid variant', () => {
+      expect(validateRandomCardOptions({ variant: 'invalid' as CardVariant })).toBe(
+        'Invalid variant'
+      );
+    });
+  });
+
+  describe('enrichRandomCard', () => {
+    it('should enrich card with cached data', () => {
+      const card: CollectionCard = { cardId: 'sv1-25', quantity: 2, variant: 'holofoil' };
+      const cachedData = {
+        name: 'Pikachu',
+        imageSmall: 'small.png',
+        imageLarge: 'large.png',
+        setId: 'sv1',
+        rarity: 'Rare',
+        types: ['Electric'],
+      };
+
+      const result = enrichRandomCard(card, cachedData);
+
+      expect(result.cardId).toBe('sv1-25');
+      expect(result.name).toBe('Pikachu');
+      expect(result.imageSmall).toBe('small.png');
+      expect(result.imageLarge).toBe('large.png');
+      expect(result.setId).toBe('sv1');
+      expect(result.rarity).toBe('Rare');
+      expect(result.types).toEqual(['Electric']);
+      expect(result.quantity).toBe(2);
+      expect(result.variant).toBe('holofoil');
+    });
+
+    it('should use fallback values when cached data is missing', () => {
+      const card: CollectionCard = { cardId: 'sv2-10', quantity: 1, variant: 'normal' };
+      const result = enrichRandomCard(card);
+
+      expect(result.name).toBe('sv2-10');
+      expect(result.imageSmall).toBe('');
+      expect(result.imageLarge).toBe('');
+      expect(result.setId).toBe('sv2');
+      expect(result.rarity).toBeUndefined();
+      expect(result.types).toEqual([]);
+    });
+
+    it('should default variant to normal', () => {
+      const card: CollectionCard = { cardId: 'sv1-1', quantity: 1, variant: 'normal' };
+      const result = enrichRandomCard(card);
+      expect(result.variant).toBe('normal');
+    });
+  });
+
+  describe('enrichRandomCards', () => {
+    it('should enrich multiple cards', () => {
+      const cards: CollectionCard[] = [
+        { cardId: 'sv1-1', quantity: 1, variant: 'normal' },
+        { cardId: 'sv1-25', quantity: 2, variant: 'holofoil' },
+      ];
+
+      const cachedDataMap = new Map([
+        ['sv1-1', { name: 'Bulbasaur', imageSmall: 'bulb.png' }],
+        ['sv1-25', { name: 'Pikachu', imageSmall: 'pika.png' }],
+      ]);
+
+      const results = enrichRandomCards(cards, cachedDataMap);
+
+      expect(results).toHaveLength(2);
+      expect(results[0].name).toBe('Bulbasaur');
+      expect(results[1].name).toBe('Pikachu');
+    });
+
+    it('should handle missing cached data', () => {
+      const cards: CollectionCard[] = [{ cardId: 'sv1-1', quantity: 1, variant: 'normal' }];
+
+      const results = enrichRandomCards(cards, new Map());
+
+      expect(results[0].name).toBe('sv1-1');
+    });
+  });
+
+  describe('getRandomCardMessage', () => {
+    it('should return message for normal card', () => {
+      const card: RandomCardResult = {
+        cardId: 'sv1-25',
+        variant: 'normal',
+        quantity: 1,
+        name: 'Pikachu',
+        imageSmall: '',
+        imageLarge: '',
+        setId: 'sv1',
+        types: [],
+      };
+
+      expect(getRandomCardMessage(card)).toBe('You got Pikachu!');
+    });
+
+    it('should include variant name for non-normal cards', () => {
+      const holoCard: RandomCardResult = {
+        cardId: 'sv1-25',
+        variant: 'holofoil',
+        quantity: 1,
+        name: 'Pikachu',
+        imageSmall: '',
+        imageLarge: '',
+        setId: 'sv1',
+        types: [],
+      };
+
+      expect(getRandomCardMessage(holoCard)).toBe('You got a Holofoil Pikachu!');
+
+      const reverseCard: RandomCardResult = {
+        ...holoCard,
+        variant: 'reverseHolofoil',
+      };
+
+      expect(getRandomCardMessage(reverseCard)).toBe('You got a Reverse Holofoil Pikachu!');
+    });
+  });
+
+  describe('cardSelectionProbability', () => {
+    it('should return 0 for empty collection', () => {
+      expect(cardSelectionProbability([], 'sv1-1')).toBe(0);
+    });
+
+    it('should return 0 for card not in collection', () => {
+      const cards = createTestCollection();
+      expect(cardSelectionProbability(cards, 'nonexistent')).toBe(0);
+    });
+
+    it('should return 1 for only card in collection', () => {
+      const cards: CollectionCard[] = [{ cardId: 'sv1-1', quantity: 1, variant: 'normal' }];
+      expect(cardSelectionProbability(cards, 'sv1-1')).toBe(1);
+    });
+
+    it('should return correct probability for single occurrence', () => {
+      const cards = createTestCollection(); // 6 cards
+      // Each card appears once
+      expect(cardSelectionProbability(cards, 'sv1-1')).toBeCloseTo(1 / 6, 5);
+    });
+
+    it('should count multiple entries of same cardId', () => {
+      const cards: CollectionCard[] = [
+        { cardId: 'sv1-1', quantity: 1, variant: 'normal' },
+        { cardId: 'sv1-1', quantity: 1, variant: 'holofoil' },
+        { cardId: 'sv1-2', quantity: 1, variant: 'normal' },
+      ];
+      // sv1-1 appears twice out of 3 entries
+      expect(cardSelectionProbability(cards, 'sv1-1')).toBeCloseTo(2 / 3, 5);
+    });
+  });
+});
+
+describe('Random Card Integration Scenarios', () => {
+  describe('Featured Cards Display', () => {
+    it('should select featured cards for dashboard', () => {
+      const collection: CollectionCard[] = [
+        { cardId: 'sv1-1', quantity: 3, variant: 'normal' },
+        { cardId: 'sv1-25', quantity: 1, variant: 'holofoil' },
+        { cardId: 'sv2-50', quantity: 2, variant: 'reverseHolofoil' },
+        { cardId: 'sv3-100', quantity: 1, variant: '1stEditionHolofoil' },
+      ];
+
+      const cachedDataMap = new Map([
+        ['sv1-1', { name: 'Pikachu', imageSmall: 'pika.png', types: ['Electric'] }],
+        ['sv1-25', { name: 'Charizard', imageSmall: 'char.png', types: ['Fire'] }],
+        ['sv2-50', { name: 'Mewtwo', imageSmall: 'mewtwo.png', types: ['Psychic'] }],
+        ['sv3-100', { name: 'Lugia', imageSmall: 'lugia.png', types: ['Psychic', 'Flying'] }],
+      ]);
+
+      // Select 3 featured cards
+      const selected = selectRandomCards(collection, { count: 3 });
+      expect(selected).toHaveLength(3);
+
+      // Enrich with data for display
+      const enriched = enrichRandomCards(selected, cachedDataMap);
+      expect(enriched).toHaveLength(3);
+
+      // All should have names
+      for (const card of enriched) {
+        expect(card.name).not.toBe(card.cardId);
+      }
+    });
+  });
+
+  describe('Random Card from Set', () => {
+    it('should select random card from a specific set', () => {
+      const collection: CollectionCard[] = [
+        { cardId: 'sv1-1', quantity: 1, variant: 'normal' },
+        { cardId: 'sv1-25', quantity: 1, variant: 'holofoil' },
+        { cardId: 'sv2-1', quantity: 1, variant: 'normal' },
+        { cardId: 'sv3-1', quantity: 1, variant: 'normal' },
+      ];
+
+      // Get random card from sv1 set
+      const selected = selectRandomCard(collection, { setId: 'sv1' });
+      expect(selected).not.toBeNull();
+      expect(selected!.cardId.startsWith('sv1-')).toBe(true);
+    });
+  });
+
+  describe('Holofoil Random Selection', () => {
+    it('should select only holofoil cards when filtered', () => {
+      const collection: CollectionCard[] = [
+        { cardId: 'sv1-1', quantity: 2, variant: 'normal' },
+        { cardId: 'sv1-25', quantity: 1, variant: 'holofoil' },
+        { cardId: 'sv1-50', quantity: 1, variant: 'holofoil' },
+        { cardId: 'sv2-1', quantity: 3, variant: 'reverseHolofoil' },
+      ];
+
+      const selected = selectRandomCards(collection, { variant: 'holofoil', count: 5 });
+
+      // Should only get 2 cards (the holofoil ones)
+      expect(selected).toHaveLength(2);
+      expect(selected.every((c) => c.variant === 'holofoil')).toBe(true);
+    });
+  });
+
+  describe('Empty Collection Handling', () => {
+    it('should handle empty collection gracefully', () => {
+      expect(selectRandomCard([])).toBeNull();
+      expect(selectRandomCards([])).toEqual([]);
+      expect(maxRandomCards([])).toBe(0);
+      expect(hasEnoughCards([], 1)).toBe(false);
+      expect(cardSelectionProbability([], 'sv1-1')).toBe(0);
+    });
+  });
+
+  describe('Single Card Collection', () => {
+    it('should always return the same card', () => {
+      const collection: CollectionCard[] = [
+        { cardId: 'sv1-1', quantity: 1, variant: 'holofoil' },
+      ];
+
+      for (let i = 0; i < 5; i++) {
+        const selected = selectRandomCard(collection);
+        expect(selected).not.toBeNull();
+        expect(selected!.cardId).toBe('sv1-1');
+        expect(selected!.variant).toBe('holofoil');
+      }
     });
   });
 });

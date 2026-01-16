@@ -1078,3 +1078,253 @@ export function getNewCardsBadgeText(count: number): string {
 export function hasAnyNewCards(additions: CardAdditionLog[]): boolean {
   return additions.length > 0;
 }
+
+// ============================================================================
+// RANDOM CARD SELECTION
+// ============================================================================
+
+/** Result of random card selection with card data */
+export interface RandomCardResult {
+  cardId: string;
+  variant: CardVariant;
+  quantity: number;
+  name: string;
+  imageSmall: string;
+  imageLarge: string;
+  setId: string;
+  rarity?: string;
+  types: string[];
+}
+
+/** Options for selecting random cards */
+export interface RandomCardOptions {
+  setId?: string;
+  variant?: CardVariant;
+  count?: number;
+  allowDuplicates?: boolean;
+}
+
+/**
+ * Filters collection cards by optional criteria.
+ */
+export function filterCollectionCards(
+  cards: CollectionCard[],
+  options?: { setId?: string; variant?: CardVariant }
+): CollectionCard[] {
+  let filtered = cards;
+
+  if (options?.setId) {
+    filtered = filtered.filter((card) => card.cardId.startsWith(options.setId + '-'));
+  }
+
+  if (options?.variant) {
+    filtered = filtered.filter((card) => (card.variant ?? DEFAULT_VARIANT) === options.variant);
+  }
+
+  return filtered;
+}
+
+/**
+ * Selects a random item from an array.
+ * Returns null if array is empty.
+ */
+export function selectRandomItem<T>(items: T[]): T | null {
+  if (items.length === 0) {
+    return null;
+  }
+  const randomIndex = Math.floor(Math.random() * items.length);
+  return items[randomIndex];
+}
+
+/**
+ * Selects a random card from a collection.
+ * Returns null if collection is empty or no cards match the filter.
+ */
+export function selectRandomCard(
+  cards: CollectionCard[],
+  options?: { setId?: string; variant?: CardVariant }
+): CollectionCard | null {
+  const filtered = filterCollectionCards(cards, options);
+  return selectRandomItem(filtered);
+}
+
+/**
+ * Performs Fisher-Yates shuffle on an array (in-place).
+ * Returns the same array reference, now shuffled.
+ */
+export function shuffleArray<T>(array: T[]): T[] {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+/**
+ * Creates a shuffled copy of an array.
+ * Does not modify the original array.
+ */
+export function shuffleCopy<T>(array: T[]): T[] {
+  return shuffleArray([...array]);
+}
+
+/**
+ * Selects multiple random cards from a collection.
+ * By default, does not allow duplicates.
+ */
+export function selectRandomCards(
+  cards: CollectionCard[],
+  options?: RandomCardOptions
+): CollectionCard[] {
+  const count = options?.count ?? 3;
+  const allowDuplicates = options?.allowDuplicates ?? false;
+
+  const filtered = filterCollectionCards(cards, options);
+
+  if (filtered.length === 0) {
+    return [];
+  }
+
+  if (allowDuplicates) {
+    // With duplicates: just pick randomly
+    const selected: CollectionCard[] = [];
+    for (let i = 0; i < count; i++) {
+      const randomIndex = Math.floor(Math.random() * filtered.length);
+      selected.push(filtered[randomIndex]);
+    }
+    return selected;
+  } else {
+    // Without duplicates: shuffle and take first N
+    const maxCards = Math.min(count, filtered.length);
+    const shuffled = shuffleCopy(filtered);
+    return shuffled.slice(0, maxCards);
+  }
+}
+
+/**
+ * Checks if a collection has enough cards to select N random cards.
+ */
+export function hasEnoughCards(cards: CollectionCard[], count: number): boolean {
+  return cards.length >= count;
+}
+
+/**
+ * Gets the maximum number of unique random cards that can be selected.
+ */
+export function maxRandomCards(cards: CollectionCard[]): number {
+  return cards.length;
+}
+
+/**
+ * Validates random card selection options.
+ * Returns an error message if invalid, null if valid.
+ */
+export function validateRandomCardOptions(options?: RandomCardOptions): string | null {
+  if (options?.count !== undefined) {
+    if (!Number.isInteger(options.count) || options.count < 1) {
+      return 'Count must be a positive integer';
+    }
+  }
+
+  if (options?.variant !== undefined && !isValidVariant(options.variant)) {
+    return 'Invalid variant';
+  }
+
+  return null;
+}
+
+/**
+ * Creates an enriched random card result from collection card and cached data.
+ */
+export function enrichRandomCard(
+  card: CollectionCard,
+  cachedData?: {
+    name?: string;
+    imageSmall?: string;
+    imageLarge?: string;
+    setId?: string;
+    rarity?: string;
+    types?: string[];
+  }
+): RandomCardResult {
+  return {
+    cardId: card.cardId,
+    variant: card.variant ?? DEFAULT_VARIANT,
+    quantity: card.quantity,
+    name: cachedData?.name ?? card.cardId,
+    imageSmall: cachedData?.imageSmall ?? '',
+    imageLarge: cachedData?.imageLarge ?? '',
+    setId: cachedData?.setId ?? extractSetId(card.cardId),
+    rarity: cachedData?.rarity,
+    types: cachedData?.types ?? [],
+  };
+}
+
+/**
+ * Enriches multiple random cards with cached data.
+ */
+export function enrichRandomCards(
+  cards: CollectionCard[],
+  cachedDataMap: Map<
+    string,
+    {
+      name?: string;
+      imageSmall?: string;
+      imageLarge?: string;
+      setId?: string;
+      rarity?: string;
+      types?: string[];
+    }
+  >
+): RandomCardResult[] {
+  return cards.map((card) => enrichRandomCard(card, cachedDataMap.get(card.cardId)));
+}
+
+/**
+ * Returns a fun message about a random card selection.
+ * Useful for gamification features.
+ */
+export function getRandomCardMessage(card: RandomCardResult): string {
+  const variantName = getVariantDisplayName(card.variant);
+  if (card.variant !== 'normal') {
+    return `You got a ${variantName} ${card.name}!`;
+  }
+  return `You got ${card.name}!`;
+}
+
+/**
+ * Calculates the probability of selecting a specific card from a collection.
+ * Returns a value between 0 and 1.
+ */
+export function cardSelectionProbability(cards: CollectionCard[], cardId: string): number {
+  if (cards.length === 0) {
+    return 0;
+  }
+  const matchingCards = cards.filter((c) => c.cardId === cardId);
+  return matchingCards.length / cards.length;
+}
+
+/**
+ * Checks if a random selection would include a specific card.
+ * Simulates multiple random selections to calculate approximate probability.
+ */
+export function estimateInclusionProbability(
+  cards: CollectionCard[],
+  cardId: string,
+  selectCount: number,
+  simulations = 1000
+): number {
+  if (cards.length === 0 || selectCount <= 0) {
+    return 0;
+  }
+
+  let inclusions = 0;
+  for (let i = 0; i < simulations; i++) {
+    const selected = selectRandomCards(cards, { count: selectCount });
+    if (selected.some((c) => c.cardId === cardId)) {
+      inclusions++;
+    }
+  }
+
+  return inclusions / simulations;
+}
