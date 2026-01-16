@@ -8,6 +8,7 @@ import Link from 'next/link';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { Square3Stack3DIcon } from '@heroicons/react/24/outline';
 import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
+import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
 
 export default function MyCollectionPage() {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
@@ -46,10 +47,22 @@ export default function MyCollectionPage() {
             ))}
           </div>
 
-          {/* Collection skeleton */}
-          <div className="space-y-8">
-            <CollectionGroupSkeleton />
-            <CollectionGroupSkeleton />
+          {/* Main content layout skeleton */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+            {/* Collection skeleton */}
+            <div className="space-y-8 lg:col-span-3">
+              <CollectionGroupSkeleton />
+              <CollectionGroupSkeleton />
+            </div>
+
+            {/* Activity feed skeleton */}
+            <div className="rounded-xl bg-white p-4 shadow-sm lg:col-span-1">
+              <div className="mb-4 flex items-center gap-2">
+                <Skeleton className="h-5 w-5 rounded" />
+                <Skeleton className="h-5 w-32" />
+              </div>
+              <ActivityFeedSkeleton count={5} />
+            </div>
           </div>
         </div>
       </main>
@@ -94,26 +107,38 @@ export default function MyCollectionPage() {
           </div>
         </div>
 
-        {/* Collection Content */}
-        {collection.length === 0 ? (
-          <div className="rounded-xl bg-white p-12 text-center shadow-sm">
-            <div className="mb-4 flex justify-center">
-              <Square3Stack3DIcon className="h-16 w-16 text-gray-300" />
-            </div>
-            <h2 className="mb-2 text-xl font-bold text-gray-800">No cards yet!</h2>
-            <p className="mb-6 text-gray-500">
-              Start building your collection by browsing sets and tapping on cards you own.
-            </p>
-            <Link
-              href="/sets"
-              className="inline-flex items-center gap-2 rounded-full bg-kid-primary px-6 py-3 font-semibold text-white transition hover:bg-kid-primary/90"
-            >
-              Browse Sets →
-            </Link>
+        {/* Main content with sidebar layout */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+          {/* Collection Content */}
+          <div className="lg:col-span-3">
+            {collection.length === 0 ? (
+              <div className="rounded-xl bg-white p-12 text-center shadow-sm">
+                <div className="mb-4 flex justify-center">
+                  <Square3Stack3DIcon className="h-16 w-16 text-gray-300" />
+                </div>
+                <h2 className="mb-2 text-xl font-bold text-gray-800">No cards yet!</h2>
+                <p className="mb-6 text-gray-500">
+                  Start building your collection by browsing sets and tapping on cards you own.
+                </p>
+                <Link
+                  href="/sets"
+                  className="inline-flex items-center gap-2 rounded-full bg-kid-primary px-6 py-3 font-semibold text-white transition hover:bg-kid-primary/90"
+                >
+                  Browse Sets →
+                </Link>
+              </div>
+            ) : (
+              <CollectionView collection={collection} />
+            )}
           </div>
-        ) : (
-          <CollectionView collection={collection} />
-        )}
+
+          {/* Activity Feed Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="lg:sticky lg:top-4">
+              <ActivityFeed limit={10} />
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   );
