@@ -336,7 +336,13 @@ export const addCard = mutation({
     await ctx.db.insert('activityLogs', {
       profileId: args.profileId,
       action: 'card_added',
-      metadata: { cardId: args.cardId, cardName: args.cardName ?? args.cardId, setName: args.setName, variant, quantity },
+      metadata: {
+        cardId: args.cardId,
+        cardName: args.cardName ?? args.cardId,
+        setName: args.setName,
+        variant,
+        quantity,
+      },
     });
 
     return cardEntryId;
@@ -391,7 +397,12 @@ export const removeCard = mutation({
         await ctx.db.insert('activityLogs', {
           profileId: args.profileId,
           action: 'card_removed',
-          metadata: { cardId: args.cardId, cardName, setName: args.setName, variantsRemoved: allVariants.length },
+          metadata: {
+            cardId: args.cardId,
+            cardName,
+            setName: args.setName,
+            variantsRemoved: allVariants.length,
+          },
         });
       }
     }
@@ -526,7 +537,11 @@ export const findTradeableCards = query({
   handler: async (ctx, args) => {
     // Prevent comparing a profile with itself
     if (args.fromProfileId === args.toProfileId) {
-      return { tradeableCards: [], totalTradeable: 0, error: 'Cannot compare a profile with itself' };
+      return {
+        tradeableCards: [],
+        totalTradeable: 0,
+        error: 'Cannot compare a profile with itself',
+      };
     }
 
     // Get all cards for both profiles
@@ -816,6 +831,274 @@ export const getCollectionValueBySet = query({
     // Sort by value descending
     setValues.sort((a, b) => b.totalValue - a.totalValue);
     return setValues;
+  },
+});
+
+// ============================================================================
+// NEW IN COLLECTION - Cards added in last N days
+// ============================================================================
+
+/**
+ * Get cards that were added to the collection in the last N days.
+ * Uses activity logs to find card_added events and enriches with card details.
+ */
+export const getNewlyAddedCards = query({
+  args: {
+    profileId: v.id('profiles'),
+    days: v.optional(v.number()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const days = args.days ?? 7;
+    const limit = args.limit ?? 50;
+    const cutoffDate = Date.now() - days * 24 * 60 * 60 * 1000;
+
+    // Get activity logs for this profile
+    const allLogs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .order('desc')
+      .collect();
+
+    // Filter to card_added events within the time window
+    const recentCardAdds = allLogs.filter(
+      (log) => log.action === 'card_added' && log._creationTime >= cutoffDate
+    );
+
+    // Get unique card IDs from the activity logs
+    const cardAdditions: Array<{
+      cardId: string;
+      addedAt: number;
+      variant: string;
+      quantity: number;
+    }> = [];
+
+    for (const log of recentCardAdds) {
+      const metadata = log.metadata as
+        | {
+            cardId?: string;
+            variant?: string;
+            quantity?: number;
+          }
+        | undefined;
+
+      if (metadata?.cardId) {
+        cardAdditions.push({
+          cardId: metadata.cardId,
+          addedAt: log._creationTime,
+          variant: metadata.variant ?? 'normal',
+          quantity: metadata.quantity ?? 1,
+        });
+      }
+    }
+
+    // Limit results
+    const limitedAdditions = cardAdditions.slice(0, limit);
+
+    // Get unique card IDs for enrichment
+    const uniqueCardIds = [...new Set(limitedAdditions.map((a) => a.cardId))];
+
+    // Fetch card details from cache
+    const cachedCards = await Promise.all(
+      uniqueCardIds.map((cardId) =>
+        ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+          .first()
+      )
+    );
+
+    // Build a map for quick lookups
+    const cardDataMap = new Map<
+      string,
+      { name: string; imageSmall: string; setId: string; rarity: string | undefined }
+    >();
+    for (const cachedCard of cachedCards) {
+      if (cachedCard) {
+        cardDataMap.set(cachedCard.cardId, {
+          name: cachedCard.name,
+          imageSmall: cachedCard.imageSmall,
+          setId: cachedCard.setId,
+          rarity: cachedCard.rarity,
+        });
+      }
+    }
+
+    // Enrich card additions with details
+    const enrichedCards = limitedAdditions.map((addition) => {
+      const cardData = cardDataMap.get(addition.cardId);
+      return {
+        cardId: addition.cardId,
+        name: cardData?.name ?? addition.cardId,
+        imageSmall: cardData?.imageSmall ?? '',
+        setId: cardData?.setId ?? addition.cardId.split('-')[0],
+        rarity: cardData?.rarity,
+        variant: addition.variant,
+        quantity: addition.quantity,
+        addedAt: addition.addedAt,
+      };
+    });
+
+    // Get summary stats
+    const totalNewCards = recentCardAdds.length;
+    const uniqueNewCards = new Set(
+      recentCardAdds
+        .map((log) => (log.metadata as { cardId?: string } | undefined)?.cardId)
+        .filter(Boolean)
+    ).size;
+
+    return {
+      cards: enrichedCards,
+      summary: {
+        totalAdditions: totalNewCards,
+        uniqueCards: uniqueNewCards,
+        daysSearched: days,
+        oldestAddition:
+          enrichedCards.length > 0 ? enrichedCards[enrichedCards.length - 1].addedAt : null,
+        newestAddition: enrichedCards.length > 0 ? enrichedCards[0].addedAt : null,
+      },
+    };
+  },
+});
+
+/**
+ * Get a summary of cards added recently grouped by day.
+ * Useful for showing activity trends and recent additions calendar.
+ */
+export const getNewlyAddedCardsSummary = query({
+  args: {
+    profileId: v.id('profiles'),
+    days: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const days = args.days ?? 7;
+    const cutoffDate = Date.now() - days * 24 * 60 * 60 * 1000;
+
+    // Get activity logs for this profile
+    const allLogs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Filter to card_added events within the time window
+    const recentCardAdds = allLogs.filter(
+      (log) => log.action === 'card_added' && log._creationTime >= cutoffDate
+    );
+
+    // Group by date
+    const byDate = new Map<
+      string,
+      { count: number; uniqueCards: Set<string>; totalQuantity: number }
+    >();
+
+    for (const log of recentCardAdds) {
+      const date = new Date(log._creationTime).toISOString().split('T')[0];
+      const metadata = log.metadata as
+        | {
+            cardId?: string;
+            quantity?: number;
+          }
+        | undefined;
+
+      const existing = byDate.get(date) ?? {
+        count: 0,
+        uniqueCards: new Set<string>(),
+        totalQuantity: 0,
+      };
+
+      existing.count++;
+      if (metadata?.cardId) {
+        existing.uniqueCards.add(metadata.cardId);
+      }
+      existing.totalQuantity += metadata?.quantity ?? 1;
+
+      byDate.set(date, existing);
+    }
+
+    // Convert to array sorted by date descending
+    const dailySummary = Array.from(byDate.entries())
+      .map(([date, data]) => ({
+        date,
+        additionCount: data.count,
+        uniqueCardsCount: data.uniqueCards.size,
+        totalQuantity: data.totalQuantity,
+      }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    // Calculate totals
+    const totalAdditions = recentCardAdds.length;
+    const allCardIds = new Set<string>();
+    let totalQuantity = 0;
+
+    for (const log of recentCardAdds) {
+      const metadata = log.metadata as
+        | {
+            cardId?: string;
+            quantity?: number;
+          }
+        | undefined;
+      if (metadata?.cardId) {
+        allCardIds.add(metadata.cardId);
+      }
+      totalQuantity += metadata?.quantity ?? 1;
+    }
+
+    return {
+      dailySummary,
+      totals: {
+        totalAdditions,
+        uniqueCards: allCardIds.size,
+        totalQuantity,
+        daysWithActivity: dailySummary.length,
+        daysSearched: days,
+      },
+    };
+  },
+});
+
+/**
+ * Check if a profile has any new cards in the last N days.
+ * Lightweight query for showing "New!" badge in UI.
+ */
+export const hasNewCards = query({
+  args: {
+    profileId: v.id('profiles'),
+    days: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const days = args.days ?? 7;
+    const cutoffDate = Date.now() - days * 24 * 60 * 60 * 1000;
+
+    // Get recent activity logs - just take first one to check
+    const recentLog = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .order('desc')
+      .first();
+
+    if (!recentLog) {
+      return { hasNew: false, count: 0 };
+    }
+
+    // If most recent activity is older than cutoff, no new cards
+    if (recentLog._creationTime < cutoffDate) {
+      return { hasNew: false, count: 0 };
+    }
+
+    // Need to count all card_added events in the window
+    const allLogs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    const recentCardAdds = allLogs.filter(
+      (log) => log.action === 'card_added' && log._creationTime >= cutoffDate
+    );
+
+    return {
+      hasNew: recentCardAdds.length > 0,
+      count: recentCardAdds.length,
+    };
   },
 });
 

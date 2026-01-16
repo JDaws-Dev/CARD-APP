@@ -87,11 +87,7 @@ export function isValidCardId(cardId: string): boolean {
  * Validates a quantity value.
  */
 export function isValidQuantity(quantity: number): boolean {
-  return (
-    typeof quantity === 'number' &&
-    Number.isInteger(quantity) &&
-    quantity > 0
-  );
+  return typeof quantity === 'number' && Number.isInteger(quantity) && quantity > 0;
 }
 
 /**
@@ -134,10 +130,7 @@ export function getCollectionStats(cards: CollectionCard[]): CollectionStats {
 /**
  * Checks if a card is owned and returns ownership details.
  */
-export function checkCardOwnership(
-  cards: CollectionCard[],
-  cardId: string
-): CardOwnership {
+export function checkCardOwnership(cards: CollectionCard[], cardId: string): CardOwnership {
   // Filter cards matching the cardId
   const matchingCards = cards.filter((card) => card.cardId === cardId);
 
@@ -146,10 +139,7 @@ export function checkCardOwnership(
   }
 
   // Sum up total quantity across all variants
-  const totalQuantity = matchingCards.reduce(
-    (sum, card) => sum + card.quantity,
-    0
-  );
+  const totalQuantity = matchingCards.reduce((sum, card) => sum + card.quantity, 0);
 
   // Build variants object with quantity per variant
   const variants: Record<string, number> = {};
@@ -164,10 +154,7 @@ export function checkCardOwnership(
 /**
  * Filters collection cards by set ID.
  */
-export function filterBySet(
-  cards: CollectionCard[],
-  setId: string
-): CollectionCard[] {
+export function filterBySet(cards: CollectionCard[], setId: string): CollectionCard[] {
   return cards.filter((card) => card.cardId.startsWith(setId + '-'));
 }
 
@@ -183,8 +170,7 @@ export function groupCardsByCardId(cards: CollectionCard[]): GroupedCard[] {
 
     if (existing) {
       existing.totalQuantity += card.quantity;
-      existing.variants[variant] =
-        (existing.variants[variant] ?? 0) + card.quantity;
+      existing.variants[variant] = (existing.variants[variant] ?? 0) + card.quantity;
     } else {
       grouped.set(card.cardId, {
         cardId: card.cardId,
@@ -463,10 +449,7 @@ export function mergeCollections(
 /**
  * Sorts collection cards by card ID.
  */
-export function sortByCardId(
-  cards: CollectionCard[],
-  ascending = true
-): CollectionCard[] {
+export function sortByCardId(cards: CollectionCard[], ascending = true): CollectionCard[] {
   const sorted = [...cards].sort((a, b) => a.cardId.localeCompare(b.cardId));
   return ascending ? sorted : sorted.reverse();
 }
@@ -474,10 +457,7 @@ export function sortByCardId(
 /**
  * Sorts collection cards by quantity.
  */
-export function sortByQuantity(
-  cards: CollectionCard[],
-  ascending = false
-): CollectionCard[] {
+export function sortByQuantity(cards: CollectionCard[], ascending = false): CollectionCard[] {
   const sorted = [...cards].sort((a, b) => a.quantity - b.quantity);
   return ascending ? sorted : sorted.reverse();
 }
@@ -485,10 +465,7 @@ export function sortByQuantity(
 /**
  * Sorts collection cards by set ID, then by card number.
  */
-export function sortBySetAndNumber(
-  cards: CollectionCard[],
-  ascending = true
-): CollectionCard[] {
+export function sortBySetAndNumber(cards: CollectionCard[], ascending = true): CollectionCard[] {
   const sorted = [...cards].sort((a, b) => {
     const setA = extractSetId(a.cardId);
     const setB = extractSetId(b.cardId);
@@ -559,9 +536,7 @@ export function getVariantDisplayName(variant: CardVariant): string {
  * Groups collection by (cardId, variant) pairs.
  * Each unique combination is a separate entry.
  */
-export function groupCollectionByVariant(
-  cards: CollectionCard[]
-): EnrichedCollectionCard[] {
+export function groupCollectionByVariant(cards: CollectionCard[]): EnrichedCollectionCard[] {
   return cards.map((card) => ({
     cardId: card.cardId,
     variant: card.variant ?? DEFAULT_VARIANT,
@@ -629,20 +604,14 @@ export function getUsedVariants(cards: CollectionCard[]): CardVariant[] {
 /**
  * Filters collection by variant type.
  */
-export function filterByVariant(
-  cards: CollectionCard[],
-  variant: CardVariant
-): CollectionCard[] {
+export function filterByVariant(cards: CollectionCard[], variant: CardVariant): CollectionCard[] {
   return cards.filter((card) => (card.variant ?? DEFAULT_VARIANT) === variant);
 }
 
 /**
  * Sorts collection cards by variant, then by cardId.
  */
-export function sortByVariant(
-  cards: CollectionCard[],
-  ascending = true
-): CollectionCard[] {
+export function sortByVariant(cards: CollectionCard[], ascending = true): CollectionCard[] {
   const variantOrder: Record<CardVariant, number> = {
     normal: 0,
     holofoil: 1,
@@ -766,21 +735,346 @@ export function hasVariant(cards: CollectionCard[], variant: CardVariant): boole
 /**
  * Gets all cards of a specific cardId across all variants.
  */
-export function getAllVariantsOfCard(
-  cards: CollectionCard[],
-  cardId: string
-): CollectionCard[] {
+export function getAllVariantsOfCard(cards: CollectionCard[], cardId: string): CollectionCard[] {
   return cards.filter((card) => card.cardId === cardId);
 }
 
 /**
  * Gets the total quantity of a specific card across all variants.
  */
-export function getTotalQuantityOfCard(
-  cards: CollectionCard[],
-  cardId: string
-): number {
+export function getTotalQuantityOfCard(cards: CollectionCard[], cardId: string): number {
   return cards
     .filter((card) => card.cardId === cardId)
     .reduce((sum, card) => sum + card.quantity, 0);
+}
+
+// ============================================================================
+// NEW IN COLLECTION - Cards added in last N days
+// ============================================================================
+
+/** Activity log entry for card additions */
+export interface CardAdditionLog {
+  cardId: string;
+  addedAt: number;
+  variant: CardVariant;
+  quantity: number;
+}
+
+/** Enriched card with addition date for "new in collection" display */
+export interface NewlyAddedCard {
+  cardId: string;
+  name: string;
+  imageSmall: string;
+  setId: string;
+  rarity?: string;
+  variant: CardVariant;
+  quantity: number;
+  addedAt: number;
+}
+
+/** Summary of newly added cards */
+export interface NewlyAddedSummary {
+  totalAdditions: number;
+  uniqueCards: number;
+  daysSearched: number;
+  oldestAddition: number | null;
+  newestAddition: number | null;
+}
+
+/** Daily summary of card additions */
+export interface DailyAdditionSummary {
+  date: string;
+  additionCount: number;
+  uniqueCardsCount: number;
+  totalQuantity: number;
+}
+
+/** Default number of days to search for new cards */
+export const DEFAULT_NEW_CARDS_DAYS = 7;
+
+/** Maximum number of days to search for new cards */
+export const MAX_NEW_CARDS_DAYS = 30;
+
+/**
+ * Calculates a cutoff timestamp for filtering by days.
+ */
+export function getCutoffTimestamp(days: number): number {
+  return Date.now() - days * 24 * 60 * 60 * 1000;
+}
+
+/**
+ * Filters activity logs to only card_added events within a time window.
+ */
+export function filterRecentCardAdditions(
+  logs: Array<{ action: string; _creationTime: number; metadata?: unknown }>,
+  cutoffTimestamp: number
+): Array<{ action: string; _creationTime: number; metadata?: unknown }> {
+  return logs.filter((log) => log.action === 'card_added' && log._creationTime >= cutoffTimestamp);
+}
+
+/**
+ * Extracts card addition data from activity log metadata.
+ */
+export function extractCardAddition(log: {
+  _creationTime: number;
+  metadata?: unknown;
+}): CardAdditionLog | null {
+  const metadata = log.metadata as {
+    cardId?: string;
+    variant?: string;
+    quantity?: number;
+  } | null;
+
+  if (!metadata?.cardId) {
+    return null;
+  }
+
+  const variant = metadata.variant ?? 'normal';
+  return {
+    cardId: metadata.cardId,
+    addedAt: log._creationTime,
+    variant: isValidVariant(variant) ? (variant as CardVariant) : DEFAULT_VARIANT,
+    quantity: metadata.quantity ?? 1,
+  };
+}
+
+/**
+ * Parses activity logs into card additions.
+ */
+export function parseCardAdditions(
+  logs: Array<{ _creationTime: number; metadata?: unknown }>
+): CardAdditionLog[] {
+  const additions: CardAdditionLog[] = [];
+
+  for (const log of logs) {
+    const addition = extractCardAddition(log);
+    if (addition) {
+      additions.push(addition);
+    }
+  }
+
+  return additions;
+}
+
+/**
+ * Groups card additions by date (YYYY-MM-DD format).
+ */
+export function groupAdditionsByDate(
+  additions: CardAdditionLog[]
+): Map<string, DailyAdditionSummary> {
+  const byDate = new Map<
+    string,
+    { count: number; uniqueCards: Set<string>; totalQuantity: number }
+  >();
+
+  for (const addition of additions) {
+    const date = new Date(addition.addedAt).toISOString().split('T')[0];
+    const existing = byDate.get(date) ?? {
+      count: 0,
+      uniqueCards: new Set<string>(),
+      totalQuantity: 0,
+    };
+
+    existing.count++;
+    existing.uniqueCards.add(addition.cardId);
+    existing.totalQuantity += addition.quantity;
+
+    byDate.set(date, existing);
+  }
+
+  // Convert to DailyAdditionSummary
+  const result = new Map<string, DailyAdditionSummary>();
+  for (const [date, data] of byDate) {
+    result.set(date, {
+      date,
+      additionCount: data.count,
+      uniqueCardsCount: data.uniqueCards.size,
+      totalQuantity: data.totalQuantity,
+    });
+  }
+
+  return result;
+}
+
+/**
+ * Gets daily summaries sorted by date descending.
+ */
+export function getDailySummaries(additions: CardAdditionLog[]): DailyAdditionSummary[] {
+  const grouped = groupAdditionsByDate(additions);
+  return Array.from(grouped.values()).sort((a, b) => b.date.localeCompare(a.date));
+}
+
+/**
+ * Calculates the summary stats for newly added cards.
+ */
+export function calculateNewlyAddedSummary(
+  additions: CardAdditionLog[],
+  days: number
+): NewlyAddedSummary {
+  if (additions.length === 0) {
+    return {
+      totalAdditions: 0,
+      uniqueCards: 0,
+      daysSearched: days,
+      oldestAddition: null,
+      newestAddition: null,
+    };
+  }
+
+  const uniqueCardIds = new Set(additions.map((a) => a.cardId));
+  const timestamps = additions.map((a) => a.addedAt);
+
+  return {
+    totalAdditions: additions.length,
+    uniqueCards: uniqueCardIds.size,
+    daysSearched: days,
+    oldestAddition: Math.min(...timestamps),
+    newestAddition: Math.max(...timestamps),
+  };
+}
+
+/**
+ * Gets unique card IDs from additions.
+ */
+export function getUniqueCardIdsFromAdditions(additions: CardAdditionLog[]): string[] {
+  return [...new Set(additions.map((a) => a.cardId))];
+}
+
+/**
+ * Enriches card additions with card details.
+ */
+export function enrichCardAdditions(
+  additions: CardAdditionLog[],
+  cardDataMap: Map<string, { name: string; imageSmall: string; setId: string; rarity?: string }>
+): NewlyAddedCard[] {
+  return additions.map((addition) => {
+    const cardData = cardDataMap.get(addition.cardId);
+    return {
+      cardId: addition.cardId,
+      name: cardData?.name ?? addition.cardId,
+      imageSmall: cardData?.imageSmall ?? '',
+      setId: cardData?.setId ?? extractSetId(addition.cardId),
+      rarity: cardData?.rarity,
+      variant: addition.variant,
+      quantity: addition.quantity,
+      addedAt: addition.addedAt,
+    };
+  });
+}
+
+/**
+ * Checks if a timestamp is within the "new" window.
+ */
+export function isWithinNewWindow(
+  timestamp: number,
+  days: number = DEFAULT_NEW_CARDS_DAYS
+): boolean {
+  return timestamp >= getCutoffTimestamp(days);
+}
+
+/**
+ * Formats an "added at" timestamp for display.
+ * Returns relative time for recent additions (today, yesterday, N days ago).
+ */
+export function formatAddedAtRelative(timestamp: number): string {
+  const now = Date.now();
+  const diffMs = now - timestamp;
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+
+  if (diffDays === 0) {
+    const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+    if (diffHours === 0) {
+      const diffMinutes = Math.floor(diffMs / (60 * 1000));
+      if (diffMinutes === 0) {
+        return 'just now';
+      }
+      return diffMinutes === 1 ? '1 minute ago' : `${diffMinutes} minutes ago`;
+    }
+    return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+  }
+
+  if (diffDays === 1) {
+    return 'yesterday';
+  }
+
+  if (diffDays < 7) {
+    return `${diffDays} days ago`;
+  }
+
+  // Fallback to absolute date for older entries
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/**
+ * Formats an "added at" timestamp as an absolute date.
+ */
+export function formatAddedAtAbsolute(timestamp: number): string {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/**
+ * Sorts newly added cards by addition date (newest first).
+ */
+export function sortByAddedAt(cards: NewlyAddedCard[], ascending = false): NewlyAddedCard[] {
+  const sorted = [...cards].sort((a, b) => a.addedAt - b.addedAt);
+  return ascending ? sorted : sorted.reverse();
+}
+
+/**
+ * Groups newly added cards by the day they were added.
+ */
+export function groupNewlyAddedByDay(cards: NewlyAddedCard[]): Map<string, NewlyAddedCard[]> {
+  const grouped = new Map<string, NewlyAddedCard[]>();
+
+  for (const card of cards) {
+    const date = new Date(card.addedAt).toISOString().split('T')[0];
+    const existing = grouped.get(date) ?? [];
+    existing.push(card);
+    grouped.set(date, existing);
+  }
+
+  return grouped;
+}
+
+/**
+ * Counts additions by set for the new cards.
+ */
+export function countNewCardsBySet(cards: NewlyAddedCard[]): Map<string, number> {
+  const bySet = new Map<string, number>();
+
+  for (const card of cards) {
+    const count = bySet.get(card.setId) ?? 0;
+    bySet.set(card.setId, count + 1);
+  }
+
+  return bySet;
+}
+
+/**
+ * Gets a formatted badge message for new card count.
+ */
+export function getNewCardsBadgeText(count: number): string {
+  if (count === 0) {
+    return '';
+  }
+  if (count === 1) {
+    return '1 new card';
+  }
+  return `${count} new cards`;
+}
+
+/**
+ * Checks if there are any new cards in a collection based on additions.
+ */
+export function hasAnyNewCards(additions: CardAdditionLog[]): boolean {
+  return additions.length > 0;
 }

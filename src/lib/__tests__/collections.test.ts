@@ -32,11 +32,7 @@ import {
 // TEST DATA FACTORIES
 // ============================================================================
 
-function createCard(
-  cardId: string,
-  quantity = 1,
-  variant: CardVariant = 'normal'
-): CollectionCard {
+function createCard(cardId: string, quantity = 1, variant: CardVariant = 'normal'): CollectionCard {
   return { cardId, quantity, variant };
 }
 
@@ -183,10 +179,7 @@ describe('Query Functions', () => {
     });
 
     it('should count same card with different variants as separate entries', () => {
-      const collection = [
-        createCard('sv1-1', 2, 'normal'),
-        createCard('sv1-1', 1, 'holofoil'),
-      ];
+      const collection = [createCard('sv1-1', 2, 'normal'), createCard('sv1-1', 1, 'holofoil')];
       const stats = getCollectionStats(collection);
 
       expect(stats.uniqueCards).toBe(2);
@@ -197,10 +190,7 @@ describe('Query Functions', () => {
 
   describe('checkCardOwnership', () => {
     it('should return ownership details for owned card', () => {
-      const collection = [
-        createCard('sv1-1', 3, 'normal'),
-        createCard('sv1-1', 1, 'holofoil'),
-      ];
+      const collection = [createCard('sv1-1', 3, 'normal'), createCard('sv1-1', 1, 'holofoil')];
 
       const result = checkCardOwnership(collection, 'sv1-1');
 
@@ -394,11 +384,9 @@ describe('Collection CRUD Operations', () => {
 
       expect(result.removed).toBe(1);
       expect(result.collection).toHaveLength(2);
-      expect(
-        result.collection.some(
-          (c) => c.cardId === 'sv1-1' && c.variant === 'holofoil'
-        )
-      ).toBe(false);
+      expect(result.collection.some((c) => c.cardId === 'sv1-1' && c.variant === 'holofoil')).toBe(
+        false
+      );
     });
 
     it('should remove all variants when variant not specified', () => {
@@ -417,11 +405,7 @@ describe('Collection CRUD Operations', () => {
     });
 
     it('should return 0 removed for non-existent variant', () => {
-      const result = removeCardFromCollection(
-        collection,
-        'sv1-1',
-        'reverseHolofoil'
-      );
+      const result = removeCardFromCollection(collection, 'sv1-1', 'reverseHolofoil');
 
       expect(result.removed).toBe(0);
     });
@@ -435,10 +419,7 @@ describe('Collection CRUD Operations', () => {
 
   describe('updateCardQuantity (UPDATE)', () => {
     beforeEach(() => {
-      collection = [
-        createCard('sv1-1', 2, 'normal'),
-        createCard('sv1-1', 1, 'holofoil'),
-      ];
+      collection = [createCard('sv1-1', 2, 'normal'), createCard('sv1-1', 1, 'holofoil')];
     });
 
     it('should update quantity for existing card', () => {
@@ -693,10 +674,7 @@ describe('Sorting Functions', () => {
     });
 
     it('should handle non-numeric card numbers', () => {
-      const collection = [
-        createCard('sv1-1', 1, 'normal'),
-        createCard('sv1-a', 1, 'normal'),
-      ];
+      const collection = [createCard('sv1-1', 1, 'normal'), createCard('sv1-a', 1, 'normal')];
 
       // Should not throw
       const sorted = sortBySetAndNumber(collection);
@@ -1257,6 +1235,739 @@ describe('Variant Grouping Integration Scenarios', () => {
       expect(usedVariants).toContain('reverseHolofoil');
       expect(usedVariants).toContain('1stEditionHolofoil');
       expect(usedVariants).not.toContain('1stEditionNormal'); // Not used
+    });
+  });
+});
+
+// ============================================================================
+// NEW IN COLLECTION - Cards added in last N days
+// ============================================================================
+
+import {
+  CardAdditionLog,
+  NewlyAddedCard,
+  DEFAULT_NEW_CARDS_DAYS,
+  MAX_NEW_CARDS_DAYS,
+  getCutoffTimestamp,
+  filterRecentCardAdditions,
+  extractCardAddition,
+  parseCardAdditions,
+  groupAdditionsByDate,
+  getDailySummaries,
+  calculateNewlyAddedSummary,
+  getUniqueCardIdsFromAdditions,
+  enrichCardAdditions,
+  isWithinNewWindow,
+  formatAddedAtRelative,
+  formatAddedAtAbsolute,
+  sortByAddedAt,
+  groupNewlyAddedByDay,
+  countNewCardsBySet,
+  getNewCardsBadgeText,
+  hasAnyNewCards,
+} from '../collections';
+
+// Helper to create activity log entries
+function createActivityLog(
+  action: string,
+  creationTime: number,
+  metadata?: { cardId?: string; variant?: string; quantity?: number }
+): { action: string; _creationTime: number; metadata?: unknown } {
+  return {
+    action,
+    _creationTime: creationTime,
+    metadata,
+  };
+}
+
+// Helper to create card addition logs
+function createCardAdditionLog(
+  cardId: string,
+  addedAt: number,
+  variant: CardVariant = 'normal',
+  quantity = 1
+): CardAdditionLog {
+  return { cardId, addedAt, variant, quantity };
+}
+
+// Helper to create newly added cards
+function createNewlyAddedCard(
+  cardId: string,
+  addedAt: number,
+  name?: string,
+  variant: CardVariant = 'normal'
+): NewlyAddedCard {
+  return {
+    cardId,
+    name: name ?? cardId,
+    imageSmall: '',
+    setId: cardId.split('-')[0],
+    variant,
+    quantity: 1,
+    addedAt,
+  };
+}
+
+describe('New In Collection Constants', () => {
+  it('should have correct default days', () => {
+    expect(DEFAULT_NEW_CARDS_DAYS).toBe(7);
+  });
+
+  it('should have correct max days', () => {
+    expect(MAX_NEW_CARDS_DAYS).toBe(30);
+  });
+});
+
+describe('getCutoffTimestamp', () => {
+  it('should calculate cutoff for 7 days', () => {
+    const now = Date.now();
+    const cutoff = getCutoffTimestamp(7);
+    const expectedCutoff = now - 7 * 24 * 60 * 60 * 1000;
+
+    // Allow 1 second of tolerance for test execution time
+    expect(Math.abs(cutoff - expectedCutoff)).toBeLessThan(1000);
+  });
+
+  it('should calculate cutoff for 1 day', () => {
+    const now = Date.now();
+    const cutoff = getCutoffTimestamp(1);
+    const expectedCutoff = now - 1 * 24 * 60 * 60 * 1000;
+
+    expect(Math.abs(cutoff - expectedCutoff)).toBeLessThan(1000);
+  });
+
+  it('should calculate cutoff for 30 days', () => {
+    const now = Date.now();
+    const cutoff = getCutoffTimestamp(30);
+    const expectedCutoff = now - 30 * 24 * 60 * 60 * 1000;
+
+    expect(Math.abs(cutoff - expectedCutoff)).toBeLessThan(1000);
+  });
+});
+
+describe('filterRecentCardAdditions', () => {
+  const now = Date.now();
+  const oneDayAgo = now - 1 * 24 * 60 * 60 * 1000;
+  const threeDaysAgo = now - 3 * 24 * 60 * 60 * 1000;
+  const tenDaysAgo = now - 10 * 24 * 60 * 60 * 1000;
+
+  it('should filter to only card_added events within window', () => {
+    const logs = [
+      createActivityLog('card_added', now, { cardId: 'sv1-1' }),
+      createActivityLog('card_added', oneDayAgo, { cardId: 'sv1-2' }),
+      createActivityLog('card_added', tenDaysAgo, { cardId: 'sv1-3' }),
+      createActivityLog('card_removed', now, { cardId: 'sv1-4' }),
+      createActivityLog('achievement_earned', now, { achievementKey: 'test' }),
+    ];
+
+    const cutoff = getCutoffTimestamp(7);
+    const recent = filterRecentCardAdditions(logs, cutoff);
+
+    expect(recent).toHaveLength(2);
+    expect(recent[0].action).toBe('card_added');
+    expect(recent[1].action).toBe('card_added');
+  });
+
+  it('should return empty for no matching events', () => {
+    const logs = [
+      createActivityLog('card_removed', now, { cardId: 'sv1-1' }),
+      createActivityLog('achievement_earned', now, {}),
+    ];
+
+    const recent = filterRecentCardAdditions(logs, getCutoffTimestamp(7));
+
+    expect(recent).toHaveLength(0);
+  });
+
+  it('should handle empty logs array', () => {
+    const recent = filterRecentCardAdditions([], getCutoffTimestamp(7));
+    expect(recent).toHaveLength(0);
+  });
+});
+
+describe('extractCardAddition', () => {
+  const now = Date.now();
+
+  it('should extract card addition from log with all fields', () => {
+    const log = createActivityLog('card_added', now, {
+      cardId: 'sv1-1',
+      variant: 'holofoil',
+      quantity: 3,
+    });
+
+    const addition = extractCardAddition(log);
+
+    expect(addition).not.toBeNull();
+    expect(addition!.cardId).toBe('sv1-1');
+    expect(addition!.variant).toBe('holofoil');
+    expect(addition!.quantity).toBe(3);
+    expect(addition!.addedAt).toBe(now);
+  });
+
+  it('should default variant to normal when not specified', () => {
+    const log = createActivityLog('card_added', now, { cardId: 'sv1-1' });
+
+    const addition = extractCardAddition(log);
+
+    expect(addition!.variant).toBe('normal');
+  });
+
+  it('should default quantity to 1 when not specified', () => {
+    const log = createActivityLog('card_added', now, { cardId: 'sv1-1' });
+
+    const addition = extractCardAddition(log);
+
+    expect(addition!.quantity).toBe(1);
+  });
+
+  it('should return null for log without cardId', () => {
+    const log = createActivityLog('card_added', now, { variant: 'holofoil' });
+
+    const addition = extractCardAddition(log);
+
+    expect(addition).toBeNull();
+  });
+
+  it('should return null for log without metadata', () => {
+    const log = { action: 'card_added', _creationTime: now };
+
+    const addition = extractCardAddition(log);
+
+    expect(addition).toBeNull();
+  });
+
+  it('should handle invalid variant by defaulting to normal', () => {
+    const log = createActivityLog('card_added', now, {
+      cardId: 'sv1-1',
+      variant: 'invalid_variant',
+    });
+
+    const addition = extractCardAddition(log);
+
+    expect(addition!.variant).toBe('normal');
+  });
+});
+
+describe('parseCardAdditions', () => {
+  const now = Date.now();
+  const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
+  it('should parse multiple logs into additions', () => {
+    const logs = [
+      createActivityLog('card_added', now, { cardId: 'sv1-1', variant: 'normal', quantity: 2 }),
+      createActivityLog('card_added', oneDayAgo, {
+        cardId: 'sv1-2',
+        variant: 'holofoil',
+        quantity: 1,
+      }),
+    ];
+
+    const additions = parseCardAdditions(logs);
+
+    expect(additions).toHaveLength(2);
+    expect(additions[0].cardId).toBe('sv1-1');
+    expect(additions[1].cardId).toBe('sv1-2');
+  });
+
+  it('should skip logs without cardId', () => {
+    const logs = [
+      createActivityLog('card_added', now, { cardId: 'sv1-1' }),
+      createActivityLog('card_added', now, {}),
+      createActivityLog('card_added', now, { cardId: 'sv1-2' }),
+    ];
+
+    const additions = parseCardAdditions(logs);
+
+    expect(additions).toHaveLength(2);
+  });
+
+  it('should handle empty logs', () => {
+    const additions = parseCardAdditions([]);
+    expect(additions).toHaveLength(0);
+  });
+});
+
+describe('groupAdditionsByDate', () => {
+  it('should group additions by date', () => {
+    const day1 = new Date('2026-01-15T10:00:00Z').getTime();
+    const day1Later = new Date('2026-01-15T14:00:00Z').getTime();
+    const day2 = new Date('2026-01-16T08:00:00Z').getTime();
+
+    const additions: CardAdditionLog[] = [
+      createCardAdditionLog('sv1-1', day1, 'normal', 2),
+      createCardAdditionLog('sv1-2', day1Later, 'holofoil', 1),
+      createCardAdditionLog('sv1-3', day2, 'normal', 3),
+    ];
+
+    const grouped = groupAdditionsByDate(additions);
+
+    expect(grouped.size).toBe(2);
+
+    const jan15 = grouped.get('2026-01-15');
+    expect(jan15).toBeDefined();
+    expect(jan15!.additionCount).toBe(2);
+    expect(jan15!.uniqueCardsCount).toBe(2);
+    expect(jan15!.totalQuantity).toBe(3);
+
+    const jan16 = grouped.get('2026-01-16');
+    expect(jan16).toBeDefined();
+    expect(jan16!.additionCount).toBe(1);
+    expect(jan16!.totalQuantity).toBe(3);
+  });
+
+  it('should count same card added multiple times separately', () => {
+    const time1 = new Date('2026-01-15T10:00:00Z').getTime();
+    const time2 = new Date('2026-01-15T11:00:00Z').getTime();
+
+    const additions: CardAdditionLog[] = [
+      createCardAdditionLog('sv1-1', time1, 'normal', 1),
+      createCardAdditionLog('sv1-1', time2, 'holofoil', 1),
+    ];
+
+    const grouped = groupAdditionsByDate(additions);
+    const summary = grouped.get('2026-01-15');
+
+    expect(summary!.additionCount).toBe(2);
+    expect(summary!.uniqueCardsCount).toBe(1); // Same card
+    expect(summary!.totalQuantity).toBe(2);
+  });
+
+  it('should handle empty additions', () => {
+    const grouped = groupAdditionsByDate([]);
+    expect(grouped.size).toBe(0);
+  });
+});
+
+describe('getDailySummaries', () => {
+  it('should return summaries sorted by date descending', () => {
+    const day1 = new Date('2026-01-13').getTime();
+    const day2 = new Date('2026-01-15').getTime();
+    const day3 = new Date('2026-01-14').getTime();
+
+    const additions: CardAdditionLog[] = [
+      createCardAdditionLog('sv1-1', day1),
+      createCardAdditionLog('sv1-2', day2),
+      createCardAdditionLog('sv1-3', day3),
+    ];
+
+    const summaries = getDailySummaries(additions);
+
+    expect(summaries).toHaveLength(3);
+    expect(summaries[0].date).toBe('2026-01-15');
+    expect(summaries[1].date).toBe('2026-01-14');
+    expect(summaries[2].date).toBe('2026-01-13');
+  });
+});
+
+describe('calculateNewlyAddedSummary', () => {
+  it('should calculate summary for additions', () => {
+    const time1 = Date.now() - 2 * 24 * 60 * 60 * 1000; // 2 days ago
+    const time2 = Date.now() - 1 * 24 * 60 * 60 * 1000; // 1 day ago
+    const time3 = Date.now(); // Now
+
+    const additions: CardAdditionLog[] = [
+      createCardAdditionLog('sv1-1', time1),
+      createCardAdditionLog('sv1-2', time2),
+      createCardAdditionLog('sv1-1', time3), // Same card again
+    ];
+
+    const summary = calculateNewlyAddedSummary(additions, 7);
+
+    expect(summary.totalAdditions).toBe(3);
+    expect(summary.uniqueCards).toBe(2);
+    expect(summary.daysSearched).toBe(7);
+    expect(summary.oldestAddition).toBe(time1);
+    expect(summary.newestAddition).toBe(time3);
+  });
+
+  it('should return empty summary for no additions', () => {
+    const summary = calculateNewlyAddedSummary([], 7);
+
+    expect(summary.totalAdditions).toBe(0);
+    expect(summary.uniqueCards).toBe(0);
+    expect(summary.daysSearched).toBe(7);
+    expect(summary.oldestAddition).toBeNull();
+    expect(summary.newestAddition).toBeNull();
+  });
+});
+
+describe('getUniqueCardIdsFromAdditions', () => {
+  it('should return unique card IDs', () => {
+    const additions: CardAdditionLog[] = [
+      createCardAdditionLog('sv1-1', Date.now()),
+      createCardAdditionLog('sv1-2', Date.now()),
+      createCardAdditionLog('sv1-1', Date.now()), // Duplicate
+      createCardAdditionLog('sv1-3', Date.now()),
+    ];
+
+    const uniqueIds = getUniqueCardIdsFromAdditions(additions);
+
+    expect(uniqueIds).toHaveLength(3);
+    expect(uniqueIds).toContain('sv1-1');
+    expect(uniqueIds).toContain('sv1-2');
+    expect(uniqueIds).toContain('sv1-3');
+  });
+
+  it('should handle empty additions', () => {
+    const uniqueIds = getUniqueCardIdsFromAdditions([]);
+    expect(uniqueIds).toHaveLength(0);
+  });
+});
+
+describe('enrichCardAdditions', () => {
+  it('should enrich with card data', () => {
+    const now = Date.now();
+    const additions: CardAdditionLog[] = [
+      createCardAdditionLog('sv1-1', now, 'holofoil', 2),
+      createCardAdditionLog('sv2-10', now, 'normal', 1),
+    ];
+
+    const cardDataMap = new Map([
+      ['sv1-1', { name: 'Pikachu', imageSmall: 'pikachu.png', setId: 'sv1', rarity: 'Rare' }],
+      [
+        'sv2-10',
+        { name: 'Charizard', imageSmall: 'charizard.png', setId: 'sv2', rarity: 'Ultra Rare' },
+      ],
+    ]);
+
+    const enriched = enrichCardAdditions(additions, cardDataMap);
+
+    expect(enriched).toHaveLength(2);
+    expect(enriched[0].name).toBe('Pikachu');
+    expect(enriched[0].imageSmall).toBe('pikachu.png');
+    expect(enriched[0].rarity).toBe('Rare');
+    expect(enriched[0].variant).toBe('holofoil');
+    expect(enriched[0].quantity).toBe(2);
+  });
+
+  it('should fallback to cardId when not in map', () => {
+    const additions: CardAdditionLog[] = [createCardAdditionLog('sv1-unknown', Date.now())];
+
+    const enriched = enrichCardAdditions(additions, new Map());
+
+    expect(enriched[0].name).toBe('sv1-unknown');
+    expect(enriched[0].setId).toBe('sv1');
+    expect(enriched[0].imageSmall).toBe('');
+  });
+});
+
+describe('isWithinNewWindow', () => {
+  it('should return true for recent timestamps', () => {
+    const now = Date.now();
+    const oneDayAgo = now - 1 * 24 * 60 * 60 * 1000;
+    const sixDaysAgo = now - 6 * 24 * 60 * 60 * 1000;
+
+    expect(isWithinNewWindow(now)).toBe(true);
+    expect(isWithinNewWindow(oneDayAgo)).toBe(true);
+    expect(isWithinNewWindow(sixDaysAgo)).toBe(true);
+  });
+
+  it('should return false for old timestamps', () => {
+    const eightDaysAgo = Date.now() - 8 * 24 * 60 * 60 * 1000;
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+
+    expect(isWithinNewWindow(eightDaysAgo)).toBe(false);
+    expect(isWithinNewWindow(thirtyDaysAgo)).toBe(false);
+  });
+
+  it('should respect custom days parameter', () => {
+    const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
+
+    expect(isWithinNewWindow(threeDaysAgo, 2)).toBe(false);
+    expect(isWithinNewWindow(threeDaysAgo, 5)).toBe(true);
+  });
+});
+
+describe('formatAddedAtRelative', () => {
+  it('should format as "just now" for very recent', () => {
+    const now = Date.now();
+    expect(formatAddedAtRelative(now)).toBe('just now');
+  });
+
+  it('should format minutes ago', () => {
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+    expect(formatAddedAtRelative(fiveMinutesAgo)).toBe('5 minutes ago');
+  });
+
+  it('should format single minute correctly', () => {
+    const oneMinuteAgo = Date.now() - 1 * 60 * 1000;
+    expect(formatAddedAtRelative(oneMinuteAgo)).toBe('1 minute ago');
+  });
+
+  it('should format hours ago', () => {
+    const threeHoursAgo = Date.now() - 3 * 60 * 60 * 1000;
+    expect(formatAddedAtRelative(threeHoursAgo)).toBe('3 hours ago');
+  });
+
+  it('should format single hour correctly', () => {
+    const oneHourAgo = Date.now() - 1 * 60 * 60 * 1000;
+    expect(formatAddedAtRelative(oneHourAgo)).toBe('1 hour ago');
+  });
+
+  it('should format "yesterday"', () => {
+    const yesterday = Date.now() - 1 * 24 * 60 * 60 * 1000;
+    expect(formatAddedAtRelative(yesterday)).toBe('yesterday');
+  });
+
+  it('should format days ago', () => {
+    const fiveDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
+    expect(formatAddedAtRelative(fiveDaysAgo)).toBe('5 days ago');
+  });
+
+  it('should format older dates as month/day', () => {
+    const tenDaysAgo = Date.now() - 10 * 24 * 60 * 60 * 1000;
+    const result = formatAddedAtRelative(tenDaysAgo);
+    // Should be something like "Jan 6" - just check it's not a relative time
+    expect(result).not.toContain('ago');
+    expect(result).not.toBe('yesterday');
+  });
+});
+
+describe('formatAddedAtAbsolute', () => {
+  it('should format as absolute date', () => {
+    const timestamp = new Date('2026-01-15T10:30:00Z').getTime();
+    const result = formatAddedAtAbsolute(timestamp);
+
+    // Should include year, month, and day
+    expect(result).toContain('Jan');
+    expect(result).toContain('15');
+    expect(result).toContain('2026');
+  });
+});
+
+describe('sortByAddedAt', () => {
+  it('should sort by date descending by default', () => {
+    const oldCard = createNewlyAddedCard('sv1-1', Date.now() - 5 * 24 * 60 * 60 * 1000);
+    const midCard = createNewlyAddedCard('sv1-2', Date.now() - 2 * 24 * 60 * 60 * 1000);
+    const newCard = createNewlyAddedCard('sv1-3', Date.now());
+
+    const cards = [oldCard, midCard, newCard];
+    const sorted = sortByAddedAt(cards);
+
+    expect(sorted[0].cardId).toBe('sv1-3'); // Newest first
+    expect(sorted[1].cardId).toBe('sv1-2');
+    expect(sorted[2].cardId).toBe('sv1-1');
+  });
+
+  it('should sort ascending when specified', () => {
+    const oldCard = createNewlyAddedCard('sv1-1', Date.now() - 5 * 24 * 60 * 60 * 1000);
+    const newCard = createNewlyAddedCard('sv1-3', Date.now());
+
+    const sorted = sortByAddedAt([oldCard, newCard], true);
+
+    expect(sorted[0].cardId).toBe('sv1-1'); // Oldest first
+    expect(sorted[1].cardId).toBe('sv1-3');
+  });
+
+  it('should not mutate original array', () => {
+    const cards = [
+      createNewlyAddedCard('sv1-1', Date.now()),
+      createNewlyAddedCard('sv1-2', Date.now() - 1000),
+    ];
+    const original = [...cards];
+
+    sortByAddedAt(cards);
+
+    expect(cards).toEqual(original);
+  });
+});
+
+describe('groupNewlyAddedByDay', () => {
+  it('should group cards by day', () => {
+    const day1Time = new Date('2026-01-15T10:00:00Z').getTime();
+    const day1Time2 = new Date('2026-01-15T14:00:00Z').getTime();
+    const day2Time = new Date('2026-01-16T08:00:00Z').getTime();
+
+    const cards = [
+      createNewlyAddedCard('sv1-1', day1Time),
+      createNewlyAddedCard('sv1-2', day1Time2),
+      createNewlyAddedCard('sv1-3', day2Time),
+    ];
+
+    const grouped = groupNewlyAddedByDay(cards);
+
+    expect(grouped.size).toBe(2);
+    expect(grouped.get('2026-01-15')!).toHaveLength(2);
+    expect(grouped.get('2026-01-16')!).toHaveLength(1);
+  });
+
+  it('should handle empty array', () => {
+    const grouped = groupNewlyAddedByDay([]);
+    expect(grouped.size).toBe(0);
+  });
+});
+
+describe('countNewCardsBySet', () => {
+  it('should count cards by set', () => {
+    const cards = [
+      createNewlyAddedCard('sv1-1', Date.now()),
+      createNewlyAddedCard('sv1-2', Date.now()),
+      createNewlyAddedCard('sv2-1', Date.now()),
+      createNewlyAddedCard('sv1-3', Date.now()),
+    ];
+
+    const counts = countNewCardsBySet(cards);
+
+    expect(counts.get('sv1')).toBe(3);
+    expect(counts.get('sv2')).toBe(1);
+  });
+
+  it('should handle empty array', () => {
+    const counts = countNewCardsBySet([]);
+    expect(counts.size).toBe(0);
+  });
+});
+
+describe('getNewCardsBadgeText', () => {
+  it('should return empty string for 0 cards', () => {
+    expect(getNewCardsBadgeText(0)).toBe('');
+  });
+
+  it('should return singular form for 1 card', () => {
+    expect(getNewCardsBadgeText(1)).toBe('1 new card');
+  });
+
+  it('should return plural form for multiple cards', () => {
+    expect(getNewCardsBadgeText(5)).toBe('5 new cards');
+    expect(getNewCardsBadgeText(100)).toBe('100 new cards');
+  });
+});
+
+describe('hasAnyNewCards', () => {
+  it('should return true when there are additions', () => {
+    const additions = [createCardAdditionLog('sv1-1', Date.now())];
+    expect(hasAnyNewCards(additions)).toBe(true);
+  });
+
+  it('should return false when empty', () => {
+    expect(hasAnyNewCards([])).toBe(false);
+  });
+});
+
+describe('New In Collection Integration Scenarios', () => {
+  describe('Processing Activity Logs', () => {
+    it('should process activity logs into displayable new cards', () => {
+      const now = Date.now();
+      const oneDayAgo = now - 1 * 24 * 60 * 60 * 1000;
+      const twoDaysAgo = now - 2 * 24 * 60 * 60 * 1000;
+
+      // Simulate activity logs from database
+      const logs = [
+        createActivityLog('card_added', now, { cardId: 'sv1-1', variant: 'holofoil', quantity: 1 }),
+        createActivityLog('card_added', oneDayAgo, {
+          cardId: 'sv1-25',
+          variant: 'normal',
+          quantity: 2,
+        }),
+        createActivityLog('card_removed', oneDayAgo, { cardId: 'sv1-10' }), // Should be ignored
+        createActivityLog('card_added', twoDaysAgo, {
+          cardId: 'sv2-5',
+          variant: 'reverseHolofoil',
+          quantity: 1,
+        }),
+      ];
+
+      // Filter recent additions
+      const cutoff = getCutoffTimestamp(7);
+      const recentLogs = filterRecentCardAdditions(logs, cutoff);
+
+      expect(recentLogs).toHaveLength(3);
+
+      // Parse into additions
+      const additions = parseCardAdditions(recentLogs);
+
+      expect(additions).toHaveLength(3);
+
+      // Enrich with card data
+      const cardDataMap = new Map([
+        ['sv1-1', { name: 'Pikachu', imageSmall: 'pika.png', setId: 'sv1', rarity: 'Rare' }],
+        ['sv1-25', { name: 'Eevee', imageSmall: 'eevee.png', setId: 'sv1', rarity: 'Common' }],
+        [
+          'sv2-5',
+          { name: 'Charizard', imageSmall: 'char.png', setId: 'sv2', rarity: 'Ultra Rare' },
+        ],
+      ]);
+
+      const enrichedCards = enrichCardAdditions(additions, cardDataMap);
+
+      expect(enrichedCards[0].name).toBe('Pikachu');
+      expect(enrichedCards[1].name).toBe('Eevee');
+      expect(enrichedCards[2].name).toBe('Charizard');
+
+      // Sort for display
+      const sortedCards = sortByAddedAt(enrichedCards);
+
+      expect(sortedCards[0].name).toBe('Pikachu'); // Most recent first
+      expect(sortedCards[2].name).toBe('Charizard'); // Oldest last
+
+      // Get summary
+      const summary = calculateNewlyAddedSummary(additions, 7);
+
+      expect(summary.totalAdditions).toBe(3);
+      expect(summary.uniqueCards).toBe(3);
+    });
+  });
+
+  describe('Daily Activity Summary', () => {
+    it('should summarize activity by day for calendar display', () => {
+      const day1 = new Date('2026-01-13T10:00:00Z').getTime();
+      const day1Later = new Date('2026-01-13T15:00:00Z').getTime();
+      const day2 = new Date('2026-01-14T09:00:00Z').getTime();
+      const day3 = new Date('2026-01-15T12:00:00Z').getTime();
+
+      const additions: CardAdditionLog[] = [
+        createCardAdditionLog('sv1-1', day1, 'normal', 2),
+        createCardAdditionLog('sv1-2', day1Later, 'holofoil', 1),
+        createCardAdditionLog('sv1-1', day2, 'reverseHolofoil', 1), // Same card, different day
+        createCardAdditionLog('sv2-1', day3, 'normal', 5),
+      ];
+
+      const dailySummaries = getDailySummaries(additions);
+
+      expect(dailySummaries).toHaveLength(3);
+
+      // Sorted descending by date
+      expect(dailySummaries[0].date).toBe('2026-01-15');
+      expect(dailySummaries[0].additionCount).toBe(1);
+      expect(dailySummaries[0].totalQuantity).toBe(5);
+
+      expect(dailySummaries[1].date).toBe('2026-01-14');
+
+      expect(dailySummaries[2].date).toBe('2026-01-13');
+      expect(dailySummaries[2].additionCount).toBe(2);
+      expect(dailySummaries[2].uniqueCardsCount).toBe(2);
+      expect(dailySummaries[2].totalQuantity).toBe(3);
+    });
+  });
+
+  describe('Badge Display', () => {
+    it('should show appropriate badge text', () => {
+      // No new cards
+      expect(getNewCardsBadgeText(0)).toBe('');
+
+      // Single card
+      expect(getNewCardsBadgeText(1)).toBe('1 new card');
+
+      // Multiple cards
+      expect(getNewCardsBadgeText(15)).toBe('15 new cards');
+    });
+  });
+
+  describe('Time Window Detection', () => {
+    it('should correctly identify cards within different time windows', () => {
+      const now = Date.now();
+      const threeDaysAgo = now - 3 * 24 * 60 * 60 * 1000;
+      const eightDaysAgo = now - 8 * 24 * 60 * 60 * 1000;
+
+      // Default 7-day window
+      expect(isWithinNewWindow(threeDaysAgo)).toBe(true);
+      expect(isWithinNewWindow(eightDaysAgo)).toBe(false);
+
+      // Custom 2-day window
+      expect(isWithinNewWindow(threeDaysAgo, 2)).toBe(false);
+
+      // Custom 14-day window
+      expect(isWithinNewWindow(eightDaysAgo, 14)).toBe(true);
     });
   });
 });
