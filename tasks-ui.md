@@ -16,16 +16,16 @@
 | **Forgiving Streak System**          | 5        | **0**     |
 | **Virtual Experience Features**      | 6        | **0**     |
 | **Collection Timeline & Story**      | 1        | **4**     |
-| **Family & Social Features**         | 2        | **3**     |
+| **Family & Social Features**         | 3        | **2**     |
 | **Financial Literacy**               | 0        | **4**     |
 | **Educational Mini-Games**           | 0        | **5**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
 | **Engagement & Retention**           | 4        | **0**     |
-| **TOTAL**                            | **91**   | **19**    |
+| **TOTAL**                            | **92**   | **18**    |
 
 ### Priority Order for Remaining Tasks
 
-1. **Family & Social Features** (3 tasks) - Trade suggestions, family leaderboard - Multi-user value
+1. **Family & Social Features** (2 tasks) - Family leaderboard, shared wishlist viewing - Multi-user value
 2. **Educational Mini-Games** (5 tasks) - Grade Like a Pro, rarity guessing - Learning through play
 3. **Financial Literacy** (4 tasks) - Savings calculator, budget alternatives - Parent-friendly
 4. **Collection Timeline & Story** (5 tasks) - Timeline view, adventure map - Nice-to-have features
@@ -178,7 +178,7 @@
 
 - [x] Family Collection goals - Shared collection goal between parent and child accounts with combined progress bar
 - [x] Sleep mode scheduling - Parent-controlled quiet hours where app shows calming "Time for bed!" screen
-- [ ] Trade suggestion engine - Suggest trades between siblings based on wishlists and duplicate cards
+- [x] Trade suggestion engine - Suggest trades between siblings based on wishlists and duplicate cards
 - [ ] Family leaderboard - Opt-in friendly competition between family members (cards collected this week)
 - [ ] Shared wishlist viewing - Parents can view all children's wishlists in one place for gift planning
 
@@ -217,6 +217,7 @@
 
 ## Progress
 
+- **2026-01-16**: Completed trade suggestion engine - Created TradeSuggestionEngine component (src/components/family/TradeSuggestionEngine.tsx) that suggests trades between siblings based on wishlists and duplicate cards. Features: collapsible panel in ParentDashboard, suggests cards where one sibling has duplicates (quantity > 1) that another sibling might want, visual badges for wishlist matches (rose "Wanted") vs extra cards (emerald "Extra"), card images with quantity badges, sorted by priority (wishlist first then by quantity), skeleton loading state, empty state messaging, responsive design. Added to ParentDashboard component. Uses Heroicons (LightBulbIcon, HeartIcon, CheckCircleIcon, ArrowsRightLeftIcon). Commit: 4f437c1
 - **2026-01-15**: Completed loading states and skeleton screens - Created reusable Skeleton component library (src/components/ui/Skeleton.tsx) with animated shimmer effects. Added CardSkeleton, CardGridSkeleton, StatsBarSkeleton, SetCardSkeleton, CollectionGroupSkeleton, SearchResultsSkeleton, and FilterPanelSkeleton. Updated CardGrid, SearchResults, CollectionView, collection page, and browse page to use skeleton screens instead of basic loading spinners. Also replaced browse page emoji with FunnelIcon SVG. Commit: bd35695
 - **2026-01-15**: Completed priority starring UI - Added star icon button next to heart on wishlisted cards. Star toggles priority status (max 5 items). Added priority count indicator in stats bar showing 5 stars visual. Disabled state when max reached. Also replaced progress indicator emojis with SVG icons (Crown, Trophy, Map, Compass) and loading state emoji with custom CardIcon SVG. Commit: 672daef
 - **2026-01-15**: Completed wishlist UI - Added heart icon button to CardGrid component. Heart appears on hover, fills rose when wishlisted. Uses Heroicons and Convex mutations for toggle functionality. Commit: 7dfeddb
