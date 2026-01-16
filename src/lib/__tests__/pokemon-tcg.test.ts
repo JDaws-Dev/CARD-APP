@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getCardsByIds } from '../pokemon-tcg';
+import {
+  getCardsByIds,
+  POKEMON_SERIES,
+  getSetsBySeries,
+  getScarletVioletSets,
+  getSwordShieldSets,
+  getAllSupportedSets,
+} from '../pokemon-tcg';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -8,6 +15,150 @@ global.fetch = mockFetch;
 describe('pokemon-tcg', () => {
   beforeEach(() => {
     mockFetch.mockReset();
+  });
+
+  describe('POKEMON_SERIES', () => {
+    it('includes Scarlet & Violet', () => {
+      expect(POKEMON_SERIES).toContain('Scarlet & Violet');
+    });
+
+    it('includes Sword & Shield', () => {
+      expect(POKEMON_SERIES).toContain('Sword & Shield');
+    });
+
+    it('has exactly 2 supported series', () => {
+      expect(POKEMON_SERIES).toHaveLength(2);
+    });
+  });
+
+  describe('getSetsBySeries', () => {
+    it('fetches sets for a given series', async () => {
+      const mockSets = [{ id: 'sv1', name: 'Scarlet & Violet', series: 'Scarlet & Violet' }];
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: mockSets }),
+      });
+
+      const result = await getSetsBySeries('Scarlet & Violet');
+
+      expect(result).toEqual(mockSets);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('series%3A%22Scarlet%20%26%20Violet%22'),
+        expect.any(Object)
+      );
+    });
+
+    it('handles API errors', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+      });
+
+      await expect(getSetsBySeries('Scarlet & Violet')).rejects.toThrow('Pokemon TCG API error');
+    });
+  });
+
+  describe('getScarletVioletSets', () => {
+    it('fetches Scarlet & Violet sets', async () => {
+      const mockSets = [{ id: 'sv1', name: 'Scarlet & Violet', series: 'Scarlet & Violet' }];
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: mockSets }),
+      });
+
+      const result = await getScarletVioletSets();
+
+      expect(result).toEqual(mockSets);
+    });
+  });
+
+  describe('getSwordShieldSets', () => {
+    it('fetches Sword & Shield sets', async () => {
+      const mockSets = [{ id: 'swsh1', name: 'Sword & Shield', series: 'Sword & Shield' }];
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: mockSets }),
+      });
+
+      const result = await getSwordShieldSets();
+
+      expect(result).toEqual(mockSets);
+    });
+  });
+
+  describe('getAllSupportedSets', () => {
+    it('fetches both SV and SWSH sets', async () => {
+      const svSets = [
+        {
+          id: 'sv1',
+          name: 'Scarlet & Violet',
+          series: 'Scarlet & Violet',
+          releaseDate: '2023/03/31',
+        },
+      ];
+      const swshSets = [
+        {
+          id: 'swsh1',
+          name: 'Sword & Shield',
+          series: 'Sword & Shield',
+          releaseDate: '2020/02/07',
+        },
+      ];
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ data: svSets }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ data: swshSets }),
+        });
+
+      const result = await getAllSupportedSets();
+
+      expect(result).toHaveLength(2);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('sorts sets by release date (newest first)', async () => {
+      const svSets = [
+        {
+          id: 'sv1',
+          name: 'Scarlet & Violet',
+          series: 'Scarlet & Violet',
+          releaseDate: '2023/03/31',
+        },
+      ];
+      const swshSets = [
+        {
+          id: 'swsh1',
+          name: 'Sword & Shield',
+          series: 'Sword & Shield',
+          releaseDate: '2020/02/07',
+        },
+      ];
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ data: svSets }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ data: swshSets }),
+        });
+
+      const result = await getAllSupportedSets();
+
+      // SV (2023) should come before SWSH (2020)
+      expect(result[0].series).toBe('Scarlet & Violet');
+      expect(result[1].series).toBe('Sword & Shield');
+    });
   });
 
   describe('getCardsByIds', () => {

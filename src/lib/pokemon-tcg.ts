@@ -85,20 +85,56 @@ interface APIResponse<T> {
 }
 
 // =============================================================================
+// SERIES CONSTANTS
+// =============================================================================
+
+/**
+ * Supported Pokemon TCG series
+ */
+export const POKEMON_SERIES = ['Scarlet & Violet', 'Sword & Shield'] as const;
+export type PokemonSeries = (typeof POKEMON_SERIES)[number];
+
+// =============================================================================
 // API FUNCTIONS
 // =============================================================================
 
 /**
- * Get all Scarlet & Violet era sets
+ * Get sets by series name
  */
-export async function getScarletVioletSets(): Promise<PokemonSet[]> {
-  // URL encode the query to handle special characters like &
-  const query = encodeURIComponent('series:"Scarlet & Violet"');
+export async function getSetsBySeries(series: PokemonSeries): Promise<PokemonSet[]> {
+  const query = encodeURIComponent(`series:"${series}"`);
   const response = await fetchFromAPI<APIResponse<PokemonSet[]>>(
     `/sets?q=${query}&orderBy=-releaseDate`,
     { next: { revalidate: 86400 } } // Cache for 24 hours
   );
   return response.data;
+}
+
+/**
+ * Get all Scarlet & Violet era sets
+ */
+export async function getScarletVioletSets(): Promise<PokemonSet[]> {
+  return getSetsBySeries('Scarlet & Violet');
+}
+
+/**
+ * Get all Sword & Shield era sets
+ */
+export async function getSwordShieldSets(): Promise<PokemonSet[]> {
+  return getSetsBySeries('Sword & Shield');
+}
+
+/**
+ * Get all supported sets (Scarlet & Violet + Sword & Shield)
+ * Returns sets sorted by release date (newest first)
+ */
+export async function getAllSupportedSets(): Promise<PokemonSet[]> {
+  const [svSets, swshSets] = await Promise.all([getScarletVioletSets(), getSwordShieldSets()]);
+
+  // Combine and sort by release date (newest first)
+  return [...svSets, ...swshSets].sort(
+    (a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
+  );
 }
 
 /**
