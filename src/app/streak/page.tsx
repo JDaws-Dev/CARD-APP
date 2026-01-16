@@ -18,6 +18,10 @@ import {
   StreakRepairStatus,
   StreakRepairSkeleton,
 } from '@/components/gamification/StreakRepair';
+import {
+  DailyStampCollection,
+  DailyStampCollectionSkeleton,
+} from '@/components/gamification/DailyStampCollection';
 import { FireIcon, SparklesIcon, HomeIcon } from '@heroicons/react/24/solid';
 import {
   ArrowLeftIcon,
@@ -54,6 +58,9 @@ export default function StreakPage() {
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <GraceDayStatusSkeleton />
             <WeekendPauseStatusSkeleton />
+          </div>
+          <div className="mt-6">
+            <DailyStampCollectionSkeleton />
           </div>
           <div className="mt-6">
             <StreakMilestoneRewardsSkeleton />
@@ -157,6 +164,11 @@ export default function StreakPage() {
           <WeekendPauseStatus showToggle={true} />
         </div>
 
+        {/* Daily Stamp Collection */}
+        <div className="mt-6">
+          <DailyStampCollection />
+        </div>
+
         {/* Streak Milestone Rewards */}
         <div className="mt-6">
           <StreakMilestoneRewards showRewardsPreview={true} />
@@ -205,6 +217,13 @@ export default function StreakPage() {
               <span>
                 Broke your streak? Spend XP to repair it within 48 hours - longer streaks cost more
                 to fix!
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-rose-400" />
+              <span>
+                Collect daily stamps for extra rewards - 5 stamps in a week earns bonus XP, no
+                consecutive days required!
               </span>
             </li>
           </ul>

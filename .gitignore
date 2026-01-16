@@ -51,6 +51,11 @@ prisma/migrations/**/migration_lock.toml
 
 # Ralph automation
 ralph_complete
+ralph_ui_complete
+ralph_backend_complete
+ralph_tcg_complete
+*.sh.bak
+progress-tcg.txt
 
 # Logs
 logs
