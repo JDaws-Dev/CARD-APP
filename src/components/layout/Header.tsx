@@ -33,8 +33,8 @@ const navLinks = [
   { href: '/sets', label: 'Browse Sets' },
   { href: '/collection', label: 'My Collection' },
   { href: '/badges', label: 'Badges' },
+  { href: '/parent-dashboard', label: 'Parent Dashboard' },
   { href: '/search', label: 'Search' },
-  { href: '/browse', label: 'Browse' },
 ];
 
 export function Header() {
