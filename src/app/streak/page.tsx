@@ -14,6 +14,10 @@ import {
   WeekendPauseStatus,
   WeekendPauseStatusSkeleton,
 } from '@/components/gamification/GraceDayStatus';
+import {
+  StreakRepairStatus,
+  StreakRepairSkeleton,
+} from '@/components/gamification/StreakRepair';
 import { FireIcon, SparklesIcon, HomeIcon } from '@heroicons/react/24/solid';
 import {
   ArrowLeftIcon,
@@ -44,6 +48,9 @@ export default function StreakPage() {
           </div>
 
           <StreakCalendarSkeleton />
+          <div className="mt-6">
+            <StreakRepairSkeleton />
+          </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <GraceDayStatusSkeleton />
             <WeekendPauseStatusSkeleton />
@@ -129,8 +136,8 @@ export default function StreakPage() {
               <h3 className="font-semibold text-gray-800">Build Your Streak!</h3>
               <p className="text-sm text-gray-600">
                 Add at least one card every day to keep your streak going. You get 1 free
-                &ldquo;grace day&rdquo; per week - if you miss a day, your streak is protected
-                automatically!
+                &ldquo;grace day&rdquo; per week, and can even spend XP to repair a broken streak
+                within 48 hours!
               </p>
             </div>
           </div>
@@ -138,6 +145,11 @@ export default function StreakPage() {
 
         {/* Streak Calendar */}
         <StreakCalendar days={30} showStats={true} showLegend={true} />
+
+        {/* Streak Repair with XP */}
+        <div className="mt-6">
+          <StreakRepairStatus showRepairButton={true} />
+        </div>
 
         {/* Grace Day & Weekend Pause Protection */}
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -187,6 +199,13 @@ export default function StreakPage() {
             <li className="flex items-start gap-2">
               <div className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-400" />
               <span>Earn special badges at 7, 14, 30, 60, and 100 day streak milestones!</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-purple-400" />
+              <span>
+                Broke your streak? Spend XP to repair it within 48 hours - longer streaks cost more
+                to fix!
+              </span>
             </li>
           </ul>
         </div>
