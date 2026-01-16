@@ -80,7 +80,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [ ] Add game_id field to cachedCards table - Link cards to games
 - [ ] Create game-agnostic API abstraction in src/lib/tcg-api.ts - Unified fetch interface that routes to correct API based on game
 - [x] API adapter for YGOPRODeck (src/lib/yugioh-api.ts) - Yu-Gi-Oh! cards, 20 req/sec rate limit
-- [ ] API adapter for OPTCG API (src/lib/onepiece-api.ts) - One Piece cards
+- [x] API adapter for OPTCG API (src/lib/onepiece-api.ts) - One Piece cards, 10 req/sec rate limit (conservative)
 - [ ] API adapter for ApiTCG (src/lib/dragonball-api.ts) - Dragon Ball Fusion World cards
 - [ ] API adapter for Lorcast (src/lib/lorcana-api.ts) - Disney Lorcana cards, 10 req/sec rate limit
 - [ ] API adapter for DigimonCard.io (src/lib/digimon-api.ts) - Digimon cards, 15 req/10sec rate limit
@@ -977,3 +977,59 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Category helpers
   - Integration scenarios: New User Journey, Category Completion Journey, Guide Step Navigation
 - All 2075 tests pass, linter clean
+
+### 2026-01-16: API adapter for OPTCG API (One Piece TCG cards)
+
+- Created `src/lib/onepiece-api.ts` with full OPTCG API client:
+  - Rate limiting: 10 req/sec (100ms minimum between requests, conservative estimate)
+  - No API key required, publicly accessible API
+  - Documentation: https://optcg-api.ryanmichaelhirst.us/docs
+- Defined comprehensive TypeScript types:
+  - `OnePieceCard`: Full card object with id, code, name, type, rarity, color, power, cost, counter, class, effect, set, image
+  - `OnePieceCardType`: LEADER, CHARACTER, EVENT, STAGE, DON!!
+  - `OnePieceRarity`: L, C, UC, R, SR, SEC, SP, P
+  - `OnePieceColor`: Red, Green, Blue, Purple, Black, Yellow + multi-color combinations
+  - `OnePieceAttribute`: Slash, Ranged, Strike, Wisdom, Special
+  - `OnePieceSet`: Set info with code, name, cardCount (extracted from cards)
+  - `OnePieceFilterOptions`: Filter by search, color, rarity, type, set, cost, class, counter, power
+- Card endpoints:
+  - `getCards`: Get cards with filters and pagination
+  - `getCardsInSet`: Get all cards in a set (handles pagination)
+  - `getCardById`: Get single card by ID
+  - `getCardsByCode`: Get multiple cards by card codes
+  - `searchCards`: Search cards by name
+  - `getCardsByColor`, `getCardsByType`, `getCardsByRarity`: Filter helpers
+- Set functions:
+  - `getAllSets`: Get unique sets (extracted from card data)
+  - `getSetByCode`, `searchSets`: Set lookup helpers
+- Helper functions:
+  - `extractSetCode`, `extractCardNumber`: Parse card codes
+  - `isLeaderCard`, `isCharacterCard`, `isEventCard`, `isStageCard`, `isDonCard`: Type checking
+  - `hasCounter`, `hasEffect`, `isMultiColor`: Property checking
+  - `getColorComponents`, `getCardClasses`: Parse slash-separated values
+  - `getCardImage`, `getCardDexId`, `parseCardDexId`: Image and ID helpers
+  - `getRarityDisplayName`, `getTypeDisplayName`, `getAttributeDisplayName`: Display helpers
+  - `formatPower`, `formatCost`, `formatCounter`, `getCardSummary`: Formatting helpers
+  - `sortBySetAndNumber`, `sortByRarity`, `sortByPower`, `sortByCost`: Sorting functions
+  - `filterByColor`, `filterByClass`: Client-side filtering
+  - `getUniqueClasses`, `getUniqueColors`: Extract unique values
+  - `calculateDeckStats`: Calculate deck statistics (leaders, characters, events, stages, avgCost, avgPower, colors)
+- Added constants:
+  - `ONEPIECE_RARITIES`: 8 rarities with names and sort order
+  - `ONEPIECE_COLORS`: 6 primary colors with hex codes
+  - `ONEPIECE_CARD_TYPES`: 5 types with names and descriptions
+  - `ONEPIECE_ATTRIBUTES`: 5 attributes with names and icons
+- Added 90 tests in `src/lib/__tests__/onepiece-api.test.ts` covering:
+  - Constants validation (rarities, colors, card types, attributes)
+  - Code extraction (set codes, card numbers)
+  - Card type checking (leader, character, event, stage, DON!!)
+  - Property checking (counter, effect, multi-color)
+  - Image and ID helpers
+  - Display name functions
+  - Formatting functions
+  - Sorting functions (non-mutating verified)
+  - Filtering functions
+  - Utility functions (unique classes, unique colors)
+  - Deck statistics calculation
+  - Integration scenarios: Building a deck view, Card search and display, Collection analysis
+- All 2264 tests pass, linter clean
