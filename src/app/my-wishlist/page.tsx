@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation } from 'convex/react';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { api } from '../../../convex/_generated/api';
@@ -26,6 +26,7 @@ import type { Id } from '../../../convex/_generated/dataModel';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ExportWishlistButton } from '@/components/wishlist/ExportWishlist';
+import { BudgetAlternatives, BudgetAlternativesBadge } from '@/components/financial/BudgetAlternatives';
 import { cn } from '@/lib/utils';
 
 interface WishlistItem {
@@ -261,12 +262,14 @@ function WishlistCard({
   profileId,
   priorityCount,
   maxPriority,
+  onShowAlternatives,
 }: {
   item: WishlistItem;
   cardData?: PokemonCard;
   profileId: Id<'profiles'>;
   priorityCount: number;
   maxPriority: number;
+  onShowAlternatives?: (card: PokemonCard) => void;
 }) {
   const removeFromWishlist = useMutation(api.wishlist.removeFromWishlist);
   const togglePriority = useMutation(api.wishlist.togglePriority);
@@ -301,6 +304,13 @@ function WishlistCard({
     return <WishlistCardSkeleton />;
   }
 
+  // Get price for showing budget alternatives badge
+  const price = cardData.tcgplayer?.prices?.normal?.market ??
+    cardData.tcgplayer?.prices?.holofoil?.market ??
+    cardData.tcgplayer?.prices?.reverseHolofoil?.market ??
+    null;
+  const showBudgetBadge = price !== null && price >= 5;
+
   return (
     <div
       className={cn(
@@ -331,6 +341,16 @@ function WishlistCard({
         <p className="truncate text-sm font-medium text-gray-800">{cardData.name}</p>
         <p className="truncate text-xs text-gray-500">{cardData.set.name}</p>
       </div>
+
+      {/* Budget Alternatives Badge */}
+      {showBudgetBadge && onShowAlternatives && (
+        <div className="mt-2 flex justify-center">
+          <BudgetAlternativesBadge
+            card={cardData}
+            onClick={() => onShowAlternatives(cardData)}
+          />
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="mt-3 flex justify-center gap-2">
@@ -391,9 +411,15 @@ export default function MyWishlistPage() {
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
 
+  // Mutations
+  const addToWishlist = useMutation(api.wishlist.addToWishlist);
+
   // State for fetched card data
   const [cardData, setCardData] = useState<Map<string, PokemonCard>>(new Map());
   const [isLoadingCards, setIsLoadingCards] = useState(false);
+
+  // State for budget alternatives modal
+  const [alternativesCard, setAlternativesCard] = useState<PokemonCard | null>(null);
 
   // Fetch card details from API when wishlist loads
   useEffect(() => {
@@ -427,6 +453,26 @@ export default function MyWishlistPage() {
 
     fetchCardData();
   }, [wishlist]);
+
+  // Build set of wishlisted card IDs for the alternatives component
+  const wishlistedCardIds = useMemo(() => {
+    const ids = new Set<string>();
+    wishlist?.forEach((item) => ids.add(item.cardId));
+    return ids;
+  }, [wishlist]);
+
+  // Handle adding alternative to wishlist
+  const handleAddAlternativeToWishlist = useCallback(
+    async (cardId: string) => {
+      if (!profileId) return;
+      try {
+        await addToWishlist({ profileId: profileId as Id<'profiles'>, cardId });
+      } catch (err) {
+        console.error('Failed to add to wishlist:', err);
+      }
+    },
+    [profileId, addToWishlist]
+  );
 
   // Loading state
   if (profileLoading || wishlist === undefined || priorityData === undefined) {
@@ -556,6 +602,7 @@ export default function MyWishlistPage() {
                         profileId={profileId as Id<'profiles'>}
                         priorityCount={priorityCount}
                         maxPriority={priorityData?.max || 5}
+                        onShowAlternatives={setAlternativesCard}
                       />
                     ))}
                 </div>
@@ -580,12 +627,38 @@ export default function MyWishlistPage() {
                         profileId={profileId as Id<'profiles'>}
                         priorityCount={priorityCount}
                         maxPriority={priorityData?.max || 5}
+                        onShowAlternatives={setAlternativesCard}
                       />
                     ))}
                 </div>
               </div>
             )}
           </>
+        )}
+
+        {/* Budget Alternatives Modal */}
+        {alternativesCard && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => setAlternativesCard(null)}
+          >
+            <div
+              className="max-h-[90vh] w-full max-w-md overflow-auto rounded-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <BudgetAlternatives
+                card={alternativesCard}
+                onAddToWishlist={handleAddAlternativeToWishlist}
+                wishlistedCardIds={wishlistedCardIds}
+              />
+              <button
+                onClick={() => setAlternativesCard(null)}
+                className="mt-3 w-full rounded-full bg-white/90 py-3 text-sm font-medium text-gray-600 transition hover:bg-white"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </main>
