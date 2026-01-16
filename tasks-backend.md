@@ -1,4 +1,4 @@
-# KidCollect Backend Tasks
+# CardDex Backend Tasks
 
 ## Coding Guidelines
 
@@ -23,14 +23,17 @@
 - [ ] Create parent account registration flow with email verification
 - [ ] Build child profile creation (up to 4 per family) with validation
 - [ ] Implement parent PIN protection logic (store hashed PIN, verify on access)
+- [ ] **Profile type field** - Add `profileType: "parent" | "child"` to profiles schema for role-based UI
+- [ ] **Get current user profile query** - Return profile with type for header/dashboard routing
+- [ ] **Kid dashboard stats query** - Return collection count, badge count, current streak, recent activity for dashboard
 - [ ] Create collection value calculation query (sum tcgplayer.prices for all owned cards)
 - [ ] Add "most valuable cards" query (return top N cards by market price)
 
 ### Card Variants
 
-- [ ] Add card variant tracking to Convex schema (variant field: "normal" | "holofoil" | "reverseHolofoil")
-- [ ] Update collection mutations to handle variant parameter
-- [ ] Create query to get collection grouped by card+variant
+- [x] Add card variant tracking to Convex schema (variant field: "normal" | "holofoil" | "reverseHolofoil")
+- [x] Update collection mutations to handle variant parameter
+- [x] Create query to get collection grouped by card+variant
 
 ### Achievement System
 
@@ -43,10 +46,10 @@
 
 ### Wishlist & Sharing
 
-- [ ] Create wishlist mutations (add/remove card from wishlist)
-- [x] Add priority starring logic (max 5 starred items per profile)
-- [ ] Build shareable wishlist link generation (create unique share tokens)
-- [ ] Create public wishlist query (fetch by share token, no auth required)
+- [x] Create wishlist mutations (add/remove card from wishlist) - `addToWishlist`, `removeFromWishlist` in convex/wishlist.ts
+- [x] Add priority starring logic (max 5 starred items per profile) - `togglePriority` with MAX_PRIORITY_ITEMS
+- [x] Build shareable wishlist link generation (create unique share tokens) - `createShareLink` generates 12-char tokens
+- [x] Create public wishlist query (fetch by share token, no auth required) - `getWishlistByToken` with expiry check
 
 ### Family Features
 
@@ -60,6 +63,45 @@
 - [x] Write integration tests for collection CRUD operations
 - [ ] Implement offline collection caching strategy (service worker setup)
 - [ ] Performance optimization (index Convex queries, optimize batch fetches)
+
+## NEW - Data Persistence & Sync (from competitor research)
+
+- [ ] **Cloud backup/sync system** - Automatic backup to prevent collection loss (major competitor complaint)
+- [ ] **Data persistence guarantee** - Never lose collection data when switching phones/devices
+- [ ] **Conflict resolution** - Handle sync conflicts when same account used on multiple devices
+
+## NEW - Multi-TCG Architecture
+
+- [ ] **Add `games` table to schema** - id, name ("pokemon", "onepiece", "dragonball"), display_name, api_source, is_active
+- [ ] **Add game_id foreign key to sets table** - Link sets to games
+- [ ] **Add game_id foreign key to cached_cards table** - Link cards to games
+- [ ] **Create game-agnostic API abstraction** - Fetch functions that work across different card game APIs
+
+## NEW - Gamification Backend
+
+- [ ] **Level-up system** - XP tracking, level calculation, XP awards for adding cards/completing sets/daily logins
+- [ ] **Unlockable avatar items** - Schema for avatar items (hats, frames, badges), earned items tracking
+- [ ] **Collection milestones tracking** - Detect first 10, 50, 100, 500 cards and trigger celebrations
+
+## NEW - Educational Content
+
+- [ ] **Tutorial content storage** - Schema and queries for "Learn to Collect" tutorial content
+- [ ] **Rarity definitions** - Store rarity explanations with examples for tooltips
+- [ ] **Card condition guide content** - NM/LP/MP/HP definitions and example images
+
+## NEW - Additional Features
+
+- [ ] **Japanese promo support** - Proper detection and categorization of Japanese promos (competitor gap)
+- [ ] **"New in collection" tracking** - Query for cards added in last 7 days
+- [ ] **Random card query** - Return random card from user's collection
+- [ ] **Rarity filter support** - Add rarity indexing for efficient filtering
+- [ ] **Fair trading calculator** - Price comparison logic for "Is this trade fair?" tool
+
+## NEW - Launch Prep
+
+- [ ] **Free tier limitations** - Enforce 3 sets max, 1 child profile for free tier
+- [ ] **Subscription validation** - Check subscription status before premium features
+- [ ] **TCGPlayer affiliate link generation** - Add affiliate tracking to wishlist share links
 
 ---
 
@@ -375,3 +417,33 @@
   - Integration scenarios: collection building over time, trading between siblings, variant tracking, set completion tracking
   - Edge cases: large quantities, all variant types
 - All 806 tests pass, linter clean
+
+### 2026-01-16: Create query to get collection grouped by card+variant
+- Added `getCollectionGroupedByVariant` query to `convex/collections.ts`:
+  - Returns cards with enriched data (name, imageSmall, setId) from cachedCards table
+  - Each unique (cardId, variant) pair is a separate entry
+  - Includes summary with totalEntries, totalQuantity, uniqueCards, and variantBreakdown
+  - Sorted by cardId then variant for consistent ordering
+- Added `getCollectionByCard` query:
+  - Groups cards by cardId with all variants aggregated in a single object
+  - Returns totalQuantity and variants record for each unique card
+  - Includes enriched name, imageSmall, setId from cache
+- Added variant grouping utilities to `src/lib/collections.ts`:
+  - Types: `EnrichedCollectionCard`, `GroupedCardWithData`, `VariantSummary`
+  - `VARIANT_DISPLAY_NAMES` constant and `getVariantDisplayName` function
+  - `groupCollectionByVariant`: Convert collection to enriched format
+  - `enrichWithNames`: Add names from a name map to enriched cards
+  - `calculateVariantSummary`: Get variant distribution stats
+  - `getUsedVariants`: Get list of variants present in collection
+  - `filterByVariant`: Filter collection to specific variant type
+  - `sortByVariant`, `sortByCardIdThenVariant`: Sort with variant ordering
+  - `groupCardsByCardIdWithDetails`: Group by cardId with full variant breakdown
+  - `countByVariant`, `quantityByVariant`: Get counts/quantities by variant type
+  - `hasVariant`: Check if variant exists in collection
+  - `getAllVariantsOfCard`, `getTotalQuantityOfCard`: Get variant data for specific card
+- Added 68 tests in `src/lib/__tests__/collections.test.ts` covering:
+  - VARIANT_DISPLAY_NAMES constant validation
+  - All variant grouping functions
+  - Sorting by variant order
+  - Integration scenarios: displaying collection by variant, filtering collection view, complete variant statistics
+- All 843 tests pass, linter clean
