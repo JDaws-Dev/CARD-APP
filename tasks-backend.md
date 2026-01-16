@@ -121,13 +121,13 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 
 #### Data Population (NEW - Required to enable other games)
 
-- [ ] Create data population script/mutation - Convex action to fetch and cache sets/cards from external APIs with rate limiting
-- [ ] Populate Yu-Gi-Oh! data - Fetch all sets and cards from YGOPRODeck API, cache in Convex
-- [ ] Populate One Piece data - Fetch all sets and cards from OPTCG API, cache in Convex
-- [ ] Populate Dragon Ball data - Fetch all sets and cards from ApiTCG, cache in Convex
-- [ ] Populate Lorcana data - Fetch all sets and cards from Lorcast API, cache in Convex
-- [ ] Populate Digimon data - Fetch all sets and cards from DigimonCard.io API, cache in Convex
-- [ ] Populate MTG data - Fetch recent sets and cards from Scryfall API, cache in Convex (MTG has 25k+ cards, may need subset)
+- [x] Create data population script/mutation - `convex/dataPopulation.ts` with direct HTTP fetch calls, internal/public actions, rate limiting, batch upserts, and client utilities in `src/lib/dataPopulation.ts` with 61 tests
+- [x] Populate Yu-Gi-Oh! data - `populateYugiohSets` and `populateYugiohSetCards` actions using YGOPRODeck API
+- [x] Populate One Piece data - `populateOnePieceSets` and `populateOnePieceSetCards` actions using OPTCG API (extracts sets from cards)
+- [x] Populate Dragon Ball data - `populateDragonBallSets` and `populateDragonBallSetCards` actions using ApiTCG (extracts sets from cards)
+- [x] Populate Lorcana data - `populateLorcanaSets` and `populateLorcanaSetCards` actions using Lorcast API
+- [x] Populate Digimon data - `populateDigimonSets` and `populateDigimonSetCards` actions using DigimonCard.io API (extracts sets from cards)
+- [x] Populate MTG data - `populateMtgSets` and `populateMtgSetCards` actions using Scryfall API with pagination support
 
 ### Gamification Backend
 
@@ -164,6 +164,32 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-16: Add data population system for multi-TCG support
+
+- Created `convex/dataPopulation.ts` with comprehensive population system:
+  - Internal mutations: `upsertCachedSet`, `upsertCachedCard`, `batchUpsertCards` for efficient data insertion
+  - Internal queries: `internalGetCachedSets` for internal use
+  - Public queries: `getPopulationStatus`, `getCachedSets`, `getCachedCardsInSet`
+  - Game-specific internal actions with rate limiting for all 7 TCGs:
+    - Pokemon: `populatePokemonSets`, `populatePokemonSetCards` (pokemontcg.io)
+    - Yu-Gi-Oh!: `populateYugiohSets`, `populateYugiohSetCards` (ygoprodeck.com)
+    - MTG: `populateMtgSets`, `populateMtgSetCards` (scryfall.com with pagination)
+    - Lorcana: `populateLorcanaSets`, `populateLorcanaSetCards` (lorcast.com)
+    - One Piece: `populateOnePieceSets`, `populateOnePieceSetCards` (optcg-api, extracts sets from cards)
+    - Digimon: `populateDigimonSets`, `populateDigimonSetCards` (digimoncard.io, extracts sets from cards)
+    - Dragon Ball: `populateDragonBallSets`, `populateDragonBallSetCards` (apitcg.com, extracts sets from cards)
+  - Public wrapper actions: `populateSets`, `populateSetCards`, `populateGameData`
+  - Utility mutation: `clearGameCache` for testing/re-population
+- Created `src/lib/dataPopulation.ts` with client-side utilities:
+  - Constants: `GAME_SLUGS`, `RATE_LIMITS`, `API_CONFIGS`
+  - Types: `CachedSet`, `CachedCard`, `PopulationStatus`, `PopulationResult`
+  - Validation: `isValidGameSlug`, `isValidSetId`, `isValidCardId`, `validateSet`, `validateCard`
+  - Normalization: `normalizeSet`, `normalizeCard`
+  - Helpers: `formatGameName`, `hasPopulationSupport`, `estimatePopulationTime`, `formatDuration`, `needsPopulation`
+  - Batch processing: `batchArray`, `calculateProgress`
+- Added 61 tests in `src/lib/__tests__/dataPopulation.test.ts`
+- All tests pass, build succeeds
 
 ### 2026-01-15: Add priority starring logic (max 5 starred items per profile)
 
