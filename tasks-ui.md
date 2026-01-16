@@ -12,7 +12,7 @@
 | Navigation & Dashboard               | 7        | 0         |
 | Multi-TCG Game Selector              | 6        | 0         |
 | Polish & UX                          | 7        | 0         |
-| **UI Cleanup & Settings (PRIORITY)** | 0        | **6**     |
+| **UI Cleanup & Settings (PRIORITY)** | 1        | **5**     |
 | **Forgiving Streak System**          | 3        | **2**     |
 | **Virtual Experience Features**      | 0        | **6**     |
 | **Collection Timeline & Story**      | 0        | **5**     |
@@ -21,7 +21,7 @@
 | **Educational Mini-Games**           | 0        | **5**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
 | **Engagement & Retention**           | 0        | **4**     |
-| **TOTAL**                            | **73**   | **37**    |
+| **TOTAL**                            | **74**   | **36**    |
 
 ### Priority Order for Remaining Tasks
 
@@ -146,7 +146,7 @@
 
 ### UI Cleanup & Settings Consolidation (HIGH PRIORITY)
 
-- [ ] Create dedicated Settings page (`/settings`) - Central hub for all user preferences and accessibility options
+- [x] Create dedicated Settings page (`/settings`) - Central hub for all user preferences and accessibility options
 - [ ] Move accessibility toggles from header to Settings page - Relocate Dark Mode, Low-Stimulation, Dyslexic Font, High Contrast, Reduced Motion, Focus Mode toggles
 - [ ] Simplify header - Keep only essential items: logo, main nav, single settings gear icon, profile menu
 - [ ] Add Settings link to profile dropdown menu - Quick access from anywhere in the app

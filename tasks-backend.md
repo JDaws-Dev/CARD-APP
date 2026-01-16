@@ -2068,3 +2068,24 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Edge cases (empty data, large collections, invalid JSON, storage quota exceeded, special characters)
 - All 100 tests pass, ESLint clean, Prettier formatted, TypeScript compiles
 - Note: Pre-existing build failure in GraceDayProvider.tsx (unrelated to this task)
+
+### 2026-01-16: Mark parent account registration flow with email verification as complete
+
+- Verified `convex/registration.ts` already contains complete parent account registration flow:
+  - **Schema**: `emailVerifications` table with indexes by_family, by_token, by_email in schema.ts
+  - **Constants**: `EMAIL_VERIFICATION_TOKEN_LENGTH`, `EMAIL_VERIFICATION_EXPIRY_HOURS`, password/display name length limits
+  - **Validation helpers**: `validateEmailFormat` (with typo detection), `validatePasswordStrength`, `validateDisplayName`
+  - **Token generation**: `generateVerificationToken` using URL-safe characters
+  - **Queries**:
+    - `isEmailRegistered`: Check if email already exists
+    - `validateRegistrationInput`: Validate all inputs before submission
+    - `getVerificationTokenStatus`: Check token validity/expiration
+    - `isEmailVerified`: Check verification status for a family
+    - `getRegistrationStatus`: Full registration status with profile info
+  - **Mutations**:
+    - `registerParentAccount`: Creates family, parent profile, and verification token
+    - `verifyEmail`: Validates token and marks email as verified
+    - `resendVerificationEmail`: Generates new token, deletes old ones
+    - `cleanupExpiredTokens`: Internal mutation for token cleanup
+- All functions include proper error handling and return structured results
+- Task was previously implemented but not marked complete in tasks-backend.md
