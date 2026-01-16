@@ -48,9 +48,9 @@
 - [x] Add search functionality for finding Pokemon by name
 - [x] Create filter system (by set, type, Pokemon)
 - [x] Expand set support to include Sword & Shield era (update pokemon-tcg.ts to fetch both series)
-- [ ] Add series filter UI to sets page (tabs or toggle: "Scarlet & Violet", "Sword & Shield", "All Sets")
+- [x] Add series filter UI to sets page (tabs or toggle: "Scarlet & Violet", "Sword & Shield", "All Sets")
 - [ ] Add card variant tracking (normal, holofoil, reverse holo) - update Convex schema to store variant type per card entry
-- [ ] Update CardGrid UI to show variant selector when adding cards (icons/badges for Normal, Holo, Reverse Holo)
+- [ ] Update CardGrid UI to show variant selector when adding cards (only show variants that exist for that card based on tcgplayer.prices)
 - [ ] Display owned variants on card (e.g., "Normal x2, Reverse x1") with distinct visual indicators
 
 ## Phase 3: Achievement System (Weeks 5-6)
@@ -273,3 +273,28 @@
 - `src/app/api/sets/__tests__/route.test.ts` - New test file (8 tests)
 
 **Next steps:** Add series filter UI to sets page
+
+### 2026-01-15 - Series Filter UI
+
+**Completed tasks:**
+
+- Created SeriesFilter component with pill-style tab buttons for filtering sets by series
+- Created SetsList client component that handles client-side filtering of sets
+- Updated sets page to fetch all supported sets (Scarlet & Violet + Sword & Shield)
+- Filter tabs show set counts as badges (e.g., "Scarlet & Violet (20)")
+- Replaced emoji in empty state with Heroicons MagnifyingGlassIcon per coding guidelines
+- Added 6 tests for SeriesFilter component
+- All 90 tests passing, ESLint and Prettier checks passing
+
+**Files created:**
+
+- `src/components/sets/SeriesFilter.tsx` - Series filter tabs component
+- `src/components/sets/SetsList.tsx` - Client component for filtered set display
+- `src/components/sets/__tests__/SeriesFilter.test.tsx` - SeriesFilter tests (6 tests)
+- `src/components/sets/index.ts` - Component exports
+
+**Files modified:**
+
+- `src/app/sets/page.tsx` - Updated to use SetsList with SeriesFilter
+
+**Next steps:** Add card variant tracking (normal, holofoil, reverse holo)
