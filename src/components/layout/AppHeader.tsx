@@ -12,18 +12,13 @@ import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   UserGroupIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { hasParentAccess } from '@/lib/profiles';
-import { StreakCounter } from '@/components/gamification/StreakCounter';
-import { LevelDisplay } from '@/components/gamification/LevelSystem';
-import { KidModeToggle } from '@/components/layout/KidModeToggle';
-import { DarkModeToggle } from '@/components/layout/DarkModeToggle';
-import { useFocusMode } from '@/components/providers/FocusModeProvider';
-import { OfflineIndicator } from '@/components/layout/OfflineIndicator';
 
 // Custom card stack icon for logo (shared across all headers)
 function CardStackIcon({ className }: { className?: string }) {
@@ -54,8 +49,8 @@ const appNavLinks = [
 
 /**
  * AppHeader component for logged-in users.
- * Shows Logo, My Collection, Browse Sets, Badges, Wishlist, Search, and Profile menu.
- * Includes gamification elements (streak, level) and kid mode toggle.
+ * Simplified header with: Logo, main nav, settings gear icon, and profile menu.
+ * Settings gear provides quick access to /settings page.
  * Does NOT show Login/Signup buttons - use MarketingHeader for that.
  */
 export function AppHeader() {
@@ -67,9 +62,6 @@ export function AppHeader() {
   // Fetch current user's profile to check if they're a parent
   const currentUserProfile = useQuery(api.profiles.getCurrentUserProfile, {});
   const isParent = hasParentAccess(currentUserProfile);
-
-  // Get focus mode state to conditionally show/hide gamification elements
-  const { showStreaks, showLevels } = useFocusMode();
 
   const handleSignOut = () => {
     setProfileMenuOpen(false);
@@ -121,13 +113,19 @@ export function AppHeader() {
           })}
         </div>
 
-        {/* Right side: Level, Streak, Offline Status, Kid Mode, Dark Mode, Profile Menu */}
+        {/* Right side: Settings gear icon, Profile Menu */}
         <div className="hidden items-center gap-2 lg:flex">
-          {showLevels && <LevelDisplay />}
-          {showStreaks && <StreakCounter />}
-          <OfflineIndicator />
-          <KidModeToggle />
-          <DarkModeToggle compact />
+          {/* Settings gear icon */}
+          <Link
+            href="/settings"
+            className={`flex items-center justify-center rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800 ${
+              pathname === '/settings' ? 'bg-kid-primary/10 text-kid-primary' : ''
+            }`}
+            aria-label="Settings"
+            title="Settings"
+          >
+            <Cog6ToothIcon className="h-5 w-5" aria-hidden="true" />
+          </Link>
           <div className="h-6 w-px bg-gray-200 dark:bg-slate-600" aria-hidden="true" />
 
           {/* Profile Menu Dropdown */}
@@ -306,15 +304,21 @@ export function AppHeader() {
             )}
           </div>
 
-          {/* Mobile level, streak, offline status, kid mode, and dark mode */}
+          {/* Mobile Settings link */}
           <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
-            <div className="mb-3 flex flex-wrap items-center justify-center gap-3">
-              {showLevels && <LevelDisplay />}
-              {showStreaks && <StreakCounter />}
-              <OfflineIndicator />
-              <KidModeToggle />
-              <DarkModeToggle compact />
-            </div>
+            <Link
+              href="/settings"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
+                pathname === '/settings'
+                  ? 'bg-kid-primary/10 text-kid-primary'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800'
+              }`}
+              role="menuitem"
+            >
+              <Cog6ToothIcon className="h-5 w-5" aria-hidden="true" />
+              Settings
+            </Link>
           </div>
 
           {/* Sign out button */}
