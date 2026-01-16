@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
@@ -26,6 +26,10 @@ import { LevelDisplay } from '@/components/gamification/LevelSystem';
 import { MilestoneProgress } from '@/components/gamification/MilestoneCelebration';
 import { StreakCalendar, StreakCalendarSkeleton } from '@/components/gamification/StreakCalendar';
 import { CollectionSnapshotShare } from '@/components/collection/CollectionSnapshotShare';
+import {
+  PackOpeningSimulator,
+  PackOpeningButton,
+} from '@/components/virtual/PackOpeningSimulator';
 import { cn } from '@/lib/utils';
 
 // ============================================================================
@@ -342,6 +346,7 @@ export function KidDashboardSkeleton() {
 
 export function KidDashboard() {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
+  const [isPackSimulatorOpen, setIsPackSimulatorOpen] = useState(false);
 
   const stats = useQuery(
     api.collections.getCollectionStats,
@@ -433,9 +438,21 @@ export function KidDashboard() {
               </span>
             </div>
           )}
-          <CollectionSnapshotShare className="ml-auto bg-white/20 hover:bg-white/30" />
+          <div className="flex items-center gap-2">
+            <PackOpeningButton
+              onClick={() => setIsPackSimulatorOpen(true)}
+              className="bg-white/20 hover:bg-white/30"
+            />
+            <CollectionSnapshotShare className="bg-white/20 hover:bg-white/30" />
+          </div>
         </div>
       </div>
+
+      {/* Pack Opening Simulator Modal */}
+      <PackOpeningSimulator
+        isOpen={isPackSimulatorOpen}
+        onClose={() => setIsPackSimulatorOpen(false)}
+      />
 
       {/* Stats Grid */}
       <div
