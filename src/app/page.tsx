@@ -20,6 +20,7 @@ import {
   XMarkIcon,
   CurrencyDollarIcon,
   ShieldCheckIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/solid';
 
 // Decorative floating card component
@@ -732,6 +733,126 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <BoltIcon className="h-5 w-5 text-amber-400" />
               <span>Cancel Anytime</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="bg-gradient-to-b from-gray-50 to-white px-4 py-16 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-12 text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-2">
+              <ChatBubbleLeftRightIcon className="h-5 w-5 text-purple-600" />
+              <span className="text-sm font-semibold text-purple-700">What Families Say</span>
+            </div>
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">
+              Loved by <span className="text-kid-primary">Kids</span> &{' '}
+              <span className="text-kid-secondary">Parents</span>
+            </h2>
+            <p className="mx-auto max-w-2xl text-gray-600">
+              See why families are choosing KidCollect to organize their Pokemon card collections.
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {/* Testimonial 1 - Parent */}
+            <div className="relative overflow-hidden rounded-3xl bg-white p-8 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl">
+              <div className="mb-6 flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <StarIcon key={i} className="h-5 w-5 text-amber-400" />
+                ))}
+              </div>
+              <p className="mb-6 text-gray-600">
+                &quot;Finally, an app that my kids can use on their own! No more spreadsheets or
+                piles of cards everywhere. The wishlist feature saved Christmas shopping this
+                year.&quot;
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-kid-primary to-purple-500">
+                  <span className="text-lg font-bold text-white">S</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Sarah M.</p>
+                  <p className="text-sm text-gray-500">Parent of 2 collectors</p>
+                </div>
+              </div>
+              {/* Decorative quote */}
+              <div className="absolute -right-2 -top-2 font-serif text-8xl text-kid-primary/10">
+                &quot;
+              </div>
+            </div>
+
+            {/* Testimonial 2 - Kid */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 p-8 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl">
+              <div className="mb-6 flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <StarIcon key={i} className="h-5 w-5 text-amber-400" />
+                ))}
+              </div>
+              <p className="mb-6 text-gray-600">
+                &quot;I love getting badges when I complete a set! I already have 7 badges and
+                I&apos;m trying to get the Master Collector one next. My friends are all
+                jealous!&quot;
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
+                  <span className="text-lg font-bold text-white">J</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Jake, age 9</p>
+                  <p className="text-sm text-gray-500">324 cards collected</p>
+                </div>
+              </div>
+              {/* Badge decoration */}
+              <div className="absolute -right-3 -top-3 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/20 to-orange-400/20">
+                <TrophyIcon className="h-8 w-8 text-amber-500/30" />
+              </div>
+            </div>
+
+            {/* Testimonial 3 - Parent */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-pink-50 to-rose-50 p-8 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl">
+              <div className="mb-6 flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <StarIcon key={i} className="h-5 w-5 text-amber-400" />
+                ))}
+              </div>
+              <p className="mb-6 text-gray-600">
+                &quot;The duplicate finder is amazing! My kids used to argue about who had what
+                cards. Now they can easily see which cards to trade. Total game changer for our
+                family.&quot;
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-kid-secondary to-pink-500">
+                  <span className="text-lg font-bold text-white">M</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Mike T.</p>
+                  <p className="text-sm text-gray-500">Family Plan subscriber</p>
+                </div>
+              </div>
+              {/* Heart decoration */}
+              <div className="absolute -right-3 -top-3 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-pink-400/20 to-rose-400/20">
+                <HeartIcon className="h-8 w-8 text-rose-500/30" />
+              </div>
+            </div>
+          </div>
+
+          {/* Social proof stats */}
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-8 rounded-2xl bg-white/50 py-6 text-center backdrop-blur">
+            <div>
+              <div className="text-3xl font-bold text-kid-primary">10,000+</div>
+              <div className="text-sm text-gray-500">Happy collectors</div>
+            </div>
+            <div className="hidden h-12 w-px bg-gray-200 sm:block" />
+            <div>
+              <div className="text-3xl font-bold text-amber-500">4.9/5</div>
+              <div className="text-sm text-gray-500">Average rating</div>
+            </div>
+            <div className="hidden h-12 w-px bg-gray-200 sm:block" />
+            <div>
+              <div className="text-3xl font-bold text-kid-secondary">2,500+</div>
+              <div className="text-sm text-gray-500">Families using</div>
             </div>
           </div>
         </div>
