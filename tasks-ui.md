@@ -12,7 +12,7 @@
 | Navigation & Dashboard               | 7        | 0         |
 | Multi-TCG Game Selector              | 6        | 0         |
 | Polish & UX                          | 7        | 0         |
-| **UI Cleanup & Settings (PRIORITY)** | 3        | **3**     |
+| **UI Cleanup & Settings (PRIORITY)** | 6        | **0**     |
 | **Forgiving Streak System**          | 3        | **2**     |
 | **Virtual Experience Features**      | 0        | **6**     |
 | **Collection Timeline & Story**      | 0        | **5**     |
@@ -21,7 +21,7 @@
 | **Educational Mini-Games**           | 0        | **5**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
 | **Engagement & Retention**           | 0        | **4**     |
-| **TOTAL**                            | **76**   | **34**    |
+| **TOTAL**                            | **79**   | **31**    |
 
 ### Priority Order for Remaining Tasks
 
@@ -150,8 +150,8 @@
 - [x] Move accessibility toggles from header to Settings page - Relocate Dark Mode, Low-Stimulation, Dyslexic Font, High Contrast, Reduced Motion, Focus Mode toggles
 - [x] Simplify header - Keep only essential items: logo, main nav, single settings gear icon, profile menu
 - [x] Add Settings link to profile dropdown menu - Quick access from anywhere in the app
-- [ ] Create Settings page sections - Organize into: Display (dark mode, kid mode), Accessibility (low-stim, dyslexic font, high contrast, reduced motion, focus mode), Games (TCG selection), Notifications
-- [ ] Add "quick settings" popover from gear icon - Allow fast access to most-used settings (dark mode, kid mode) without leaving current page
+- [x] Create Settings page sections - Organize into: Display (dark mode, kid mode), Accessibility (low-stim, dyslexic font, high contrast, reduced motion, focus mode), Games (TCG selection), Notifications
+- [x] Add "quick settings" popover from gear icon - Allow fast access to most-used settings (dark mode, kid mode) without leaving current page
 
 ### Forgiving Streak System (Research-based)
 
@@ -294,3 +294,4 @@
 - **2026-01-16**: Moved accessibility toggles from header to Settings page - Removed Low-Stimulation, Dyslexic Font, High Contrast, Reduced Motion, and Focus Mode toggles from AppHeader (both desktop and mobile views). Header now shows only essential items: logo, nav links, level display, streak counter, offline indicator, kid mode toggle, dark mode toggle, and profile menu. Accessibility options remain fully accessible via the dedicated Settings page. Commit: b1ef6c9
 - **2026-01-16**: Simplified header to essential items only - Removed LevelDisplay, StreakCounter, OfflineIndicator, KidModeToggle, and DarkModeToggle from AppHeader. Added single settings gear icon (Cog6ToothIcon) linking to /settings page. Header now contains only: logo, main nav links (My Collection, Browse Sets, Badges, Wishlist, Search), settings gear icon, and profile dropdown menu. Mobile menu also simplified with Settings link instead of inline toggles. All removed features remain accessible via dedicated Settings page. Commit: 55c9475
 - **2026-01-16**: Added Settings link to profile dropdown menu - Quick access to Settings page from anywhere in the app via profile dropdown. Link appears with Cog6ToothIcon after Learn to Collect and before Sign Out divider. Matches existing menu item styling with active state highlighting. Commit: 70b0a86
+- **2026-01-16**: Completed UI Cleanup & Settings section - Settings page sections already organized into Display (dark mode, kid mode), Accessibility (low-stim, dyslexic font, high contrast, reduced motion, focus mode), Games (TCG selection), and Notifications. Added quick settings popover from header gear icon with DarkModeToggle and KidModeToggle for fast access without leaving current page. Desktop shows popover on gear click; mobile menu includes Quick Settings section with same toggles. Commit: b835962
