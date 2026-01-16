@@ -55,57 +55,57 @@
 - [x] Implement user-friendly error messages and error boundaries
 - [x] Accessibility audit and fixes (WCAG 2.1 AA) - focus states, aria labels, color contrast
 
-## NEW - Core Features (from competitor research)
+### Core Features
 
-- [ ] **"Just Pulled" mode** - Quick-add flow for pack openings (tap cards rapid-fire with minimal UI)
-- [x] **Random card button** - Shows a random card from collection (fun for kids to browse)
-- [x] **Rarity filter UI** - Filter collection by rarity (Common → Uncommon → Rare → Ultra Rare → Secret Rare)
-- [ ] **"New in collection" badge** - Cards added in last 7 days get sparkle/shimmer effect
-- [ ] **Kid mode / age toggle** - Simplified interface option for younger users (6-8) vs full features (12-14)
-- [ ] **Japanese promo cards display** - Show Japanese promos correctly (competitor gap)
+- [ ] "Just Pulled" mode - Quick-add flow for pack openings (tap cards rapid-fire with minimal UI, full-screen card grid)
+- [x] Random card button - Shows a random card from collection (fun for kids to browse)
+- [x] Rarity filter UI - Filter collection by rarity (Common → Uncommon → Rare → Ultra Rare → Secret Rare)
+- [x] "New in collection" badge - Cards added in last 7 days get sparkle/shimmer effect
+- [ ] Kid mode / age toggle - Simplified interface option for younger users (6-8) vs full features (12-14)
+- [ ] Japanese promo cards display - Show Japanese promos correctly
 
-## NEW - Gamification UI
+### Gamification UI
 
-- [ ] **Visible daily streak counter** - Fire icon + "5 day streak!" prominently in header/nav
-- [ ] **Level-up system UI** - XP bar, level display, XP gain notifications when adding cards
-- [ ] **Collection milestones celebrations** - First 10, 50, 100, 500 cards with big celebration modals
-- [ ] **Unlockable avatar items UI** - Profile customization with earned hats, frames, badges
+- [ ] Visible daily streak counter - Fire icon + "5 day streak!" prominently in header/nav
+- [ ] Level-up system UI - XP bar, level display, XP gain notifications when adding cards
+- [ ] Collection milestones celebrations - First 10, 50, 100, 500 cards with big celebration modals
+- [ ] Unlockable avatar items UI - Profile customization with earned hats, frames, badges
 
-## NEW - Educational Features UI
+### Educational Features UI
 
-- [ ] **"Learn to Collect" tutorials** - Interactive guide screens for card organization, binder setup, card care
-- [ ] **Rarity explainer tooltips** - Hover/tap tooltips explaining what Common/Uncommon/Rare/Ultra Rare means
-- [ ] **Set structure intro** - Onboarding flow explaining how sets work, what a "master set" is
-- [ ] **Card condition basics guide** - Visual guide showing NM/LP/MP/HP differences (age-appropriate)
+- [ ] "Learn to Collect" tutorials - Interactive guide screens for card organization, binder setup, card care
+- [ ] Rarity explainer tooltips - Hover/tap tooltips explaining what Common/Uncommon/Rare/Ultra Rare means
+- [ ] Set structure intro - Onboarding flow explaining how sets work, what a "master set" is
+- [ ] Card condition basics guide - Visual guide showing NM/LP/MP/HP differences (age-appropriate)
 
-## NEW - Navigation & Dashboard Architecture
+### Navigation & Dashboard Architecture
 
-- [ ] **Create MarketingHeader component** - For landing page only: Logo, Features, Pricing (anchor links), Login, Sign Up. NO app navigation.
-- [ ] **Create AppHeader component** - For logged-in users: Logo, My Collection, Browse Sets, Badges, Wishlist, Search, Profile menu
-- [ ] **Auth-aware header switching** - Show MarketingHeader when not logged in, AppHeader when logged in
-- [ ] **Kid Dashboard page** (`/dashboard`) - After login landing page with: collection stats, recent activity, badge progress, streak counter, quick actions
-- [ ] **Update Header to show "CardDex" instead of "KidCollect"** - Rebrand to new name
-- [ ] **Remove app nav links from landing page** - Currently shows Browse Sets, My Collection etc. to visitors who can't use them
-- [ ] **Parent Dashboard access** - Only show Parent Dashboard link for parent accounts, not kid profiles
+- [ ] Create MarketingHeader component (src/components/layout/MarketingHeader.tsx) - For landing page: Logo, Features, Pricing links, Login, Sign Up only
+- [ ] Create AppHeader component (src/components/layout/AppHeader.tsx) - For logged-in users: Logo, My Collection, Browse Sets, Badges, Wishlist, Search, Profile menu
+- [ ] Auth-aware header switching - Show MarketingHeader when not logged in, AppHeader when logged in
+- [ ] Kid Dashboard page (/dashboard) - Post-login home: collection stats, recent activity, badge progress, streak counter, quick actions
+- [ ] Update Header to show "CardDex" instead of "KidCollect" - Rebrand to new name
+- [ ] Remove app nav links from landing page - Visitors shouldn't see Browse Sets, My Collection etc.
+- [ ] Parent Dashboard access - Only show Parent Dashboard link for parent accounts, not kid profiles
 
-## NEW - Multi-TCG Game Selector
+### Multi-TCG Game Selector
 
-- [ ] **Onboarding game selector** - "What do you collect?" screen with TCG logos (Pokémon, Yu-Gi-Oh!, One Piece, Dragon Ball, Lorcana, Digimon, MTG)
-- [ ] **Settings game toggle** - Allow changing selected games anytime in profile settings
-- [ ] **Sets page game filter** - Tabs or filter: [All] [Pokémon] [Yu-Gi-Oh!] [One Piece]... Only show selected games
-- [ ] **Per-game color theming** - Subtle color theme changes when viewing each game's content
-- [ ] **Game-specific achievements** - "Pokémon Master" vs "Duelist Champion" vs cross-game "500 Total Cards"
-- [ ] **Game logos/icons** - Display appropriate TCG branding throughout app
+- [ ] Onboarding game selector - "What do you collect?" screen with TCG logos (Pokémon, Yu-Gi-Oh!, One Piece, Dragon Ball, Lorcana, Digimon, MTG)
+- [ ] Settings game toggle - Allow changing selected games anytime in profile settings
+- [ ] Sets page game filter - Tabs: [All] [Pokémon] [Yu-Gi-Oh!] [One Piece]... Only show enabled games
+- [ ] Per-game color theming - CSS variables for each game's primary color
+- [ ] Game-specific achievements - "Pokémon Master" vs "Duelist Champion" vs cross-game badges
+- [ ] Game logos/icons - SVG components for each TCG logo in src/components/icons/tcg/
 
-## NEW - Polish & UX
+### Polish & UX
 
-- [ ] **Dark mode toggle** - System preference detection + manual toggle (kids love it, parents appreciate for bedtime)
-- [ ] **Offline viewing indicator** - Show when viewing cached data, sync status indicator
-- [ ] **Update landing page with new tagline** - "All your cards. One app." (multi-TCG focus)
-- [ ] **Add trust signals to landing page** - COPPA compliant badge, "No ads ever" shield, "Cloud backup" icon
-- [ ] **Set completion confetti** - Big celebration animation when hitting 100% on a set
-- [ ] **Optimize card grid scrolling performance** - Virtual scrolling for large collections
-- [ ] **Create onboarding flow** - New user walkthrough: pick games, create profile, add first cards
+- [ ] Dark mode toggle - System preference detection + manual toggle
+- [ ] Offline viewing indicator - Show when viewing cached data, sync status
+- [ ] Update landing page with new tagline - "All your cards. One app."
+- [ ] Add trust signals to landing page - COPPA badge, "No ads ever" shield, "Cloud backup" icon
+- [ ] Set completion confetti - Big celebration when hitting 100% on a set
+- [ ] Optimize card grid scrolling performance - Virtual scrolling for large collections
+- [ ] Create onboarding flow - New user walkthrough: pick games, create profile, add first cards
 
 ---
 
@@ -140,3 +140,4 @@
 - **2026-01-16**: Added My Wishlist page - Created dedicated /my-wishlist page (src/app/my-wishlist/page.tsx) for managing wishlisted cards. Features: view all wishlisted cards with images fetched from Pokemon TCG API; manage priority (most wanted) items with star toggle buttons; remove cards from wishlist with trash button; generate shareable link (30-day expiry) with copy button and visual feedback; stats showing total wanted cards, priority count (with max limit), and remaining stars. Includes rose/pink gradient theme, skeleton loading states, error handling with error.tsx route file. Added My Wishlist link to Header navigation and collection page header. Also completed "Copy wishlist share link button" task as part of this implementation since share link generation with copy functionality is built into the page. Uses Heroicons (HeartIcon, StarIcon, LinkIcon, CheckIcon, TrashIcon, GiftIcon, ArrowLeftIcon, ShareIcon, SparklesIcon). Commit: c2b90e2
 - **2026-01-16**: Added export/print wishlist PDF button - Created ExportWishlistButton component (src/components/wishlist/ExportWishlist.tsx) for exporting wishlist as printable PDF. Features: Export PDF button on My Wishlist page header using DocumentArrowDownIcon; modal dialog with print preview showing wishlist grouped by set; toggle options for showing most wanted items first and displaying star indicators for priority items; cards listed with name, number, and priority stars; proper print CSS support using existing globals.css print styles; rose/pink gradient theme matching wishlist styling; loading states with skeleton screens; error handling with retry functionality; accessible with ARIA labels, role="dialog", and Escape key to close; Print/Save PDF button uses browser's native print dialog for PDF generation. Uses Heroicons (DocumentArrowDownIcon, PrinterIcon, XMarkIcon, HeartIcon, StarIcon, GiftIcon, ArrowPathIcon, ExclamationTriangleIcon). Commit: 8d2d818
 - **2026-01-16**: Added rarity filter UI to set detail page - Created RarityFilter component (src/components/filter/RarityFilter.tsx) for filtering cards by rarity category. Features: 6 rarity categories (Common, Uncommon, Rare, Ultra Rare, Secret Rare, Promo) with color-coded gradient buttons and icons (StarIcon, SparklesIcon, FireIcon, BoltIcon); card count badges showing number of cards per rarity in current set; disabled state for empty categories; clear filter button; filter indicator showing current selection and filtered card count. Created SetDetailClient wrapper component to manage filter state on the set detail page. Accessible with proper ARIA labels, aria-pressed states, and keyboard support. Commit: 3f390a6
+- **2026-01-16**: Added "New in collection" badge with sparkle/shimmer effect - Cards added within the last 7 days now display a "NEW" badge with animated sparkle effects. Features: animated cyan/teal "NEW" badge with SparkleStarIcon SVG icons showing sparkle animation; pulsing glow effect (animate-new-card-glow) around newly added card containers; shimmer overlay that sweeps across the card image; uses existing getNewlyAddedCards Convex query to identify cards added in last 7 days via activity logs. Added new CSS animations in globals.css: sparkle, new-card-shimmer, sparkle-rotate, new-card-glow, and new-badge-shimmer gradient background. Updated CardGrid component (src/components/collection/CardGrid.tsx) to query newly added cards and display visual indicators. All animations respect prefers-reduced-motion for accessibility. Updated aria-label to include "newly added" state for screen readers. Commit: 98974fe
