@@ -74,9 +74,9 @@
 
 Add `games` table to Convex schema with fields: id, slug, display_name, api_source, primary_color, is_active, release_order
 
-- [ ] Add `games` table to Convex schema (slug: pokemon/yugioh/onepiece/dragonball/lorcana/digimon/mtg, display_name, api_source, primary_color, is_active, release_order)
-- [ ] Add `profile_games` junction table (profile_id, game_id, enabled_at) - Track which games each profile collects
-- [ ] Add game_id field to cachedSets table - Link sets to games
+- [x] Add `games` table to Convex schema (slug: pokemon/yugioh/onepiece/dragonball/lorcana/digimon/mtg, display_name, api_source, primary_color, is_active, release_order)
+- [x] Add `profile_games` junction table (profile_id, game_id, enabled_at) - Track which games each profile collects
+- [x] Add game_id field to cachedSets table - Link sets to games
 - [ ] Add game_id field to cachedCards table - Link cards to games
 - [x] Create game-agnostic API abstraction in src/lib/tcg-api.ts - Unified fetch interface that routes to correct API based on game
 - [x] API adapter for YGOPRODeck (src/lib/yugioh-api.ts) - Yu-Gi-Oh! cards, 20 req/sec rate limit
@@ -1313,3 +1313,49 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - High value card filtering
   - Integration scenarios: Parent Dashboard Value Display, Value Change Tracking, High Value Card Identification
 - All 2702 tests pass, linter clean
+
+### 2026-01-16: Add games and profile_games tables to Convex schema for Multi-TCG support
+
+- Added `games` table to `convex/schema.ts`:
+  - Fields: slug (union of 7 game literals), displayName, apiSource, primaryColor, secondaryColor (optional), isActive, releaseOrder
+  - Indexes: by_slug, by_active, by_release_order
+  - Supports: pokemon, yugioh, mtg, onepiece, lorcana, digimon, dragonball
+- Added `profile_games` junction table to `convex/schema.ts`:
+  - Fields: profileId, gameSlug, enabledAt (Unix timestamp), isActive (optional boolean)
+  - Indexes: by_profile, by_profile_and_game, by_game
+  - Tracks which games each profile collects
+- Created `convex/games.ts` with Convex queries and mutations:
+  - Queries: `getAllGames`, `getActiveGamesSorted`, `getGameBySlug`, `getGameCount`, `isSeeded`
+  - Mutations: `seedGames` (idempotent), `setGameActive`, `updateGameConfig`, `resetGames`
+  - Includes `DEFAULT_GAMES` constant matching `GAME_CONFIGS` from tcg-api.ts
+  - Exported `GameSlug` type for type-safe game identifiers
+- Created `convex/profileGames.ts` with queries and mutations:
+  - Queries: `getProfileGames`, `getActiveProfileGames`, `hasGameEnabled`, `getProfilesForGame`, `getProfileGameCount`, `getGameStats`
+  - Mutations: `enableGame`, `disableGame`, `toggleGame`, `enableMultipleGames`, `seedDefaultGamesForProfile`, `removeGameFromProfile`
+- Added 31 tests in `src/lib/__tests__/games.test.ts` covering:
+  - GAME_SLUGS constant validation (7 games, uniqueness)
+  - GAME_CONFIGS validation (required fields, unique release orders 1-7, valid hex colors)
+  - ACTIVE_GAMES sorting verification
+  - isValidGameSlug validation (valid slugs, case sensitivity)
+  - getGameConfig and getGameConfigSafe (valid input, error handling, null returns)
+  - getGameDisplayName for all 7 games
+  - getGamePrimaryColor for all 7 games
+  - getActiveGames sorting and filtering
+  - Game-specific configuration verification for all 7 TCGs
+  - Integration scenarios: Game selection flow, Game theming, Collection validation
+- All 2779 tests pass, linter clean
+
+### 2026-01-16: Add gameSlug field to cachedSets table for Multi-TCG support
+
+- Updated `cachedSets` table in `convex/schema.ts`:
+  - Added `gameSlug` field as union type of all 7 supported TCGs (pokemon, yugioh, mtg, onepiece, lorcana, digimon, dragonball)
+  - Links sets to their respective games for multi-game filtering and organization
+  - Updated `setId` comment to reflect multi-TCG usage (e.g., "sv1" for Pokemon, "LOB" for Yu-Gi-Oh!)
+- Added new indexes for efficient querying:
+  - `by_game`: Query all sets for a specific game
+  - `by_game_and_release`: Query sets by game sorted by release date for chronological display
+- Schema change enables:
+  - Filtering set lists by game when displaying game-specific collections
+  - Joining sets to games table for display name and branding
+  - Supporting future set-caching for all 7 TCGs in a single unified table
+- Linter clean
