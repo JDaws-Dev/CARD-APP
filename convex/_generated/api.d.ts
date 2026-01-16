@@ -11,9 +11,20 @@
 import type * as achievements from "../achievements.js";
 import type * as activityLogs from "../activityLogs.js";
 import type * as auth from "../auth.js";
+import type * as avatarItems from "../avatarItems.js";
 import type * as collections from "../collections.js";
+import type * as conditionGuide from "../conditionGuide.js";
+import type * as games from "../games.js";
 import type * as http from "../http.js";
+import type * as levelSystem from "../levelSystem.js";
+import type * as milestones from "../milestones.js";
+import type * as profileGames from "../profileGames.js";
 import type * as profiles from "../profiles.js";
+import type * as rarityDefinitions from "../rarityDefinitions.js";
+import type * as subscriptionLimits from "../subscriptionLimits.js";
+import type * as subscriptionValidation from "../subscriptionValidation.js";
+import type * as tradingCalculator from "../tradingCalculator.js";
+import type * as tutorialContent from "../tutorialContent.js";
 import type * as wishlist from "../wishlist.js";
 
 import type {
@@ -26,9 +37,20 @@ declare const fullApi: ApiFromModules<{
   achievements: typeof achievements;
   activityLogs: typeof activityLogs;
   auth: typeof auth;
+  avatarItems: typeof avatarItems;
   collections: typeof collections;
+  conditionGuide: typeof conditionGuide;
+  games: typeof games;
   http: typeof http;
+  levelSystem: typeof levelSystem;
+  milestones: typeof milestones;
+  profileGames: typeof profileGames;
   profiles: typeof profiles;
+  rarityDefinitions: typeof rarityDefinitions;
+  subscriptionLimits: typeof subscriptionLimits;
+  subscriptionValidation: typeof subscriptionValidation;
+  tradingCalculator: typeof tradingCalculator;
+  tutorialContent: typeof tutorialContent;
   wishlist: typeof wishlist;
 }>;
 
