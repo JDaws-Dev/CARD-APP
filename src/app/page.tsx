@@ -21,6 +21,9 @@ import {
   CurrencyDollarIcon,
   ShieldCheckIcon,
   ChatBubbleLeftRightIcon,
+  CloudIcon,
+  NoSymbolIcon,
+  ShieldExclamationIcon,
 } from '@heroicons/react/24/solid';
 
 // Decorative floating card component (purely decorative, hidden from screen readers)
@@ -875,6 +878,114 @@ export default function Home() {
             <div>
               <div className="text-3xl font-bold text-kid-secondary">2,500+</div>
               <div className="text-sm text-gray-500">Families using</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Signals Section */}
+      <section className="bg-white px-4 py-16 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-12 text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-100 to-teal-100 px-4 py-2">
+              <ShieldCheckIcon className="h-5 w-5 text-emerald-600" />
+              <span className="text-sm font-semibold text-emerald-700">Safe & Trusted</span>
+            </div>
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">
+              Built With <span className="text-emerald-600">Your Family</span> in Mind
+            </h2>
+            <p className="mx-auto max-w-2xl text-gray-600">
+              We take safety, privacy, and trust seriously. CardDex is designed from the ground up
+              to be a secure, ad-free experience for kids and families.
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:gap-8 md:grid-cols-3">
+            {/* COPPA Compliant Badge */}
+            <div
+              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 to-indigo-50 p-8 text-center transition-all hover:-translate-y-1 hover:shadow-xl"
+              data-testid="trust-signal-coppa"
+            >
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
+                <ShieldExclamationIcon className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="mb-2 text-xl font-bold text-gray-900">COPPA Compliant</h3>
+              <p className="text-sm text-gray-600">
+                We follow strict Children&apos;s Online Privacy Protection Act guidelines. Your
+                child&apos;s data is protected by law and our commitment.
+              </p>
+              <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                <CheckIcon className="h-3 w-3" />
+                Verified compliant
+              </div>
+              <div
+                className="absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-blue-500/5 transition-all group-hover:scale-150"
+                aria-hidden="true"
+              />
+            </div>
+
+            {/* No Ads Ever Shield */}
+            <div
+              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-50 to-pink-50 p-8 text-center transition-all hover:-translate-y-1 hover:shadow-xl"
+              data-testid="trust-signal-no-ads"
+            >
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/30">
+                <NoSymbolIcon className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="mb-2 text-xl font-bold text-gray-900">No Ads Ever</h3>
+              <p className="text-sm text-gray-600">
+                CardDex will never show advertisements to your kids. No banner ads, no pop-ups, no
+                sponsored content. Just pure collection fun.
+              </p>
+              <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-700">
+                <CheckIcon className="h-3 w-3" />
+                Ad-free forever
+              </div>
+              <div
+                className="absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-rose-500/5 transition-all group-hover:scale-150"
+                aria-hidden="true"
+              />
+            </div>
+
+            {/* Cloud Backup Icon */}
+            <div
+              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 p-8 text-center transition-all hover:-translate-y-1 hover:shadow-xl"
+              data-testid="trust-signal-cloud-backup"
+            >
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30">
+                <CloudIcon className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="mb-2 text-xl font-bold text-gray-900">Cloud Backup</h3>
+              <p className="text-sm text-gray-600">
+                Your collection is automatically saved to the cloud. Switch devices, reinstall, or
+                start fresh — your cards are always safe.
+              </p>
+              <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
+                <CheckIcon className="h-3 w-3" />
+                Auto-saved
+              </div>
+              <div
+                className="absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-emerald-500/5 transition-all group-hover:scale-150"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+
+          {/* Additional trust indicators */}
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <LockClosedIcon className="h-5 w-5 text-gray-400" />
+              <span>Encrypted data</span>
+            </div>
+            <div className="hidden h-4 w-px bg-gray-300 sm:block" />
+            <div className="flex items-center gap-2">
+              <ShieldCheckIcon className="h-5 w-5 text-gray-400" />
+              <span>Secure login</span>
+            </div>
+            <div className="hidden h-4 w-px bg-gray-300 sm:block" />
+            <div className="flex items-center gap-2">
+              <HeartIcon className="h-5 w-5 text-gray-400" />
+              <span>Family-first design</span>
             </div>
           </div>
         </div>

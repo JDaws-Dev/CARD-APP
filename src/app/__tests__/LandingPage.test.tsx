@@ -163,6 +163,101 @@ describe('Landing Page', () => {
     });
   });
 
+  describe('Trust Signals Section', () => {
+    it('renders the trust signals section header', () => {
+      render(<Home />);
+
+      expect(screen.getByText('Safe & Trusted')).toBeInTheDocument();
+      // Text is broken across elements, so search separately
+      expect(screen.getByText(/Built With/)).toBeInTheDocument();
+      expect(screen.getByText(/Your Family/)).toBeInTheDocument();
+      expect(screen.getByText(/in Mind/)).toBeInTheDocument();
+    });
+
+    it('renders COPPA compliant badge', () => {
+      render(<Home />);
+
+      const coppaCard = screen.getByTestId('trust-signal-coppa');
+      expect(coppaCard).toBeInTheDocument();
+      expect(screen.getByText('COPPA Compliant')).toBeInTheDocument();
+      expect(screen.getByText(/Children's Online Privacy Protection Act/i)).toBeInTheDocument();
+      expect(screen.getByText('Verified compliant')).toBeInTheDocument();
+    });
+
+    it('renders No Ads Ever shield', () => {
+      render(<Home />);
+
+      const noAdsCard = screen.getByTestId('trust-signal-no-ads');
+      expect(noAdsCard).toBeInTheDocument();
+      expect(screen.getByText('No Ads Ever')).toBeInTheDocument();
+      expect(screen.getByText(/will never show advertisements/i)).toBeInTheDocument();
+      expect(screen.getByText('Ad-free forever')).toBeInTheDocument();
+    });
+
+    it('renders Cloud Backup badge', () => {
+      render(<Home />);
+
+      const cloudCard = screen.getByTestId('trust-signal-cloud-backup');
+      expect(cloudCard).toBeInTheDocument();
+      expect(screen.getByText('Cloud Backup')).toBeInTheDocument();
+      expect(screen.getByText(/automatically saved to the cloud/i)).toBeInTheDocument();
+      expect(screen.getByText('Auto-saved')).toBeInTheDocument();
+    });
+
+    it('renders additional trust indicators', () => {
+      render(<Home />);
+
+      expect(screen.getByText('Encrypted data')).toBeInTheDocument();
+      expect(screen.getByText('Secure login')).toBeInTheDocument();
+      expect(screen.getByText('Family-first design')).toBeInTheDocument();
+    });
+
+    it('trust signal cards have hover styling classes', () => {
+      render(<Home />);
+
+      const coppaCard = screen.getByTestId('trust-signal-coppa');
+      const noAdsCard = screen.getByTestId('trust-signal-no-ads');
+      const cloudCard = screen.getByTestId('trust-signal-cloud-backup');
+
+      [coppaCard, noAdsCard, cloudCard].forEach((card) => {
+        expect(card.className).toContain('hover:-translate-y-1');
+        expect(card.className).toContain('hover:shadow-xl');
+      });
+    });
+
+    it('trust signal cards have appropriate gradient backgrounds', () => {
+      render(<Home />);
+
+      const coppaCard = screen.getByTestId('trust-signal-coppa');
+      const noAdsCard = screen.getByTestId('trust-signal-no-ads');
+      const cloudCard = screen.getByTestId('trust-signal-cloud-backup');
+
+      // COPPA - blue/indigo gradient
+      expect(coppaCard.className).toContain('from-blue-50');
+      expect(coppaCard.className).toContain('to-indigo-50');
+
+      // No Ads - rose/pink gradient
+      expect(noAdsCard.className).toContain('from-rose-50');
+      expect(noAdsCard.className).toContain('to-pink-50');
+
+      // Cloud Backup - emerald/teal gradient
+      expect(cloudCard.className).toContain('from-emerald-50');
+      expect(cloudCard.className).toContain('to-teal-50');
+    });
+
+    it('decorative elements in trust cards are hidden from screen readers', () => {
+      render(<Home />);
+
+      // Each trust signal card has decorative elements with aria-hidden
+      // (icons, badges, and decorative circles)
+      const trustCardsDecorative = document.querySelectorAll(
+        '[data-testid^="trust-signal-"] [aria-hidden="true"]'
+      );
+      // Each card has multiple aria-hidden elements (icons and decorative circles)
+      expect(trustCardsDecorative.length).toBeGreaterThanOrEqual(3);
+    });
+  });
+
   describe('Accessibility', () => {
     it('hero buttons have appropriate roles', () => {
       render(<Home />);
