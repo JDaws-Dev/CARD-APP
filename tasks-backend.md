@@ -15,12 +15,12 @@
 | Gamification Backend | 3 | 0 |
 | Educational Content | 3 | 0 |
 | Additional Features | 5 | 0 |
-| Launch Prep | 2 | **7** |
-| **TOTAL** | **49** | **16** |
+| Launch Prep | 3 | **6** |
+| **TOTAL** | **50** | **15** |
 
 ### Critical Path for Launch
 1. **Authentication (4 tasks)** - Email/password login, parent registration, child profiles, PIN protection
-2. **Launch Prep (7 tasks)** - Stripe integration, production deploy, monitoring, E2E tests
+2. **Launch Prep (6 tasks)** - Stripe integration, production deploy, monitoring, E2E tests
 3. **Data Persistence (3 tasks)** - Cloud backup, sync, conflict resolution
 4. **TCGPlayer Pricing (1 task)** - Fetch real pricing data from TCGPlayer API
 5. **Offline Caching (1 task)** - Service worker for offline viewing
@@ -143,7 +143,7 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 
 - [x] Free tier limitations - Enforce 3 sets max, 1 child profile for free tier
 - [x] Subscription validation - Check subscription status before premium features
-- [ ] TCGPlayer affiliate link generation - Add affiliate tracking to wishlist share links
+- [x] TCGPlayer affiliate link generation - Add affiliate tracking to wishlist share links
 - [ ] Stripe subscription integration - Payment processing for Family tier ($4.99/mo or $39.99/yr)
 - [ ] Set up production environment - Vercel deployment configuration
 - [ ] Configure environment variables - Production secrets and API keys
@@ -1732,3 +1732,40 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Error helpers (message lookup, upgrade detection, result combining)
   - Integration scenarios: New family first child, free user blocked on second child, family plan multiple children, inappropriate name rejection, duplicate name detection
 - All 4122 tests pass (2 pre-existing failures in unrelated streakCalendar.test.ts), linter clean
+
+
+### 2026-01-16: TCGPlayer affiliate link generation for wishlist share links
+
+- Created `src/lib/affiliateLinks.ts` with comprehensive utility functions:
+  - Types: `AffiliatePlatform`, `AffiliateConfig`, `AffiliateLink`, `WishlistCardWithAffiliateLink`, `AffiliateLinkStats`
+  - Constants: `DEFAULT_TCGPLAYER_AFFILIATE_ID`, `TCGPLAYER_AFFILIATE_PARAM`, domain lists for TCGPlayer, Cardmarket, eBay
+  - URL validation: `isTCGPlayerUrl`, `isCardmarketUrl`, `isEbayUrl`, `detectPlatform`, `hasAffiliateTracking`, `isValidAffiliateId`
+  - Link generation: `generateTCGPlayerAffiliateLink`, `generateCardmarketAffiliateLink`, `generateEbayAffiliateLink`, `generateAffiliateLink`
+  - Wishlist integration: `generateWishlistSubId`, `generateWishlistCampaignId`, `enrichCardWithAffiliateLink`, `enrichCardsWithAffiliateLinks`
+  - Statistics: `calculateAffiliateLinkStats`, `getAffiliateLinkSummary`
+  - URL utilities: `extractAffiliateId`, `stripAffiliateTracking`, `replaceAffiliateTracking`
+  - Display helpers: `getPlatformDisplayName`, `getBuyButtonLabel`, `shouldShowAffiliateLinks`, `getAffiliateDisclosure`, `getShortAffiliateDisclosure`
+- Added Convex queries to `convex/wishlist.ts`:
+  - `getWishlistByTokenWithAffiliateLinks`: Enhanced public wishlist query with card data and affiliate links
+  - `getWishlistAffiliateStats`: Stats for a profile's wishlist (total cards, TCGPlayer URL coverage, total market value)
+  - `getCardAffiliateLink`: Generate affiliate link for a single card
+  - `getCardsAffiliateLinks`: Batch affiliate link generation for multiple cards
+- Affiliate link features:
+  - TCGPlayer tracking via `partner` parameter with configurable affiliate ID (default: 'carddex')
+  - UTM parameters for source tracking (`utm_source=carddex_wishlist`, `utm_medium=wishlist_share`)
+  - Sub-tracking via `utm_campaign` with share token and card ID for analytics
+  - FTC-compliant disclosure flag (`hasAffiliateLinks`) in wishlist response
+  - Profile-type aware display (parents see affiliate links, kids do not)
+- Added 75 tests in `src/lib/__tests__/affiliateLinks.test.ts` covering:
+  - Constants validation
+  - URL validation for all supported platforms
+  - Platform detection and affiliate tracking detection
+  - Affiliate ID validation
+  - All link generation functions with various configurations
+  - Wishlist integration (subId generation, card enrichment)
+  - Statistics calculation and summary generation
+  - URL manipulation (extract, strip, replace affiliate tracking)
+  - Display helpers
+  - Integration scenarios: Complete wishlist enrichment, URL manipulation, profile-based display
+- All 4187 tests pass (excluding 2 pre-existing failures in streakCalendar.test.ts), linter clean
+- Note: Build fails due to pre-existing TypeScript errors in AppHeader.tsx (profile type mismatch), not related to this task
