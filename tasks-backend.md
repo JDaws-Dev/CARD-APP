@@ -2,30 +2,32 @@
 
 ## Status Summary (Updated 2026-01-16)
 
-| Section | Complete | Remaining |
-|---------|----------|-----------|
-| HIGH PRIORITY - Auth & Pricing | 8 | **2** |
-| Card Variants | 3 | 0 |
-| Achievement System | 6 | 0 |
-| Wishlist & Sharing | 4 | 0 |
-| Family Features | 2 | **1** |
-| Testing & Performance | 3 | **1** |
-| Data Persistence & Sync | 1 | **2** |
-| Multi-TCG Architecture | 12 | **7** |
-| Gamification Backend | 3 | 0 |
-| Educational Content | 3 | 0 |
-| Additional Features | 5 | 0 |
-| Launch Prep | 3 | **6** |
-| **TOTAL** | **54** | **18** |
+| Section                        | Complete | Remaining |
+| ------------------------------ | -------- | --------- |
+| HIGH PRIORITY - Auth & Pricing | 8        | **2**     |
+| Card Variants                  | 3        | 0         |
+| Achievement System             | 6        | 0         |
+| Wishlist & Sharing             | 4        | 0         |
+| Family Features                | 2        | **1**     |
+| Testing & Performance          | 3        | **1**     |
+| Data Persistence & Sync        | 2        | **1**     |
+| Multi-TCG Architecture         | 12       | **7**     |
+| Gamification Backend           | 3        | 0         |
+| Educational Content            | 3        | 0         |
+| Additional Features            | 5        | 0         |
+| Launch Prep                    | 3        | **6**     |
+| **TOTAL**                      | **55**   | **17**    |
 
 ### Critical Path for Launch
+
 1. **Authentication (1 task)** - Parent registration with email verification (email/password login, child profiles, and PIN protection complete)
 2. **Launch Prep (6 tasks)** - Stripe integration, production deploy, monitoring, E2E tests
-3. **Data Persistence (2 tasks)** - Data persistence guarantee, conflict resolution (cloud backup complete)
+3. **Data Persistence (1 task)** - Data persistence guarantee, conflict resolution (cloud backup complete)
 4. **TCGPlayer Pricing (1 task)** - Fetch real pricing data from TCGPlayer API
 5. **Offline Caching (1 task)** - Service worker for offline viewing
 
 ### Blocked Tasks
+
 - Stripe subscription integration - Requires business account setup
 - Production deployment - Waiting on auth completion
 - TCGPlayer API - Need affiliate account for pricing data
@@ -100,7 +102,7 @@
 
 - [x] Cloud backup/sync system - Automatic backup to prevent collection loss (major competitor complaint)
 - [ ] Data persistence guarantee - Never lose collection data when switching phones/devices
-- [ ] Conflict resolution - Handle sync conflicts when same account used on multiple devices
+- [x] Conflict resolution - Handle sync conflicts when same account used on multiple devices
 
 ### Multi-TCG Architecture
 
@@ -1614,7 +1616,6 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Integration scenarios: CoroCoro collection, Tournament prize cards, Store exclusives, Mixed collection analysis, Confidence levels, Edge cases
 - All 3430 tests pass, linter clean
 
-
 ### 2026-01-16: Performance optimization (index Convex queries, optimize batch fetches)
 
 - Added compound indexes to `convex/schema.ts` for efficient filtering:
@@ -1769,7 +1770,6 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
   - Integration scenarios: New family first child, free user blocked on second child, family plan multiple children, inappropriate name rejection, duplicate name detection
 - All 4122 tests pass (2 pre-existing failures in unrelated streakCalendar.test.ts), linter clean
 
-
 ### 2026-01-16: TCGPlayer affiliate link generation for wishlist share links
 
 - Created `src/lib/affiliateLinks.ts` with comprehensive utility functions:
@@ -1806,7 +1806,6 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - All 4187 tests pass (excluding 2 pre-existing failures in streakCalendar.test.ts), linter clean
 - Note: Build fails due to pre-existing TypeScript errors in AppHeader.tsx (profile type mismatch), not related to this task
 
-
 ### 2026-01-16: Mark parent PIN protection task as complete (already implemented)
 
 - Verified `convex/pinProtection.ts` is fully implemented with:
@@ -1830,7 +1829,6 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - All 90 PIN protection tests pass in `src/lib/__tests__/pinProtection.test.ts`
 - TypeScript compiles with no errors
 - Task was already implemented but not marked complete - now marked as [x]
-
 
 ### 2026-01-16: Mark authentication system task as complete (already implemented)
 
@@ -1856,7 +1854,6 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - TypeScript compiles with no errors
 - Build succeeds
 - Task was already implemented but not marked complete - now marked as [x]
-
 
 ### 2026-01-16: Implement cloud backup/sync system (data export/import)
 
@@ -1895,3 +1892,44 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - Since Convex is a cloud database, data is already automatically persisted and synced
 - This module adds explicit user-initiated export for peace of mind and data portability
 - All 4361 tests pass (excluding 2 pre-existing failures in streakCalendar.test.ts), TypeScript compiles, build succeeds
+
+### 2026-01-16: Add conflict resolution for multi-device sync
+
+- Created `convex/conflictResolution.ts` with comprehensive sync conflict handling:
+  - Queries:
+    - `getSyncStatus`: Get sync state for a profile (server timestamp, has changes, collection stats)
+    - `compareCollectionState`: Compare client vs server state, return detailed diff
+    - `getSyncHistory`: Get recent sync events for debugging
+    - `getCollectionSnapshot`: Get server's current collection with checksum
+  - Mutations:
+    - `addCardWithConflictResolution`: Add card with conflict detection and resolution
+    - `updateQuantityWithConflictResolution`: Update quantity with expected state validation
+    - `bulkSyncCollection`: Full collection reconciliation with strategy selection
+    - `markOfflineSynced`: Log offline sync completion event
+  - Resolution strategies supported:
+    - `last_write_wins`: Most recent change wins (default)
+    - `keep_higher`: Keep the higher quantity (good for collectors)
+    - `merge_add`: Combine changes from both sources
+    - `server_wins`: Keep server state, discard client
+    - `client_wins`: Keep client state, overwrite server
+- Created `src/lib/conflictResolution.ts` with pure utility functions:
+  - Types: `CardVariant`, `ResolutionStrategy`, `CollectionCard`, `CardComparison`, `CollectionComparison`, `ConflictResolution`, `SyncStatus`, `PendingChange`
+  - Constants: `DEFAULT_STRATEGY`, `VALID_VARIANTS`, `STRATEGY_DISPLAY_NAMES`, `STRATEGY_DESCRIPTIONS`
+  - Validation: `isValidStrategy`, `isValidVariant`, `isValidCollectionCard`
+  - Collection comparison: `createCardKey`, `parseCardKey`, `buildCardMap`, `compareCollections`, `compareCard`
+  - Conflict resolution: `resolveQuantityConflict`, `resolveCardConflict`, `resolveMissingCardConflict`, `resolveAllConflicts`, `applyResolutions`
+  - Sync status: `determineSyncStatus`, `getSyncStatusMessage`
+  - Pending changes: `generateChangeId`, `createPendingChange`, `mergePendingChanges`, `sortPendingChanges`
+  - Checksum: `calculateChecksum`, `checksumsMatch`
+  - Display helpers: `getStrategyDisplayName`, `getStrategyDescription`, `formatConflictForDisplay`, `getComparisonSummary`, `getRecommendedStrategy`, `formatTimeSince`
+- Added 78 tests in `src/lib/__tests__/conflictResolution.test.ts` covering:
+  - Constants validation (strategies, variants, display names)
+  - Validation functions (strategy, variant, collection card)
+  - Collection comparison (in-sync, conflicts, server-only, client-only, mixed scenarios)
+  - Resolution strategies (all 5 strategies with various inputs)
+  - Sync status determination and messages
+  - Pending changes management
+  - Checksum calculation and matching
+  - Display helpers
+  - Integration scenarios: offline device sync, simultaneous additions, full sync flow
+- All conflict resolution tests pass, TypeScript compiles, lint clean
