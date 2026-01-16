@@ -15,7 +15,7 @@ export default function Home() {
           The family-friendly Pokemon card collection tracker
         </p>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
             href="/sets"
             className="touch-target rounded-full bg-kid-primary px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-kid-primary/90 hover:shadow-xl"
@@ -30,9 +30,12 @@ export default function Home() {
             My Collection
           </Link>
 
-          <button className="touch-target rounded-full border-2 border-kid-primary px-8 py-4 text-lg font-semibold text-kid-primary transition hover:bg-kid-primary/10">
-            Parent Login
-          </button>
+          <Link
+            href="/search"
+            className="touch-target rounded-full border-2 border-kid-primary bg-white px-8 py-4 text-lg font-semibold text-kid-primary shadow-lg transition hover:bg-kid-primary/10 hover:shadow-xl"
+          >
+            Search Cards
+          </Link>
         </div>
 
         {/* Feature highlights */}
