@@ -77,9 +77,7 @@ export const getEnabledGameSlugs = query({
       .collect();
 
     // Return only active game slugs
-    return profileGames
-      .filter((pg) => pg.isActive !== false)
-      .map((pg) => pg.gameSlug);
+    return profileGames.filter((pg) => pg.isActive !== false).map((pg) => pg.gameSlug);
   },
 });
 
@@ -127,9 +125,7 @@ export const getProfilesForGame = query({
 
     // Filter by active status
     const filtered =
-      args.activeOnly === false
-        ? profileGames
-        : profileGames.filter((pg) => pg.isActive !== false);
+      args.activeOnly === false ? profileGames : profileGames.filter((pg) => pg.isActive !== false);
 
     return filtered.map((pg) => ({
       profileId: pg.profileId,
@@ -196,9 +192,7 @@ export const getProfileGamesWithInfo = query({
       .collect();
 
     // Get active profile games only
-    const activeProfileGames = profileGames.filter(
-      (pg) => pg.isActive !== false
-    );
+    const activeProfileGames = profileGames.filter((pg) => pg.isActive !== false);
 
     // Fetch game info for each enabled game
     const gamesWithInfo = await Promise.all(
@@ -415,8 +409,7 @@ export const enableMultipleGames = mutation({
       results,
       totalEnabled: results.filter((r) => r.action === 'enabled').length,
       totalReEnabled: results.filter((r) => r.action === 're_enabled').length,
-      totalAlreadyEnabled: results.filter((r) => r.action === 'already_enabled')
-        .length,
+      totalAlreadyEnabled: results.filter((r) => r.action === 'already_enabled').length,
     };
   },
 });
