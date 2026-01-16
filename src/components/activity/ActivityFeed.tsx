@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from 'convex/react';
+import { useEffect, useRef } from 'react';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -11,6 +12,7 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useCelebration } from '@/components/ui/CelebrationAnimation';
 import { cn } from '@/lib/utils';
 
 interface ActivityLog {
@@ -20,6 +22,8 @@ interface ActivityLog {
   action: 'card_added' | 'card_removed' | 'achievement_earned';
   metadata?: {
     cardId?: string;
+    cardName?: string;
+    setName?: string;
     variant?: string;
     quantity?: number;
     achievementKey?: string;
@@ -116,40 +120,42 @@ function getActionDisplay(action: ActivityLog['action']) {
 /**
  * Format the activity description based on action type and metadata
  */
-function formatActivityDescription(log: ActivityLog): string {
+function formatActivityDescription(log: ActivityLog): { main: string; sub?: string } {
   const { action, metadata } = log;
 
   switch (action) {
     case 'card_added': {
-      const cardId = metadata?.cardId ?? 'a card';
+      const cardName = metadata?.cardName ?? metadata?.cardId ?? 'a card';
+      const setName = metadata?.setName;
       const variant = metadata?.variant;
       const quantity = metadata?.quantity ?? 1;
 
-      let desc = `Added ${cardId}`;
+      let desc = `Added ${cardName}`;
       if (variant && variant !== 'normal') {
         desc += ` (${variant})`;
       }
       if (quantity > 1) {
         desc += ` x${quantity}`;
       }
-      return desc;
+      return { main: desc, sub: setName };
     }
     case 'card_removed': {
-      const cardId = metadata?.cardId ?? 'a card';
+      const cardName = metadata?.cardName ?? metadata?.cardId ?? 'a card';
+      const setName = metadata?.setName;
       const variantsRemoved = metadata?.variantsRemoved;
 
-      let desc = `Removed ${cardId}`;
+      let desc = `Removed ${cardName}`;
       if (variantsRemoved && variantsRemoved > 1) {
         desc += ` (${variantsRemoved} variants)`;
       }
-      return desc;
+      return { main: desc, sub: setName };
     }
     case 'achievement_earned': {
       const achievementKey = metadata?.achievementKey ?? 'an achievement';
-      return `Earned "${achievementKey}"`;
+      return { main: `Earned "${achievementKey}"` };
     }
     default:
-      return 'Activity logged';
+      return { main: 'Activity logged' };
   }
 }
 
@@ -159,28 +165,73 @@ function formatActivityDescription(log: ActivityLog): string {
 function ActivityItem({ log }: { log: ActivityLog }) {
   const actionDisplay = getActionDisplay(log.action);
   const Icon = actionDisplay.icon;
+  const description = formatActivityDescription(log);
+  const isAchievement = log.action === 'achievement_earned';
 
   return (
-    <div className="flex items-start gap-3 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100">
+    <div
+      className={cn(
+        'flex items-start gap-3 rounded-lg p-3 transition-colors',
+        isAchievement
+          ? 'relative overflow-hidden bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100'
+          : 'bg-gray-50 hover:bg-gray-100'
+      )}
+    >
+      {/* Achievement shimmer effect */}
+      {isAchievement && (
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_3s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+      )}
+
       <div
         className={cn(
-          'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full',
-          actionDisplay.bgColor
+          'relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full',
+          actionDisplay.bgColor,
+          isAchievement && 'animate-glow-pulse'
         )}
       >
         <Icon className={cn('h-4 w-4', actionDisplay.iconColor)} />
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-gray-800">
-          {formatActivityDescription(log)}
+      <div className="relative min-w-0 flex-1">
+        <p
+          className={cn(
+            'truncate text-sm font-medium',
+            isAchievement ? 'text-amber-800' : 'text-gray-800'
+          )}
+        >
+          {description.main}
         </p>
-        <p className="flex items-center gap-1 text-xs text-gray-500">
-          <ClockIcon className="h-3 w-3" />
-          {formatRelativeTime(log._creationTime)}
-        </p>
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          {description.sub && <span className="truncate text-kid-primary">{description.sub}</span>}
+          <span className="flex items-center gap-1">
+            <ClockIcon className="h-3 w-3" />
+            {formatRelativeTime(log._creationTime)}
+          </span>
+        </div>
       </div>
     </div>
   );
+}
+
+/**
+ * Get badge type based on achievement type from metadata
+ */
+function getBadgeType(achievementType?: string): 'gold' | 'silver' | 'bronze' | 'special' {
+  switch (achievementType) {
+    case 'set_complete':
+    case 'milestone_100':
+      return 'gold';
+    case 'milestone_50':
+    case 'type_specialist':
+      return 'silver';
+    case 'milestone_25':
+    case 'first_card':
+      return 'bronze';
+    case 'speed_collector':
+    case 'rare_hunter':
+      return 'special';
+    default:
+      return 'gold';
+  }
 }
 
 /**
@@ -188,11 +239,55 @@ function ActivityItem({ log }: { log: ActivityLog }) {
  */
 export function ActivityFeed({ limit = 10, showHeader = true, className }: ActivityFeedProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
+  const { celebrate } = useCelebration();
+  const seenAchievementsRef = useRef<Set<string>>(new Set());
+  const isInitialLoadRef = useRef(true);
 
   const activity = useQuery(
     api.activityLogs.getRecentActivity,
     profileId ? { profileId: profileId as Id<'profiles'>, limit } : 'skip'
   );
+
+  // Check for new achievements and trigger celebration
+  useEffect(() => {
+    if (!activity || activity.length === 0) return;
+
+    // On initial load, just record all existing achievements without celebrating
+    if (isInitialLoadRef.current) {
+      (activity as ActivityLog[]).forEach((log) => {
+        if (log.action === 'achievement_earned') {
+          seenAchievementsRef.current.add(log._id);
+        }
+      });
+      isInitialLoadRef.current = false;
+      return;
+    }
+
+    // Check for new achievement events
+    const achievementLogs = (activity as ActivityLog[]).filter(
+      (log) => log.action === 'achievement_earned' && !seenAchievementsRef.current.has(log._id)
+    );
+
+    if (achievementLogs.length > 0) {
+      // Get the most recent new achievement
+      const latestAchievement = achievementLogs[0];
+      const achievementKey = latestAchievement.metadata?.achievementKey ?? 'Achievement';
+      const achievementType = latestAchievement.metadata?.achievementType;
+
+      // Trigger celebration
+      celebrate({
+        name: achievementKey,
+        description: 'You earned a new badge!',
+        type: getBadgeType(achievementType),
+        icon: 'trophy',
+      });
+
+      // Mark all new achievements as seen
+      achievementLogs.forEach((log) => {
+        seenAchievementsRef.current.add(log._id);
+      });
+    }
+  }, [activity, celebrate]);
 
   // Loading state
   if (profileLoading || activity === undefined) {
