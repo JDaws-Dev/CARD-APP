@@ -47,6 +47,11 @@
 - [x] Create "My Collection" view aggregating all owned cards
 - [x] Add search functionality for finding Pokemon by name
 - [x] Create filter system (by set, type, Pokemon)
+- [x] Expand set support to include Sword & Shield era (update pokemon-tcg.ts to fetch both series)
+- [ ] Add series filter UI to sets page (tabs or toggle: "Scarlet & Violet", "Sword & Shield", "All Sets")
+- [ ] Add card variant tracking (normal, holofoil, reverse holo) - update Convex schema to store variant type per card entry
+- [ ] Update CardGrid UI to show variant selector when adding cards (icons/badges for Normal, Holo, Reverse Holo)
+- [ ] Display owned variants on card (e.g., "Normal x2, Reverse x1") with distinct visual indicators
 
 ## Phase 3: Achievement System (Weeks 5-6)
 
@@ -245,3 +250,26 @@
 - Streaks: 4 badges (3, 7, 14, 30 days)
 
 **Next steps:** Implement set completion badges (25%, 50%, 75%, 100%)
+
+### 2026-01-15 - Sword & Shield Era Set Support
+
+**Completed tasks:**
+
+- Added `POKEMON_SERIES` constant with Scarlet & Violet and Sword & Shield series
+- Created `getSetsBySeries()` generic function for fetching sets by series name
+- Added `getSwordShieldSets()` function for Sword & Shield era sets
+- Created `getAllSupportedSets()` function that fetches both series and sorts by release date
+- Updated `/api/sets` endpoint to support `?series=` query parameter
+- API returns all sets by default (sorted newest first), can filter by "Scarlet & Violet" or "Sword & Shield"
+- Added 9 new tests for series functionality in pokemon-tcg.ts
+- Added 8 new tests for sets API endpoint
+- All 84 tests passing, ESLint and Prettier checks passing
+
+**Files created/modified:**
+
+- `src/lib/pokemon-tcg.ts` - Added series constants and multi-series fetch functions
+- `src/lib/__tests__/pokemon-tcg.test.ts` - Added 9 tests for series functionality
+- `src/app/api/sets/route.ts` - Updated to support series filtering
+- `src/app/api/sets/__tests__/route.test.ts` - New test file (8 tests)
+
+**Next steps:** Add series filter UI to sets page
