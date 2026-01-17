@@ -78,6 +78,7 @@ These issues were identified during the January 17, 2026 site evaluation and MUS
 - [x] Fix AuthForm styling - Replace blue-600 colors with CardDex brand gradients
 - [x] Add password strength indicator - Visual indicator showing password requirements during signup
 - [ ] Add profile switcher to header - Allow switching between child profiles for families (parent accounts)
+- [ ] Redirect logged-in users from landing page to dashboard - In `/page.tsx`, check auth state and redirect authenticated users to `/dashboard` so they don't see the marketing landing page with the app navbar
 
 ## Multi-TCG Pages Update
 
@@ -168,7 +169,7 @@ Image components lack error handlers, causing silent failures when images don't 
 
 The My Collection page is slow to load. These UI-side optimizations will help.
 
-- [ ] Add React.memo() to ActivityFeed component - Prevent unnecessary re-renders
+- [x] Add React.memo() to ActivityFeed component - Prevent unnecessary re-renders
 - [ ] Add useMemo to CollectionView set grouping logic (lines 115-151) - Cache expensive grouping computation
 - [ ] Add loading="lazy" to CardGrid card images - Defer offscreen image loading
 - [ ] Add loading="lazy" to CollectionView card images - Defer offscreen image loading
@@ -546,6 +547,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Added error handling to CollectionView card images - Replaced 2 raw Next.js Image components with CardImage component in CollectionView (src/components/collection/CollectionView.tsx) for both the "Most Valuable Cards" section and the main card grid. This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling across the collection view. Added comprehensive test suite (4 tests) covering CardImage usage verification, fill mode rendering, empty collection state, and quantity badge display. All tests pass, ESLint and Prettier clean. Commit: bcacd93
 
 - **2026-01-17**: Added error handling to JustPulledMode card images - Replaced 2 raw Next.js Image components with CardImage component in JustPulledMode (src/components/collection/JustPulledMode.tsx) for both the AddedCard animation component and the main card grid. This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling. Maintains the celebration UX even when card images fail to load during pack opening sessions. ESLint and Prettier clean. Commit: 79ae338
+
+- **2026-01-17**: Added React.memo() to ActivityFeed component - Wrapped ActivityFeed, ActivityItem, and ActivityFeedSkeleton components with React.memo to prevent unnecessary re-renders when parent components update but props haven't changed. This optimization improves performance on the dashboard and collection pages where the activity feed is displayed. Added test suite verifying memo wrapping. ESLint and Prettier clean. Commit: 49a586a
 
 ---
 
