@@ -27,6 +27,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'images.ryanmichaelhirst.us',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'en.onepiece-cardgame.com',
         pathname: '/**',
       },
@@ -39,6 +44,11 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'lorcast.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cards.lorcast.io',
         pathname: '/**',
       },
       {
