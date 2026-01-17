@@ -282,7 +282,7 @@ Image components lack error handlers, causing silent failures when images don't 
 - [x] Add onError handlers to DigitalBinder card images - Graceful degradation for binder view
 - [x] Add onError handlers to PackOpeningSimulator - Don't break pack opening experience if image fails
 - [x] Add onError handlers to CollectionView card images (2 Image components) - Show placeholder instead of broken image
-- [ ] Add onError handlers to SearchResults card images - Handle API image failures gracefully
+- [x] Add onError handlers to SearchResults card images - Handle API image failures gracefully
 - [x] Add onError handlers to JustPulledMode card images - Maintain celebration UX even with failed images
 - [ ] Create /public/fallback-card.png - Default placeholder image for all failed card image loads
 - [ ] Extract hardcoded game card URLs from mini-games - Move to config file (PriceEstimationGame, PokemonTypeQuiz, GradeLikeAProGame, RarityGuessingGame)
@@ -1066,3 +1066,5 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - **2026-01-17**: Completed Line 185 landing page multi-TCG update - Changed "Pick Your Sets" Step 1 description from "Browse through all Pokemon card sets and choose which ones you want to track" to "Browse sets from Pokemon, Yu-Gi-Oh!, Lorcana, and more to track your favorites" in `src/app/page.tsx`. This makes the landing page more inclusive of all supported TCGs instead of only mentioning Pokemon. Landing page tests pass (29 tests). ESLint and Prettier clean. Commit: 8b64aa8
 
 - **2026-01-17**: Completed Line 141 Update GameFilter.tsx task - Removed unsupported games (digimon, dragonball, mtg) from `gameSelector.ts`. Updated GameId type from 7 games to 4 games (pokemon, yugioh, onepiece, lorcana). Removed game configurations from GAMES array and CSS variables from GAME_CSS_VARIABLES. Updated 5 test files to reflect the 4-game configuration: gameSelector.test.ts, games.test.ts, GameFilter.test.tsx, GameThemeProvider.test.tsx. All 160 game-related tests pass. ESLint and Prettier clean. Commit: ac8adcb
+
+- **2026-01-17**: Completed Add onError handlers to SearchResults card images task - Replaced raw Next.js Image component with CardImage component (src/components/ui/CardImage.tsx) in SearchResults (src/components/search/SearchResults.tsx). This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling across search results. Created comprehensive test suite (src/components/search/__tests__/SearchResults.test.tsx) with 6 tests covering card rendering, empty state, loading state, error handling, and accessibility. All tests pass, ESLint and Prettier clean. Commit: c53aab3
