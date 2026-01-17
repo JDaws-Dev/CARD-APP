@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: ████████████████████░░░░░░░░  59/89 (66%)
-Remaining: 30 tasks
+Progress: ████████████████████░░░░░░░░  60/89 (67%)
+Remaining: 29 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -15,7 +15,7 @@ Remaining: 30 tasks
 | ------------------------------------ | -------- | --------- |
 | **CRITICAL - Multi-TCG API**         | 0        | **5**     |
 | **CRITICAL - Auth Fixes**            | 0        | **4**     |
-| **HIGH - Performance Optimization**  | 1        | **6**     |
+| **HIGH - Performance Optimization**  | 2        | **5**     |
 | HIGH PRIORITY - Auth & Pricing       | 9        | **1**     |
 | Card Variants                        | 3        | 0         |
 | Achievement System                   | 6        | 0         |
@@ -28,7 +28,7 @@ Remaining: 30 tasks
 | Educational Content                  | 3        | 0         |
 | Additional Features                  | 5        | 0         |
 | Launch Prep                          | 4        | **5**     |
-| **TOTAL**                            | **59**   | **30**    |
+| **TOTAL**                            | **60**   | **29**    |
 
 ### Critical Path for Launch
 
@@ -83,7 +83,7 @@ These API routes are currently hardcoded to Pokemon and must be updated to suppo
 
 My Collection page is slow due to redundant/inefficient Convex queries. These backend optimizations are critical.
 
-- [ ] Create combined `getCollectionWithStats` query - Merge `getCollection` + `getCollectionStats` into single query returning both data and calculated stats
+- [x] Create combined `getCollectionWithStats` query - Merge `getCollection` + `getCollectionStats` into single query returning both data and calculated stats
 - [ ] Create batch query for VirtualCardGrid - Merge 4 queries (collection, wishlist, newlyAdded, priorityCount) into `getSetViewData` single query
 - [ ] Optimize `getNewlyAddedCards` query - Add database-level filtering with composite index `by_profile_and_action_time` instead of collecting all logs and filtering in JS
 - [x] Add composite index to activityLogs - Create index `by_profile_action_time` for (profileId, action, _creationTime) in schema
@@ -207,6 +207,14 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-17: Create combined getCollectionWithStats query
+
+- Added `getCollectionWithStats` query to `convex/collections.ts`
+  - Merges `getCollection` and `getCollectionStats` into a single query
+  - Returns both collection cards and calculated stats (totalCards, uniqueCards, setsStarted, variantBreakdown)
+  - Calculates all stats in a single pass over the data for efficiency
+  - Eliminates redundant database calls when loading collection pages
 
 ### 2026-01-17: Add getCardsByGame and searchCardsByGame queries
 
