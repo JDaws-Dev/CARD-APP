@@ -1,132 +1,673 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NextRequest } from 'next/server';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GET } from '../route';
+import { NextRequest } from 'next/server';
 
-// Mock the pokemon-tcg module
-vi.mock('@/lib/pokemon-tcg', () => ({
-  searchCards: vi.fn(),
+// Mock the Convex HTTP client
+const mockQuery = vi.fn();
+
+vi.mock('convex/browser', () => ({
+  ConvexHttpClient: vi.fn().mockImplementation(() => ({
+    query: mockQuery,
+  })),
 }));
 
-import { searchCards } from '@/lib/pokemon-tcg';
+// Mock environment variable
+const originalEnv = process.env;
+
+// Sample cached card data for different games
+const mockPokemonCard1 = {
+  cardId: 'sv1-25',
+  gameSlug: 'pokemon',
+  setId: 'sv1',
+  name: 'Pikachu',
+  number: '25',
+  supertype: 'Pokémon',
+  subtypes: ['Basic'],
+  types: ['Lightning'],
+  rarity: 'Common',
+  imageSmall: 'https://images.pokemontcg.io/sv1/25.png',
+  imageLarge: 'https://images.pokemontcg.io/sv1/25_hires.png',
+  tcgPlayerUrl: 'https://www.tcgplayer.com/product/123',
+  priceMarket: 0.5,
+};
+
+const mockPokemonCard2 = {
+  cardId: 'sv2-25',
+  gameSlug: 'pokemon',
+  setId: 'sv2',
+  name: 'Pikachu ex',
+  number: '25',
+  supertype: 'Pokémon',
+  subtypes: ['Basic', 'ex'],
+  types: ['Lightning'],
+  rarity: 'Rare',
+  imageSmall: 'https://images.pokemontcg.io/sv2/25.png',
+  imageLarge: 'https://images.pokemontcg.io/sv2/25_hires.png',
+  tcgPlayerUrl: 'https://www.tcgplayer.com/product/456',
+  priceMarket: 12.5,
+};
+
+const mockYugiohCard = {
+  cardId: 'LOB-001',
+  gameSlug: 'yugioh',
+  setId: 'LOB',
+  name: 'Blue-Eyes White Dragon',
+  number: '001',
+  supertype: 'Monster',
+  subtypes: ['Normal'],
+  types: ['Dragon'],
+  rarity: 'Ultra Rare',
+  imageSmall: 'https://images.ygoprodeck.com/images/cards_small/89631139.jpg',
+  imageLarge: 'https://images.ygoprodeck.com/images/cards/89631139.jpg',
+  tcgPlayerUrl: 'https://www.tcgplayer.com/product/789',
+  priceMarket: 25.0,
+};
+
+const mockMtgCard = {
+  cardId: 'dmu-123',
+  gameSlug: 'mtg',
+  setId: 'dmu',
+  name: 'Lightning Bolt',
+  number: '123',
+  supertype: 'Instant',
+  subtypes: [],
+  types: ['Instant'],
+  rarity: 'Common',
+  imageSmall: 'https://cards.scryfall.io/small/front/a/b/abc.jpg',
+  imageLarge: 'https://cards.scryfall.io/large/front/a/b/abc.jpg',
+  tcgPlayerUrl: undefined,
+  priceMarket: undefined,
+};
+
+const mockLorcanaCard = {
+  cardId: 'lorcana-set1-42',
+  gameSlug: 'lorcana',
+  setId: 'set1',
+  name: 'Mickey Mouse',
+  number: '42',
+  supertype: 'Character',
+  subtypes: ['Hero'],
+  types: ['Amber'],
+  rarity: 'Rare',
+  imageSmall: 'https://lorcast.com/images/small/42.png',
+  imageLarge: 'https://lorcast.com/images/large/42.png',
+  tcgPlayerUrl: undefined,
+  priceMarket: undefined,
+};
+
+function createRequest(url: string): NextRequest {
+  return new NextRequest(new URL(url, 'http://localhost'));
+}
 
 describe('GET /api/search', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
+    // Set up environment variable
+    process.env = {
+      ...originalEnv,
+      NEXT_PUBLIC_CONVEX_URL: 'https://test-convex.cloud',
+    };
   });
 
-  it('returns 400 when query is missing', async () => {
-    const request = new NextRequest('http://localhost/api/search');
-
-    const response = await GET(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(data.error).toBe('Search query is required');
-    expect(searchCards).not.toHaveBeenCalled();
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
-  it('returns 400 when query is empty', async () => {
-    const request = new NextRequest('http://localhost/api/search?q=');
+  describe('query parameter validation', () => {
+    it('returns 400 when query is missing', async () => {
+      const request = createRequest('/api/search');
 
-    const response = await GET(request);
-    const data = await response.json();
+      const response = await GET(request);
+      const data = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(data.error).toBe('Search query is required');
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Search query is required');
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+    it('returns 400 when query is empty', async () => {
+      const request = createRequest('/api/search?q=');
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Search query is required');
+    });
+
+    it('returns 400 when query is whitespace only', async () => {
+      const request = createRequest('/api/search?q=%20%20%20');
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Search query is required');
+    });
+
+    it('returns 400 when query is too short', async () => {
+      const request = createRequest('/api/search?q=a');
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Search query must be at least 2 characters');
+    });
+
+    it('returns 400 when query is too long', async () => {
+      const longQuery = 'a'.repeat(101);
+      const request = createRequest(`/api/search?q=${longQuery}`);
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Search query is too long');
+    });
+
+    it('trims whitespace from query', async () => {
+      mockQuery.mockResolvedValue([mockPokemonCard1]);
+
+      const request = createRequest('/api/search?q=%20Pikachu%20');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.query).toBe('Pikachu');
+      expect(mockQuery).toHaveBeenCalledWith(expect.anything(), {
+        gameSlug: 'pokemon',
+        searchTerm: 'Pikachu',
+        limit: 20,
+      });
+    });
+
+    it('accepts exactly 2 character query', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=ab');
+      const response = await GET(request);
+
+      expect(response.status).toBe(200);
+    });
+
+    it('accepts exactly 100 character query', async () => {
+      mockQuery.mockResolvedValue([]);
+      const query = 'a'.repeat(100);
+
+      const request = createRequest(`/api/search?q=${query}`);
+      const response = await GET(request);
+
+      expect(response.status).toBe(200);
+    });
   });
 
-  it('returns 400 when query is too short', async () => {
-    const request = new NextRequest('http://localhost/api/search?q=a');
+  describe('game parameter handling', () => {
+    it('defaults to pokemon when no game specified', async () => {
+      mockQuery.mockResolvedValue([mockPokemonCard1, mockPokemonCard2]);
 
-    const response = await GET(request);
-    const data = await response.json();
+      const request = createRequest('/api/search?q=Pikachu');
+      const response = await GET(request);
+      const data = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(data.error).toBe('Search query must be at least 2 characters');
+      expect(response.status).toBe(200);
+      expect(data.game).toBe('pokemon');
+      expect(mockQuery).toHaveBeenCalledWith(expect.anything(), {
+        gameSlug: 'pokemon',
+        searchTerm: 'Pikachu',
+        limit: 20,
+      });
+    });
+
+    it('returns pokemon cards when game=pokemon', async () => {
+      mockQuery.mockResolvedValue([mockPokemonCard1, mockPokemonCard2]);
+
+      const request = createRequest('/api/search?q=Pikachu&game=pokemon');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.game).toBe('pokemon');
+      expect(data.data).toHaveLength(2);
+      expect(data.count).toBe(2);
+    });
+
+    it('returns yugioh cards when game=yugioh', async () => {
+      mockQuery.mockResolvedValue([mockYugiohCard]);
+
+      const request = createRequest('/api/search?q=Dragon&game=yugioh');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.game).toBe('yugioh');
+      expect(data.data).toHaveLength(1);
+      expect(data.data[0].name).toBe('Blue-Eyes White Dragon');
+      expect(mockQuery).toHaveBeenCalledWith(expect.anything(), {
+        gameSlug: 'yugioh',
+        searchTerm: 'Dragon',
+        limit: 20,
+      });
+    });
+
+    it('returns mtg cards when game=mtg', async () => {
+      mockQuery.mockResolvedValue([mockMtgCard]);
+
+      const request = createRequest('/api/search?q=Lightning&game=mtg');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.game).toBe('mtg');
+      expect(data.data).toHaveLength(1);
+    });
+
+    it('returns lorcana cards when game=lorcana', async () => {
+      mockQuery.mockResolvedValue([mockLorcanaCard]);
+
+      const request = createRequest('/api/search?q=Mickey&game=lorcana');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.game).toBe('lorcana');
+      expect(data.data).toHaveLength(1);
+      expect(data.data[0].name).toBe('Mickey Mouse');
+    });
+
+    it('accepts all valid game slugs', async () => {
+      const validGames = [
+        'pokemon',
+        'yugioh',
+        'mtg',
+        'onepiece',
+        'lorcana',
+        'digimon',
+        'dragonball',
+      ];
+
+      for (const game of validGames) {
+        mockQuery.mockResolvedValue([]);
+        const request = createRequest(`/api/search?q=test&game=${game}`);
+        const response = await GET(request);
+
+        expect(response.status).toBe(200);
+        const data = await response.json();
+        expect(data.game).toBe(game);
+      }
+    });
+
+    it('returns 400 for invalid game parameter', async () => {
+      const request = createRequest('/api/search?q=Pikachu&game=invalidgame');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Invalid game parameter');
+      expect(data.validOptions).toContain('pokemon');
+      expect(data.validOptions).toContain('yugioh');
+      expect(data.validOptions).toContain('mtg');
+      expect(data.validOptions).toContain('lorcana');
+      expect(data.received).toBe('invalidgame');
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
   });
 
-  it('returns 400 when query is too long', async () => {
-    const longQuery = 'a'.repeat(101);
-    const request = new NextRequest(`http://localhost/api/search?q=${longQuery}`);
+  describe('limit parameter handling', () => {
+    it('defaults to limit of 20', async () => {
+      mockQuery.mockResolvedValue([]);
 
-    const response = await GET(request);
-    const data = await response.json();
+      const request = createRequest('/api/search?q=test');
+      const response = await GET(request);
+      const data = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(data.error).toBe('Search query is too long');
+      expect(response.status).toBe(200);
+      expect(data.limit).toBe(20);
+      expect(mockQuery).toHaveBeenCalledWith(expect.anything(), {
+        gameSlug: 'pokemon',
+        searchTerm: 'test',
+        limit: 20,
+      });
+    });
+
+    it('respects custom limit parameter', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=Mewtwo&limit=10');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.limit).toBe(10);
+      expect(mockQuery).toHaveBeenCalledWith(expect.anything(), {
+        gameSlug: 'pokemon',
+        searchTerm: 'Mewtwo',
+        limit: 10,
+      });
+    });
+
+    it('clamps limit to max of 50', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=Eevee&limit=100');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.limit).toBe(50);
+      expect(mockQuery).toHaveBeenCalledWith(expect.anything(), {
+        gameSlug: 'pokemon',
+        searchTerm: 'Eevee',
+        limit: 50,
+      });
+    });
+
+    it('clamps limit to min of 1', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=Eevee&limit=0');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.limit).toBe(1);
+      expect(mockQuery).toHaveBeenCalledWith(expect.anything(), {
+        gameSlug: 'pokemon',
+        searchTerm: 'Eevee',
+        limit: 1,
+      });
+    });
+
+    it('clamps negative limit to min of 1', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=test&limit=-5');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.limit).toBe(1);
+    });
+
+    it('uses default limit for non-numeric limit parameter', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=test&limit=abc');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.limit).toBe(20);
+    });
   });
 
-  it('returns cards for valid query', async () => {
-    const mockCards = [
-      { id: 'sv1-25', name: 'Pikachu', images: { small: 'url1', large: 'url2' } },
-      { id: 'sv2-25', name: 'Pikachu ex', images: { small: 'url3', large: 'url4' } },
-    ];
-    vi.mocked(searchCards).mockResolvedValueOnce(mockCards);
+  describe('response structure', () => {
+    it('returns correctly transformed card data', async () => {
+      mockQuery.mockResolvedValue([mockPokemonCard1]);
 
-    const request = new NextRequest('http://localhost/api/search?q=Pikachu');
+      const request = createRequest('/api/search?q=Pikachu');
+      const response = await GET(request);
+      const data = await response.json();
 
-    const response = await GET(request);
-    const data = await response.json();
+      expect(response.status).toBe(200);
+      expect(data.data).toHaveLength(1);
 
-    expect(response.status).toBe(200);
-    expect(data).toEqual(mockCards);
-    expect(searchCards).toHaveBeenCalledWith('Pikachu', 20);
+      const card = data.data[0];
+      expect(card.id).toBe('sv1-25');
+      expect(card.name).toBe('Pikachu');
+      expect(card.supertype).toBe('Pokémon');
+      expect(card.subtypes).toEqual(['Basic']);
+      expect(card.types).toEqual(['Lightning']);
+      expect(card.number).toBe('25');
+      expect(card.rarity).toBe('Common');
+      expect(card.images).toEqual({
+        small: 'https://images.pokemontcg.io/sv1/25.png',
+        large: 'https://images.pokemontcg.io/sv1/25_hires.png',
+      });
+      expect(card.tcgplayer).toEqual({
+        url: 'https://www.tcgplayer.com/product/123',
+        prices: {
+          normal: { market: 0.5 },
+        },
+      });
+      expect(card.set).toEqual({
+        id: 'sv1',
+        name: '',
+      });
+      expect(card.gameSlug).toBe('pokemon');
+    });
+
+    it('handles cards without tcgplayer data', async () => {
+      mockQuery.mockResolvedValue([mockMtgCard]);
+
+      const request = createRequest('/api/search?q=Lightning&game=mtg');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      const card = data.data[0];
+      expect(card.tcgplayer).toBeUndefined();
+    });
+
+    it('handles cards with tcgplayer url but no price', async () => {
+      const cardWithUrlNoPrice = {
+        ...mockPokemonCard1,
+        priceMarket: undefined,
+      };
+      mockQuery.mockResolvedValue([cardWithUrlNoPrice]);
+
+      const request = createRequest('/api/search?q=Pikachu');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      const card = data.data[0];
+      expect(card.tcgplayer).toEqual({
+        url: 'https://www.tcgplayer.com/product/123',
+        prices: undefined,
+      });
+    });
+
+    it('includes query in response', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=Charizard');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(data.query).toBe('Charizard');
+    });
+
+    it('includes game in response', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=test&game=yugioh');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(data.game).toBe('yugioh');
+    });
+
+    it('includes count in response', async () => {
+      mockQuery.mockResolvedValue([mockPokemonCard1, mockPokemonCard2]);
+
+      const request = createRequest('/api/search?q=Pikachu');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(data.count).toBe(2);
+    });
+
+    it('includes limit in response', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=test&limit=30');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(data.limit).toBe(30);
+    });
+
+    it('includes availableGames in response', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=test');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(data.availableGames).toEqual([
+        'pokemon',
+        'yugioh',
+        'mtg',
+        'onepiece',
+        'lorcana',
+        'digimon',
+        'dragonball',
+      ]);
+    });
+
+    it('returns empty array for no matches', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=NonexistentCard');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.data).toEqual([]);
+      expect(data.count).toBe(0);
+    });
   });
 
-  it('trims whitespace from query', async () => {
-    const mockCards = [
-      { id: 'sv1-1', name: 'Charizard', images: { small: 'url1', large: 'url2' } },
-    ];
-    vi.mocked(searchCards).mockResolvedValueOnce(mockCards);
+  describe('error handling', () => {
+    it('returns 500 when NEXT_PUBLIC_CONVEX_URL is not set', async () => {
+      delete process.env.NEXT_PUBLIC_CONVEX_URL;
 
-    const request = new NextRequest('http://localhost/api/search?q=%20Charizard%20');
+      const request = createRequest('/api/search?q=Pikachu');
+      const response = await GET(request);
+      const data = await response.json();
 
-    const response = await GET(request);
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Server configuration error');
+    });
 
-    expect(response.status).toBe(200);
-    expect(searchCards).toHaveBeenCalledWith('Charizard', 20);
+    it('returns 500 on Convex query failure', async () => {
+      mockQuery.mockRejectedValue(new Error('Convex connection failed'));
+
+      const request = createRequest('/api/search?q=Pikachu');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Failed to search cards');
+      expect(data.details).toBe('Convex connection failed');
+    });
+
+    it('handles non-Error exceptions gracefully', async () => {
+      mockQuery.mockRejectedValue('String error');
+
+      const request = createRequest('/api/search?q=Pikachu');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Failed to search cards');
+      expect(data.details).toBe('Unknown error');
+    });
   });
 
-  it('respects custom limit parameter', async () => {
-    const mockCards = [];
-    vi.mocked(searchCards).mockResolvedValueOnce(mockCards);
+  describe('backward compatibility', () => {
+    it('works without game parameter (defaults to pokemon)', async () => {
+      mockQuery.mockResolvedValue([mockPokemonCard1]);
 
-    const request = new NextRequest('http://localhost/api/search?q=Mewtwo&limit=10');
+      const request = createRequest('/api/search?q=Pikachu');
+      const response = await GET(request);
+      const data = await response.json();
 
-    await GET(request);
+      expect(response.status).toBe(200);
+      expect(data.game).toBe('pokemon');
+      expect(data.data).toHaveLength(1);
+    });
 
-    expect(searchCards).toHaveBeenCalledWith('Mewtwo', 10);
+    it('supports limit parameter without game parameter', async () => {
+      mockQuery.mockResolvedValue([]);
+
+      const request = createRequest('/api/search?q=test&limit=15');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.game).toBe('pokemon');
+      expect(data.limit).toBe(15);
+    });
   });
 
-  it('clamps limit to max of 50', async () => {
-    vi.mocked(searchCards).mockResolvedValueOnce([]);
+  describe('cross-game search', () => {
+    it('searches correctly within specified game', async () => {
+      // Same search term, different games return different results
+      mockQuery.mockResolvedValue([mockYugiohCard]);
 
-    const request = new NextRequest('http://localhost/api/search?q=Eevee&limit=100');
+      const request = createRequest('/api/search?q=Dragon&game=yugioh');
+      const response = await GET(request);
+      const data = await response.json();
 
-    await GET(request);
+      expect(response.status).toBe(200);
+      expect(data.game).toBe('yugioh');
+      expect(data.data[0].gameSlug).toBe('yugioh');
+    });
 
-    expect(searchCards).toHaveBeenCalledWith('Eevee', 50);
-  });
+    it('onepiece search works correctly', async () => {
+      const mockOnePieceCard = {
+        ...mockPokemonCard1,
+        cardId: 'op-001',
+        gameSlug: 'onepiece',
+        setId: 'op1',
+        name: 'Monkey D. Luffy',
+      };
+      mockQuery.mockResolvedValue([mockOnePieceCard]);
 
-  it('clamps limit to min of 1', async () => {
-    vi.mocked(searchCards).mockResolvedValueOnce([]);
+      const request = createRequest('/api/search?q=Luffy&game=onepiece');
+      const response = await GET(request);
+      const data = await response.json();
 
-    const request = new NextRequest('http://localhost/api/search?q=Eevee&limit=0');
+      expect(response.status).toBe(200);
+      expect(data.game).toBe('onepiece');
+    });
 
-    await GET(request);
+    it('digimon search works correctly', async () => {
+      const mockDigimonCard = {
+        ...mockPokemonCard1,
+        cardId: 'bt1-001',
+        gameSlug: 'digimon',
+        setId: 'bt1',
+        name: 'Agumon',
+      };
+      mockQuery.mockResolvedValue([mockDigimonCard]);
 
-    expect(searchCards).toHaveBeenCalledWith('Eevee', 1);
-  });
+      const request = createRequest('/api/search?q=Agumon&game=digimon');
+      const response = await GET(request);
+      const data = await response.json();
 
-  it('returns 500 on API failure', async () => {
-    vi.mocked(searchCards).mockRejectedValueOnce(new Error('API Error'));
+      expect(response.status).toBe(200);
+      expect(data.game).toBe('digimon');
+    });
 
-    const request = new NextRequest('http://localhost/api/search?q=Pikachu');
+    it('dragonball search works correctly', async () => {
+      const mockDragonBallCard = {
+        ...mockPokemonCard1,
+        cardId: 'fb01-001',
+        gameSlug: 'dragonball',
+        setId: 'fb01',
+        name: 'Goku',
+      };
+      mockQuery.mockResolvedValue([mockDragonBallCard]);
 
-    const response = await GET(request);
-    const data = await response.json();
+      const request = createRequest('/api/search?q=Goku&game=dragonball');
+      const response = await GET(request);
+      const data = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(data.error).toBe('Failed to search cards');
+      expect(response.status).toBe(200);
+      expect(data.game).toBe('dragonball');
+    });
   });
 });
