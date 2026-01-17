@@ -16,6 +16,10 @@ import {
   SetSymbolMatchingButton,
 } from '@/components/games/SetSymbolMatchingGame';
 import {
+  PokemonTypeQuiz,
+  PokemonTypeQuizButton,
+} from '@/components/games/PokemonTypeQuiz';
+import {
   BookOpenIcon,
   SparklesIcon,
   ArrowRightIcon,
@@ -24,12 +28,14 @@ import {
   StarIcon,
   QuestionMarkCircleIcon,
   PuzzlePieceIcon,
+  FireIcon,
 } from '@heroicons/react/24/solid';
 
 export default function LearnPage() {
   const [isGradeGameOpen, setIsGradeGameOpen] = useState(false);
   const [isRarityGameOpen, setIsRarityGameOpen] = useState(false);
   const [isSetSymbolGameOpen, setIsSetSymbolGameOpen] = useState(false);
+  const [isTypeQuizOpen, setIsTypeQuizOpen] = useState(false);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -151,6 +157,34 @@ export default function LearnPage() {
         isOpen={isSetSymbolGameOpen}
         onClose={() => setIsSetSymbolGameOpen(false)}
       />
+
+      {/* Educational Mini-Game - Pokemon Type Quiz */}
+      <div className="mb-8 rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 to-red-50 p-6 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-md">
+              <FireIcon className="h-7 w-7 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900">Pokemon Type Quiz</h2>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  <StarIcon className="h-3 w-3" aria-hidden="true" />
+                  Mini-Game
+                </span>
+              </div>
+              <p className="text-gray-600">
+                Test your knowledge of Pokemon types! Look at cards and guess whether they&apos;re
+                Fire, Water, Grass, or other types. Learn the energy types used in the TCG!
+              </p>
+            </div>
+          </div>
+          <PokemonTypeQuizButton onClick={() => setIsTypeQuizOpen(true)} />
+        </div>
+      </div>
+
+      {/* Pokemon Type Quiz Modal */}
+      <PokemonTypeQuiz isOpen={isTypeQuizOpen} onClose={() => setIsTypeQuizOpen(false)} />
 
       <LearnToCollect />
     </main>
