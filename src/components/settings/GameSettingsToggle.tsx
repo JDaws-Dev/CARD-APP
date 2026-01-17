@@ -5,14 +5,10 @@ import { cn } from '@/lib/utils';
 import { type GameId, type GameInfo, getAllGames, formatEnabledGames } from '@/lib/gameSelector';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import {
-  GAME_ICONS,
   PokemonIcon,
   YugiohIcon,
   OnePieceIcon,
-  DragonBallIcon,
   LorcanaIcon,
-  DigimonIcon,
-  MtgIcon,
   GenericTcgIcon,
 } from '@/components/icons/tcg';
 import {
@@ -26,14 +22,15 @@ import {
 // GAME ICON COMPONENT LOOKUP
 // ============================================================================
 
+/**
+ * Icon components for supported games only.
+ * We only support 4 games: Pokemon, Yu-Gi-Oh!, One Piece, and Disney Lorcana.
+ */
 const ICON_COMPONENTS: Record<string, React.ComponentType<{ className?: string }>> = {
   pokemon: PokemonIcon,
   yugioh: YugiohIcon,
   onepiece: OnePieceIcon,
-  dragonball: DragonBallIcon,
   lorcana: LorcanaIcon,
-  digimon: DigimonIcon,
-  mtg: MtgIcon,
 };
 
 function getIconComponent(gameId: string): React.ComponentType<{ className?: string }> {
@@ -59,9 +56,9 @@ export function GameSettingsToggleSkeleton() {
       {/* Current selection skeleton */}
       <div className="h-10 w-full rounded-xl bg-gray-200" />
 
-      {/* Game grid skeleton */}
+      {/* Game grid skeleton - 4 supported games */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-        {Array.from({ length: 7 }).map((_, i) => (
+        {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="h-28 rounded-xl bg-gray-200" />
         ))}
       </div>

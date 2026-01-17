@@ -32,7 +32,7 @@ vi.mock('@/components/providers/GameSelectorProvider', () => ({
   }),
 }));
 
-// Mock game selector library
+// Mock game selector library - only 4 supported games
 vi.mock('@/lib/gameSelector', () => ({
   getAllGames: () => [
     {
@@ -60,16 +60,28 @@ vi.mock('@/lib/gameSelector', () => ({
       textColor: 'text-purple-800',
     },
     {
-      id: 'mtg',
-      name: 'Magic: The Gathering',
-      shortName: 'Magic',
-      tagline: 'Tap into your power!',
-      gradientFrom: 'from-amber-600',
-      gradientTo: 'to-yellow-700',
-      primaryColor: 'text-amber-700',
-      bgColor: 'bg-amber-50',
-      borderColor: 'border-amber-300',
-      textColor: 'text-amber-900',
+      id: 'onepiece',
+      name: 'One Piece Card Game',
+      shortName: 'One Piece',
+      tagline: 'Set sail for adventure!',
+      gradientFrom: 'from-red-500',
+      gradientTo: 'to-orange-500',
+      primaryColor: 'text-red-600',
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-300',
+      textColor: 'text-red-800',
+    },
+    {
+      id: 'lorcana',
+      name: 'Disney Lorcana',
+      shortName: 'Lorcana',
+      tagline: 'Magic awaits!',
+      gradientFrom: 'from-blue-400',
+      gradientTo: 'to-cyan-500',
+      primaryColor: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-300',
+      textColor: 'text-blue-800',
     },
   ],
   formatEnabledGames: (games: { primary: string; enabled: string[] }) => {
@@ -79,7 +91,7 @@ vi.mock('@/lib/gameSelector', () => ({
   },
 }));
 
-// Mock TCG icons
+// Mock TCG icons - only 4 supported games
 vi.mock('@/components/icons/tcg', () => ({
   PokemonIcon: ({ className }: { className?: string }) => (
     <svg data-testid="pokemon-icon" className={className} />
@@ -90,26 +102,12 @@ vi.mock('@/components/icons/tcg', () => ({
   OnePieceIcon: ({ className }: { className?: string }) => (
     <svg data-testid="onepiece-icon" className={className} />
   ),
-  DragonBallIcon: ({ className }: { className?: string }) => (
-    <svg data-testid="dragonball-icon" className={className} />
-  ),
   LorcanaIcon: ({ className }: { className?: string }) => (
     <svg data-testid="lorcana-icon" className={className} />
-  ),
-  DigimonIcon: ({ className }: { className?: string }) => (
-    <svg data-testid="digimon-icon" className={className} />
-  ),
-  MtgIcon: ({ className }: { className?: string }) => (
-    <svg data-testid="mtg-icon" className={className} />
   ),
   GenericTcgIcon: ({ className }: { className?: string }) => (
     <svg data-testid="generic-icon" className={className} />
   ),
-  GAME_ICONS: {
-    pokemon: () => <svg />,
-    yugioh: () => <svg />,
-    mtg: () => <svg />,
-  },
 }));
 
 // Reset mocks before each test
@@ -141,10 +139,10 @@ describe('GameSettingsToggleSkeleton', () => {
     expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
-  it('should render 7 game card skeletons', () => {
+  it('should render 4 game card skeletons', () => {
     const { container } = render(<GameSettingsToggleSkeleton />);
     const skeletonCards = container.querySelectorAll('.grid > div');
-    expect(skeletonCards.length).toBe(7);
+    expect(skeletonCards.length).toBe(4);
   });
 });
 
@@ -193,10 +191,11 @@ describe('GameSettingsToggle', () => {
     it('should render all game cards', () => {
       render(<GameSettingsToggle />);
 
-      // Using the mocked 3 games
+      // Using the mocked 4 supported games
       expect(screen.getByLabelText('Disable Pokémon TCG')).toBeInTheDocument();
       expect(screen.getByLabelText('Enable Yu-Gi-Oh!')).toBeInTheDocument();
-      expect(screen.getByLabelText('Enable Magic: The Gathering')).toBeInTheDocument();
+      expect(screen.getByLabelText('Enable One Piece Card Game')).toBeInTheDocument();
+      expect(screen.getByLabelText('Enable Disney Lorcana')).toBeInTheDocument();
     });
 
     it('should show selected state for enabled games', () => {
@@ -311,7 +310,7 @@ describe('GameSettingsToggle', () => {
 
       expect(screen.getByLabelText('Disable Pokémon TCG')).toHaveAttribute('aria-pressed', 'true');
       expect(screen.getByLabelText('Disable Yu-Gi-Oh!')).toHaveAttribute('aria-pressed', 'true');
-      expect(screen.getByLabelText('Enable Magic: The Gathering')).toHaveAttribute(
+      expect(screen.getByLabelText('Enable One Piece Card Game')).toHaveAttribute(
         'aria-pressed',
         'false'
       );
@@ -320,13 +319,13 @@ describe('GameSettingsToggle', () => {
     it('should have accessible labels for set main buttons', () => {
       mockSelectedGames = {
         primary: 'pokemon' as const,
-        enabled: ['pokemon', 'yugioh', 'mtg'] as const,
+        enabled: ['pokemon', 'yugioh', 'lorcana'] as const,
       };
 
       render(<GameSettingsToggle />);
 
       expect(screen.getByLabelText('Set Yu-Gi-Oh! as main game')).toBeInTheDocument();
-      expect(screen.getByLabelText('Set Magic: The Gathering as main game')).toBeInTheDocument();
+      expect(screen.getByLabelText('Set Disney Lorcana as main game')).toBeInTheDocument();
     });
 
     it('should have title attribute on main game indicator', () => {
