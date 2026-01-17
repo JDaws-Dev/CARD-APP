@@ -214,6 +214,36 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 
 ## Progress
 
+### 2026-01-17: Create health check endpoint at /api/health
+
+- **Created `/api/health` endpoint for uptime monitoring**
+  - GET endpoint returns system health status
+  - Returns `healthy`, `degraded`, or `unhealthy` status
+  - HTTP 200 for healthy/degraded, HTTP 503 for unhealthy
+- **Health checks implemented:**
+  - Database connectivity (Convex) with latency measurement
+  - Environment configuration validation (NEXT_PUBLIC_CONVEX_URL)
+  - Server uptime tracking in seconds
+  - Version string from package.json
+- **Response structure includes:**
+  - `status`: 'healthy' | 'degraded' | 'unhealthy'
+  - `timestamp`: ISO 8601 formatted timestamp
+  - `version`: Application version string
+  - `uptime`: Server uptime in seconds
+  - `checks.database`: status, latencyMs, error (if any)
+  - `checks.environment`: status, convexConfigured boolean
+- **Wrote 12 test cases covering:**
+  - Healthy status when all systems operational
+  - Degraded status when database fails but environment configured
+  - Unhealthy status when environment not configured (503)
+  - Timestamp format validation
+  - Database latency measurement
+  - Uptime tracking
+  - Version string inclusion
+  - Response structure validation
+  - Error handling for non-Error exceptions
+- All 12 tests pass, ESLint clean, Prettier formatted
+
 ### 2026-01-17: Update /api/filter route to support multi-TCG game selection
 
 - **Added `filterCardsByGame` Convex query to `convex/dataPopulation.ts`**
@@ -2411,7 +2441,7 @@ These tasks address backend requirements for SEO and infrastructure improvements
 
 - [ ] Set up error tracking (Sentry integration) - Capture runtime errors with context
 - [ ] Add performance monitoring - Track slow queries and page loads
-- [ ] Create health check endpoint - /api/health for uptime monitoring
+- [x] Create health check endpoint - /api/health for uptime monitoring
 - [ ] Add API response time logging - Track p50, p95, p99 latency
 
 ---
