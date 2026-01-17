@@ -2623,7 +2623,7 @@ These tasks address backend requirements for SEO and infrastructure improvements
 - [ ] Set up error tracking (Sentry integration) - Capture runtime errors with context
 - [ ] Add performance monitoring - Track slow queries and page loads
 - [x] Create health check endpoint - /api/health for uptime monitoring
-- [ ] Add API response time logging - Track p50, p95, p99 latency
+- [x] Add API response time logging - Track p50, p95, p99 latency
 
 ---
 
@@ -3351,3 +3351,43 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
 - All 144 activityLogs tests pass
 - ESLint passes
 - Prettier formatting verified
+
+---
+
+### 2026-01-17: Add API response time logging with p50, p95, p99 percentiles
+
+- **Created `src/lib/responseTimeLogs.ts` response time tracking utility:**
+  - In-memory sliding window storage (default 5 minutes, configurable)
+  - Circular buffer for memory-efficient sample storage (max 1000 samples per endpoint)
+  - Periodic cleanup of expired entries (every 1 minute)
+- **Percentile statistics:**
+  - Calculate p50, p95, p99 latencies for performance monitoring
+  - Track min, max, and average response times
+  - Record success/client error/server error counts per endpoint
+- **API utilities:**
+  - `recordResponseTime()` - Record a sample for an endpoint
+  - `getPercentileStats()` - Get percentile stats for a single endpoint
+  - `getEndpointStats()` - Get full stats including time range
+  - `getAllEndpointStats()` - Get stats for all tracked endpoints
+  - `getEndpointSummaries()` - Get summaries with error rates
+  - `withResponseTimeLogging()` - HOF to wrap route handlers
+  - `measureResponseTime()` - Middleware-style measurement function
+  - `addResponseTimeHeader()` - Add X-Response-Time header to responses
+- **Export and monitoring:**
+  - `exportMetrics()` - Export stats in format suitable for external monitoring
+  - `formatPercentileStats()` - Human-readable string formatting
+  - `logResponseTimeStats()` - Console logging for debugging
+- **Wrote 45 tests in `src/lib/__tests__/responseTimeLogs.test.ts`:**
+  - recordResponseTime tests (5)
+  - getPercentileStats tests (7)
+  - getEndpointStats tests (4)
+  - getAllEndpointStats tests (3)
+  - getEndpointSummaries tests (3)
+  - addResponseTimeHeader tests (2)
+  - withResponseTimeLogging tests (4)
+  - measureResponseTime tests (2)
+  - Store management tests (5)
+  - formatPercentileStats tests (2)
+  - exportMetrics tests (5)
+  - Integration tests (3)
+- All 45 tests pass, ESLint clean, Prettier formatted
