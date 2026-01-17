@@ -275,7 +275,7 @@ export const ActivityFeed = memo(function ActivityFeed({
   const isInitialLoadRef = useRef(true);
 
   const activity = useQuery(
-    api.activityLogs.getRecentActivity,
+    api.activityLogs.getRecentActivityWithNames,
     profileId ? { profileId: profileId as Id<'profiles'>, limit } : 'skip'
   );
 

@@ -13,7 +13,7 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 
 | Section                                   | Complete | Remaining |
 | ----------------------------------------- | -------- | --------- |
-| **HIGH - Sets Page Card Viewing & Sorting** | 0      | **12**    |
+| **HIGH - Sets Page Card Viewing & Sorting** | 4      | **15**    |
 | **CRITICAL - Site Evaluation Fixes**      | 7        | **1**     |
 | **CRITICAL - Remove Unsupported Games**   | 0        | **7**     |
 | **CRITICAL - Settings Permissions**       | 0        | **7**     |
@@ -51,11 +51,11 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **220**   |
+| **TOTAL**                                 | **114**  | **223**   |
 
 ### Priority Order for Remaining Tasks
 
-1. **HIGH - Sets Page Card Viewing & Sorting** (12 tasks) - Fix card overlap, enlarged cards, high-res images, magnifying glass, sorting by type/owned/price/number
+1. **HIGH - Sets Page Card Viewing & Sorting** (15 remaining) - Fix card overlap, variant badge clicks, enlarged cards, high-res images, magnifying glass, sorting
 2. **CRITICAL - Site Evaluation Fixes** (1 task) - Profile switcher for families
 3. **CRITICAL - Remove Unsupported Games** (7 tasks) - Remove Digimon, Dragon Ball, MTG from UI (only support Pokemon, One Piece, Lorcana, Yu-Gi-Oh!)
 4. **CRITICAL - Settings Permissions** (7 tasks) - Parent vs kid settings access control
@@ -93,6 +93,25 @@ These features improve the card viewing experience on the sets page (`/sets/[set
 - [ ] **Use high-res images** - Use `imageLarge` from the API instead of `imageSmall` for the enlarged card view
 - [ ] **Magnifying glass icon** - Add magnifying glass icon in bottom-left corner of card thumbnails for quick close-up view
 - [ ] **Card detail modal** - Create modal component that shows full card details with high-res image when magnifying glass is clicked
+
+### Variant Indicator Badges (Visual at-a-glance tracking)
+
+Show which variants exist for each card and which ones the user owns. Badges appear on each card thumbnail for quick scanning while scrolling.
+
+**Variant abbreviations:**
+- **N** = Normal
+- **H** = Holo/Holofoil
+- **R** = Reverse Holo
+- **1H** = 1st Edition Holo
+- **1N** = 1st Edition Normal
+
+- [x] **Variant badge component** - Create small badge component that shows variant letter (N, H, R, 1H, 1N) with owned/unowned state ✅ Already exists in VirtualCardGrid.tsx
+- [x] **Badge styling: owned vs unowned** - Owned variants are lit up/colored, unowned variants are grayed out with lower opacity ✅ Fixed - was only showing owned, now shows all with proper styling
+- [x] **Badge row on card thumbnail** - Add horizontal row of variant badges at bottom of each card thumbnail ✅ Already exists
+- [x] **Determine available variants per card** - Logic to determine which variants are possible for each card (not all cards have all variants) ✅ Uses getAvailableVariants() from TCGPlayer prices
+- [ ] **Badge click to add variant** - Clicking a grayed-out badge adds that variant to collection
+- [ ] **Badge click to view/remove variant** - Clicking a lit badge shows options to view details or remove from collection
+- [ ] **Responsive badge sizing** - Badges should be readable but not overwhelming at different card sizes
 
 ### Sorting Options for Sets Page
 

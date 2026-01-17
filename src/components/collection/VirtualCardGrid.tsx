@@ -173,6 +173,36 @@ function SparkleStarIcon({
   );
 }
 
+// Card Added Celebration Animation Component
+function CardAddedCelebration({
+  card,
+  onAnimationEnd,
+}: {
+  card: PokemonCard;
+  onAnimationEnd: () => void;
+}) {
+  useEffect(() => {
+    const timer = setTimeout(onAnimationEnd, 1500);
+    return () => clearTimeout(timer);
+  }, [onAnimationEnd]);
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center">
+      <div className="animate-just-pulled-pop relative">
+        <div className="relative h-64 w-44 overflow-hidden rounded-xl shadow-2xl ring-4 ring-kid-success">
+          <CardImage src={card.images.small} alt={card.name} fill className="object-contain" />
+        </div>
+        <div className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-kid-success text-white shadow-lg">
+          <CheckIcon className="h-6 w-6" strokeWidth={3} />
+        </div>
+        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-kid-success px-4 py-1 text-sm font-bold text-white shadow-lg">
+          Added!
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Variant selector popup component
 interface VariantSelectorProps {
   card: PokemonCard;
@@ -395,6 +425,9 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
     null
   );
 
+  // State for card added celebration animation
+  const [celebrationCard, setCelebrationCard] = useState<PokemonCard | null>(null);
+
   // Convex queries and mutations
   const collection = useQuery(
     api.collections.getCollectionBySet,
@@ -530,6 +563,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
             setName,
             variant: availableVariants[0],
           });
+          setCelebrationCard(card);
           showXPGain(2, 'New card!');
         } else {
           removeCard({
@@ -552,6 +586,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
           setName,
           variant: availableVariants[0],
         });
+        setCelebrationCard(card);
         showXPGain(2, 'New card!');
         return;
       }
@@ -588,10 +623,15 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
         variant,
       });
       if (isNewCard) {
+        // Find the card for celebration animation
+        const cardForCelebration = cards.find((c) => c.id === cardId);
+        if (cardForCelebration) {
+          setCelebrationCard(cardForCelebration);
+        }
         showXPGain(2, 'New card!');
       }
     },
-    [profileId, addCard, setName, ownedCards, showXPGain]
+    [profileId, addCard, setName, ownedCards, showXPGain, cards]
   );
 
   // Remove variant handler
@@ -626,15 +666,12 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
       await removeFromWishlist({
         profileId: profileId as Id<'profiles'>,
         cardId: card.id,
-        cardName: card.name,
-        setName,
       });
     } else {
       await addToWishlist({
         profileId: profileId as Id<'profiles'>,
         cardId: card.id,
-        cardName: card.name,
-        setName,
+        gameSlug: 'pokemon',
       });
     }
   };
@@ -849,22 +886,28 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
           </div>
         </div>
 
-        {/* Owned Variants Indicator */}
-        {isOwned && features.showVariantSelector && (
+        {/* Variant Indicator Badges - Show all available variants, colored if owned, grayed if not */}
+        {features.showVariantSelector && (
           <div className="mt-1 flex items-center justify-center gap-1">
             {(() => {
-              const cardVariants = ownedVariantsMap.get(card.id);
-              if (!cardVariants) return null;
-              return Array.from(cardVariants.entries()).map(([variant, qty]) => {
+              const availableVariants = getAvailableVariants(card);
+              const ownedVariants = ownedVariantsMap.get(card.id);
+
+              return availableVariants.map((variant) => {
                 const config = VARIANT_CONFIG[variant];
+                const qty = ownedVariants?.get(variant) ?? 0;
+                const isVariantOwned = qty > 0;
+
                 return (
                   <span
                     key={variant}
                     className={cn(
-                      'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium text-white',
-                      `bg-gradient-to-r ${config.gradient}`
+                      'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium transition-all',
+                      isVariantOwned
+                        ? `bg-gradient-to-r ${config.gradient} text-white`
+                        : 'bg-gray-200 text-gray-400'
                     )}
-                    title={`${config.label} x${qty}`}
+                    title={isVariantOwned ? `${config.label} x${qty}` : `${config.label} - Not owned`}
                   >
                     {config.shortLabel}
                     {qty > 1 && <span className="text-white/80">x{qty}</span>}
@@ -1062,6 +1105,14 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
             position={selectorPosition}
           />
         </>
+      )}
+
+      {/* Card Added Celebration Animation */}
+      {celebrationCard && (
+        <CardAddedCelebration
+          card={celebrationCard}
+          onAnimationEnd={() => setCelebrationCard(null)}
+        />
       )}
     </div>
   );

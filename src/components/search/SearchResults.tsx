@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
@@ -10,6 +9,7 @@ import type { PokemonCard } from '@/lib/pokemon-tcg';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { MagnifyingGlassIcon, MinusIcon, PlusIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { SearchResultsSkeleton } from '@/components/ui/Skeleton';
+import { CardImage } from '@/components/ui/CardImage';
 
 interface SearchResultsProps {
   cards: PokemonCard[];
@@ -111,12 +111,11 @@ export function SearchResults({ cards, isLoading }: SearchResultsProps) {
             >
               {/* Card Image */}
               <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg">
-                <Image
+                <CardImage
                   src={card.images.small}
                   alt={card.name}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-                  className="object-contain"
                 />
 
                 {/* Owned Checkmark */}

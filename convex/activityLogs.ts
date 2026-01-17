@@ -495,6 +495,7 @@ export const logCardAdded = mutation({
     profileId: v.id('profiles'),
     cardId: v.string(),
     cardName: v.optional(v.string()),
+    setName: v.optional(v.string()),
     variant: v.optional(v.string()),
     quantity: v.optional(v.number()),
   },
@@ -505,6 +506,7 @@ export const logCardAdded = mutation({
       metadata: {
         cardId: args.cardId,
         cardName: args.cardName ?? args.cardId,
+        setName: args.setName,
         variant: args.variant ?? 'normal',
         quantity: args.quantity ?? 1,
       },
@@ -524,6 +526,7 @@ export const logCardRemoved = mutation({
     profileId: v.id('profiles'),
     cardId: v.string(),
     cardName: v.optional(v.string()),
+    setName: v.optional(v.string()),
     variant: v.optional(v.string()),
     variantsRemoved: v.optional(v.number()),
   },
@@ -533,6 +536,9 @@ export const logCardRemoved = mutation({
       cardName: args.cardName ?? args.cardId,
     };
 
+    if (args.setName) {
+      metadata.setName = args.setName;
+    }
     if (args.variant) {
       metadata.variant = args.variant;
     }
