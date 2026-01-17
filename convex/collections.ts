@@ -1783,7 +1783,8 @@ export const getSetViewData = query({
     const setPrefix = args.setId + '-';
 
     // Run all queries in parallel for maximum efficiency
-    const [allCollectionCards, allWishlistCards, recentActivityLogs] = await Promise.all([
+    // Use by_profile_and_action index for activity logs to filter at database level
+    const [allCollectionCards, allWishlistCards, cardAddedLogs] = await Promise.all([
       // Get all collection cards for this profile
       ctx.db
         .query('collectionCards')
@@ -1794,10 +1795,12 @@ export const getSetViewData = query({
         .query('wishlistCards')
         .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
         .collect(),
-      // Get recent activity logs for newly added detection
+      // Get card_added activity logs only (filtered at database level)
       ctx.db
         .query('activityLogs')
-        .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+        .withIndex('by_profile_and_action', (q) =>
+          q.eq('profileId', args.profileId).eq('action', 'card_added')
+        )
         .order('desc')
         .collect(),
     ]);
@@ -1827,9 +1830,7 @@ export const getSetViewData = query({
 
     // 3. Build newly added card IDs from recent activity logs
     const newlyAddedCardIds = new Set<string>();
-    const recentCardAdds = recentActivityLogs.filter(
-      (log) => log.action === 'card_added' && log._creationTime >= cutoffDate
-    );
+    const recentCardAdds = cardAddedLogs.filter((log) => log._creationTime >= cutoffDate);
 
     for (const log of recentCardAdds) {
       const metadata = log.metadata as { cardId?: string } | undefined;
