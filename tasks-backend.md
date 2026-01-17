@@ -2467,7 +2467,7 @@ These tasks address backend requirements for SEO and infrastructure improvements
 ### Security Improvements
 
 - [x] Add rate limiting to API routes - Prevent abuse of search/filter endpoints
-- [ ] Add request validation middleware - Validate game parameter is valid enum value
+- [x] Add request validation middleware - Validate game parameter is valid enum value
 - [ ] Log suspicious API access patterns - Track unusual request volumes
 
 ### Analytics & Monitoring
@@ -2709,4 +2709,45 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - XML generation tests (escapeXml, generateUrlXml, generateSitemapXml, generateCompleteSitemap) (10)
   - Utility function tests (countSitemapUrls, getSitemapStats, groupSetsByGame, filterSetsByAge, sortSetsByReleaseDate, checkSitemapLimits) (9)
   - Integration tests for full sitemap generation (4)
+- All 81 tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Add request validation middleware for API routes
+
+- **Created `src/lib/apiValidation.ts` centralized validation utility:**
+  - `VALID_GAMES` constant with all 7 supported TCG game slugs
+  - `GameSlug` type derived from VALID_GAMES for type safety
+  - `COMMON_TYPES_BY_GAME` constant with game-specific type/color hints
+  - `isValidGameSlug()` type guard for runtime validation
+  - `getValidGames()` returns copy of valid games array
+  - `getCommonTypesForGame()` returns types for a specific game
+  - `createValidationErrorResponse()` standardized error response generator
+- **Added validation functions:**
+  - `validateGameParam()` - validates game query parameter with default support
+  - `validateStringParam()` - validates strings with min/max length, trim, required options
+  - `validateIntegerParam()` - validates integers with bounds clamping or strict mode
+  - `validateArrayParam()` - validates arrays with length limits and item validators
+  - `validateAtLeastOne()` - ensures at least one filter parameter is provided
+  - `validateConvexConfig()` - validates NEXT_PUBLIC_CONVEX_URL environment variable
+  - `combineValidations()` - chains multiple validations, returns first error
+  - `isValidResult()` - type guard for validation results
+- **Added comprehensive type definitions:**
+  - `ValidationResult<T>` generic result type with valid/value/errorResponse
+  - `StringValidationOptions` for string param configuration
+  - `IntegerValidationOptions` for integer param configuration
+- **Wrote 81 tests in `src/lib/__tests__/apiValidation.test.ts`:**
+  - VALID_GAMES constant tests (3)
+  - COMMON_TYPES_BY_GAME constant tests (5)
+  - isValidGameSlug tests (3)
+  - getValidGames tests (3)
+  - getCommonTypesForGame tests (3)
+  - createValidationErrorResponse tests (3)
+  - validateGameParam tests (8)
+  - validateStringParam tests (11)
+  - validateIntegerParam tests (14)
+  - validateArrayParam tests (9)
+  - validateAtLeastOne tests (6)
+  - validateConvexConfig tests (2)
+  - isValidResult tests (3)
+  - combineValidations tests (4)
+  - Integration flow tests (4)
 - All 81 tests pass, ESLint clean, Prettier formatted
