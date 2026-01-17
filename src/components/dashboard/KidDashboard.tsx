@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
 import { FamilyLeaderboard } from '@/components/family/FamilyLeaderboard';
 import { WhatsNextCard } from '@/components/dashboard/WhatsNextCard';
+import { getDisplayName } from '@/lib/displayName';
 
 // ============================================================================
 // QUICK ACTION CARDS
@@ -377,7 +378,7 @@ export function KidDashboard() {
     return <KidDashboardSkeleton />;
   }
 
-  const profileName = profile?.displayName ?? 'Collector';
+  const profileName = getDisplayName(profile?.displayName);
   const currentStreak = streakProgress.currentStreak ?? 0;
   const isActiveToday = streakProgress.isActiveToday ?? false;
 

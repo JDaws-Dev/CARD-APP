@@ -20,7 +20,7 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 | **CRITICAL - Landing Page Content**       | 0        | **10**    |
 | **HIGH - Broken Images & Error Handling** | 0        | **10**    |
 | **HIGH - Performance Optimization UI**    | 0        | **8**     |
-| **HIGH - UX & Navigation Improvements**   | 0        | **14**    |
+| **HIGH - UX & Navigation Improvements**   | 0        | **15**    |
 | **Multi-TCG Pages Update**                | 1        | **6**     |
 | **Landing Page Multi-TCG**                | 0        | **5**     |
 | **NEW - SEO & Marketing**                 | 0        | **12**    |
@@ -51,7 +51,7 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **229**   |
+| **TOTAL**                                 | **110**  | **230**   |
 
 ### Priority Order for Remaining Tasks
 
@@ -64,7 +64,7 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 7. **HIGH - Security Hardening** (6 tasks) - CSP headers, external resource integrity
 8. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
 9. **HIGH - Performance Optimization UI** (8 tasks) - Memoization, lazy loading, faster collection page
-10. **HIGH - UX & Navigation Improvements** (12 tasks) - Back links, breadcrumbs, footer, user flow
+10. **HIGH - UX & Navigation Improvements** (15 tasks) - Back links, breadcrumbs, footer, user flow, dashboard fixes
 11. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
 12. **MEDIUM - Architecture Improvements** (13 tasks) - Provider optimization, error boundaries, code splitting
 13. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
@@ -326,8 +326,16 @@ Improve site organization, navigation, and user flow clarity.
 - [x] Add back navigation to /learn page - Users can get stuck without way to return
 - [x] Add breadcrumb to /condition-guide - Show "Home > Learn > Condition Guide"
 - [x] Add breadcrumb to /sets/[setId] - Show "Home > Browse Sets > [Set Name]"
-- [ ] **FIX: Welcome message shows email instead of name** - Dashboard says "Good morning, jedaws!" using email prefix instead of user's actual name. Check KidDashboard.tsx and profile data - should use profile.name or displayName, not email
+- [x] **FIX: Welcome message shows email instead of name** - Dashboard says "Good morning, jedaws!" using email prefix instead of user's actual name. Check KidDashboard.tsx and profile data - should use profile.name or displayName, not email
 - [ ] **FIX: Recent Activity missing set name** - Dashboard Recent Activity shows "Added Fearow" but not which set it's from. Should show "Added Fearow from 151" or similar. Check ActivityFeed component and ensure setName from metadata is displayed
+- [ ] **FIX: Badges/Achievements not showing** - User earned badges but they don't appear in the badges section. Debug full achievement flow:
+  1. Check if achievements are being tracked in Convex (query `achievements.getProfileAchievements`)
+  2. Check if achievement_earned events are logged in activityLogs when cards are added
+  3. Verify `/badges` page is reading from correct Convex query
+  4. Check if achievement criteria (first card, 10 cards, set completion) triggers badge award
+  5. Look at `src/lib/achievements.ts` for badge unlock logic
+  6. Check `convex/achievements.ts` for mutation that creates achievement records
+  7. Verify `VirtualTrophyRoom` component loads and displays badges correctly
 - [ ] Create AppFooter component - Footer for authenticated pages with Help, Privacy, Terms links
 - [ ] Add AppFooter to all app pages - Consistent footer across the app
 - [x] Add ESC key handler to mobile menu - Close menu on Escape key press
@@ -1088,3 +1096,5 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - **2026-01-17**: Completed Add onError handlers to SearchResults card images task - Replaced raw Next.js Image component with CardImage component (src/components/ui/CardImage.tsx) in SearchResults (src/components/search/SearchResults.tsx). This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling across search results. Created comprehensive test suite (src/components/search/__tests__/SearchResults.test.tsx) with 6 tests covering card rendering, empty state, loading state, error handling, and accessibility. All tests pass, ESLint and Prettier clean. Commit: c53aab3
 
 - **2026-01-17**: Completed Update GameSwitcher.tsx task - Removed unsupported games (DragonBall, Digimon, MTG) from the game switcher dropdown component (src/components/header/GameSwitcher.tsx). Removed imports for DragonBallIcon, DigimonIcon, and MtgIcon. Updated ICON_COMPONENTS record to only include the 4 supported games: Pokemon, Yu-Gi-Oh!, One Piece, and Lorcana. The GenericTcgIcon fallback remains for any unknown game IDs. ESLint and Prettier clean, no test failures related to this change. Commit: 3d6b18a
+
+- **2026-01-17**: Completed FIX: Welcome message shows email instead of name - Fixed KidDashboard.tsx welcome greeting to properly display profile name instead of email prefix. Created displayName utility library (src/lib/displayName.ts) with two helper functions: looksLikeEmailPrefix() detects email-like display names (lowercase with numbers like "john123"), getDisplayName() provides fallback chain: 1) database displayName if valid, 2) onboarding profile name from localStorage, 3) "Collector" fallback. Updated KidDashboard.tsx to import getDisplayName helper instead of using raw database value. Added 24 unit tests (src/lib/__tests__/displayName.test.ts) covering email prefix detection, fallback logic, onboarding integration, error handling, and priority order. All tests pass (55 tests for changed files), ESLint and Prettier clean.
