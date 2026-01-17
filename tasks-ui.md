@@ -99,7 +99,7 @@ These specific issues were discovered during code review and need immediate atte
 
 - [x] Update `/parent-dashboard/page.tsx` line 75 - Change "Manage your family's Pokemon collections" to "Manage your family's trading card collections"
 - [x] Fix "Settings" button in parent dashboard - Currently non-functional (lines 80-83), add onClick to navigate to /settings
-- [ ] Fix "Add Profile" button in parent dashboard - Currently non-functional (lines 84-87), implement add profile modal or navigate to onboarding
+- [x] Fix "Add Profile" button in parent dashboard - Currently non-functional (lines 84-87), implement add profile modal or navigate to onboarding
 
 ### Landing Page Hero Fixes
 
@@ -527,6 +527,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Fixed onboarding redirect to /collection - Updated OnboardingFlow completion to redirect users to /collection instead of /dashboard. After completing onboarding, users now see "View My Collection" button (previously "Go to Dashboard") which takes them directly to their collection page to start building their card collection. Changes in src/components/onboarding/OnboardingFlow.tsx: renamed handleGoToDashboard to handleGoToCollection, updated router.push from '/dashboard' to '/collection', renamed prop onGoToDashboard to onGoToCollection, updated button text. Commit: 9bf7f8c
 
 - **2026-01-17**: Fixed Settings button in parent dashboard - Converted the non-functional Settings button (previously a plain button element) to a Next.js Link component that navigates to /settings. The button retains its original styling with Cog6ToothIcon and now properly routes users to the settings page when clicked. Changes in src/app/parent-dashboard/page.tsx. Commit: 75780af
+
+- **2026-01-17**: Fixed Add Profile button in parent dashboard - Created AddProfileModal component (src/components/dashboard/AddProfileModal.tsx) with: real-time name validation using Convex queries (canCreateChildProfile, validateChildProfileName), profile limit checks based on subscription tier (free vs family), kid-safe content filtering for display names, loading/error/success states with appropriate icons, escape key handling and click-outside-to-close, accessible modal with proper ARIA attributes (role="dialog", aria-modal, aria-labelledby). Updated parent dashboard page to use useState for modal visibility, added onClick handler to Add Profile button, integrated AddProfileModal component. Uses Heroicons (XMarkIcon, UserPlusIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowUpCircleIcon). Commit: f5ec86d
 
 ---
 
