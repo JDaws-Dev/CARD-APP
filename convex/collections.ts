@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { paginationOptsValidator } from 'convex/server';
 
 // Card variant type for consistent typing across queries and mutations
 const cardVariant = v.union(
@@ -21,6 +22,107 @@ export const getCollection = query({
       .query('collectionCards')
       .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
       .collect();
+  },
+});
+
+/**
+ * Paginated query for large collections.
+ * Returns 50 cards at a time with cursor-based pagination for efficient scrolling.
+ *
+ * Uses Convex's built-in pagination with cursors for stable, efficient pagination
+ * that doesn't skip or duplicate items when the underlying data changes.
+ *
+ * @param profileId - The profile whose collection to fetch
+ * @param paginationOpts - Convex pagination options (numItems, cursor)
+ * @param enrichWithDetails - Whether to fetch card details from cache (default: false for performance)
+ * @returns Paginated result with page of cards, continuation cursor, and isDone flag
+ */
+export const getCollectionPaginated = query({
+  args: {
+    profileId: v.id('profiles'),
+    paginationOpts: paginationOptsValidator,
+    enrichWithDetails: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    // Use Convex's built-in pagination for stable cursor-based results
+    const result = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .paginate(args.paginationOpts);
+
+    // If no enrichment requested, return raw pagination result
+    if (!args.enrichWithDetails) {
+      return {
+        page: result.page,
+        continueCursor: result.continueCursor,
+        isDone: result.isDone,
+      };
+    }
+
+    // Enrich with card details from cache
+    const uniqueCardIds = [...new Set(result.page.map((c) => c.cardId))];
+
+    // Batch fetch card data - use chunking for efficiency
+    const CHUNK_SIZE = 50;
+    const cardDataMap = new Map<
+      string,
+      {
+        name: string;
+        imageSmall: string;
+        imageLarge: string;
+        setId: string;
+        rarity?: string;
+        types: string[];
+      }
+    >();
+
+    for (let i = 0; i < uniqueCardIds.length; i += CHUNK_SIZE) {
+      const chunk = uniqueCardIds.slice(i, i + CHUNK_SIZE);
+      const chunkResults = await Promise.all(
+        chunk.map((cardId) =>
+          ctx.db
+            .query('cachedCards')
+            .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+            .first()
+        )
+      );
+
+      for (const card of chunkResults) {
+        if (card) {
+          cardDataMap.set(card.cardId, {
+            name: card.name,
+            imageSmall: card.imageSmall,
+            imageLarge: card.imageLarge,
+            setId: card.setId,
+            rarity: card.rarity,
+            types: card.types,
+          });
+        }
+      }
+    }
+
+    // Enrich page with card details
+    const enrichedPage = result.page.map((card) => {
+      const cachedData = cardDataMap.get(card.cardId);
+      return {
+        _id: card._id,
+        cardId: card.cardId,
+        variant: card.variant ?? 'normal',
+        quantity: card.quantity,
+        name: cachedData?.name ?? card.cardId,
+        imageSmall: cachedData?.imageSmall ?? '',
+        imageLarge: cachedData?.imageLarge ?? '',
+        setId: cachedData?.setId ?? card.cardId.split('-')[0],
+        rarity: cachedData?.rarity,
+        types: cachedData?.types ?? [],
+      };
+    });
+
+    return {
+      page: enrichedPage,
+      continueCursor: result.continueCursor,
+      isDone: result.isDone,
+    };
   },
 });
 
