@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import Image from 'next/image';
 import { useQuery, useMutation } from 'convex/react';
+import { CardImage } from '@/components/ui/CardImage';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { cn } from '@/lib/utils';
@@ -787,7 +787,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                     <div className="absolute inset-0 -translate-x-full animate-[shimmer_3s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-cyan-200/30 to-transparent" />
                   </div>
                 )}
-                <Image
+                <CardImage
                   src={card.images.small}
                   alt={card.name}
                   fill
@@ -804,7 +804,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
 
                 {/* Card Flip Button */}
                 <button
-                  className="absolute left-1 bottom-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-500 opacity-0 shadow-md transition-all hover:bg-white hover:text-kid-primary focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1 group-hover:opacity-100"
+                  className="absolute bottom-1 left-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-500 opacity-0 shadow-md transition-all hover:bg-white hover:text-kid-primary focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1 group-hover:opacity-100"
                   onClick={(e) => {
                     e.stopPropagation();
                     setFlipCard(card);
