@@ -1015,7 +1015,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid gap-6 sm:gap-8 md:grid-cols-3">
+          <div className="grid gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {/* COPPA Compliant Badge */}
             <div
               className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 to-indigo-50 p-8 text-center transition-all hover:-translate-y-1 hover:shadow-xl"
@@ -1081,6 +1081,52 @@ export default function Home() {
               </div>
               <div
                 className="absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-emerald-500/5 transition-all group-hover:scale-150"
+                aria-hidden="true"
+              />
+            </div>
+
+            {/* Kid-Safe AI Badge */}
+            <div
+              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-50 to-purple-50 p-8 text-center transition-all hover:-translate-y-1 hover:shadow-xl"
+              data-testid="trust-signal-kid-safe-ai"
+            >
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30">
+                <SparklesIcon className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="mb-2 text-xl font-bold text-gray-900">Kid-Safe AI</h3>
+              <p className="text-sm text-gray-600">
+                Our AI features are designed specifically for kids. Age-appropriate responses, no
+                scary content, and built-in safety filters protect young collectors.
+              </p>
+              <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700">
+                <CheckIcon className="h-3 w-3" />
+                Child-friendly AI
+              </div>
+              <div
+                className="absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-violet-500/5 transition-all group-hover:scale-150"
+                aria-hidden="true"
+              />
+            </div>
+
+            {/* No Personal Data Badge */}
+            <div
+              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 p-8 text-center transition-all hover:-translate-y-1 hover:shadow-xl"
+              data-testid="trust-signal-no-personal-data"
+            >
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/30">
+                <LockClosedIcon className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="mb-2 text-xl font-bold text-gray-900">No Personal Data</h3>
+              <p className="text-sm text-gray-600">
+                We don&apos;t collect personal information from kids. No real names required, no
+                location tracking, and no data sold to third parties. Ever.
+              </p>
+              <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                <CheckIcon className="h-3 w-3" />
+                Privacy first
+              </div>
+              <div
+                className="absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-amber-500/5 transition-all group-hover:scale-150"
                 aria-hidden="true"
               />
             </div>
