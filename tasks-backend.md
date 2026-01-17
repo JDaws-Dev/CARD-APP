@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: █████████████████████░░░░░░░  61/89 (69%)
-Remaining: 28 tasks
+Progress: █████████████████████░░░░░░░  62/89 (70%)
+Remaining: 27 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -15,7 +15,7 @@ Remaining: 28 tasks
 | ------------------------------------ | -------- | --------- |
 | **CRITICAL - Multi-TCG API**         | 0        | **5**     |
 | **CRITICAL - Auth Fixes**            | 0        | **4**     |
-| **HIGH - Performance Optimization**  | 3        | **4**     |
+| **HIGH - Performance Optimization**  | 4        | **3**     |
 | HIGH PRIORITY - Auth & Pricing       | 9        | **1**     |
 | Card Variants                        | 3        | 0         |
 | Achievement System                   | 6        | 0         |
@@ -28,7 +28,7 @@ Remaining: 28 tasks
 | Educational Content                  | 3        | 0         |
 | Additional Features                  | 5        | 0         |
 | Launch Prep                          | 4        | **5**     |
-| **TOTAL**                            | **61**   | **28**    |
+| **TOTAL**                            | **62**   | **27**    |
 
 ### Critical Path for Launch
 
@@ -85,7 +85,7 @@ My Collection page is slow due to redundant/inefficient Convex queries. These ba
 
 - [x] Create combined `getCollectionWithStats` query - Merge `getCollection` + `getCollectionStats` into single query returning both data and calculated stats
 - [x] Create batch query for VirtualCardGrid - Merge 4 queries (collection, wishlist, newlyAdded, priorityCount) into `getSetViewData` single query
-- [ ] Optimize `getNewlyAddedCards` query - Add database-level filtering with composite index `by_profile_and_action_time` instead of collecting all logs and filtering in JS
+- [x] Optimize `getNewlyAddedCards` query - Add database-level filtering with composite index `by_profile_and_action_time` instead of collecting all logs and filtering in JS
 - [x] Add composite index to activityLogs - Create index `by_profile_action_time` for (profileId, action, _creationTime) in schema
 - [ ] Optimize wishlist queries - Add index for profile+game queries if missing
 - [ ] Add pagination to activity feed queries - Use `.take()` with cursor for large activity histories instead of `.collect()`
@@ -207,6 +207,14 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-17: Optimize getNewlyAddedCards query with by_profile_and_action index
+
+- Updated `getNewlyAddedCards` query in `convex/collections.ts`
+  - Changed from `by_profile` index to `by_profile_and_action` index
+  - Filters `action === 'card_added'` at database level instead of JS
+- Updated `getNewlyAddedCardsSummary` query with same optimization
+- Updated `getSetViewData` batch query to use optimized index for activity logs
 
 ### 2026-01-17: Add getSetViewData batch query for VirtualCardGrid
 
