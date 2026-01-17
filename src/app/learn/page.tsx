@@ -8,16 +8,22 @@ import {
   GradeLikeAProButton,
 } from '@/components/games/GradeLikeAProGame';
 import {
+  RarityGuessingGame,
+  RarityGuessingButton,
+} from '@/components/games/RarityGuessingGame';
+import {
   BookOpenIcon,
   SparklesIcon,
   ArrowRightIcon,
   MagnifyingGlassIcon,
   AcademicCapIcon,
   StarIcon,
+  QuestionMarkCircleIcon,
 } from '@heroicons/react/24/solid';
 
 export default function LearnPage() {
   const [isGradeGameOpen, setIsGradeGameOpen] = useState(false);
+  const [isRarityGameOpen, setIsRarityGameOpen] = useState(false);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -80,6 +86,34 @@ export default function LearnPage() {
 
       {/* Grade Like a Pro Game Modal */}
       <GradeLikeAProGame isOpen={isGradeGameOpen} onClose={() => setIsGradeGameOpen(false)} />
+
+      {/* Educational Mini-Game - Rarity Guessing */}
+      <div className="mb-8 rounded-2xl border border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 p-6 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-md">
+              <QuestionMarkCircleIcon className="h-7 w-7 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900">Rarity Guessing Game</h2>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  <StarIcon className="h-3 w-3" aria-hidden="true" />
+                  Mini-Game
+                </span>
+              </div>
+              <p className="text-gray-600">
+                Can you tell a Common from an Ultra Rare just by looking? Test your skills and learn
+                what makes each rarity special!
+              </p>
+            </div>
+          </div>
+          <RarityGuessingButton onClick={() => setIsRarityGameOpen(true)} />
+        </div>
+      </div>
+
+      {/* Rarity Guessing Game Modal */}
+      <RarityGuessingGame isOpen={isRarityGameOpen} onClose={() => setIsRarityGameOpen(false)} />
 
       <LearnToCollect />
     </main>
