@@ -46,3 +46,9 @@
 **Files:** src/components/settings/PinProtectionWrapper.tsx
 **Commit:** 7f05581
 ---
+## CD-8jf - Make settings profile-aware per child
+**Status:** Completed
+**Changes:** Implemented per-profile settings for sleep schedules. Added profileSettings table to Convex, created backend CRUD operations, updated SleepModeProvider to use Convex storage, and added profile selector UI for parents.
+**Files:** convex/schema.ts, convex/profileSettings.ts (new), src/components/providers/SleepModeProvider.tsx, src/components/settings/SleepModeSettings.tsx
+**Commit:** fde2fb7
+---
