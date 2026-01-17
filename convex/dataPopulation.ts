@@ -457,6 +457,99 @@ export const searchCardsByGame = query({
 });
 
 /**
+ * Filter cached cards by game with optional filters for setId, type, name, and rarity.
+ * Supports case-insensitive partial matching for name and exact matching for other fields.
+ *
+ * @param gameSlug - The game to filter within (required)
+ * @param setId - Optional set ID to filter by
+ * @param type - Optional type/color to filter by (e.g., "Fire", "Water" for Pokemon; "Red", "Blue" for One Piece)
+ * @param name - Optional partial name match (case-insensitive)
+ * @param rarity - Optional rarity to filter by (e.g., "Rare Holo", "Common")
+ * @param limit - Maximum number of results (default 50, max 500)
+ * @param offset - Number of results to skip for pagination (default 0)
+ * @returns Filtered cards array with metadata about the query
+ */
+export const filterCardsByGame = query({
+  args: {
+    gameSlug: gameSlugValidator,
+    setId: v.optional(v.string()),
+    type: v.optional(v.string()),
+    name: v.optional(v.string()),
+    rarity: v.optional(v.string()),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = Math.min(Math.max(1, args.limit ?? 50), 500);
+    const offset = Math.max(0, args.offset ?? 0);
+
+    // Start with game-filtered cards
+    // If setId is provided, use the more specific by_game_and_set index
+    let cards;
+    const setIdFilter = args.setId;
+    if (setIdFilter) {
+      cards = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_game_and_set', (q) =>
+          q.eq('gameSlug', args.gameSlug).eq('setId', setIdFilter)
+        )
+        .collect();
+    } else {
+      cards = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_game', (q) => q.eq('gameSlug', args.gameSlug))
+        .collect();
+    }
+
+    // Apply additional filters
+    let filteredCards = cards;
+
+    // Filter by type (case-insensitive, checks if any type matches)
+    if (args.type) {
+      const typeLower = args.type.toLowerCase();
+      filteredCards = filteredCards.filter((card) =>
+        card.types.some((t) => t.toLowerCase() === typeLower)
+      );
+    }
+
+    // Filter by name (case-insensitive partial match)
+    if (args.name) {
+      const nameLower = args.name.toLowerCase();
+      filteredCards = filteredCards.filter((card) => card.name.toLowerCase().includes(nameLower));
+    }
+
+    // Filter by rarity (case-insensitive exact match)
+    if (args.rarity) {
+      const rarityLower = args.rarity.toLowerCase();
+      filteredCards = filteredCards.filter(
+        (card) => card.rarity && card.rarity.toLowerCase() === rarityLower
+      );
+    }
+
+    // Get total count before pagination
+    const totalCount = filteredCards.length;
+
+    // Apply pagination
+    const paginatedCards = filteredCards.slice(offset, offset + limit);
+
+    return {
+      cards: paginatedCards,
+      totalCount,
+      limit,
+      offset,
+      hasMore: offset + paginatedCards.length < totalCount,
+      filters: {
+        gameSlug: args.gameSlug,
+        setId: args.setId,
+        type: args.type,
+        name: args.name,
+        rarity: args.rarity,
+      },
+    };
+  },
+});
+
+/**
  * Batch fetch multiple cards by their IDs in a single query.
  * Optimized for wishlist enrichment and collection display.
  *
