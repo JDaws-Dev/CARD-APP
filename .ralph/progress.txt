@@ -116,3 +116,9 @@
 **Files:** src/components/ai/SnapToAddFlow.tsx (605 lines)
 **Commit:** 1d8e449
 ---
+## CD-cfm - AI-012: Add scanner button to collection/set pages
+**Status:** Completed
+**Changes:** Created reusable ScannerButton component with modal, added to collection page and set detail page headers
+**Files:** src/components/ai/ScannerButton.tsx (NEW), src/app/collection/page.tsx, src/app/sets/[setId]/page.tsx
+**Commit:** ea595dc
+---
