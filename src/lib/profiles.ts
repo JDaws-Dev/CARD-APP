@@ -453,3 +453,220 @@ export function needsOnboarding(result: CurrentUserProfileResult | null): boolea
   // User needs onboarding if they have no profiles or email not verified
   return result.availableProfiles.length === 0 || !result.user.emailVerified;
 }
+
+// ============================================================================
+// PROFILE ACCESS VALIDATION TYPES & HELPERS
+// ============================================================================
+
+/**
+ * Error reasons for profile access validation.
+ */
+export type ProfileAccessErrorReason =
+  | 'NOT_AUTHENTICATED'
+  | 'NO_EMAIL'
+  | 'PROFILE_NOT_FOUND'
+  | 'FAMILY_NOT_FOUND'
+  | 'NOT_OWNER';
+
+/**
+ * Error reasons for family access validation.
+ */
+export type FamilyAccessErrorReason =
+  | 'NOT_AUTHENTICATED'
+  | 'NO_EMAIL'
+  | 'FAMILY_NOT_FOUND'
+  | 'NOT_OWNER';
+
+/**
+ * Result type for secure profile query.
+ */
+export interface SecureProfileResult {
+  authorized: boolean;
+  error: ProfileAccessErrorReason | null;
+  message: string | null;
+  profile: Profile | null;
+}
+
+/**
+ * Result type for secure family query.
+ */
+export interface SecureFamilyResult {
+  authorized: boolean;
+  error: FamilyAccessErrorReason | null;
+  message: string | null;
+  family: FamilyInfo | null;
+}
+
+/**
+ * Result type for secure profiles list query.
+ */
+export interface SecureProfilesListResult {
+  authorized: boolean;
+  error: FamilyAccessErrorReason | null;
+  message: string | null;
+  profiles: Profile[];
+}
+
+/**
+ * Result type for profile access validation query.
+ */
+export interface ProfileAccessValidationResult {
+  hasAccess: boolean;
+  reason: ProfileAccessErrorReason | null;
+  message: string | null;
+  familyId?: string;
+}
+
+/**
+ * Result type for family access validation query.
+ */
+export interface FamilyAccessValidationResult {
+  hasAccess: boolean;
+  reason: FamilyAccessErrorReason | null;
+  message: string | null;
+}
+
+/**
+ * Check if a secure query result indicates the user is not authenticated.
+ */
+export function isNotAuthenticated(result: { error?: string | null } | null | undefined): boolean {
+  if (!result) return true;
+  return result.error === 'NOT_AUTHENTICATED';
+}
+
+/**
+ * Check if a secure query result indicates unauthorized access.
+ */
+export function isUnauthorizedAccess(
+  result: { authorized?: boolean; error?: string | null } | null | undefined
+): boolean {
+  if (!result) return true;
+  if ('authorized' in result) return !result.authorized;
+  return result.error === 'NOT_OWNER';
+}
+
+/**
+ * Check if a secure query result indicates the profile was not found.
+ */
+export function isProfileNotFound(result: { error?: string | null } | null | undefined): boolean {
+  if (!result) return false;
+  return result.error === 'PROFILE_NOT_FOUND';
+}
+
+/**
+ * Check if a secure query result indicates the family was not found.
+ */
+export function isFamilyNotFound(result: { error?: string | null } | null | undefined): boolean {
+  if (!result) return false;
+  return result.error === 'FAMILY_NOT_FOUND';
+}
+
+/**
+ * Get a user-friendly error message for a profile access error.
+ */
+export function getProfileAccessErrorMessage(
+  reason: ProfileAccessErrorReason | null | undefined
+): string {
+  switch (reason) {
+    case 'NOT_AUTHENTICATED':
+      return 'Please sign in to continue';
+    case 'NO_EMAIL':
+      return 'Your account has no email address associated';
+    case 'PROFILE_NOT_FOUND':
+      return 'Profile not found';
+    case 'FAMILY_NOT_FOUND':
+      return 'Family account not found';
+    case 'NOT_OWNER':
+      return 'You do not have permission to access this profile';
+    default:
+      return 'An error occurred';
+  }
+}
+
+/**
+ * Get a user-friendly error message for a family access error.
+ */
+export function getFamilyAccessErrorMessage(
+  reason: FamilyAccessErrorReason | null | undefined
+): string {
+  switch (reason) {
+    case 'NOT_AUTHENTICATED':
+      return 'Please sign in to continue';
+    case 'NO_EMAIL':
+      return 'Your account has no email address associated';
+    case 'FAMILY_NOT_FOUND':
+      return 'Family account not found';
+    case 'NOT_OWNER':
+      return 'You do not have permission to access this family';
+    default:
+      return 'An error occurred';
+  }
+}
+
+/**
+ * Determine what action to take based on profile access error.
+ */
+export function getProfileAccessAction(
+  reason: ProfileAccessErrorReason | null | undefined
+): 'redirect_login' | 'redirect_home' | 'show_error' | 'none' {
+  switch (reason) {
+    case 'NOT_AUTHENTICATED':
+      return 'redirect_login';
+    case 'NOT_OWNER':
+      return 'redirect_home';
+    case 'NO_EMAIL':
+    case 'PROFILE_NOT_FOUND':
+    case 'FAMILY_NOT_FOUND':
+      return 'show_error';
+    default:
+      return 'none';
+  }
+}
+
+/**
+ * Check if a result from a secure mutation indicates success.
+ */
+export function isSecureMutationSuccess(result: { success?: boolean } | null | undefined): boolean {
+  if (!result) return false;
+  return result.success === true;
+}
+
+/**
+ * Extract validation errors from a secure mutation result.
+ */
+export function getSecureMutationErrors(
+  result: { errors?: Array<{ field: string; code: string; message: string }> } | null | undefined
+): Array<{ field: string; code: string; message: string }> {
+  if (!result || !result.errors) return [];
+  return result.errors;
+}
+
+/**
+ * Get validation error messages as a flat array of strings.
+ */
+export function getSecureMutationErrorMessages(
+  result: { errors?: Array<{ message: string }> } | null | undefined
+): string[] {
+  if (!result || !result.errors) return [];
+  return result.errors.map((e) => e.message);
+}
+
+/**
+ * Check if a secure mutation failed due to authentication.
+ */
+export function isSecureMutationAuthError(
+  result: { error?: string | null } | null | undefined
+): boolean {
+  if (!result) return false;
+  return result.error === 'NOT_AUTHENTICATED' || result.error === 'NO_EMAIL';
+}
+
+/**
+ * Check if a secure mutation failed due to ownership validation.
+ */
+export function isSecureMutationOwnershipError(
+  result: { error?: string | null } | null | undefined
+): boolean {
+  if (!result) return false;
+  return result.error === 'NOT_OWNER';
+}

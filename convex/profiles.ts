@@ -1551,3 +1551,892 @@ export const getParentDashboardData = query({
     };
   },
 });
+
+// ============================================================================
+// PROFILE OWNERSHIP VALIDATION
+// ============================================================================
+
+/**
+ * Validation result types for profile access checks.
+ */
+export type ProfileAccessResult =
+  | {
+      hasAccess: true;
+      userId: string;
+      userEmail: string;
+      familyId: string;
+      profileId: string;
+    }
+  | {
+      hasAccess: false;
+      reason:
+        | 'NOT_AUTHENTICATED'
+        | 'NO_EMAIL'
+        | 'PROFILE_NOT_FOUND'
+        | 'FAMILY_NOT_FOUND'
+        | 'NOT_OWNER';
+      message: string;
+    };
+
+export type FamilyAccessResult =
+  | {
+      hasAccess: true;
+      userId: string;
+      userEmail: string;
+      familyId: string;
+    }
+  | {
+      hasAccess: false;
+      reason: 'NOT_AUTHENTICATED' | 'NO_EMAIL' | 'FAMILY_NOT_FOUND' | 'NOT_OWNER';
+      message: string;
+    };
+
+/**
+ * Validate that the current authenticated user owns a specific profile.
+ *
+ * Ownership is determined by:
+ * 1. User is authenticated
+ * 2. User has an email address
+ * 3. Profile exists
+ * 4. Profile's family email matches the user's email
+ *
+ * This is a helper function used by secure queries/mutations.
+ */
+async function validateProfileOwnership(
+  ctx: { db: { get: (id: unknown) => Promise<unknown>; query: (table: string) => unknown } },
+  profileId: string
+): Promise<ProfileAccessResult> {
+  // Get the authenticated user's ID
+  const userId = await getAuthUserId(ctx as Parameters<typeof getAuthUserId>[0]);
+  if (!userId) {
+    return {
+      hasAccess: false,
+      reason: 'NOT_AUTHENTICATED',
+      message: 'You must be signed in to access this profile',
+    };
+  }
+
+  // Get the user's email
+  const user = (await ctx.db.get(userId)) as { email?: string } | null;
+  if (!user || !user.email) {
+    return {
+      hasAccess: false,
+      reason: 'NO_EMAIL',
+      message: 'Your account has no email address associated',
+    };
+  }
+
+  // Get the profile
+  const profile = (await ctx.db.get(profileId as unknown)) as { familyId?: string } | null;
+  if (!profile) {
+    return {
+      hasAccess: false,
+      reason: 'PROFILE_NOT_FOUND',
+      message: 'Profile not found',
+    };
+  }
+
+  // Get the family
+  const family = (await ctx.db.get(profile.familyId as unknown)) as { email?: string } | null;
+  if (!family) {
+    return {
+      hasAccess: false,
+      reason: 'FAMILY_NOT_FOUND',
+      message: 'Family not found',
+    };
+  }
+
+  // Check ownership: family email must match user email
+  if (family.email?.toLowerCase() !== user.email.toLowerCase()) {
+    return {
+      hasAccess: false,
+      reason: 'NOT_OWNER',
+      message: 'You do not have permission to access this profile',
+    };
+  }
+
+  return {
+    hasAccess: true,
+    userId: userId as string,
+    userEmail: user.email,
+    familyId: profile.familyId as string,
+    profileId: profileId,
+  };
+}
+
+/**
+ * Validate that the current authenticated user owns a specific family.
+ *
+ * Ownership is determined by:
+ * 1. User is authenticated
+ * 2. User has an email address
+ * 3. Family exists
+ * 4. Family email matches the user's email
+ *
+ * This is a helper function used by secure queries/mutations.
+ */
+async function validateFamilyOwnership(
+  ctx: { db: { get: (id: unknown) => Promise<unknown>; query: (table: string) => unknown } },
+  familyId: string
+): Promise<FamilyAccessResult> {
+  // Get the authenticated user's ID
+  const userId = await getAuthUserId(ctx as Parameters<typeof getAuthUserId>[0]);
+  if (!userId) {
+    return {
+      hasAccess: false,
+      reason: 'NOT_AUTHENTICATED',
+      message: 'You must be signed in to access this family',
+    };
+  }
+
+  // Get the user's email
+  const user = (await ctx.db.get(userId)) as { email?: string } | null;
+  if (!user || !user.email) {
+    return {
+      hasAccess: false,
+      reason: 'NO_EMAIL',
+      message: 'Your account has no email address associated',
+    };
+  }
+
+  // Get the family
+  const family = (await ctx.db.get(familyId as unknown)) as { email?: string } | null;
+  if (!family) {
+    return {
+      hasAccess: false,
+      reason: 'FAMILY_NOT_FOUND',
+      message: 'Family not found',
+    };
+  }
+
+  // Check ownership: family email must match user email
+  if (family.email?.toLowerCase() !== user.email.toLowerCase()) {
+    return {
+      hasAccess: false,
+      reason: 'NOT_OWNER',
+      message: 'You do not have permission to access this family',
+    };
+  }
+
+  return {
+    hasAccess: true,
+    userId: userId as string,
+    userEmail: user.email,
+    familyId: familyId,
+  };
+}
+
+// ============================================================================
+// SECURE PROFILE QUERIES (with ownership validation)
+// ============================================================================
+
+/**
+ * Get a profile with ownership validation.
+ * Only returns the profile if the authenticated user owns it (via family email).
+ *
+ * Use this instead of `getProfile` for user-facing features.
+ */
+export const getProfileSecure = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    const access = await validateProfileOwnership(
+      ctx as Parameters<typeof validateProfileOwnership>[0],
+      args.profileId
+    );
+
+    if (!access.hasAccess) {
+      return {
+        authorized: false,
+        error: access.reason,
+        message: access.message,
+        profile: null,
+      };
+    }
+
+    const profile = await ctx.db.get(args.profileId);
+    return {
+      authorized: true,
+      error: null,
+      message: null,
+      profile,
+    };
+  },
+});
+
+/**
+ * Get all profiles in a family with ownership validation.
+ * Only returns profiles if the authenticated user owns the family.
+ *
+ * Use this instead of `getProfilesByFamily` for user-facing features.
+ */
+export const getProfilesByFamilySecure = query({
+  args: { familyId: v.id('families') },
+  handler: async (ctx, args) => {
+    const access = await validateFamilyOwnership(
+      ctx as Parameters<typeof validateFamilyOwnership>[0],
+      args.familyId
+    );
+
+    if (!access.hasAccess) {
+      return {
+        authorized: false,
+        error: access.reason,
+        message: access.message,
+        profiles: [],
+      };
+    }
+
+    const profiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', (q) => q.eq('familyId', args.familyId))
+      .collect();
+
+    // Sort: parent first, then children alphabetically
+    const sortedProfiles = [...profiles].sort((a, b) => {
+      if (a.profileType === 'parent' && b.profileType !== 'parent') return -1;
+      if (b.profileType === 'parent' && a.profileType !== 'parent') return 1;
+      return a.displayName.localeCompare(b.displayName);
+    });
+
+    return {
+      authorized: true,
+      error: null,
+      message: null,
+      profiles: sortedProfiles,
+    };
+  },
+});
+
+/**
+ * Get family details with ownership validation.
+ * Only returns the family if the authenticated user owns it.
+ *
+ * Use this instead of `getFamily` for user-facing features.
+ */
+export const getFamilySecure = query({
+  args: { familyId: v.id('families') },
+  handler: async (ctx, args) => {
+    const access = await validateFamilyOwnership(
+      ctx as Parameters<typeof validateFamilyOwnership>[0],
+      args.familyId
+    );
+
+    if (!access.hasAccess) {
+      return {
+        authorized: false,
+        error: access.reason,
+        message: access.message,
+        family: null,
+      };
+    }
+
+    const family = await ctx.db.get(args.familyId);
+    return {
+      authorized: true,
+      error: null,
+      message: null,
+      family,
+    };
+  },
+});
+
+/**
+ * Get kid dashboard stats with ownership validation.
+ * Only returns stats if the authenticated user owns the profile.
+ *
+ * Use this instead of `getKidDashboardStats` for user-facing features.
+ */
+export const getKidDashboardStatsSecure = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    const access = await validateProfileOwnership(
+      ctx as Parameters<typeof validateProfileOwnership>[0],
+      args.profileId
+    );
+
+    if (!access.hasAccess) {
+      return {
+        authorized: false,
+        error: access.reason,
+        message: access.message,
+        data: null,
+      };
+    }
+
+    // Re-use the existing stats logic (copied from getKidDashboardStats handler)
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      return {
+        authorized: false,
+        error: 'PROFILE_NOT_FOUND',
+        message: 'Profile not found',
+        data: null,
+      };
+    }
+
+    // Get collection stats
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    const uniqueCardIds = new Set(collectionCards.map((c) => c.cardId));
+    const totalCards = collectionCards.reduce((sum, c) => sum + c.quantity, 0);
+    const uniqueCards = uniqueCardIds.size;
+    const setsStarted = new Set(collectionCards.map((c) => c.cardId.split('-')[0])).size;
+
+    // Get badge/achievement count
+    const achievements = await ctx.db
+      .query('achievements')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    const badgeCount = achievements.length;
+
+    // Calculate current streak from activity logs
+    const sixtyDaysAgo = Date.now() - 60 * 24 * 60 * 60 * 1000;
+    const activityLogs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Filter to card_added actions in the date range
+    const recentCardAdds = activityLogs.filter(
+      (log) => log._creationTime >= sixtyDaysAgo && log.action === 'card_added'
+    );
+
+    // Extract unique dates (YYYY-MM-DD format)
+    const uniqueDates = new Set<string>();
+    for (const log of recentCardAdds) {
+      const date = new Date(log._creationTime);
+      const dateStr = date.toISOString().split('T')[0];
+      uniqueDates.add(dateStr);
+    }
+
+    const activityDates = Array.from(uniqueDates).sort();
+    const streakInfo = calculateStreakFromDates(activityDates);
+
+    // Get recent activity (last 10 items)
+    const recentActivity = activityLogs
+      .sort((a, b) => b._creationTime - a._creationTime)
+      .slice(0, 10);
+
+    // Enrich recent activity with card names
+    const cardIdsToLookup = new Set<string>();
+    for (const log of recentActivity) {
+      if (log.action === 'card_added' || log.action === 'card_removed') {
+        const metadata = log.metadata as { cardId?: string; cardName?: string } | undefined;
+        if (metadata?.cardId && !metadata?.cardName) {
+          cardIdsToLookup.add(metadata.cardId);
+        }
+      }
+    }
+
+    const cardNameMap = new Map<string, string>();
+    if (cardIdsToLookup.size > 0) {
+      const cardLookups = await Promise.all(
+        Array.from(cardIdsToLookup).map((cardId) =>
+          ctx.db
+            .query('cachedCards')
+            .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+            .first()
+        )
+      );
+
+      for (const card of cardLookups) {
+        if (card) {
+          cardNameMap.set(card.cardId, card.name);
+        }
+      }
+    }
+
+    const enrichedRecentActivity = recentActivity.map((log) => {
+      const metadata = log.metadata as
+        | { cardId?: string; cardName?: string; [key: string]: unknown }
+        | undefined;
+
+      let displayText = '';
+      let icon = '';
+
+      if (log.action === 'card_added') {
+        const cardName =
+          metadata?.cardName ??
+          cardNameMap.get(metadata?.cardId ?? '') ??
+          metadata?.cardId ??
+          'a card';
+        displayText = `Added ${cardName}`;
+        icon = '➕';
+      } else if (log.action === 'card_removed') {
+        const cardName =
+          metadata?.cardName ??
+          cardNameMap.get(metadata?.cardId ?? '') ??
+          metadata?.cardId ??
+          'a card';
+        displayText = `Removed ${cardName}`;
+        icon = '➖';
+      } else if (log.action === 'achievement_earned') {
+        const achievementName =
+          (metadata?.achievementName as string) ?? metadata?.achievementKey ?? 'an achievement';
+        displayText = `Earned ${achievementName}`;
+        icon = '🏆';
+      }
+
+      return {
+        id: log._id,
+        action: log.action,
+        displayText,
+        icon,
+        timestamp: log._creationTime,
+        relativeTime: formatRelativeTime(log._creationTime),
+      };
+    });
+
+    return {
+      authorized: true,
+      error: null,
+      message: null,
+      data: {
+        profile: {
+          id: profile._id,
+          displayName: profile.displayName,
+          avatarUrl: profile.avatarUrl,
+          profileType: profile.profileType,
+        },
+        collection: {
+          uniqueCards,
+          totalCards,
+          setsStarted,
+        },
+        badges: {
+          total: badgeCount,
+          recentlyEarned: achievements.filter(
+            (a) => a.earnedAt > Date.now() - 7 * 24 * 60 * 60 * 1000
+          ).length,
+        },
+        streak: {
+          currentStreak: streakInfo.currentStreak,
+          longestStreak: streakInfo.longestStreak,
+          isActiveToday: streakInfo.isActiveToday,
+          lastActiveDate: streakInfo.lastActiveDate,
+        },
+        recentActivity: enrichedRecentActivity,
+      },
+    };
+  },
+});
+
+// ============================================================================
+// SECURE PROFILE MUTATIONS (with ownership validation)
+// ============================================================================
+
+/**
+ * Update a profile with ownership validation.
+ * Only allows updates if the authenticated user owns the profile.
+ *
+ * Use this instead of `updateProfile` for user-facing features.
+ */
+export const updateProfileSecure = mutation({
+  args: {
+    profileId: v.id('profiles'),
+    displayName: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const access = await validateProfileOwnership(
+      ctx as Parameters<typeof validateProfileOwnership>[0],
+      args.profileId
+    );
+
+    if (!access.hasAccess) {
+      return {
+        success: false,
+        error: access.reason,
+        message: access.message,
+      };
+    }
+
+    const errors: ValidationError[] = [];
+
+    // Validate display name if provided
+    if (args.displayName !== undefined) {
+      const nameErrors = validateDisplayNameInternal(args.displayName);
+      errors.push(...nameErrors);
+
+      // Check uniqueness within family
+      if (nameErrors.length === 0) {
+        const existingProfiles = await ctx.db
+          .query('profiles')
+          .withIndex('by_family', (q) => q.eq('familyId', access.familyId as unknown as string))
+          .collect();
+
+        const normalizedName = args.displayName.trim().toLowerCase();
+        const isDuplicate = existingProfiles.some(
+          (p) => p.displayName.trim().toLowerCase() === normalizedName && p._id !== args.profileId
+        );
+
+        if (isDuplicate) {
+          errors.push({
+            field: 'displayName',
+            code: 'DUPLICATE_NAME',
+            message: 'A profile with this name already exists in your family',
+          });
+        }
+      }
+    }
+
+    // Validate avatar URL if provided
+    if (args.avatarUrl !== undefined) {
+      const avatarErrors = validateAvatarUrlInternal(args.avatarUrl);
+      errors.push(...avatarErrors);
+    }
+
+    if (errors.length > 0) {
+      return {
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Validation failed',
+        errors,
+      };
+    }
+
+    // Build updates
+    const updates: { displayName?: string; avatarUrl?: string } = {};
+
+    if (args.displayName !== undefined) {
+      updates.displayName = args.displayName.trim().replace(/\s+/g, ' ');
+    }
+
+    if (args.avatarUrl !== undefined) {
+      updates.avatarUrl = args.avatarUrl.trim() || undefined;
+    }
+
+    // Apply updates
+    if (Object.keys(updates).length > 0) {
+      await ctx.db.patch(args.profileId, updates);
+    }
+
+    return {
+      success: true,
+      error: null,
+      message: 'Profile updated successfully',
+    };
+  },
+});
+
+/**
+ * Delete a profile with ownership validation.
+ * Only allows deletion if the authenticated user owns the profile.
+ *
+ * Note: Cannot delete the parent profile if it's the only profile remaining.
+ *
+ * Use this instead of `deleteProfile` for user-facing features.
+ */
+export const deleteProfileSecure = mutation({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    const access = await validateProfileOwnership(
+      ctx as Parameters<typeof validateProfileOwnership>[0],
+      args.profileId
+    );
+
+    if (!access.hasAccess) {
+      return {
+        success: false,
+        error: access.reason,
+        message: access.message,
+      };
+    }
+
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      return {
+        success: false,
+        error: 'PROFILE_NOT_FOUND',
+        message: 'Profile not found',
+      };
+    }
+
+    // Check if this is the last profile in the family
+    const familyProfiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', (q) => q.eq('familyId', profile.familyId))
+      .collect();
+
+    if (familyProfiles.length === 1) {
+      return {
+        success: false,
+        error: 'LAST_PROFILE',
+        message: 'Cannot delete the last profile in the family',
+      };
+    }
+
+    // Delete all related data first
+    const collections = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    for (const card of collections) {
+      await ctx.db.delete(card._id);
+    }
+
+    const wishlist = await ctx.db
+      .query('wishlistCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    for (const card of wishlist) {
+      await ctx.db.delete(card._id);
+    }
+
+    const achievements = await ctx.db
+      .query('achievements')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    for (const achievement of achievements) {
+      await ctx.db.delete(achievement._id);
+    }
+
+    const shares = await ctx.db
+      .query('wishlistShares')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    for (const share of shares) {
+      await ctx.db.delete(share._id);
+    }
+
+    const activityLogs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    for (const log of activityLogs) {
+      await ctx.db.delete(log._id);
+    }
+
+    const milestones = await ctx.db
+      .query('collectionMilestones')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    for (const milestone of milestones) {
+      await ctx.db.delete(milestone._id);
+    }
+
+    const profileGames = await ctx.db
+      .query('profileGames')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    for (const game of profileGames) {
+      await ctx.db.delete(game._id);
+    }
+
+    // Finally delete the profile
+    await ctx.db.delete(args.profileId);
+
+    return {
+      success: true,
+      error: null,
+      message: 'Profile deleted successfully',
+    };
+  },
+});
+
+/**
+ * Create a profile with ownership validation.
+ * Only allows creating profiles in families owned by the authenticated user.
+ *
+ * Use this instead of `createProfile` for user-facing features.
+ */
+export const createProfileSecure = mutation({
+  args: {
+    familyId: v.id('families'),
+    displayName: v.string(),
+    avatarUrl: v.optional(v.string()),
+    profileType: v.union(v.literal('parent'), v.literal('child')),
+  },
+  handler: async (ctx, args) => {
+    const access = await validateFamilyOwnership(
+      ctx as Parameters<typeof validateFamilyOwnership>[0],
+      args.familyId
+    );
+
+    if (!access.hasAccess) {
+      return {
+        success: false,
+        error: access.reason,
+        message: access.message,
+        profileId: null,
+      };
+    }
+
+    const errors: ValidationError[] = [];
+
+    // Validate display name
+    const nameErrors = validateDisplayNameInternal(args.displayName);
+    errors.push(...nameErrors);
+
+    // Validate avatar URL
+    const avatarErrors = validateAvatarUrlInternal(args.avatarUrl);
+    errors.push(...avatarErrors);
+
+    // Get existing profiles
+    const existingProfiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', (q) => q.eq('familyId', args.familyId))
+      .collect();
+
+    // Check name uniqueness
+    if (nameErrors.length === 0) {
+      const normalizedName = args.displayName.trim().toLowerCase();
+      const isDuplicate = existingProfiles.some(
+        (p) => p.displayName.trim().toLowerCase() === normalizedName
+      );
+
+      if (isDuplicate) {
+        errors.push({
+          field: 'displayName',
+          code: 'DUPLICATE_NAME',
+          message: 'A profile with this name already exists in your family',
+        });
+      }
+    }
+
+    // Check profile limits
+    if (existingProfiles.length >= MAX_TOTAL_PROFILES) {
+      errors.push({
+        field: 'profile',
+        code: 'LIMIT_REACHED',
+        message: `Maximum of ${MAX_TOTAL_PROFILES} profiles per family`,
+      });
+    }
+
+    // Validate: only one parent profile per family
+    if (args.profileType === 'parent') {
+      const existingParent = existingProfiles.find((p) => p.profileType === 'parent');
+      if (existingParent) {
+        errors.push({
+          field: 'profileType',
+          code: 'PARENT_EXISTS',
+          message: 'Only one parent profile allowed per family',
+        });
+      }
+    }
+
+    // Get family for tier-based limits
+    const family = await ctx.db.get(args.familyId);
+    if (family && args.profileType === 'child') {
+      let effectiveTier: 'free' | 'family' = family.subscriptionTier;
+      if (
+        family.subscriptionTier === 'family' &&
+        family.subscriptionExpiresAt &&
+        family.subscriptionExpiresAt <= Date.now()
+      ) {
+        effectiveTier = 'free';
+      }
+
+      const counts = countProfilesInternal(existingProfiles);
+      const maxChildProfiles = getMaxChildProfilesInternal(effectiveTier);
+
+      if (counts.child >= maxChildProfiles) {
+        const canUpgrade = effectiveTier === 'free';
+        errors.push({
+          field: 'profile',
+          code: canUpgrade ? 'UPGRADE_REQUIRED' : 'LIMIT_REACHED',
+          message: canUpgrade
+            ? `Free plan is limited to ${maxChildProfiles} child profile. Upgrade to Family Plan for up to ${FAMILY_TIER_MAX_CHILD_PROFILES} child profiles.`
+            : `Maximum of ${maxChildProfiles} child profiles reached`,
+        });
+      }
+    }
+
+    if (errors.length > 0) {
+      return {
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Validation failed',
+        errors,
+        profileId: null,
+      };
+    }
+
+    // Sanitize inputs
+    const sanitizedName = args.displayName.trim().replace(/\s+/g, ' ');
+    const sanitizedAvatarUrl = args.avatarUrl?.trim() || undefined;
+
+    // Create the profile
+    const profileId = await ctx.db.insert('profiles', {
+      familyId: args.familyId,
+      displayName: sanitizedName,
+      avatarUrl: sanitizedAvatarUrl,
+      profileType: args.profileType,
+    });
+
+    return {
+      success: true,
+      error: null,
+      message: 'Profile created successfully',
+      profileId,
+    };
+  },
+});
+
+/**
+ * Query to validate profile access without returning full profile data.
+ * Useful for checking permissions before performing actions.
+ */
+export const validateProfileAccess = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    const access = await validateProfileOwnership(
+      ctx as Parameters<typeof validateProfileOwnership>[0],
+      args.profileId
+    );
+
+    if (!access.hasAccess) {
+      return {
+        hasAccess: false,
+        reason: access.reason,
+        message: access.message,
+      };
+    }
+
+    return {
+      hasAccess: true,
+      reason: null,
+      message: null,
+      familyId: access.familyId,
+    };
+  },
+});
+
+/**
+ * Query to validate family access without returning full family data.
+ * Useful for checking permissions before performing actions.
+ */
+export const validateFamilyAccess = query({
+  args: { familyId: v.id('families') },
+  handler: async (ctx, args) => {
+    const access = await validateFamilyOwnership(
+      ctx as Parameters<typeof validateFamilyOwnership>[0],
+      args.familyId
+    );
+
+    if (!access.hasAccess) {
+      return {
+        hasAccess: false,
+        reason: access.reason,
+        message: access.message,
+      };
+    }
+
+    return {
+      hasAccess: true,
+      reason: null,
+      message: null,
+    };
+  },
+});

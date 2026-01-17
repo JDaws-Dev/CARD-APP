@@ -42,6 +42,19 @@ import {
   getSubscriptionStatusMessage,
   getHeaderStyle,
   needsOnboarding,
+  // Profile access validation imports
+  isNotAuthenticated,
+  isUnauthorizedAccess,
+  isProfileNotFound,
+  isFamilyNotFound,
+  getProfileAccessErrorMessage,
+  getFamilyAccessErrorMessage,
+  getProfileAccessAction,
+  isSecureMutationSuccess,
+  getSecureMutationErrors,
+  getSecureMutationErrorMessages,
+  isSecureMutationAuthError,
+  isSecureMutationOwnershipError,
 } from '../profiles';
 
 // ============================================================================
@@ -1196,5 +1209,404 @@ describe('Integration: Current User Profile Flow', () => {
     expect(hasFamilySubscription(familyUser)).toBe(true);
     expect(isSubscriptionActive(familyUser)).toBe(true);
     expect(getSubscriptionStatusMessage(familyUser)).toBe('Family Plan');
+  });
+});
+
+// ============================================================================
+// PROFILE ACCESS VALIDATION HELPER TESTS
+// ============================================================================
+
+describe('isNotAuthenticated', () => {
+  it('should return true for null', () => {
+    expect(isNotAuthenticated(null)).toBe(true);
+  });
+
+  it('should return true for undefined', () => {
+    expect(isNotAuthenticated(undefined)).toBe(true);
+  });
+
+  it('should return true for NOT_AUTHENTICATED error', () => {
+    expect(isNotAuthenticated({ error: 'NOT_AUTHENTICATED' })).toBe(true);
+  });
+
+  it('should return false for other errors', () => {
+    expect(isNotAuthenticated({ error: 'NOT_OWNER' })).toBe(false);
+    expect(isNotAuthenticated({ error: 'PROFILE_NOT_FOUND' })).toBe(false);
+    expect(isNotAuthenticated({ error: null })).toBe(false);
+  });
+});
+
+describe('isUnauthorizedAccess', () => {
+  it('should return true for null', () => {
+    expect(isUnauthorizedAccess(null)).toBe(true);
+  });
+
+  it('should return true for undefined', () => {
+    expect(isUnauthorizedAccess(undefined)).toBe(true);
+  });
+
+  it('should return true for authorized: false', () => {
+    expect(isUnauthorizedAccess({ authorized: false })).toBe(true);
+  });
+
+  it('should return false for authorized: true', () => {
+    expect(isUnauthorizedAccess({ authorized: true })).toBe(false);
+  });
+
+  it('should return true for NOT_OWNER error when no authorized field', () => {
+    expect(isUnauthorizedAccess({ error: 'NOT_OWNER' })).toBe(true);
+  });
+
+  it('should return false for other errors when no authorized field', () => {
+    expect(isUnauthorizedAccess({ error: 'PROFILE_NOT_FOUND' })).toBe(false);
+  });
+});
+
+describe('isProfileNotFound', () => {
+  it('should return false for null', () => {
+    expect(isProfileNotFound(null)).toBe(false);
+  });
+
+  it('should return true for PROFILE_NOT_FOUND error', () => {
+    expect(isProfileNotFound({ error: 'PROFILE_NOT_FOUND' })).toBe(true);
+  });
+
+  it('should return false for other errors', () => {
+    expect(isProfileNotFound({ error: 'NOT_OWNER' })).toBe(false);
+    expect(isProfileNotFound({ error: null })).toBe(false);
+  });
+});
+
+describe('isFamilyNotFound', () => {
+  it('should return false for null', () => {
+    expect(isFamilyNotFound(null)).toBe(false);
+  });
+
+  it('should return true for FAMILY_NOT_FOUND error', () => {
+    expect(isFamilyNotFound({ error: 'FAMILY_NOT_FOUND' })).toBe(true);
+  });
+
+  it('should return false for other errors', () => {
+    expect(isFamilyNotFound({ error: 'NOT_OWNER' })).toBe(false);
+    expect(isFamilyNotFound({ error: null })).toBe(false);
+  });
+});
+
+describe('getProfileAccessErrorMessage', () => {
+  it('should return appropriate message for NOT_AUTHENTICATED', () => {
+    expect(getProfileAccessErrorMessage('NOT_AUTHENTICATED')).toBe('Please sign in to continue');
+  });
+
+  it('should return appropriate message for NO_EMAIL', () => {
+    expect(getProfileAccessErrorMessage('NO_EMAIL')).toBe(
+      'Your account has no email address associated'
+    );
+  });
+
+  it('should return appropriate message for PROFILE_NOT_FOUND', () => {
+    expect(getProfileAccessErrorMessage('PROFILE_NOT_FOUND')).toBe('Profile not found');
+  });
+
+  it('should return appropriate message for FAMILY_NOT_FOUND', () => {
+    expect(getProfileAccessErrorMessage('FAMILY_NOT_FOUND')).toBe('Family account not found');
+  });
+
+  it('should return appropriate message for NOT_OWNER', () => {
+    expect(getProfileAccessErrorMessage('NOT_OWNER')).toBe(
+      'You do not have permission to access this profile'
+    );
+  });
+
+  it('should return default message for null/undefined', () => {
+    expect(getProfileAccessErrorMessage(null)).toBe('An error occurred');
+    expect(getProfileAccessErrorMessage(undefined)).toBe('An error occurred');
+  });
+});
+
+describe('getFamilyAccessErrorMessage', () => {
+  it('should return appropriate message for NOT_AUTHENTICATED', () => {
+    expect(getFamilyAccessErrorMessage('NOT_AUTHENTICATED')).toBe('Please sign in to continue');
+  });
+
+  it('should return appropriate message for NO_EMAIL', () => {
+    expect(getFamilyAccessErrorMessage('NO_EMAIL')).toBe(
+      'Your account has no email address associated'
+    );
+  });
+
+  it('should return appropriate message for FAMILY_NOT_FOUND', () => {
+    expect(getFamilyAccessErrorMessage('FAMILY_NOT_FOUND')).toBe('Family account not found');
+  });
+
+  it('should return appropriate message for NOT_OWNER', () => {
+    expect(getFamilyAccessErrorMessage('NOT_OWNER')).toBe(
+      'You do not have permission to access this family'
+    );
+  });
+
+  it('should return default message for null/undefined', () => {
+    expect(getFamilyAccessErrorMessage(null)).toBe('An error occurred');
+    expect(getFamilyAccessErrorMessage(undefined)).toBe('An error occurred');
+  });
+});
+
+describe('getProfileAccessAction', () => {
+  it('should return redirect_login for NOT_AUTHENTICATED', () => {
+    expect(getProfileAccessAction('NOT_AUTHENTICATED')).toBe('redirect_login');
+  });
+
+  it('should return redirect_home for NOT_OWNER', () => {
+    expect(getProfileAccessAction('NOT_OWNER')).toBe('redirect_home');
+  });
+
+  it('should return show_error for NO_EMAIL', () => {
+    expect(getProfileAccessAction('NO_EMAIL')).toBe('show_error');
+  });
+
+  it('should return show_error for PROFILE_NOT_FOUND', () => {
+    expect(getProfileAccessAction('PROFILE_NOT_FOUND')).toBe('show_error');
+  });
+
+  it('should return show_error for FAMILY_NOT_FOUND', () => {
+    expect(getProfileAccessAction('FAMILY_NOT_FOUND')).toBe('show_error');
+  });
+
+  it('should return none for null/undefined', () => {
+    expect(getProfileAccessAction(null)).toBe('none');
+    expect(getProfileAccessAction(undefined)).toBe('none');
+  });
+});
+
+describe('isSecureMutationSuccess', () => {
+  it('should return false for null', () => {
+    expect(isSecureMutationSuccess(null)).toBe(false);
+  });
+
+  it('should return false for undefined', () => {
+    expect(isSecureMutationSuccess(undefined)).toBe(false);
+  });
+
+  it('should return true for success: true', () => {
+    expect(isSecureMutationSuccess({ success: true })).toBe(true);
+  });
+
+  it('should return false for success: false', () => {
+    expect(isSecureMutationSuccess({ success: false })).toBe(false);
+  });
+
+  it('should return false when success is undefined', () => {
+    expect(isSecureMutationSuccess({})).toBe(false);
+  });
+});
+
+describe('getSecureMutationErrors', () => {
+  it('should return empty array for null', () => {
+    expect(getSecureMutationErrors(null)).toEqual([]);
+  });
+
+  it('should return empty array for undefined errors', () => {
+    expect(getSecureMutationErrors({})).toEqual([]);
+  });
+
+  it('should return errors array', () => {
+    const errors = [
+      { field: 'displayName', code: 'TOO_SHORT', message: 'Name too short' },
+      { field: 'avatarUrl', code: 'INVALID_URL', message: 'Invalid URL' },
+    ];
+    expect(getSecureMutationErrors({ errors })).toEqual(errors);
+  });
+});
+
+describe('getSecureMutationErrorMessages', () => {
+  it('should return empty array for null', () => {
+    expect(getSecureMutationErrorMessages(null)).toEqual([]);
+  });
+
+  it('should return empty array for undefined errors', () => {
+    expect(getSecureMutationErrorMessages({})).toEqual([]);
+  });
+
+  it('should return message strings', () => {
+    const errors = [
+      { field: 'displayName', code: 'TOO_SHORT', message: 'Name too short' },
+      { field: 'avatarUrl', code: 'INVALID_URL', message: 'Invalid URL' },
+    ];
+    expect(getSecureMutationErrorMessages({ errors })).toEqual(['Name too short', 'Invalid URL']);
+  });
+});
+
+describe('isSecureMutationAuthError', () => {
+  it('should return false for null', () => {
+    expect(isSecureMutationAuthError(null)).toBe(false);
+  });
+
+  it('should return true for NOT_AUTHENTICATED', () => {
+    expect(isSecureMutationAuthError({ error: 'NOT_AUTHENTICATED' })).toBe(true);
+  });
+
+  it('should return true for NO_EMAIL', () => {
+    expect(isSecureMutationAuthError({ error: 'NO_EMAIL' })).toBe(true);
+  });
+
+  it('should return false for other errors', () => {
+    expect(isSecureMutationAuthError({ error: 'NOT_OWNER' })).toBe(false);
+    expect(isSecureMutationAuthError({ error: 'VALIDATION_ERROR' })).toBe(false);
+    expect(isSecureMutationAuthError({ error: null })).toBe(false);
+  });
+});
+
+describe('isSecureMutationOwnershipError', () => {
+  it('should return false for null', () => {
+    expect(isSecureMutationOwnershipError(null)).toBe(false);
+  });
+
+  it('should return true for NOT_OWNER', () => {
+    expect(isSecureMutationOwnershipError({ error: 'NOT_OWNER' })).toBe(true);
+  });
+
+  it('should return false for other errors', () => {
+    expect(isSecureMutationOwnershipError({ error: 'NOT_AUTHENTICATED' })).toBe(false);
+    expect(isSecureMutationOwnershipError({ error: 'VALIDATION_ERROR' })).toBe(false);
+    expect(isSecureMutationOwnershipError({ error: null })).toBe(false);
+  });
+});
+
+// ============================================================================
+// INTEGRATION: PROFILE ACCESS VALIDATION FLOW
+// ============================================================================
+
+describe('Integration: Profile Access Validation Flow', () => {
+  it('should handle unauthorized access response correctly', () => {
+    const unauthorizedResult = {
+      authorized: false,
+      error: 'NOT_OWNER' as const,
+      message: 'You do not have permission to access this profile',
+      profile: null,
+    };
+
+    // Detection
+    expect(isUnauthorizedAccess(unauthorizedResult)).toBe(true);
+    expect(isNotAuthenticated(unauthorizedResult)).toBe(false);
+    expect(isProfileNotFound(unauthorizedResult)).toBe(false);
+
+    // Action
+    expect(getProfileAccessAction(unauthorizedResult.error)).toBe('redirect_home');
+
+    // Error message
+    expect(getProfileAccessErrorMessage(unauthorizedResult.error)).toBe(
+      'You do not have permission to access this profile'
+    );
+  });
+
+  it('should handle not authenticated response correctly', () => {
+    const notAuthResult = {
+      authorized: false,
+      error: 'NOT_AUTHENTICATED' as const,
+      message: 'You must be signed in to access this profile',
+      profile: null,
+    };
+
+    // Detection
+    expect(isNotAuthenticated(notAuthResult)).toBe(true);
+    expect(isUnauthorizedAccess(notAuthResult)).toBe(true);
+
+    // Action
+    expect(getProfileAccessAction(notAuthResult.error)).toBe('redirect_login');
+
+    // Error message
+    expect(getProfileAccessErrorMessage(notAuthResult.error)).toBe('Please sign in to continue');
+  });
+
+  it('should handle profile not found response correctly', () => {
+    const notFoundResult = {
+      authorized: false,
+      error: 'PROFILE_NOT_FOUND' as const,
+      message: 'Profile not found',
+      profile: null,
+    };
+
+    // Detection
+    expect(isProfileNotFound(notFoundResult)).toBe(true);
+    expect(isNotAuthenticated(notFoundResult)).toBe(false);
+
+    // Action
+    expect(getProfileAccessAction(notFoundResult.error)).toBe('show_error');
+
+    // Error message
+    expect(getProfileAccessErrorMessage(notFoundResult.error)).toBe('Profile not found');
+  });
+
+  it('should handle secure mutation validation errors correctly', () => {
+    const validationResult = {
+      success: false,
+      error: 'VALIDATION_ERROR' as const,
+      message: 'Validation failed',
+      errors: [
+        { field: 'displayName', code: 'TOO_SHORT', message: 'Display name too short' },
+        { field: 'displayName', code: 'INAPPROPRIATE_CONTENT', message: 'Name contains bad words' },
+      ],
+    };
+
+    // Detection
+    expect(isSecureMutationSuccess(validationResult)).toBe(false);
+    expect(isSecureMutationAuthError(validationResult)).toBe(false);
+    expect(isSecureMutationOwnershipError(validationResult)).toBe(false);
+
+    // Errors
+    const errors = getSecureMutationErrors(validationResult);
+    expect(errors).toHaveLength(2);
+
+    const messages = getSecureMutationErrorMessages(validationResult);
+    expect(messages).toContain('Display name too short');
+    expect(messages).toContain('Name contains bad words');
+  });
+
+  it('should handle secure mutation success correctly', () => {
+    const successResult = {
+      success: true,
+      error: null,
+      message: 'Profile updated successfully',
+    };
+
+    // Detection
+    expect(isSecureMutationSuccess(successResult)).toBe(true);
+    expect(isSecureMutationAuthError(successResult)).toBe(false);
+    expect(isSecureMutationOwnershipError(successResult)).toBe(false);
+
+    // No errors
+    expect(getSecureMutationErrors(successResult)).toEqual([]);
+    expect(getSecureMutationErrorMessages(successResult)).toEqual([]);
+  });
+
+  it('should handle secure mutation auth error correctly', () => {
+    const authErrorResult = {
+      success: false,
+      error: 'NOT_AUTHENTICATED' as const,
+      message: 'You must be signed in',
+    };
+
+    // Detection
+    expect(isSecureMutationSuccess(authErrorResult)).toBe(false);
+    expect(isSecureMutationAuthError(authErrorResult)).toBe(true);
+    expect(isSecureMutationOwnershipError(authErrorResult)).toBe(false);
+
+    // Action
+    expect(getProfileAccessAction(authErrorResult.error)).toBe('redirect_login');
+  });
+
+  it('should handle secure mutation ownership error correctly', () => {
+    const ownershipErrorResult = {
+      success: false,
+      error: 'NOT_OWNER' as const,
+      message: 'You do not have permission',
+    };
+
+    // Detection
+    expect(isSecureMutationSuccess(ownershipErrorResult)).toBe(false);
+    expect(isSecureMutationAuthError(ownershipErrorResult)).toBe(false);
+    expect(isSecureMutationOwnershipError(ownershipErrorResult)).toBe(true);
+
+    // Action
+    expect(getProfileAccessAction(ownershipErrorResult.error)).toBe('redirect_home');
   });
 });
