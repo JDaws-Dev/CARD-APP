@@ -402,6 +402,54 @@ export const getCachedCardsInSet = query({
   },
 });
 
+/**
+ * Get all cached cards for a game (public query)
+ * Supports optional pagination via limit/offset
+ */
+export const getCardsByGame = query({
+  args: {
+    gameSlug: gameSlugValidator,
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const allCards = await ctx.db
+      .query('cachedCards')
+      .withIndex('by_game', (q) => q.eq('gameSlug', args.gameSlug))
+      .collect();
+
+    const offset = args.offset ?? 0;
+    const limit = args.limit ?? allCards.length;
+
+    return allCards.slice(offset, offset + limit);
+  },
+});
+
+/**
+ * Search cached cards by name within a game (public query)
+ * Case-insensitive partial match on card name
+ */
+export const searchCardsByGame = query({
+  args: {
+    gameSlug: gameSlugValidator,
+    searchTerm: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const searchLower = args.searchTerm.toLowerCase();
+    const limit = args.limit ?? 50;
+
+    const allCards = await ctx.db
+      .query('cachedCards')
+      .withIndex('by_game', (q) => q.eq('gameSlug', args.gameSlug))
+      .collect();
+
+    const matchingCards = allCards.filter((card) => card.name.toLowerCase().includes(searchLower));
+
+    return matchingCards.slice(0, limit);
+  },
+});
+
 // =============================================================================
 // POKEMON API POPULATION
 // =============================================================================
