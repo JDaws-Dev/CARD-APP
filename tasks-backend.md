@@ -257,16 +257,16 @@ Simple trade logging to record real-life trades. Kids log what they gave and rec
 
 #### Core Mutation
 
-- [ ] TRADE-002: Create `logTrade` mutation in `convex/trades.ts` - Accepts cardsGiven array, cardsReceived array, optional tradingPartner string. Removes given cards from collection, adds received cards, logs single `trade_logged` activity event
+- [x] TRADE-002: Create `logTrade` mutation in `convex/trades.ts` - Accepts cardsGiven array, cardsReceived array, optional tradingPartner string. Removes given cards from collection, adds received cards, logs single `trade_logged` activity event
 
 #### Queries
 
-- [ ] TRADE-003: Create `getTradeHistory` query - Return all `trade_logged` activity events for a profile, sorted by date
+- [x] TRADE-003: Create `getTradeHistory` query - Return all `trade_logged` activity events for a profile, sorted by date
 - [ ] TRADE-004: Update `getRecentActivityWithNames` query - Include `trade_logged` events in timeline data with proper formatting
 
 #### Validation
 
-- [ ] TRADE-005: Add trade validation in `logTrade` - Verify user owns cards being given (correct quantity), validate card IDs exist
+- [x] TRADE-005: Add trade validation in `logTrade` - Verify user owns cards being given (correct quantity), validate card IDs exist
 
 #### Testing
 
@@ -3168,3 +3168,33 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
 - Schema compiles successfully via `npx convex dev --once`
 - ESLint passes with only pre-existing warnings
 - Prettier formatting verified (no changes needed)
+
+---
+
+## Progress: January 17, 2026 - Trade Logging Implementation (TRADE-002, TRADE-003, TRADE-005)
+
+**Completed:** TRADE-002, TRADE-003, TRADE-005
+
+**Changes Made:**
+- **Created `convex/trades.ts`:**
+  - `logTrade` mutation: Accepts cardsGiven/cardsReceived arrays with optional tradingPartner string
+    - Removes given cards from user's collection (validates ownership and quantity)
+    - Adds received cards to collection (updates existing or creates new entries)
+    - Logs single `trade_logged` activity event with full trade metadata
+    - Validates trade is not empty (at least one card given or received)
+    - Returns success status, activity log ID, and trade summary
+  - `getTradeHistory` query: Returns all trade_logged activity events for a profile sorted by date (TRADE-003)
+    - Includes parsed metadata with cardsGiven, cardsReceived, tradingPartner
+    - Supports configurable limit parameter
+  - `getTradeStats` query: Returns trade statistics for a profile
+    - Total trades, cards given/received, net change, unique trading partners
+
+**Validation (TRADE-005):**
+- Verifies user owns cards being given with correct quantity
+- Validates card variant matches collection entries
+- Throws descriptive errors for validation failures
+
+**Testing:**
+- All 6085 tests pass (10 pre-existing failures in unrelated UI components)
+- ESLint passes with only pre-existing warnings
+- Prettier formatting verified
