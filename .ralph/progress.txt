@@ -34,3 +34,9 @@
 **Files:** src/components/settings/PinProtectionWrapper.tsx (new), src/app/settings/page.tsx (modified)
 **Commit:** d5d2595
 ---
+## CD-4xk - Add visual lock indicators on protected settings
+**Status:** Completed
+**Changes:** Added LockClosedIcon and "Parent Only" badges to Games You Collect and Sleep Mode section headers in Family Controls
+**Files:** src/app/settings/page.tsx
+**Commit:** 8aa6031
+---
