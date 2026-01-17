@@ -97,7 +97,7 @@ These issues relate to inconsistent behavior between logged-in and logged-out st
 - [x] Protect `/dashboard` route - Redirect to `/login` if not authenticated
 - [x] Protect `/collection` route - Redirect to `/login` if not authenticated
 - [x] Protect `/my-wishlist` route - Redirect to `/login` if not authenticated
-- [ ] Protect `/badges` route - Redirect to `/login` if not authenticated
+- [x] Protect `/badges` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/settings` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/parent-dashboard` route - Redirect to `/login` if not authenticated (also check parent role)
 - [x] Protect `/streak` route - Redirect to `/login` if not authenticated
@@ -536,6 +536,7 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 ## Progress
 
+- **2026-01-17**: Completed Protect /badges route task - Added authentication protection to `/badges` (Trophy Case) page to redirect unauthenticated users to `/login`. Updated `src/app/badges/page.tsx` to use `useConvexAuth` hook for auth state checking, `useRouter` for navigation, and `useEffect` for redirect logic. Added loading spinner with amber/orange gradient theme matching the page. Follows same pattern as other protected routes (`/dashboard`, `/collection`, `/my-wishlist`, `/streak`). Commit: 956a639
 - **2026-01-17**: Completed Protect /my-wishlist route task - Added authentication protection to `/my-wishlist` page to redirect unauthenticated users to `/login`. Updated `src/app/my-wishlist/page.tsx` to use `useConvexAuth` hook for auth state checking, `useRouter` for navigation, and `useEffect` for redirect logic. Added loading spinner while auth state is being checked. Follows same pattern as other protected routes (`/dashboard`, `/collection`). Commit: 2601c71
 - **2026-01-17**: Completed CRITICAL auth redirect fixes for login/signup pages - Updated both `/login/page.tsx` and `/signup/page.tsx` to redirect authenticated users appropriately. Both pages now check `hasCompletedOnboarding()` from onboardingFlow lib: if user has completed onboarding, redirect to `/dashboard`; if not, redirect to `/onboarding`. This ensures existing users visiting auth pages go to dashboard while new users who just signed up still go through onboarding. Commit: 3a11eec
 - **2026-01-17**: Completed Create BackLink component - Created reusable BackLink component (src/components/ui/BackLink.tsx) for consistent back navigation across all pages. Features: ArrowLeftIcon from Heroicons, consistent text styling (text-sm, font-medium, text-gray-600), hover transition to kid-primary brand color, focus-visible ring styling for keyboard navigation, dark mode support (dark:text-slate-400), withMargin prop for optional mb-4 spacing, aria-label prop for custom accessibility labels, full TypeScript types with JSDoc documentation. Added 28 unit tests covering prop validation, styling, icon properties, usage patterns, and accessibility requirements. Uses cn() utility for class merging. Commit: 3205d6c
