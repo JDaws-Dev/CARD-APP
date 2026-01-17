@@ -120,8 +120,8 @@ These specific issues were discovered during code review and need immediate atte
 
 ### Image Error Handling (Prevent Broken Images)
 
-- [ ] Create `src/components/ui/CardImage.tsx` - Reusable card image component with built-in onError handler and fallback
-- [ ] Create `/public/images/card-placeholder.svg` - Simple placeholder SVG for failed card images
+- [x] Create `src/components/ui/CardImage.tsx` - Reusable card image component with built-in onError handler and fallback
+- [x] Create `/public/images/card-placeholder.svg` - Simple placeholder SVG for failed card images
 - [ ] Update CardGrid to use CardImage component - Replace raw img/Image with error-handled version
 - [ ] Update VirtualCardGrid to use CardImage component - Replace raw img/Image with error-handled version
 
@@ -521,6 +521,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Added email verification UI - Added verification pending state to AuthForm (src/components/auth/AuthForm.tsx) showing after signup. Features: envelope icon with brand gradient, check your email message with user's email address, spam folder reminder in amber alert box, resend verification email button with loading spinner and success confirmation, back to sign in button. Uses Heroicons (EnvelopeIcon, ArrowPathIcon, CheckCircleIcon). Commit: 6f36eec
 
 - **2026-01-17**: Updated signup page tagline - Changed "Start tracking your trading card collection" to "Start your collecting adventure!" in src/app/signup/page.tsx for more exciting, kid-friendly copy. Commit: a4d921c
+
+- **2026-01-17**: Created CardImage component with error handling - Built reusable CardImage component (src/components/ui/CardImage.tsx) wrapping Next.js Image with automatic fallback to placeholder on load errors. Features: inline SVG placeholder as data URL (no external dependencies), loading skeleton state with PhotoIcon, support for fill and fixed dimension modes, CardBack component for flip animations, customizable fallback image, onError/onLoad callbacks. Created card-placeholder.svg (public/images/card-placeholder.svg) with card-shaped design and "Card not available" message. Added comprehensive test suite (16 tests) covering error handling, fallback behavior, callbacks, and prop handling. Commit: 1eba4f1
 
 - **2026-01-17**: Updated parent dashboard text for multi-TCG support - Changed "Manage your family's Pokemon collections" to "Manage your family's trading card collections" in src/app/parent-dashboard/page.tsx line 75 to reflect that the app supports multiple trading card games. Commit: a506f8d
 
