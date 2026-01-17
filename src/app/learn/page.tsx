@@ -36,6 +36,7 @@ import {
   FireIcon,
   CurrencyDollarIcon,
 } from '@heroicons/react/24/solid';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function LearnPage() {
   const [isGradeGameOpen, setIsGradeGameOpen] = useState(false);
@@ -46,6 +47,30 @@ export default function LearnPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Header with Back Navigation */}
+      <div className="mb-8">
+        <Link
+          href="/dashboard"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 transition-colors hover:text-kid-primary dark:text-slate-400 dark:hover:text-kid-primary"
+        >
+          <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" />
+          Back to Dashboard
+        </Link>
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600">
+            <AcademicCapIcon className="h-7 w-7 text-white" aria-hidden="true" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+              Learn to Collect
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-slate-400">
+              Guides and mini-games to become a card expert
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Featured Guide Banner - Card Condition Guide */}
       <div className="mb-8 rounded-2xl border border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50 p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
