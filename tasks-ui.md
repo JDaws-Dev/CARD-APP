@@ -94,7 +94,7 @@ These issues relate to inconsistent behavior between logged-in and logged-out st
 
 - [x] **CRITICAL: `/login` should redirect to `/dashboard` if already authenticated** - Logged-in users can still access login page
 - [x] **CRITICAL: `/signup` should redirect to `/dashboard` if already authenticated** - Logged-in users can still access signup page
-- [ ] Protect `/dashboard` route - Redirect to `/login` if not authenticated
+- [x] Protect `/dashboard` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/collection` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/my-wishlist` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/badges` route - Redirect to `/login` if not authenticated
@@ -704,6 +704,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Added ESC key handler to close mobile menus - Added keyboard accessibility to AppHeader and MarketingHeader by closing mobile menu on Escape key press. Also closes profile menu and quick settings popover in AppHeader when Escape is pressed. Uses useEffect with keydown listener and useCallback for stable handler reference. Added 4 tests covering ESC key behavior (3 for AppHeader: mobile menu, profile menu, quick settings; 1 for MarketingHeader: mobile menu). All new tests pass, ESLint and Prettier clean. Commit: d154bae
 
 - **2026-01-17**: Added back navigation and page header to /learn page - Users could previously get stuck on the Learn page without a way to return. Added back link to dashboard at top of page following the same pattern as settings page (ArrowLeftIcon, consistent styling with hover:text-kid-primary, dark mode support). Added page header with AcademicCapIcon in purple/indigo gradient, "Learn to Collect" title, and "Guides and mini-games to become a card expert" subtitle. Added comprehensive test suite (13 tests) covering back navigation, page header, page content, and accessibility. All tests pass, ESLint and Prettier clean. Commit: d7302c2
+
+- **2026-01-17**: Protected /dashboard route with auth redirect - Updated src/app/dashboard/page.tsx to redirect unauthenticated users to /login automatically. Uses useConvexAuth hook to check authentication state, redirects via useEffect when not authenticated. Also redirects users without a profile to /onboarding for initial setup. Shows loading spinner while checking auth status. Added comprehensive test suite (11 tests) covering authentication protection, profile loading states, and authenticated behavior. All dashboard tests pass, ESLint and Prettier clean. Commit: 2a2eae1
 
 ---
 
