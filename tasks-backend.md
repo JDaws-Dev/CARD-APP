@@ -2451,10 +2451,10 @@ These tasks address backend requirements for SEO and infrastructure improvements
 
 ### Sitemap Generation
 
-- [ ] Create sitemap generation function - Generate XML sitemap with all public routes
-- [ ] Add sitemap.xml route handler - Serve dynamic sitemap at /sitemap.xml
-- [ ] Include all set pages in sitemap - Dynamic routes for /sets/[setId]
-- [ ] Add lastmod dates based on data freshness - When sets/cards were last updated
+- [x] Create sitemap generation function - Generate XML sitemap with all public routes
+- [x] Add sitemap.xml route handler - Serve dynamic sitemap at /sitemap.xml
+- [x] Include all set pages in sitemap - Dynamic routes for /sets/[setId]
+- [x] Add lastmod dates based on data freshness - When sets/cards were last updated
 
 ### API Route Multi-TCG Updates
 
@@ -2664,3 +2664,49 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - Integration tests with endpoint configs (2)
 - **Updated route test files to clear rate limit store between tests**
 - All 130 tests pass (39 rate limit + 39 search + 52 filter), ESLint clean, Prettier formatted
+
+### 2026-01-17: Create sitemap generation with dynamic set pages
+
+- **Created `src/lib/sitemap.ts` sitemap generation utilities:**
+  - Complete XML sitemap generation following sitemaps.org specification
+  - Support for static public routes (home, login, sets list, learn, condition-guide, browse)
+  - Dynamic route generation for all TCG set pages (/sets/[setId])
+  - `lastmod` dates from set release dates for data freshness signals
+  - Priority and change frequency configuration per route type
+  - XML escaping for special characters in URLs
+  - Sitemap size limit validation (max 50,000 URLs)
+- **Static route configuration:**
+  - Home (/) - priority 1.0, weekly updates
+  - Sets list (/sets) - priority 0.9, daily updates
+  - Browse (/browse) - priority 0.8, daily updates
+  - Learn (/learn) - priority 0.7, weekly updates
+  - Condition guide (/condition-guide) - priority 0.6, monthly updates
+  - Login/Signup - priority 0.5, monthly updates
+  - Excluded auth-required routes: /collection, /dashboard, /settings, etc.
+- **Dynamic set page generation:**
+  - Fetches all sets from all 7 TCGs (Pokemon, Yu-Gi-Oh!, MTG, One Piece, Lorcana, Digimon, Dragon Ball)
+  - Uses release dates as lastmod for SEO freshness signals
+  - Default priority 0.7, weekly change frequency
+  - Parallel fetching for fast sitemap generation
+- **Created `src/app/sitemap.xml/route.ts` route handler:**
+  - GET endpoint serves dynamic XML sitemap
+  - Fetches sets from Convex database via ConvexHttpClient
+  - 1-hour cache with stale-while-revalidate for 24 hours
+  - Graceful error handling for partial game failures
+  - X-Sitemap-URLs response header for monitoring
+- **Utility functions for sitemap management:**
+  - `isValidPriority`, `isValidChangeFreq`, `isValidDateString` validators
+  - `buildUrl`, `buildSetUrl`, `buildWishlistUrl` URL generators
+  - `formatDateForSitemap`, `getMostRecentDate` date utilities
+  - `groupSetsByGame`, `filterSetsByAge`, `sortSetsByReleaseDate` set helpers
+  - `getSitemapStats`, `checkSitemapLimits` analytics utilities
+- **Wrote 81 tests in `src/lib/__tests__/sitemap.test.ts`:**
+  - Constants validation tests (8)
+  - Validation function tests (isValidPriority, isValidChangeFreq, isValidDateString, isValidUrl, isValidSitemapEntry) (18)
+  - URL generation tests (normalizeBaseUrl, normalizePath, buildUrl, buildSetUrl, buildWishlistUrl) (12)
+  - Date function tests (formatDateForSitemap, getTodayForSitemap, parseDateString, getMostRecentDate) (10)
+  - Entry generation tests (createEntryFromRoute, createSetEntry, generateStaticEntries, generateSetEntries, generateAllEntries) (10)
+  - XML generation tests (escapeXml, generateUrlXml, generateSitemapXml, generateCompleteSitemap) (10)
+  - Utility function tests (countSitemapUrls, getSitemapStats, groupSetsByGame, filterSetsByAge, sortSetsByReleaseDate, checkSitemapLimits) (9)
+  - Integration tests for full sitemap generation (4)
+- All 81 tests pass, ESLint clean, Prettier formatted
