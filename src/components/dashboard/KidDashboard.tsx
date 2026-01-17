@@ -26,13 +26,11 @@ import { LevelDisplay } from '@/components/gamification/LevelSystem';
 import { MilestoneProgress } from '@/components/gamification/MilestoneCelebration';
 import { StreakCalendar, StreakCalendarSkeleton } from '@/components/gamification/StreakCalendar';
 import { CollectionSnapshotShare } from '@/components/collection/CollectionSnapshotShare';
-import {
-  PackOpeningSimulator,
-  PackOpeningButton,
-} from '@/components/virtual/PackOpeningSimulator';
+import { PackOpeningSimulator, PackOpeningButton } from '@/components/virtual/PackOpeningSimulator';
 import { cn } from '@/lib/utils';
 import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
 import { FamilyLeaderboard } from '@/components/family/FamilyLeaderboard';
+import { WhatsNextCard } from '@/components/dashboard/WhatsNextCard';
 
 // ============================================================================
 // QUICK ACTION CARDS
@@ -493,6 +491,9 @@ export function KidDashboard() {
         />
       </div>
 
+      {/* What's Next Card - Shows for new users */}
+      <WhatsNextCard totalCards={stats.totalCards} setsStarted={stats.setsStarted} />
+
       {/* Quick Actions */}
       <div>
         <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800">
@@ -550,17 +551,11 @@ export function KidDashboard() {
 
           {/* Family Collection Goal */}
           {profile?.familyId && (
-            <FamilyCollectionGoal
-              familyId={profile.familyId}
-              goalTarget={500}
-              variant="compact"
-            />
+            <FamilyCollectionGoal familyId={profile.familyId} goalTarget={500} variant="compact" />
           )}
 
           {/* Family Leaderboard */}
-          {profile?.familyId && (
-            <FamilyLeaderboard familyId={profile.familyId} variant="compact" />
-          )}
+          {profile?.familyId && <FamilyLeaderboard familyId={profile.familyId} variant="compact" />}
 
           {/* Streak Calendar Preview */}
           <StreakCalendarPreview />
