@@ -163,13 +163,15 @@ export const getRecentActivityWithNames = query({
       .order('desc')
       .take(limit);
 
-    // Collect all unique cardIds that need name lookup
+    // Collect all unique cardIds that need name or setName lookup
     const cardIdsToLookup = new Set<string>();
     for (const log of logs) {
       if (log.action === 'card_added' || log.action === 'card_removed') {
-        const metadata = log.metadata as { cardId?: string; cardName?: string } | undefined;
-        // Only look up if we have a cardId but no cardName in metadata
-        if (metadata?.cardId && !metadata?.cardName) {
+        const metadata = log.metadata as
+          | { cardId?: string; cardName?: string; setName?: string }
+          | undefined;
+        // Look up if we have a cardId but missing cardName OR setName
+        if (metadata?.cardId && (!metadata?.cardName || !metadata?.setName)) {
           cardIdsToLookup.add(metadata.cardId);
         }
       } else if (log.action === 'trade_logged') {
@@ -178,8 +180,9 @@ export const getRecentActivityWithNames = query({
       }
     }
 
-    // Fetch card names from cachedCards
-    const cardNameMap = new Map<string, string>();
+    // Fetch card info (name and setId) from cachedCards
+    const cardInfoMap = new Map<string, { name: string; setId: string }>();
+    const setIdsToLookup = new Set<string>();
     if (cardIdsToLookup.size > 0) {
       const cardLookups = await Promise.all(
         Array.from(cardIdsToLookup).map((cardId) =>
@@ -192,25 +195,56 @@ export const getRecentActivityWithNames = query({
 
       for (const card of cardLookups) {
         if (card) {
-          cardNameMap.set(card.cardId, card.name);
+          cardInfoMap.set(card.cardId, { name: card.name, setId: card.setId });
+          setIdsToLookup.add(card.setId);
         }
       }
     }
 
-    // Enrich logs with card names
+    // Fetch set names from cachedSets
+    const setNameMap = new Map<string, string>();
+    if (setIdsToLookup.size > 0) {
+      const setLookups = await Promise.all(
+        Array.from(setIdsToLookup).map((setId) =>
+          ctx.db
+            .query('cachedSets')
+            .withIndex('by_set_id', (q) => q.eq('setId', setId))
+            .first()
+        )
+      );
+
+      for (const set of setLookups) {
+        if (set) {
+          setNameMap.set(set.setId, set.name);
+        }
+      }
+    }
+
+    // Build cardNameMap for backward compatibility with enrichTradeLogMetadata
+    const cardNameMap = new Map<string, string>();
+    for (const [cardId, info] of cardInfoMap) {
+      cardNameMap.set(cardId, info.name);
+    }
+
+    // Enrich logs with card names and set names
     return logs.map((log) => {
       if (log.action === 'card_added' || log.action === 'card_removed') {
         const metadata = log.metadata as
-          | { cardId?: string; cardName?: string; [key: string]: unknown }
+          | { cardId?: string; cardName?: string; setName?: string; [key: string]: unknown }
           | undefined;
         if (metadata?.cardId) {
-          // If cardName is missing, look it up from our map
-          const cardName = metadata.cardName ?? cardNameMap.get(metadata.cardId) ?? metadata.cardId;
+          const cardInfo = cardInfoMap.get(metadata.cardId);
+          // Enrich cardName if missing
+          const cardName = metadata.cardName ?? cardInfo?.name ?? metadata.cardId;
+          // Enrich setName if missing (look up via card's setId)
+          const setName =
+            metadata.setName ?? (cardInfo ? setNameMap.get(cardInfo.setId) : undefined);
           return {
             ...log,
             metadata: {
               ...metadata,
               cardName,
+              setName,
             },
           };
         }
@@ -324,12 +358,14 @@ export const getFamilyActivityWithNames = query({
 
     const familyLogs = allLogs.filter((log) => profileIds.has(log.profileId)).slice(0, limit);
 
-    // Collect all unique cardIds that need name lookup
+    // Collect all unique cardIds that need name or setName lookup
     const cardIdsToLookup = new Set<string>();
     for (const log of familyLogs) {
       if (log.action === 'card_added' || log.action === 'card_removed') {
-        const metadata = log.metadata as { cardId?: string; cardName?: string } | undefined;
-        if (metadata?.cardId && !metadata?.cardName) {
+        const metadata = log.metadata as
+          | { cardId?: string; cardName?: string; setName?: string }
+          | undefined;
+        if (metadata?.cardId && (!metadata?.cardName || !metadata?.setName)) {
           cardIdsToLookup.add(metadata.cardId);
         }
       } else if (log.action === 'trade_logged') {
@@ -337,8 +373,9 @@ export const getFamilyActivityWithNames = query({
       }
     }
 
-    // Fetch card names from cachedCards
-    const cardNameMap = new Map<string, string>();
+    // Fetch card info (name and setId) from cachedCards
+    const cardInfoMap = new Map<string, { name: string; setId: string }>();
+    const setIdsToLookup = new Set<string>();
     if (cardIdsToLookup.size > 0) {
       const cardLookups = await Promise.all(
         Array.from(cardIdsToLookup).map((cardId) =>
@@ -351,25 +388,55 @@ export const getFamilyActivityWithNames = query({
 
       for (const card of cardLookups) {
         if (card) {
-          cardNameMap.set(card.cardId, card.name);
+          cardInfoMap.set(card.cardId, { name: card.name, setId: card.setId });
+          setIdsToLookup.add(card.setId);
         }
       }
     }
 
-    // Enrich with profile names and card names
+    // Fetch set names from cachedSets
+    const setNameMap = new Map<string, string>();
+    if (setIdsToLookup.size > 0) {
+      const setLookups = await Promise.all(
+        Array.from(setIdsToLookup).map((setId) =>
+          ctx.db
+            .query('cachedSets')
+            .withIndex('by_set_id', (q) => q.eq('setId', setId))
+            .first()
+        )
+      );
+
+      for (const set of setLookups) {
+        if (set) {
+          setNameMap.set(set.setId, set.name);
+        }
+      }
+    }
+
+    // Build cardNameMap for backward compatibility with enrichTradeLogMetadata
+    const cardNameMap = new Map<string, string>();
+    for (const [cardId, info] of cardInfoMap) {
+      cardNameMap.set(cardId, info.name);
+    }
+
+    // Enrich with profile names, card names, and set names
     const enrichedLogs = familyLogs.map((log) => {
       const profile = profiles.find((p) => p._id === log.profileId);
       let enrichedMetadata = log.metadata;
 
       if (log.action === 'card_added' || log.action === 'card_removed') {
         const metadata = log.metadata as
-          | { cardId?: string; cardName?: string; [key: string]: unknown }
+          | { cardId?: string; cardName?: string; setName?: string; [key: string]: unknown }
           | undefined;
         if (metadata?.cardId) {
-          const cardName = metadata.cardName ?? cardNameMap.get(metadata.cardId) ?? metadata.cardId;
+          const cardInfo = cardInfoMap.get(metadata.cardId);
+          const cardName = metadata.cardName ?? cardInfo?.name ?? metadata.cardId;
+          const setName =
+            metadata.setName ?? (cardInfo ? setNameMap.get(cardInfo.setId) : undefined);
           enrichedMetadata = {
             ...metadata,
             cardName,
+            setName,
           };
         }
       } else if (log.action === 'trade_logged') {
@@ -698,12 +765,14 @@ export const getRecentActivityWithNamesPaginated = query({
     const nextCursor =
       pageLogs.length > 0 ? pageLogs[pageLogs.length - 1]._creationTime : undefined;
 
-    // Collect all unique cardIds that need name lookup
+    // Collect all unique cardIds that need name or setName lookup
     const cardIdsToLookup = new Set<string>();
     for (const log of pageLogs) {
       if (log.action === 'card_added' || log.action === 'card_removed') {
-        const metadata = log.metadata as { cardId?: string; cardName?: string } | undefined;
-        if (metadata?.cardId && !metadata?.cardName) {
+        const metadata = log.metadata as
+          | { cardId?: string; cardName?: string; setName?: string }
+          | undefined;
+        if (metadata?.cardId && (!metadata?.cardName || !metadata?.setName)) {
           cardIdsToLookup.add(metadata.cardId);
         }
       } else if (log.action === 'trade_logged') {
@@ -711,8 +780,9 @@ export const getRecentActivityWithNamesPaginated = query({
       }
     }
 
-    // Fetch card names from cachedCards in parallel
-    const cardNameMap = new Map<string, string>();
+    // Fetch card info (name and setId) from cachedCards in parallel
+    const cardInfoMap = new Map<string, { name: string; setId: string }>();
+    const setIdsToLookup = new Set<string>();
     if (cardIdsToLookup.size > 0) {
       const cardLookups = await Promise.all(
         Array.from(cardIdsToLookup).map((cardId) =>
@@ -725,24 +795,54 @@ export const getRecentActivityWithNamesPaginated = query({
 
       for (const card of cardLookups) {
         if (card) {
-          cardNameMap.set(card.cardId, card.name);
+          cardInfoMap.set(card.cardId, { name: card.name, setId: card.setId });
+          setIdsToLookup.add(card.setId);
         }
       }
     }
 
-    // Enrich logs with card names
+    // Fetch set names from cachedSets
+    const setNameMap = new Map<string, string>();
+    if (setIdsToLookup.size > 0) {
+      const setLookups = await Promise.all(
+        Array.from(setIdsToLookup).map((setId) =>
+          ctx.db
+            .query('cachedSets')
+            .withIndex('by_set_id', (q) => q.eq('setId', setId))
+            .first()
+        )
+      );
+
+      for (const set of setLookups) {
+        if (set) {
+          setNameMap.set(set.setId, set.name);
+        }
+      }
+    }
+
+    // Build cardNameMap for backward compatibility with enrichTradeLogMetadata
+    const cardNameMap = new Map<string, string>();
+    for (const [cardId, info] of cardInfoMap) {
+      cardNameMap.set(cardId, info.name);
+    }
+
+    // Enrich logs with card names and set names
     const enrichedLogs = pageLogs.map((log) => {
       if (log.action === 'card_added' || log.action === 'card_removed') {
         const metadata = log.metadata as
-          | { cardId?: string; cardName?: string; [key: string]: unknown }
+          | { cardId?: string; cardName?: string; setName?: string; [key: string]: unknown }
           | undefined;
         if (metadata?.cardId) {
-          const cardName = metadata.cardName ?? cardNameMap.get(metadata.cardId) ?? metadata.cardId;
+          const cardInfo = cardInfoMap.get(metadata.cardId);
+          const cardName = metadata.cardName ?? cardInfo?.name ?? metadata.cardId;
+          const setName =
+            metadata.setName ?? (cardInfo ? setNameMap.get(cardInfo.setId) : undefined);
           return {
             ...log,
             metadata: {
               ...metadata,
               cardName,
+              setName,
             },
           };
         }
@@ -811,12 +911,14 @@ export const getFamilyActivityPaginated = query({
     const nextCursor =
       pageLogs.length > 0 ? pageLogs[pageLogs.length - 1]._creationTime : undefined;
 
-    // Collect cardIds for name lookup
+    // Collect cardIds for name or setName lookup
     const cardIdsToLookup = new Set<string>();
     for (const log of pageLogs) {
       if (log.action === 'card_added' || log.action === 'card_removed') {
-        const metadata = log.metadata as { cardId?: string; cardName?: string } | undefined;
-        if (metadata?.cardId && !metadata?.cardName) {
+        const metadata = log.metadata as
+          | { cardId?: string; cardName?: string; setName?: string }
+          | undefined;
+        if (metadata?.cardId && (!metadata?.cardName || !metadata?.setName)) {
           cardIdsToLookup.add(metadata.cardId);
         }
       } else if (log.action === 'trade_logged') {
@@ -824,8 +926,9 @@ export const getFamilyActivityPaginated = query({
       }
     }
 
-    // Fetch card names in parallel
-    const cardNameMap = new Map<string, string>();
+    // Fetch card info (name and setId) in parallel
+    const cardInfoMap = new Map<string, { name: string; setId: string }>();
+    const setIdsToLookup = new Set<string>();
     if (cardIdsToLookup.size > 0) {
       const cardLookups = await Promise.all(
         Array.from(cardIdsToLookup).map((cardId) =>
@@ -838,25 +941,55 @@ export const getFamilyActivityPaginated = query({
 
       for (const card of cardLookups) {
         if (card) {
-          cardNameMap.set(card.cardId, card.name);
+          cardInfoMap.set(card.cardId, { name: card.name, setId: card.setId });
+          setIdsToLookup.add(card.setId);
         }
       }
     }
 
-    // Enrich with profile names and card names
+    // Fetch set names from cachedSets
+    const setNameMap = new Map<string, string>();
+    if (setIdsToLookup.size > 0) {
+      const setLookups = await Promise.all(
+        Array.from(setIdsToLookup).map((setId) =>
+          ctx.db
+            .query('cachedSets')
+            .withIndex('by_set_id', (q) => q.eq('setId', setId))
+            .first()
+        )
+      );
+
+      for (const set of setLookups) {
+        if (set) {
+          setNameMap.set(set.setId, set.name);
+        }
+      }
+    }
+
+    // Build cardNameMap for backward compatibility with enrichTradeLogMetadata
+    const cardNameMap = new Map<string, string>();
+    for (const [cardId, info] of cardInfoMap) {
+      cardNameMap.set(cardId, info.name);
+    }
+
+    // Enrich with profile names, card names, and set names
     const enrichedLogs = pageLogs.map((log) => {
       const profile = profiles.find((p) => p._id === log.profileId);
       let enrichedMetadata = log.metadata;
 
       if (log.action === 'card_added' || log.action === 'card_removed') {
         const metadata = log.metadata as
-          | { cardId?: string; cardName?: string; [key: string]: unknown }
+          | { cardId?: string; cardName?: string; setName?: string; [key: string]: unknown }
           | undefined;
         if (metadata?.cardId) {
-          const cardName = metadata.cardName ?? cardNameMap.get(metadata.cardId) ?? metadata.cardId;
+          const cardInfo = cardInfoMap.get(metadata.cardId);
+          const cardName = metadata.cardName ?? cardInfo?.name ?? metadata.cardId;
+          const setName =
+            metadata.setName ?? (cardInfo ? setNameMap.get(cardInfo.setId) : undefined);
           enrichedMetadata = {
             ...metadata,
             cardName,
+            setName,
           };
         }
       } else if (log.action === 'trade_logged') {

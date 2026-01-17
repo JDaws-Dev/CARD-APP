@@ -13,6 +13,7 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 
 | Section                                   | Complete | Remaining |
 | ----------------------------------------- | -------- | --------- |
+| **HIGH - My Collection Page Card Details** | 0       | **14**    |
 | **HIGH - Sets Page Card Viewing & Sorting** | 0      | **20**    |
 | **CRITICAL - Site Evaluation Fixes**      | 7        | **1**     |
 | **CRITICAL - Remove Unsupported Games**   | 0        | **7**     |
@@ -51,31 +52,58 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **230**   |
+| **TOTAL**                                 | **110**  | **244**   |
 
 ### Priority Order for Remaining Tasks
 
-1. **HIGH - Sets Page Card Viewing & Sorting** (20 tasks) - **VARIANT BADGES NOT WORKING** - Debug why badges don't show, research Pokemon API variants, fix implementation
-2. **CRITICAL - Site Evaluation Fixes** (1 task) - Profile switcher for families
-3. **CRITICAL - Remove Unsupported Games** (7 tasks) - Remove Digimon, Dragon Ball, MTG from UI (only support Pokemon, One Piece, Lorcana, Yu-Gi-Oh!)
-4. **CRITICAL - Settings Permissions** (7 tasks) - Parent vs kid settings access control
-5. **CRITICAL - Landing Page Content** (10 tasks) - Specific text changes for multi-TCG (4 games only)
-6. **CRITICAL - Kid-Friendly Set Display** (15 tasks) - Only show sets kids can actually buy
-7. **HIGH - Security Hardening** (6 tasks) - CSP headers, external resource integrity
-8. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
-9. **HIGH - Performance Optimization UI** (8 tasks) - Memoization, lazy loading, faster collection page
-10. **HIGH - UX & Navigation Improvements** (15 tasks) - Back links, breadcrumbs, footer, user flow, dashboard fixes
-11. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
-12. **MEDIUM - Architecture Improvements** (13 tasks) - Provider optimization, error boundaries, code splitting
-13. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
-14. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section for 4 supported games
-15. **Landing Page AI Features** (13 tasks) - AI Magic section, pricing updates, trust badges
-16. **AI-Powered Features UI** (14 tasks) - Card scanner, chatbot, story modal, quiz components
-17. **Trade Logging UI** (12 tasks) - Log trade modal, timeline display, entry points
-18. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
-19. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
-20. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
-21. **MEDIUM - Master Set Mode & Variant Tracking** (16 tasks) - For completionist collectors who want to track all variants
+1. **HIGH - My Collection Page Card Details** (14 tasks) - Click to see close-up, show owned variants, quick actions, card navigation
+2. **HIGH - Sets Page Card Viewing & Sorting** (20 tasks) - **VARIANT BADGES NOT WORKING** - Debug why badges don't show, research Pokemon API variants, fix implementation
+3. **CRITICAL - Site Evaluation Fixes** (1 task) - Profile switcher for families
+4. **CRITICAL - Remove Unsupported Games** (7 tasks) - Remove Digimon, Dragon Ball, MTG from UI (only support Pokemon, One Piece, Lorcana, Yu-Gi-Oh!)
+5. **CRITICAL - Settings Permissions** (7 tasks) - Parent vs kid settings access control
+6. **CRITICAL - Landing Page Content** (10 tasks) - Specific text changes for multi-TCG (4 games only)
+7. **CRITICAL - Kid-Friendly Set Display** (15 tasks) - Only show sets kids can actually buy
+8. **HIGH - Security Hardening** (6 tasks) - CSP headers, external resource integrity
+9. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
+10. **HIGH - Performance Optimization UI** (8 tasks) - Memoization, lazy loading, faster collection page
+11. **HIGH - UX & Navigation Improvements** (15 tasks) - Back links, breadcrumbs, footer, user flow, dashboard fixes
+12. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
+13. **MEDIUM - Architecture Improvements** (13 tasks) - Provider optimization, error boundaries, code splitting
+14. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
+15. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section for 4 supported games
+16. **Landing Page AI Features** (13 tasks) - AI Magic section, pricing updates, trust badges
+17. **AI-Powered Features UI** (14 tasks) - Card scanner, chatbot, story modal, quiz components
+18. **Trade Logging UI** (12 tasks) - Log trade modal, timeline display, entry points
+19. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
+20. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
+21. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
+22. **MEDIUM - Master Set Mode & Variant Tracking** (16 tasks) - For completionist collectors who want to track all variants
+
+---
+
+## HIGH - My Collection Page Card Details (January 2026)
+
+These features improve the card viewing experience on the My Collection page (`/collection`). Users should be able to see more details about their cards without navigating to the set page.
+
+### Card Detail Modal for Collection
+
+- [ ] **Click card to see close-up** - Clicking any card in My Collection should open a detail modal showing the enlarged card image
+- [ ] **Show owned variants in modal** - Detail modal should display which variants the user owns (Normal x2, Holo x1, etc.)
+- [ ] **High-res image in modal** - Use `imageLarge` from the API for the close-up view
+- [ ] **Variant quantity display** - Show counts for each variant owned (e.g., "Normal: 2, Reverse Holo: 1")
+- [ ] **Quick actions in modal** - Add buttons to: view in set, remove card, add to wishlist, edit quantity
+- [ ] **Set name in modal** - Show which set the card belongs to with link to set page
+- [ ] **Card metadata in modal** - Display rarity, card number, type, and market value
+- [ ] **Swipe/arrow navigation** - Navigate between cards in collection without closing modal
+- [ ] **Keyboard navigation** - Arrow keys to move between cards, ESC to close modal
+
+### Collection Browse Experience
+
+- [ ] **Variant badges on collection cards** - Show variant indicator badges (N, H, R, 1H, 1N) on each card thumbnail in collection view
+- [ ] **Filter by variant type** - Filter collection to show only holos, only reverse holos, etc.
+- [ ] **Sort collection by date added** - Option to sort cards by when they were added to collection
+- [ ] **Sort collection by value** - Option to sort cards by market price
+- [ ] **Grid size options** - Toggle between compact (more cards) and expanded (larger thumbnails) views
 
 ---
 
@@ -327,7 +355,7 @@ Improve site organization, navigation, and user flow clarity.
 - [x] Add breadcrumb to /condition-guide - Show "Home > Learn > Condition Guide"
 - [x] Add breadcrumb to /sets/[setId] - Show "Home > Browse Sets > [Set Name]"
 - [x] **FIX: Welcome message shows email instead of name** - Dashboard says "Good morning, jedaws!" using email prefix instead of user's actual name. Check KidDashboard.tsx and profile data - should use profile.name or displayName, not email
-- [ ] **FIX: Recent Activity missing set name** - Dashboard Recent Activity shows "Added Fearow" but not which set it's from. Should show "Added Fearow from 151" or similar. Check ActivityFeed component and ensure setName from metadata is displayed
+- [x] **FIX: Recent Activity missing set name** - Dashboard Recent Activity shows "Added Fearow" but not which set it's from. Should show "Added Fearow from 151" or similar. Check ActivityFeed component and ensure setName from metadata is displayed
 - [ ] **FIX: Badges/Achievements not showing** - User earned badges but they don't appear in the badges section. Debug full achievement flow:
   1. Check if achievements are being tracked in Convex (query `achievements.getProfileAchievements`)
   2. Check if achievement_earned events are logged in activityLogs when cards are added
@@ -1098,3 +1126,5 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - **2026-01-17**: Completed Update GameSwitcher.tsx task - Removed unsupported games (DragonBall, Digimon, MTG) from the game switcher dropdown component (src/components/header/GameSwitcher.tsx). Removed imports for DragonBallIcon, DigimonIcon, and MtgIcon. Updated ICON_COMPONENTS record to only include the 4 supported games: Pokemon, Yu-Gi-Oh!, One Piece, and Lorcana. The GenericTcgIcon fallback remains for any unknown game IDs. ESLint and Prettier clean, no test failures related to this change. Commit: 3d6b18a
 
 - **2026-01-17**: Completed FIX: Welcome message shows email instead of name - Fixed KidDashboard.tsx welcome greeting to properly display profile name instead of email prefix. Created displayName utility library (src/lib/displayName.ts) with two helper functions: looksLikeEmailPrefix() detects email-like display names (lowercase with numbers like "john123"), getDisplayName() provides fallback chain: 1) database displayName if valid, 2) onboarding profile name from localStorage, 3) "Collector" fallback. Updated KidDashboard.tsx to import getDisplayName helper instead of using raw database value. Added 24 unit tests (src/lib/__tests__/displayName.test.ts) covering email prefix detection, fallback logic, onboarding integration, error handling, and priority order. All tests pass (55 tests for changed files), ESLint and Prettier clean.
+
+- **2026-01-17**: Completed FIX: Recent Activity missing set name - Dashboard Recent Activity now shows which set cards were added from. Updated four Convex activity queries to enrich setName from cachedCards/cachedSets when metadata is missing: getRecentActivityWithNames, getRecentActivityWithNamesPaginated, getFamilyActivityWithNames, getFamilyActivityPaginated. The queries now: 1) collect cardIds needing enrichment (missing cardName OR setName), 2) fetch card info (name + setId) from cachedCards, 3) collect unique setIds, 4) fetch set names from cachedSets via by_set_id index, 5) enrich both cardName and setName in activity metadata. ActivityFeed UI already supported displaying setName via formatActivityDescription() - the fix was in the backend data enrichment. Handles legacy activity logs that were created before setName was passed to addCard mutation. TypeScript compiles clean, ESLint and Prettier clean.
