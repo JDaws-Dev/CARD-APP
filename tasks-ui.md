@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL fixes first, then HIGH priority
 
 ```
-Progress: ████████████░░░░░░░░░░░░░░░░  110/303 (36%)
-Remaining: 193 tasks (42 are LOW priority - do after launch)
+Progress: ████████████░░░░░░░░░░░░░░░░  110/331 (33%)
+Remaining: 221 tasks (42 are LOW priority - do after launch)
 ```
 
 ## Status Summary (Updated 2026-01-17 - Post Comprehensive Evaluation)
@@ -27,6 +27,7 @@ Remaining: 193 tasks (42 are LOW priority - do after launch)
 | **NEW - Kid-Friendly Set Display**        | 0        | **15**    |
 | **NEW - AI-Powered Features UI**          | 0        | **14**    |
 | **NEW - Landing Page AI Features**        | 0        | **13**    |
+| **NEW - Sibling Trade Tracking UI**       | 0        | **28**    |
 | **LOW - Mobile UX Evaluation**            | 0        | **20**    |
 | **LOW - Gamification Evaluation**         | 0        | **22**    |
 | HIGH PRIORITY - Landing Page              | 9        | 0         |
@@ -47,7 +48,7 @@ Remaining: 193 tasks (42 are LOW priority - do after launch)
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **193**   |
+| **TOTAL**                                 | **110**  | **221**   |
 
 ### Priority Order for Remaining Tasks
 
@@ -65,10 +66,11 @@ Remaining: 193 tasks (42 are LOW priority - do after launch)
 12. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section, update features
 13. **Landing Page AI Features** (13 tasks) - AI Magic section, pricing updates, trust badges
 14. **AI-Powered Features UI** (14 tasks) - Card scanner, chatbot, story modal, quiz components
-15. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
-16. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
-17. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
-18. **MEDIUM - Master Set Mode & Variant Tracking** (16 tasks) - For completionist collectors who want to track all variants
+15. **Sibling Trade Tracking UI** (28 tasks) - Trade proposal, inbox, timeline display, parent dashboard
+16. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
+17. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
+18. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
+19. **MEDIUM - Master Set Mode & Variant Tracking** (16 tasks) - For completionist collectors who want to track all variants
 
 ---
 
@@ -136,7 +138,7 @@ These specific issues were discovered during code review and need immediate atte
 ### App Footer (Critical for Professional Look)
 
 - [x] Create `src/components/layout/AppFooter.tsx` - Footer component with Help, Privacy Policy, Terms of Service, Contact links
-- [ ] Add AppFooter to `src/app/layout.tsx` - Include footer on all authenticated pages
+- [x] Add AppFooter to `src/app/layout.tsx` - Include footer on all authenticated pages
 - [ ] Create `/privacy` page stub - Placeholder privacy policy page
 - [ ] Create `/terms` page stub - Placeholder terms of service page
 
@@ -687,6 +689,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 - **2026-01-17**: Created AppFooter component for authenticated pages - Added `src/components/layout/AppFooter.tsx` with navigation links to Help, Privacy Policy, Terms of Service, and Contact using Heroicons (QuestionMarkCircleIcon, ShieldCheckIcon, DocumentTextIcon, EnvelopeIcon). Features: full dark mode support, responsive layout (stacked on mobile, horizontal on desktop), proper accessibility with contentinfo role and aria-label on nav, copyright notice with dynamic year, and TCG company trademark disclaimer. Added comprehensive test suite (19 tests) covering structure, links, icons, accessibility, and responsive behavior. ESLint and Prettier clean. Commit: 0f2e7c6
 
+- **2026-01-17**: Added AppFooter to layout.tsx for authenticated pages - Created AuthAwareFooter component (src/components/layout/AuthAwareFooter.tsx) following the same pattern as AuthAwareHeader. Uses useConvexAuth hook to conditionally render AppFooter only for authenticated users. Updated root layout.tsx to include AuthAwareFooter after main content, wrapped in a flex container with min-h-screen to ensure footer stays at bottom. Added comprehensive test suite (7 tests) covering loading state, unauthenticated state, and authenticated state behavior. ESLint and Prettier clean.
+
 ---
 
 ## NEW - SEO & Marketing Tasks (January 17, 2026 Evaluation)
@@ -794,6 +798,61 @@ These tasks ensure the UI only shows sets that kids can actually buy and collect
 - [ ] Update POKEMON_SERIES constant - Add 'Mega Evolution' era, keep 'Scarlet & Violet'
 - [ ] Filter out Sword & Shield sets by default - Too old for retail
 - [ ] Add "Mega Evolution Era" badge to newest sets - Highlight what's hot
+
+---
+
+## Sibling Trade Tracking UI
+
+Full trade proposal, acceptance, and tracking UI for siblings within a family. See PRD "Sibling Trade Tracking System" section for complete specification.
+
+### Trade Proposal Flow
+
+- [ ] TRADE-UI-001: Create `src/components/trades/ProposeTradeModal.tsx` - Multi-step modal: select sibling, pick cards to offer, pick cards to request, add message, review & submit
+- [ ] TRADE-UI-002: Create `src/components/trades/CardSelector.tsx` - Reusable card selection grid with quantity picker, used for both offering and requesting cards
+- [ ] TRADE-UI-003: Create `src/components/trades/TradeSummaryCard.tsx` - Preview component showing "You give X → You get Y" with card thumbnails
+- [ ] TRADE-UI-004: Add "Propose Trade" button to `DuplicateFinder.tsx` - Quick action when viewing tradeable cards with a sibling
+- [ ] TRADE-UI-005: Add "Propose Trade" button to `TradeSuggestionEngine.tsx` - One-click to propose suggested trade
+
+### Trade Inbox & Response
+
+- [ ] TRADE-UI-006: Create `src/components/trades/TradeInbox.tsx` - List of pending trade proposals for current profile
+- [ ] TRADE-UI-007: Create `src/components/trades/TradeCard.tsx` - Individual trade proposal card with Accept/Decline buttons
+- [ ] TRADE-UI-008: Create `src/components/trades/TradeDetailModal.tsx` - Full trade details view with card images, values, fairness indicator
+- [ ] TRADE-UI-009: Add pending trade badge to header/nav - Show count of pending trades (e.g., red badge with "2")
+- [ ] TRADE-UI-010: Create `/trades` page - Dedicated page for viewing pending, completed, and cancelled trades
+
+### Trade in Timeline
+
+- [ ] TRADE-UI-011: Create `src/components/collection/TradeTimelineEvent.tsx` - Trade-specific timeline entry with both parties and card exchange visual
+- [ ] TRADE-UI-012: Update `CollectionTimeline.tsx` to display trade events - Fetch and render `trade_completed` activity logs
+- [ ] TRADE-UI-013: Add trade icons/visuals - ArrowsRightLeftIcon or custom swap icon for trade events
+- [ ] TRADE-UI-014: Create trade detail link - "View Trade Details" button linking to full trade record
+
+### Fair Trade Indicator
+
+- [ ] TRADE-UI-015: Create `src/components/trades/FairTradeIndicator.tsx` - Visual indicator (checkmark/warning) based on market value comparison
+- [ ] TRADE-UI-016: Add fairness tooltip - Explain what "fair trade" means for kids ("Both sides are worth about the same!")
+- [ ] TRADE-UI-017: Show total value on each side - "$X.XX total" under offered and requested cards
+- [ ] TRADE-UI-018: Add "No price data" fallback - Handle cards without market prices gracefully
+
+### Parent Dashboard Integration
+
+- [ ] TRADE-UI-019: Create `src/components/parent/TradeActivitySection.tsx` - List of recent/pending trades between children for parent dashboard
+- [ ] TRADE-UI-020: Add trade approval UI for parents - "Approve" / "Reject" buttons when `tradeApprovalRequired` is enabled
+- [ ] TRADE-UI-021: Create trade settings panel - Toggle for requiring parent approval, notification preferences
+- [ ] TRADE-UI-022: Add trade statistics widget - Show "X trades this month" on parent dashboard
+
+### Notifications & Feedback
+
+- [ ] TRADE-UI-023: Create trade notification toasts - "Emma wants to trade with you!", "Your trade was accepted!"
+- [ ] TRADE-UI-024: Add trade completion celebration - Confetti or animation when trade completes successfully
+- [ ] TRADE-UI-025: Create declined trade feedback - Show reason (if provided) and "Try Another Trade" action
+
+### Trade History & Empty States
+
+- [ ] TRADE-UI-026: Create `src/components/trades/TradeHistory.tsx` - Paginated list of past trades with filters (completed/declined/cancelled)
+- [ ] TRADE-UI-027: Create trade empty states - "No trades yet" with CTA to propose first trade, "No pending trades" message
+- [ ] TRADE-UI-028: Add trade search/filter - Filter by sibling, date range, status
 
 ---
 

@@ -22,6 +22,7 @@ import { PackEffectsProvider } from '@/components/providers/PackEffectsProvider'
 import { SleepModeProvider } from '@/components/providers/SleepModeProvider';
 import { SleepModeOverlay } from '@/components/family/SleepModeOverlay';
 import { AuthAwareHeader } from '@/components/layout/AuthAwareHeader';
+import { AuthAwareFooter } from '@/components/layout/AuthAwareFooter';
 import { LiveRegionProvider } from '@/components/accessibility/LiveRegion';
 import './globals.css';
 
@@ -62,18 +63,23 @@ export default function RootLayout({
                                           <ComebackProvider>
                                             <PackEffectsProvider>
                                               <SleepModeProvider>
-                                          <LiveRegionProvider>
-                                          <SleepModeOverlay />
-                                          {/* Skip link for keyboard navigation - visually hidden until focused */}
-                                          <a
-                                            href="#main-content"
-                                            className="absolute left-0 z-[100] -translate-y-full rounded bg-blue-600 px-4 py-2 text-white transition-transform focus:translate-y-0"
-                                          >
-                                            Skip to main content
-                                          </a>
-                                          <AuthAwareHeader />
-                                          <main id="main-content">{children}</main>
-                                        </LiveRegionProvider>
+                                                <LiveRegionProvider>
+                                                  <SleepModeOverlay />
+                                                  {/* Skip link for keyboard navigation - visually hidden until focused */}
+                                                  <a
+                                                    href="#main-content"
+                                                    className="absolute left-0 z-[100] -translate-y-full rounded bg-blue-600 px-4 py-2 text-white transition-transform focus:translate-y-0"
+                                                  >
+                                                    Skip to main content
+                                                  </a>
+                                                  <div className="flex min-h-screen flex-col">
+                                                    <AuthAwareHeader />
+                                                    <main id="main-content" className="flex-1">
+                                                      {children}
+                                                    </main>
+                                                    <AuthAwareFooter />
+                                                  </div>
+                                                </LiveRegionProvider>
                                               </SleepModeProvider>
                                             </PackEffectsProvider>
                                           </ComebackProvider>
