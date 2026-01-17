@@ -210,7 +210,7 @@ interface VirtualTrophyRoomProps {
 
 export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
-  const { prefersReducedMotion } = useReducedMotion();
+  const { isReduced: prefersReducedMotion } = useReducedMotion();
 
   const valuableCards = useQuery(
     api.collections.getMostValuableCards,

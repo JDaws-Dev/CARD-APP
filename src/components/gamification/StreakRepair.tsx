@@ -174,7 +174,7 @@ export function StreakRepairStatus({ showRepairButton = true, className }: Strea
 
   // Get user's XP (unique cards * 2)
   const collection = useQuery(
-    api.collection.getUserCollection,
+    api.collections.getCollection,
     profileId ? { profileId } : 'skip'
   );
 

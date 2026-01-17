@@ -121,7 +121,7 @@ interface SealedPackProps {
 }
 
 function SealedPack({ onClick, disabled, packsRemaining }: SealedPackProps) {
-  const { prefersReducedMotion } = useReducedMotion();
+  const { isReduced: prefersReducedMotion } = useReducedMotion();
 
   return (
     <div className="flex flex-col items-center gap-6">
@@ -207,7 +207,7 @@ interface CardRevealProps {
 }
 
 function CardReveal({ card, index, onReveal, autoReveal, onCardRevealEffect }: CardRevealProps) {
-  const { prefersReducedMotion } = useReducedMotion();
+  const { isReduced: prefersReducedMotion } = useReducedMotion();
   const [isFlipping, setIsFlipping] = useState(false);
 
   useEffect(() => {
@@ -320,7 +320,7 @@ interface PackOpeningSimulatorProps {
 
 export function PackOpeningSimulator({ isOpen, onClose }: PackOpeningSimulatorProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
-  const { prefersReducedMotion } = useReducedMotion();
+  const { isReduced: prefersReducedMotion } = useReducedMotion();
   const { packsRemaining, consumePack } = usePacksRemaining();
   const {
     soundEnabled,
@@ -628,7 +628,7 @@ interface PackOpeningButtonProps {
 
 export function PackOpeningButton({ onClick, className }: PackOpeningButtonProps) {
   const { packsRemaining } = usePacksRemaining();
-  const { prefersReducedMotion } = useReducedMotion();
+  const { isReduced: prefersReducedMotion } = useReducedMotion();
 
   return (
     <button

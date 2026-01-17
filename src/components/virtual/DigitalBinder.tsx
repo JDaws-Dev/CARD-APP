@@ -48,9 +48,11 @@ interface DigitalBinderProps {
   onClose: () => void;
 }
 
+type BinderTheme = (typeof BINDER_THEMES)[number];
+
 export function DigitalBinder({ cards, isOpen, onClose }: DigitalBinderProps) {
   const [currentPage, setCurrentPage] = useState(0);
-  const [selectedTheme, setSelectedTheme] = useState(BINDER_THEMES[0]);
+  const [selectedTheme, setSelectedTheme] = useState<BinderTheme>(BINDER_THEMES[0]);
   const [isFlipping, setIsFlipping] = useState(false);
   const [flipDirection, setFlipDirection] = useState<'left' | 'right' | null>(null);
   const [showThemeSelector, setShowThemeSelector] = useState(false);
