@@ -530,11 +530,11 @@ function FirstCardsStep({ onContinue, onSkip, onBack, primaryGameName }: FirstCa
 
 interface CompletionStepProps {
   profileName?: string;
-  onGoToDashboard: () => void;
+  onGoToCollection: () => void;
   onGoToSets: () => void;
 }
 
-function CompletionStep({ profileName, onGoToDashboard, onGoToSets }: CompletionStepProps) {
+function CompletionStep({ profileName, onGoToCollection, onGoToSets }: CompletionStepProps) {
   return (
     <div className="space-y-8 text-center">
       {/* Celebration icon */}
@@ -601,14 +601,14 @@ function CompletionStep({ profileName, onGoToDashboard, onGoToSets }: Completion
       <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         <button
           type="button"
-          onClick={onGoToDashboard}
+          onClick={onGoToCollection}
           className={cn(
             'inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all',
             'hover:-translate-y-0.5 hover:shadow-xl',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2'
           )}
         >
-          Go to Dashboard
+          View My Collection
           <ArrowRightIcon className="h-5 w-5" aria-hidden="true" />
         </button>
         <button
@@ -711,9 +711,9 @@ export function OnboardingFlow({ onComplete, initialStep }: OnboardingFlowProps)
   }, [completeGameOnboarding, onComplete]);
 
   // Navigation callbacks
-  const handleGoToDashboard = useCallback(() => {
+  const handleGoToCollection = useCallback(() => {
     handleFinalComplete();
-    router.push('/dashboard');
+    router.push('/collection');
   }, [handleFinalComplete, router]);
 
   const handleGoToSets = useCallback(() => {
@@ -824,7 +824,7 @@ export function OnboardingFlow({ onComplete, initialStep }: OnboardingFlowProps)
           {progress.currentStep === 'complete' && (
             <CompletionStep
               profileName={progress.profileName}
-              onGoToDashboard={handleGoToDashboard}
+              onGoToCollection={handleGoToCollection}
               onGoToSets={handleGoToSets}
             />
           )}
