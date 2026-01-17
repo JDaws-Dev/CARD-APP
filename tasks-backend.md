@@ -2,30 +2,32 @@
 
 ## Status Summary (Updated 2026-01-17)
 
-| Section                          | Complete | Remaining |
-| -------------------------------- | -------- | --------- |
-| **CRITICAL - Multi-TCG API**     | 0        | **5**     |
-| **CRITICAL - Auth Fixes**        | 0        | **3**     |
-| HIGH PRIORITY - Auth & Pricing   | 9        | **1**     |
-| Card Variants                    | 3        | 0         |
-| Achievement System               | 6        | 0         |
-| Wishlist & Sharing               | 4        | 0         |
-| Family Features                  | 2        | **1**     |
-| Testing & Performance            | 4        | 0         |
-| Data Persistence & Sync          | 2        | **1**     |
-| Multi-TCG Architecture           | 12       | **7**     |
-| Gamification Backend             | 3        | 0         |
-| Educational Content              | 3        | 0         |
-| Additional Features              | 5        | 0         |
-| Launch Prep                      | 4        | **5**     |
-| **TOTAL**                        | **58**   | **22**    |
+| Section                              | Complete | Remaining |
+| ------------------------------------ | -------- | --------- |
+| **CRITICAL - Multi-TCG API**         | 0        | **5**     |
+| **CRITICAL - Auth Fixes**            | 0        | **4**     |
+| **HIGH - Performance Optimization**  | 0        | **7**     |
+| HIGH PRIORITY - Auth & Pricing       | 9        | **1**     |
+| Card Variants                        | 3        | 0         |
+| Achievement System                   | 6        | 0         |
+| Wishlist & Sharing                   | 4        | 0         |
+| Family Features                      | 2        | **1**     |
+| Testing & Performance                | 4        | 0         |
+| Data Persistence & Sync              | 2        | **1**     |
+| Multi-TCG Architecture               | 12       | **7**     |
+| Gamification Backend                 | 3        | 0         |
+| Educational Content                  | 3        | 0         |
+| Additional Features                  | 5        | 0         |
+| Launch Prep                          | 4        | **5**     |
+| **TOTAL**                            | **58**   | **31**    |
 
 ### Critical Path for Launch
 
 1. **CRITICAL - Multi-TCG API (5 tasks)** - API routes hardcoded to Pokemon, must support game selection
-2. **CRITICAL - Auth Fixes (3 tasks)** - Parent dashboard security, role-based access
-3. **Launch Prep (5 tasks)** - Stripe integration, production deploy, monitoring
-4. **TCGPlayer Pricing (1 task)** - Fetch real pricing data from TCGPlayer API
+2. **CRITICAL - Auth Fixes (4 tasks)** - Parent dashboard security, role-based access, /signup route
+3. **HIGH - Performance Optimization (7 tasks)** - Query consolidation, indexes, faster collection page
+4. **Launch Prep (5 tasks)** - Stripe integration, production deploy, monitoring
+5. **TCGPlayer Pricing (1 task)** - Fetch real pricing data from TCGPlayer API
 
 ### Blocked Tasks
 
@@ -66,6 +68,19 @@ These API routes are currently hardcoded to Pokemon and must be updated to suppo
 - [ ] Fix parent dashboard to use authenticated user - Remove `getOrCreateDemoProfile()` call, use actual authenticated user's family data
 - [ ] Add role-based access control to parent dashboard - Check `hasParentAccess()` before allowing access to `/parent-dashboard`
 - [ ] Add proper profile validation - Ensure users can only access their own profiles and family data
+- [ ] Create /signup route - Either create dedicated page or redirect to /login?mode=signup
+
+### HIGH - Performance Optimization Backend (January 2026 Evaluation)
+
+My Collection page is slow due to redundant/inefficient Convex queries. These backend optimizations are critical.
+
+- [ ] Create combined `getCollectionWithStats` query - Merge `getCollection` + `getCollectionStats` into single query returning both data and calculated stats
+- [ ] Create batch query for VirtualCardGrid - Merge 4 queries (collection, wishlist, newlyAdded, priorityCount) into `getSetViewData` single query
+- [ ] Optimize `getNewlyAddedCards` query - Add database-level filtering with composite index `by_profile_and_action_time` instead of collecting all logs and filtering in JS
+- [ ] Add composite index to activityLogs - Create index `by_profile_action_time` for (profileId, action, _creationTime) in schema
+- [ ] Optimize wishlist queries - Add index for profile+game queries if missing
+- [ ] Add pagination to activity feed queries - Use `.take()` with cursor for large activity histories instead of `.collect()`
+- [ ] Profile query batching - Consolidate multiple profile lookups into batch queries where used
 
 ### HIGH PRIORITY - Authentication & Pricing
 

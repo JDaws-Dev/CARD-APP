@@ -709,6 +709,181 @@ These pages currently import from `pokemon-tcg.ts` and need to be updated to use
 4. Add email verification for COPPA compliance
 5. Add parental consent step
 
+### Settings Permissions Model (January 2026 Evaluation)
+
+**CRITICAL ISSUE:** All settings are currently accessible by anyone. Kids can disable Sleep Mode and remove the Parent PIN, defeating parental controls entirely.
+
+#### Parent-Only Settings (Require PIN or Parent Account)
+
+| Setting | Why Parent-Only |
+|---------|-----------------|
+| **Kid Mode Toggle** | Parent decides appropriate complexity level for child's age |
+| **Sleep Mode On/Off** | Parent controls screen time limits, kid shouldn't disable |
+| **Sleep Mode Schedule** | Parent sets appropriate bedtime/wake times |
+| **Parent PIN Management** | CRITICAL: Kid can currently remove PIN entirely |
+| **Game Selection** | Parent may want to restrict certain TCGs (e.g., MTG for younger kids) |
+| **Profile Management** | Adding/removing child profiles |
+| **Account Settings** | Email, password, subscription |
+| **Data Export/Delete** | GDPR/COPPA compliance actions |
+
+#### Kid-Accessible Settings (Personal Preference & Accessibility)
+
+| Setting | Why Kid-Accessible |
+|---------|-------------------|
+| **Dark Mode** | Personal comfort preference, no safety concern |
+| **Low-Stimulation Mode** | Accessibility need - some kids need calmer UI |
+| **Dyslexic-Friendly Font** | Accessibility need - kid knows if they need it |
+| **High Contrast** | Accessibility need - visual comfort |
+| **Reduced Motion** | Accessibility need - sensory sensitivity |
+| **Focus Mode** | Kid may want to hide gamification elements (optional distraction reduction) |
+
+#### Implementation Requirements
+
+1. **Settings Page Restructure:**
+   - Create two sections: "My Settings" (kid-accessible) and "Family Controls" (parent-locked)
+   - Family Controls section requires Parent PIN to view/modify
+   - Show lock icon on parent-only settings when viewing as kid
+
+2. **Parent PIN Protection:**
+   - Move PIN verification to access Family Controls section
+   - Once PIN verified, parent can modify all settings
+   - PIN should have timeout (re-verify after 5 minutes of inactivity)
+   - Setting/removing PIN should require current PIN (if set)
+
+3. **Profile-Aware Settings:**
+   - Store kid-accessible settings per profile (each kid can have their own dark mode preference)
+   - Store parent settings at family/account level (sleep schedule applies to all kids)
+
+4. **Visual Indicators:**
+   - Add "Parent Only" badge to protected settings
+   - Show friendly message to kids: "Ask a grown-up to change this setting"
+   - Add lock icon with tooltip explaining why setting is protected
+
+### Comprehensive Site Evaluation (January 17, 2026 - Round 2)
+
+This evaluation covers performance, broken images, UX organization, and functionality status.
+
+#### Performance Analysis: My Collection Page
+
+The `/collection` page is slow to load due to multiple issues:
+
+| Issue | Severity | Impact | Location |
+|-------|----------|--------|----------|
+| **Duplicate queries** | CRITICAL | +1-2s load | `page.tsx` calls both `getCollection` AND `getCollectionStats` separately |
+| **4 separate queries in VirtualCardGrid** | CRITICAL | +500ms-1s | Collection, wishlist, newly added cards, priority count all fetched independently |
+| **getNewlyAddedCards collects ALL logs** | HIGH | +500ms-2s for active users | Fetches entire activity log history, filters in JavaScript |
+| **CollectionView grouping not memoized** | HIGH | +300-800ms re-renders | Set grouping logic recalculates on every render |
+| **ActivityFeed not memoized** | HIGH | +200-500ms | Re-renders on every parent update |
+| **Missing image lazy loading** | MEDIUM | CLS issues | No `loading="lazy"` on card images |
+| **VirtualTrophyRoom not lazy loaded** | LOW | +100-300ms | Loads immediately even though optional |
+
+**Recommended Fixes (in order):**
+1. Merge `getCollection` + `getCollectionStats` into single Convex query
+2. Consolidate VirtualCardGrid's 4 queries into one batch query
+3. Add `useMemo` to CollectionView grouping logic
+4. Add `React.memo()` to ActivityFeed
+5. Add `loading="lazy"` to all card images
+6. Add database-level filtering to `getNewlyAddedCards` query
+7. Lazy load VirtualTrophyRoom with `React.lazy()`
+
+**Estimated improvement: 2-4 seconds faster initial load for large collections**
+
+#### Broken Images Analysis
+
+| Severity | Issue | Impact | Files Affected |
+|----------|-------|--------|----------------|
+| 🔴 HIGH | Card back image URL has no error handler | Card flip breaks everywhere | `FlippableCard.tsx` |
+| 🔴 HIGH | 40+ hardcoded game card URLs | Games break if API changes | `PriceEstimationGame.tsx`, `PokemonTypeQuiz.tsx`, `GradeLikeAProGame.tsx`, `RarityGuessingGame.tsx` |
+| 🔴 HIGH | 12+ hardcoded set symbol URLs | SetSymbolMatchingGame breaks | `SetSymbolMatchingGame.tsx` |
+| 🟡 MEDIUM | 6+ card image components without `onError` | Silent failures | `CardGrid.tsx`, `DigitalBinder.tsx`, `PackOpeningSimulator.tsx`, `CollectionView.tsx` |
+| 🟡 MEDIUM | No `/public` folder with fallback images | No graceful degradation | Project root |
+
+**Recommended Fixes:**
+1. Add `onError` handlers to ALL Image components with fallback placeholder
+2. Create `/public/fallback-card.png` for image load failures
+3. Extract hardcoded game URLs to a configuration file
+4. Add image load error monitoring/tracking
+5. Add retry logic for failed images
+
+#### UX & Organization Evaluation
+
+**Overall UX Score: 7.7/10**
+
+| Area | Score | Notes |
+|------|-------|-------|
+| Navigation Structure | 8.5/10 | Excellent auth-aware header switching, good mobile UX |
+| Page Organization | 7.0/10 | Confusion between Dashboard vs Collection purpose |
+| Component Consistency | 7.5/10 | Good patterns but styling inconsistencies in back links, page headers |
+| Mobile Responsiveness | 8.5/10 | Excellent, some height testing needed on small devices |
+| Accessibility | 8.0/10 | Good ARIA, focus management, keyboard navigation |
+
+**Key UX Issues:**
+
+1. **Post-Onboarding Flow Confusion**
+   - After onboarding, users land on `/dashboard` which requires profile selection
+   - Should redirect to `/collection` (the actual main feature)
+   - Location: `/onboarding/page.tsx` line 14
+
+2. **Dashboard vs Collection Confusion**
+   - Users unclear which page is the "main" feature
+   - Consider making Dashboard the overview hub, Collection the detail view
+   - Or consolidate into single page
+
+3. **Missing Back Navigation**
+   - `/learn` page has no back link
+   - `/condition-guide` isolated with no breadcrumb
+   - Back link styling inconsistent (gap-1.5 vs gap-2, font-medium vs normal)
+
+4. **Missing Footer Navigation**
+   - App pages have no footer
+   - No links to Help, About, Privacy, Terms, Contact
+
+5. **Parent Dashboard Discoverability**
+   - Only in profile dropdown, no visual indicator
+   - Parents may not find family features
+
+**Recommended Component Standardization:**
+- Create `<BackLink />` component for consistent back navigation
+- Create `<PageHeader />` component with title, description, icon
+- Create `<AppFooter />` for all authenticated pages
+
+#### Functionality Status Report
+
+**CRITICAL - NOT WORKING:**
+| Feature | Issue | Impact |
+|---------|-------|--------|
+| **Signup Route** | `/signup` doesn't exist | 6 links point to 404 |
+
+Users clicking any "Sign Up" button get a 404 error. This is the primary conversion path.
+
+**FULLY WORKING:**
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Login page | ✅ | Has signup toggle built-in |
+| Kid Dashboard | ✅ | Full feature set, gamification, activity |
+| Parent Dashboard | ✅ | Family overview, leaderboard, goals |
+| Sets Browsing | ✅ | Game-aware (after recent update) |
+| Set Detail View | ✅ | Card grid, rarity filter, Just Pulled mode |
+| Collection Management | ✅ | CRUD, variants, virtual scrolling |
+| Wishlist | ✅ | Add/remove, priority, sharing, budget alternatives |
+| Badge System | ✅ | 37 badges across 5 categories |
+| Streak System | ✅ | Calendar, milestones, grace days |
+| API Routes | ✅ | /api/cards, /api/search, /api/filter, /api/sets |
+| Gamification | ✅ | Levels, milestones, celebrations |
+| Search | ✅ | Works for Pokemon (needs multi-TCG) |
+| Profile | ✅ | Avatar customization |
+| Settings | ✅ | All toggles work (needs permission model) |
+
+**PARTIAL - Needs Multi-TCG Update:**
+| Page | Current State | Fix Needed |
+|------|---------------|------------|
+| `/sets/[setId]` | Pokemon-only | Use game parameter |
+| `/browse` | Pokemon-only | Use game selector |
+| `/search` | Pokemon-only | Search within selected game |
+| `/my-wishlist` | Pokemon-only | Show cards from selected game |
+| `/collection` | Pokemon-only | Filter by selected game |
+| All API routes | Pokemon-only | Accept game parameter |
+
 ---
 
 ## Conclusion

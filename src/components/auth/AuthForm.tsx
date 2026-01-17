@@ -5,9 +5,13 @@ import { useState } from "react";
 
 type AuthMode = "signIn" | "signUp";
 
-export function AuthForm() {
+interface AuthFormProps {
+  defaultMode?: AuthMode;
+}
+
+export function AuthForm({ defaultMode = "signIn" }: AuthFormProps) {
   const { signIn } = useAuthActions();
-  const [mode, setMode] = useState<AuthMode>("signIn");
+  const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);

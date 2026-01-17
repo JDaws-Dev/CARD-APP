@@ -2,36 +2,46 @@
 
 ## Status Summary (Updated 2026-01-17)
 
-| Section                              | Complete | Remaining |
-| ------------------------------------ | -------- | --------- |
-| **CRITICAL - Site Evaluation Fixes** | 0        | **8**     |
-| **Multi-TCG Pages Update**           | 1        | **6**     |
-| **Landing Page Multi-TCG**           | 0        | **5**     |
-| HIGH PRIORITY - Landing Page         | 9        | 0         |
-| UI Tasks                             | 20       | 0         |
-| Core Features                        | 6        | 0         |
-| Gamification UI                      | 4        | 0         |
-| Educational Features UI              | 5        | 0         |
-| Navigation & Dashboard               | 7        | 0         |
-| Multi-TCG Game Selector              | 6        | 0         |
-| Polish & UX                          | 7        | 0         |
-| UI Cleanup & Settings                | 6        | 0         |
-| Forgiving Streak System              | 5        | 0         |
-| Virtual Experience Features          | 6        | 0         |
-| Collection Timeline & Story          | 5        | 0         |
-| Family & Social Features             | 5        | 0         |
-| Financial Literacy                   | 4        | 0         |
-| Educational Mini-Games               | 3        | 2         |
-| Enhanced Accessibility               | 6        | 0         |
-| Engagement & Retention               | 4        | 0         |
-| **TOTAL**                            | **108**  | **21**    |
+| Section                                  | Complete | Remaining |
+| ---------------------------------------- | -------- | --------- |
+| **CRITICAL - Site Evaluation Fixes**     | 0        | **8**     |
+| **CRITICAL - Settings Permissions**      | 0        | **7**     |
+| **CRITICAL - Landing Page Content**      | 0        | **10**    |
+| **HIGH - Broken Images & Error Handling**| 0        | **10**    |
+| **HIGH - Performance Optimization UI**   | 0        | **8**     |
+| **HIGH - UX & Navigation Improvements**  | 0        | **12**    |
+| **Multi-TCG Pages Update**               | 1        | **6**     |
+| **Landing Page Multi-TCG**               | 0        | **5**     |
+| HIGH PRIORITY - Landing Page             | 9        | 0         |
+| UI Tasks                                 | 20       | 0         |
+| Core Features                            | 6        | 0         |
+| Gamification UI                          | 4        | 0         |
+| Educational Features UI                  | 5        | 0         |
+| Navigation & Dashboard                   | 7        | 0         |
+| Multi-TCG Game Selector                  | 6        | 0         |
+| Polish & UX                              | 7        | 0         |
+| UI Cleanup & Settings                    | 6        | 0         |
+| Forgiving Streak System                  | 5        | 0         |
+| Virtual Experience Features              | 6        | 0         |
+| Collection Timeline & Story              | 5        | 0         |
+| Family & Social Features                 | 5        | 0         |
+| Financial Literacy                       | 4        | 0         |
+| Educational Mini-Games                   | 3        | 2         |
+| Enhanced Accessibility                   | 6        | 0         |
+| Engagement & Retention                   | 4        | 0         |
+| **TOTAL**                                | **108**  | **68**    |
 
 ### Priority Order for Remaining Tasks
 
 1. **CRITICAL - Site Evaluation Fixes** (8 tasks) - Signup page, login copy, auth flow fixes
-2. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
-3. **Landing Page Multi-TCG** (5 tasks) - Update landing page to feature all supported games
-4. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
+2. **CRITICAL - Settings Permissions** (7 tasks) - Parent vs kid settings access control
+3. **CRITICAL - Landing Page Content** (10 tasks) - Specific text changes for multi-TCG
+4. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
+5. **HIGH - Performance Optimization UI** (8 tasks) - Memoization, lazy loading, faster collection page
+6. **HIGH - UX & Navigation Improvements** (12 tasks) - Back links, breadcrumbs, footer, user flow
+7. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
+8. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section, update features
+9. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
 
 ---
 
@@ -69,6 +79,78 @@ The landing page currently only mentions Pokemon. Update to feature all supporte
 - [ ] Update "How It Works" section - Remove Pokemon-specific language, make game-agnostic
 - [ ] Update pricing section - Change "500+ Pokemon sets" to "1,000+ sets across 6 popular games"
 - [ ] Update features section - Add "Multiple Games" as a key feature with game icons
+
+## CRITICAL - Settings Permissions (January 2026)
+
+The settings page currently allows ALL settings to be changed by anyone, including kids. This is a safety issue - kids can disable Sleep Mode, remove Parent PIN, etc. These tasks implement proper parent vs kid access control.
+
+- [ ] Restructure settings page into "My Settings" and "Family Controls" sections - Visual separation of kid-accessible vs parent-only settings
+- [ ] Add PIN protection to Family Controls section - Require Parent PIN to access/modify Sleep Mode, Parent PIN, Kid Mode, and Game Selection settings
+- [ ] Add visual lock indicators - Show LockClosedIcon and "Parent Only" badge on protected settings when viewing without PIN
+- [ ] Handle no-PIN-set state - When accessing Family Controls without a PIN configured, prompt parent to create one first
+- [ ] Make settings profile-aware - Different settings may apply per child profile (e.g., different sleep schedules per kid)
+- [ ] Add "unlock" button flow - Button to enter PIN that temporarily unlocks Family Controls for the session
+- [ ] Protect Game Selection toggle - Moving game toggle to Family Controls since parents should control which games kids can access
+
+## HIGH - Broken Images & Error Handling (January 2026)
+
+Image components lack error handlers, causing silent failures when images don't load.
+
+- [ ] Add onError handler to FlippableCard card back image - Show placeholder when `https://images.pokemontcg.io/cardback.png` fails
+- [ ] Add onError handlers to CardGrid card images - Display fallback placeholder on image load failure
+- [ ] Add onError handlers to DigitalBinder card images - Graceful degradation for binder view
+- [ ] Add onError handlers to PackOpeningSimulator - Don't break pack opening experience if image fails
+- [ ] Add onError handlers to CollectionView card images (2 Image components) - Show placeholder instead of broken image
+- [ ] Add onError handlers to SearchResults card images - Handle API image failures gracefully
+- [ ] Add onError handlers to JustPulledMode card images - Maintain celebration UX even with failed images
+- [ ] Create /public/fallback-card.png - Default placeholder image for all failed card image loads
+- [ ] Extract hardcoded game card URLs from mini-games - Move to config file (PriceEstimationGame, PokemonTypeQuiz, GradeLikeAProGame, RarityGuessingGame)
+- [ ] Extract hardcoded set symbol URLs from SetSymbolMatchingGame - Move to config and add fallbacks
+
+## HIGH - Performance Optimization UI (January 2026)
+
+The My Collection page is slow to load. These UI-side optimizations will help.
+
+- [ ] Add React.memo() to ActivityFeed component - Prevent unnecessary re-renders
+- [ ] Add useMemo to CollectionView set grouping logic (lines 115-151) - Cache expensive grouping computation
+- [ ] Add loading="lazy" to CardGrid card images - Defer offscreen image loading
+- [ ] Add loading="lazy" to CollectionView card images - Defer offscreen image loading
+- [ ] Add loading="lazy" to VirtualCardGrid card images - Defer offscreen image loading
+- [ ] Lazy load VirtualTrophyRoom with React.lazy() - Don't load trophy room until needed
+- [ ] Increase VirtualCardGrid overscan on mobile - Change from 3 to 5 rows for smoother scrolling on slower devices
+- [ ] Memoize cardData Map in CollectionView - Prevent recreation on every render
+
+## HIGH - UX & Navigation Improvements (January 2026)
+
+Improve site organization, navigation, and user flow clarity.
+
+- [ ] Create BackLink component - Reusable consistent back navigation (src/components/ui/BackLink.tsx)
+- [ ] Create PageHeader component - Reusable page header with title, description, optional icon (src/components/ui/PageHeader.tsx)
+- [ ] Add back navigation to /learn page - Users can get stuck without way to return
+- [ ] Add breadcrumb to /condition-guide - Show "Home > Learn > Condition Guide"
+- [ ] Add breadcrumb to /sets/[setId] - Show "Home > Browse Sets > [Set Name]"
+- [ ] Create AppFooter component - Footer for authenticated pages with Help, Privacy, Terms links
+- [ ] Add AppFooter to all app pages - Consistent footer across the app
+- [ ] Add ESC key handler to mobile menu - Close menu on Escape key press
+- [ ] Fix onboarding redirect - Change /onboarding completion to redirect to /collection instead of /dashboard
+- [ ] Add "What's Next" card to Dashboard - Guide new users to Browse Sets, Learning Resources after onboarding
+- [ ] Standardize back link styling - Use consistent gap, font-weight, and hover colors across all pages
+- [ ] Add parent features indicator - Badge on profile menu showing "Parent features available" when applicable
+
+## CRITICAL - Landing Page Content Updates (January 2026)
+
+Detailed landing page text changes to support multi-TCG while keeping Pokemon prominent.
+
+- [ ] Line 103: Change "Pokemon Cards" to "Trading Cards" in main headline
+- [ ] Line 185: Change "Browse through all Pokemon card sets" to "Browse sets from Pokemon, Yu-Gi-Oh!, Lorcana, and more"
+- [ ] Line 236: Change "CardDex makes tracking your Pokemon cards fun" to "CardDex makes tracking your trading cards fun"
+- [ ] Line 564: Change "Pokemon Sets" to "Trading Card Sets" in stats section
+- [ ] Line 628: Change "All 500+ Pokemon sets" to "All 500+ sets across 6 games" (Free plan)
+- [ ] Line 703: Change "All 500+ Pokemon sets" to "All 500+ sets across 6 games" (Family plan)
+- [ ] Lines 524-544: Diversify wishlist example cards to include Yu-Gi-Oh! and Lorcana examples alongside Pokemon
+- [ ] Line 779: Change "organize their Pokemon card collections" to "organize their trading card collections"
+- [ ] Line 1004: Change "take control of your Pokemon card collection" to "take control of your trading card collection"
+- [ ] Add TCG disclaimer for other games in footer - Currently only has Pokemon Company disclaimer
 
 ---
 

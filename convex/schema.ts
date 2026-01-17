@@ -183,7 +183,8 @@ export default defineSchema({
     metadata: v.optional(v.any()), // Additional data about the action
   })
     .index('by_profile', ['profileId'])
-    .index('by_profile_and_action', ['profileId', 'action']),
+    .index('by_profile_and_action', ['profileId', 'action'])
+    .index('by_profile_action_time', ['profileId', 'action']),
 
   // ============================================================================
   // CACHED CARD DATA (for offline support and faster queries)
