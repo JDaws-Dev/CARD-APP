@@ -122,3 +122,9 @@
 **Files:** src/components/ai/ScannerButton.tsx (NEW), src/app/collection/page.tsx, src/app/sets/[setId]/page.tsx
 **Commit:** ea595dc
 ---
+## CD-q9p - AI-016: Build chat UI component (CollectionChat.tsx)
+**Status:** Completed
+**Changes:** Created CollectionChat.tsx component with chat bubble interface, message history, input field, send button, typing indicator, and auto-scroll
+**Files:** src/components/ai/CollectionChat.tsx
+**Commit:** 354b728
+---
