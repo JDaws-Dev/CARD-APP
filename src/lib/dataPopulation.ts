@@ -84,6 +84,16 @@ export const API_CONFIGS: Record<GameSlug, { baseUrl: string; setsEndpoint: stri
 };
 
 /**
+ * Print status for a set (kid-friendly set filtering)
+ */
+export type PrintStatus = 'current' | 'limited' | 'out_of_print' | 'vintage';
+
+/**
+ * All valid print statuses
+ */
+export const PRINT_STATUSES: PrintStatus[] = ['current', 'limited', 'out_of_print', 'vintage'];
+
+/**
  * Cached set data structure (mirrors Convex schema)
  */
 export interface CachedSet {
@@ -95,6 +105,9 @@ export interface CachedSet {
   totalCards: number;
   logoUrl?: string;
   symbolUrl?: string;
+  // Kid-friendly set filtering fields (January 2026)
+  isInPrint?: boolean;
+  printStatus?: PrintStatus;
 }
 
 /**
@@ -468,4 +481,196 @@ export function batchArray<T>(array: T[], batchSize: number): T[][] {
 export function calculateProgress(current: number, total: number): number {
   if (total === 0) return 100;
   return Math.min(100, Math.round((current / total) * 100));
+}
+
+// =============================================================================
+// PRINT STATUS UTILITIES (Kid-Friendly Set Filtering)
+// =============================================================================
+
+/**
+ * Check if a print status string is valid
+ */
+export function isValidPrintStatus(status: string): status is PrintStatus {
+  return PRINT_STATUSES.includes(status as PrintStatus);
+}
+
+/**
+ * Get a human-readable label for a print status
+ */
+export function getPrintStatusLabel(status: PrintStatus): string {
+  switch (status) {
+    case 'current':
+      return 'In Print';
+    case 'limited':
+      return 'Limited Availability';
+    case 'out_of_print':
+      return 'Out of Print';
+    case 'vintage':
+      return 'Vintage/Collector';
+    default:
+      return 'Unknown';
+  }
+}
+
+/**
+ * Get a description for a print status
+ */
+export function getPrintStatusDescription(status: PrintStatus): string {
+  switch (status) {
+    case 'current':
+      return 'Currently in print and widely available at retail';
+    case 'limited':
+      return 'Limited availability, may be out of print soon';
+    case 'out_of_print':
+      return 'No longer in print at retail';
+    case 'vintage':
+      return 'Vintage or collector set (over 5 years old)';
+    default:
+      return 'Print status unknown';
+  }
+}
+
+/**
+ * Check if a set is considered "in print" based on its fields
+ * Implements the same logic as the Convex getInPrintSets query
+ */
+export function isSetInPrint(set: CachedSet, maxAgeMonths: number = 24): boolean {
+  // Explicitly marked as in print
+  if (set.isInPrint === true) {
+    return true;
+  }
+
+  // Explicitly marked as not in print
+  if (set.isInPrint === false) {
+    return false;
+  }
+
+  // Check print status
+  if (set.printStatus === 'current' || set.printStatus === 'limited') {
+    return true;
+  }
+
+  if (set.printStatus === 'out_of_print' || set.printStatus === 'vintage') {
+    return false;
+  }
+
+  // Fallback: check release date
+  const now = new Date();
+  const cutoffDate = new Date(now.getFullYear(), now.getMonth() - maxAgeMonths, now.getDate());
+  const releaseTime = new Date(set.releaseDate).getTime();
+
+  return releaseTime >= cutoffDate.getTime();
+}
+
+/**
+ * Filter an array of sets to only include in-print sets
+ */
+export function filterInPrintSets(sets: CachedSet[], maxAgeMonths: number = 24): CachedSet[] {
+  return sets.filter((set) => isSetInPrint(set, maxAgeMonths));
+}
+
+/**
+ * Get sets grouped by print status
+ */
+export function groupSetsByPrintStatus(
+  sets: CachedSet[],
+  maxAgeMonths: number = 24
+): Record<'inPrint' | 'outOfPrint', CachedSet[]> {
+  const inPrint: CachedSet[] = [];
+  const outOfPrint: CachedSet[] = [];
+
+  for (const set of sets) {
+    if (isSetInPrint(set, maxAgeMonths)) {
+      inPrint.push(set);
+    } else {
+      outOfPrint.push(set);
+    }
+  }
+
+  return { inPrint, outOfPrint };
+}
+
+/**
+ * Calculate the cutoff date for in-print sets (24 months ago by default)
+ */
+export function getInPrintCutoffDate(maxAgeMonths: number = 24): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() - maxAgeMonths, now.getDate());
+}
+
+/**
+ * Determine the print status for a set based on its release date
+ * Useful for auto-assigning status to sets without explicit print status
+ */
+export function determinePrintStatusByDate(
+  releaseDate: string,
+  outOfPrintMonths: number = 24,
+  vintageMonths: number = 60
+): PrintStatus {
+  const now = new Date();
+  const releaseTime = new Date(releaseDate).getTime();
+
+  const outOfPrintCutoff = new Date(
+    now.getFullYear(),
+    now.getMonth() - outOfPrintMonths,
+    now.getDate()
+  );
+  const vintageCutoff = new Date(now.getFullYear(), now.getMonth() - vintageMonths, now.getDate());
+
+  if (releaseTime < vintageCutoff.getTime()) {
+    return 'vintage';
+  }
+
+  if (releaseTime < outOfPrintCutoff.getTime()) {
+    return 'out_of_print';
+  }
+
+  return 'current';
+}
+
+/**
+ * Get statistics about print status distribution for a set of sets
+ */
+export function getPrintStatusStats(
+  sets: CachedSet[],
+  maxAgeMonths: number = 24
+): {
+  total: number;
+  inPrint: number;
+  outOfPrint: number;
+  byStatus: Record<PrintStatus | 'unknown', number>;
+  percentInPrint: number;
+} {
+  const byStatus: Record<PrintStatus | 'unknown', number> = {
+    current: 0,
+    limited: 0,
+    out_of_print: 0,
+    vintage: 0,
+    unknown: 0,
+  };
+
+  let inPrint = 0;
+  let outOfPrint = 0;
+
+  for (const set of sets) {
+    if (set.printStatus) {
+      byStatus[set.printStatus]++;
+    } else {
+      byStatus.unknown++;
+    }
+
+    if (isSetInPrint(set, maxAgeMonths)) {
+      inPrint++;
+    } else {
+      outOfPrint++;
+    }
+  }
+
+  return {
+    total: sets.length,
+    inPrint,
+    outOfPrint,
+    byStatus,
+    percentInPrint: sets.length > 0 ? Math.round((inPrint / sets.length) * 100) : 0,
+  };
 }

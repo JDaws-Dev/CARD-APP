@@ -353,10 +353,17 @@ export const getCachedSets = internalQuery({
 
 /**
  * Get cached sets for a game (public query)
+ * Supports optional cutoff date filtering for kid-friendly set display.
+ *
+ * @param gameSlug - The game to get sets for (required)
+ * @param cutoffDate - Optional ISO date string (YYYY-MM-DD). Only return sets released on or after this date.
+ * @param includeOutOfPrint - Whether to include out-of-print sets (default true for backwards compatibility)
  */
 export const getSetsByGame = query({
   args: {
     gameSlug: gameSlugValidator,
+    cutoffDate: v.optional(v.string()),
+    includeOutOfPrint: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const sets = await ctx.db
@@ -364,10 +371,320 @@ export const getSetsByGame = query({
       .withIndex('by_game', (q) => q.eq('gameSlug', args.gameSlug))
       .collect();
 
-    // Sort by release date descending
-    sets.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+    // Apply cutoff date filter if provided
+    let filteredSets = sets;
+    if (args.cutoffDate) {
+      const cutoffTime = new Date(args.cutoffDate).getTime();
+      filteredSets = filteredSets.filter((set) => {
+        const releaseTime = new Date(set.releaseDate).getTime();
+        return releaseTime >= cutoffTime;
+      });
+    }
 
-    return sets;
+    // Filter out-of-print sets if requested (default: include all)
+    if (args.includeOutOfPrint === false) {
+      filteredSets = filteredSets.filter(
+        (set) =>
+          set.isInPrint === true ||
+          set.isInPrint === undefined || // Include sets without print status (backwards compatibility)
+          (set.printStatus !== 'out_of_print' && set.printStatus !== 'vintage')
+      );
+    }
+
+    // Sort by release date descending
+    filteredSets.sort(
+      (a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
+    );
+
+    return filteredSets;
+  },
+});
+
+/**
+ * Print status validator for mutations
+ */
+const printStatusValidator = v.union(
+  v.literal('current'),
+  v.literal('limited'),
+  v.literal('out_of_print'),
+  v.literal('vintage')
+);
+
+/**
+ * Get only in-print sets for a game (kid-friendly query)
+ *
+ * Returns sets that are currently available at retail, focusing on sets
+ * kids can actually buy today. Uses isInPrint flag and printStatus field.
+ *
+ * Sets are considered "in print" if:
+ * - isInPrint is explicitly true, OR
+ * - printStatus is 'current' or 'limited', OR
+ * - Released within the last 24 months (fallback for sets without print status)
+ *
+ * @param gameSlug - The game to get sets for (required)
+ * @param maxAgeMonths - Maximum age in months for fallback (default 24)
+ */
+export const getInPrintSets = query({
+  args: {
+    gameSlug: gameSlugValidator,
+    maxAgeMonths: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const maxAgeMonths = args.maxAgeMonths ?? 24;
+
+    // Use the index to efficiently get sets by game and isInPrint
+    // First try to get sets with isInPrint: true
+    const inPrintSets = await ctx.db
+      .query('cachedSets')
+      .withIndex('by_game_and_print_status', (q) =>
+        q.eq('gameSlug', args.gameSlug).eq('isInPrint', true)
+      )
+      .collect();
+
+    // Also get all sets to find ones without explicit print status
+    const allSets = await ctx.db
+      .query('cachedSets')
+      .withIndex('by_game', (q) => q.eq('gameSlug', args.gameSlug))
+      .collect();
+
+    // Calculate cutoff date for fallback
+    const now = new Date();
+    const cutoffDate = new Date(now.getFullYear(), now.getMonth() - maxAgeMonths, now.getDate());
+    const cutoffTime = cutoffDate.getTime();
+
+    // Build set of already-included IDs
+    const includedSetIds = new Set(inPrintSets.map((s) => s.setId));
+
+    // Add sets that qualify via other criteria
+    const additionalSets = allSets.filter((set) => {
+      // Skip if already included
+      if (includedSetIds.has(set.setId)) {
+        return false;
+      }
+
+      // Include if printStatus is current or limited
+      if (set.printStatus === 'current' || set.printStatus === 'limited') {
+        return true;
+      }
+
+      // Skip if explicitly out of print or vintage
+      if (set.printStatus === 'out_of_print' || set.printStatus === 'vintage') {
+        return false;
+      }
+
+      // Skip if isInPrint is explicitly false
+      if (set.isInPrint === false) {
+        return false;
+      }
+
+      // Fallback: include if released within maxAgeMonths
+      if (set.isInPrint === undefined && set.printStatus === undefined) {
+        const releaseTime = new Date(set.releaseDate).getTime();
+        return releaseTime >= cutoffTime;
+      }
+
+      return false;
+    });
+
+    // Combine and sort
+    const combinedSets = [...inPrintSets, ...additionalSets];
+    combinedSets.sort(
+      (a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
+    );
+
+    return {
+      sets: combinedSets,
+      count: combinedSets.length,
+      maxAgeMonths,
+      cutoffDate: cutoffDate.toISOString().split('T')[0],
+    };
+  },
+});
+
+/**
+ * Mark sets as out of print (admin mutation)
+ *
+ * Updates the isInPrint and printStatus fields for one or more sets.
+ * Intended for admin use to maintain accurate set availability data.
+ *
+ * @param setIds - Array of set IDs to update
+ * @param printStatus - New print status to set
+ * @param isInPrint - Whether sets are in print (derived from printStatus if not provided)
+ */
+export const markOutOfPrintSets = internalMutation({
+  args: {
+    setIds: v.array(v.string()),
+    printStatus: printStatusValidator,
+    isInPrint: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    // Derive isInPrint from printStatus if not explicitly provided
+    const isInPrint =
+      args.isInPrint ?? (args.printStatus === 'current' || args.printStatus === 'limited');
+
+    let updatedCount = 0;
+    let notFoundCount = 0;
+    const errors: string[] = [];
+
+    for (const setId of args.setIds) {
+      try {
+        const set = await ctx.db
+          .query('cachedSets')
+          .withIndex('by_set_id', (q) => q.eq('setId', setId))
+          .first();
+
+        if (set) {
+          await ctx.db.patch(set._id, {
+            printStatus: args.printStatus,
+            isInPrint,
+          });
+          updatedCount++;
+        } else {
+          notFoundCount++;
+        }
+      } catch (e) {
+        errors.push(`Set ${setId}: ${e instanceof Error ? e.message : 'Unknown error'}`);
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      updatedCount,
+      notFoundCount,
+      requestedCount: args.setIds.length,
+      printStatus: args.printStatus,
+      isInPrint,
+      errors,
+    };
+  },
+});
+
+/**
+ * Update a single set's print status (admin mutation)
+ *
+ * @param setId - The set ID to update
+ * @param printStatus - New print status
+ * @param isInPrint - Optional explicit in-print flag
+ */
+export const updateSetPrintStatus = internalMutation({
+  args: {
+    setId: v.string(),
+    printStatus: printStatusValidator,
+    isInPrint: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const set = await ctx.db
+      .query('cachedSets')
+      .withIndex('by_set_id', (q) => q.eq('setId', args.setId))
+      .first();
+
+    if (!set) {
+      return { success: false, error: 'Set not found' };
+    }
+
+    const isInPrint =
+      args.isInPrint ?? (args.printStatus === 'current' || args.printStatus === 'limited');
+
+    await ctx.db.patch(set._id, {
+      printStatus: args.printStatus,
+      isInPrint,
+    });
+
+    return {
+      success: true,
+      setId: args.setId,
+      printStatus: args.printStatus,
+      isInPrint,
+    };
+  },
+});
+
+/**
+ * Automatically update print status based on release date (cron job helper)
+ *
+ * Marks sets as out of print if they are older than the specified threshold.
+ * Intended to be called periodically to maintain accurate availability data.
+ *
+ * @param gameSlug - The game to update sets for
+ * @param outOfPrintMonths - Sets older than this are marked out_of_print (default 24)
+ * @param vintageMonths - Sets older than this are marked vintage (default 60 = 5 years)
+ */
+export const autoUpdatePrintStatus = internalMutation({
+  args: {
+    gameSlug: gameSlugValidator,
+    outOfPrintMonths: v.optional(v.number()),
+    vintageMonths: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const outOfPrintMonths = args.outOfPrintMonths ?? 24;
+    const vintageMonths = args.vintageMonths ?? 60;
+
+    const now = new Date();
+    const outOfPrintCutoff = new Date(
+      now.getFullYear(),
+      now.getMonth() - outOfPrintMonths,
+      now.getDate()
+    );
+    const vintageCutoff = new Date(
+      now.getFullYear(),
+      now.getMonth() - vintageMonths,
+      now.getDate()
+    );
+
+    const sets = await ctx.db
+      .query('cachedSets')
+      .withIndex('by_game', (q) => q.eq('gameSlug', args.gameSlug))
+      .collect();
+
+    let updatedToVintage = 0;
+    let updatedToOutOfPrint = 0;
+    let updatedToCurrent = 0;
+    let unchanged = 0;
+
+    for (const set of sets) {
+      const releaseTime = new Date(set.releaseDate).getTime();
+      let newStatus: 'current' | 'limited' | 'out_of_print' | 'vintage' | undefined;
+      let newIsInPrint: boolean | undefined;
+
+      if (releaseTime < vintageCutoff.getTime()) {
+        newStatus = 'vintage';
+        newIsInPrint = false;
+      } else if (releaseTime < outOfPrintCutoff.getTime()) {
+        newStatus = 'out_of_print';
+        newIsInPrint = false;
+      } else {
+        // Recent set - only update if not already marked
+        if (set.printStatus === undefined) {
+          newStatus = 'current';
+          newIsInPrint = true;
+        }
+      }
+
+      if (newStatus !== undefined && newStatus !== set.printStatus) {
+        await ctx.db.patch(set._id, {
+          printStatus: newStatus,
+          isInPrint: newIsInPrint,
+        });
+
+        if (newStatus === 'vintage') updatedToVintage++;
+        else if (newStatus === 'out_of_print') updatedToOutOfPrint++;
+        else if (newStatus === 'current') updatedToCurrent++;
+      } else {
+        unchanged++;
+      }
+    }
+
+    return {
+      success: true,
+      gameSlug: args.gameSlug,
+      totalSets: sets.length,
+      updatedToVintage,
+      updatedToOutOfPrint,
+      updatedToCurrent,
+      unchanged,
+      outOfPrintCutoff: outOfPrintCutoff.toISOString().split('T')[0],
+      vintageCutoff: vintageCutoff.toISOString().split('T')[0],
+    };
   },
 });
 

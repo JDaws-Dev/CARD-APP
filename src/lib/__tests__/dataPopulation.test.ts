@@ -1,14 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import {
   // Constants
   GAME_SLUGS,
   RATE_LIMITS,
   API_CONFIGS,
+  PRINT_STATUSES,
   // Types
   type GameSlug,
   type CachedSet,
   type CachedCard,
   type PopulationStatus,
+  type PrintStatus,
   // Validation functions
   isValidGameSlug,
   isValidSetId,
@@ -32,6 +34,16 @@ import {
   // Batch processing
   batchArray,
   calculateProgress,
+  // Print status utilities
+  isValidPrintStatus,
+  getPrintStatusLabel,
+  getPrintStatusDescription,
+  isSetInPrint,
+  filterInPrintSets,
+  groupSetsByPrintStatus,
+  getInPrintCutoffDate,
+  determinePrintStatusByDate,
+  getPrintStatusStats,
 } from '../dataPopulation';
 
 // =============================================================================
@@ -644,5 +656,491 @@ describe('Data Population Integration', () => {
       expect(needsPopulation(completeStatus)).toBe(false);
       expect(getStatusSummary(completeStatus)).toContain('15,000 cards');
     });
+  });
+});
+
+// =============================================================================
+// PRINT STATUS TESTS (Kid-Friendly Set Filtering)
+// =============================================================================
+
+describe('Print Status Constants', () => {
+  it('should have all 4 print statuses defined', () => {
+    expect(PRINT_STATUSES).toHaveLength(4);
+    expect(PRINT_STATUSES).toContain('current');
+    expect(PRINT_STATUSES).toContain('limited');
+    expect(PRINT_STATUSES).toContain('out_of_print');
+    expect(PRINT_STATUSES).toContain('vintage');
+  });
+});
+
+describe('isValidPrintStatus', () => {
+  it('should return true for valid print statuses', () => {
+    expect(isValidPrintStatus('current')).toBe(true);
+    expect(isValidPrintStatus('limited')).toBe(true);
+    expect(isValidPrintStatus('out_of_print')).toBe(true);
+    expect(isValidPrintStatus('vintage')).toBe(true);
+  });
+
+  it('should return false for invalid print statuses', () => {
+    expect(isValidPrintStatus('')).toBe(false);
+    expect(isValidPrintStatus('in_print')).toBe(false);
+    expect(isValidPrintStatus('CURRENT')).toBe(false);
+    expect(isValidPrintStatus('available')).toBe(false);
+    expect(isValidPrintStatus('unknown')).toBe(false);
+  });
+});
+
+describe('getPrintStatusLabel', () => {
+  it('should return correct labels for each status', () => {
+    expect(getPrintStatusLabel('current')).toBe('In Print');
+    expect(getPrintStatusLabel('limited')).toBe('Limited Availability');
+    expect(getPrintStatusLabel('out_of_print')).toBe('Out of Print');
+    expect(getPrintStatusLabel('vintage')).toBe('Vintage/Collector');
+  });
+
+  it('should return Unknown for invalid status', () => {
+    expect(getPrintStatusLabel('invalid' as PrintStatus)).toBe('Unknown');
+  });
+});
+
+describe('getPrintStatusDescription', () => {
+  it('should return correct descriptions for each status', () => {
+    expect(getPrintStatusDescription('current')).toContain('widely available at retail');
+    expect(getPrintStatusDescription('limited')).toContain('Limited availability');
+    expect(getPrintStatusDescription('out_of_print')).toContain('No longer in print');
+    expect(getPrintStatusDescription('vintage')).toContain('over 5 years old');
+  });
+
+  it('should return unknown message for invalid status', () => {
+    expect(getPrintStatusDescription('invalid' as PrintStatus)).toBe('Print status unknown');
+  });
+});
+
+describe('isSetInPrint', () => {
+  const createSet = (overrides: Partial<CachedSet>): CachedSet => ({
+    setId: 'sv1',
+    gameSlug: 'pokemon',
+    name: 'Test Set',
+    series: 'Test',
+    releaseDate: '2024-01-01',
+    totalCards: 100,
+    ...overrides,
+  });
+
+  describe('explicit isInPrint flag', () => {
+    it('should return true when isInPrint is true', () => {
+      const set = createSet({ isInPrint: true });
+      expect(isSetInPrint(set)).toBe(true);
+    });
+
+    it('should return false when isInPrint is false', () => {
+      const set = createSet({ isInPrint: false });
+      expect(isSetInPrint(set)).toBe(false);
+    });
+  });
+
+  describe('printStatus field', () => {
+    it('should return true for current status', () => {
+      const set = createSet({ printStatus: 'current' });
+      expect(isSetInPrint(set)).toBe(true);
+    });
+
+    it('should return true for limited status', () => {
+      const set = createSet({ printStatus: 'limited' });
+      expect(isSetInPrint(set)).toBe(true);
+    });
+
+    it('should return false for out_of_print status', () => {
+      const set = createSet({ printStatus: 'out_of_print' });
+      expect(isSetInPrint(set)).toBe(false);
+    });
+
+    it('should return false for vintage status', () => {
+      const set = createSet({ printStatus: 'vintage' });
+      expect(isSetInPrint(set)).toBe(false);
+    });
+  });
+
+  describe('release date fallback', () => {
+    beforeEach(() => {
+      // Mock current date to 2026-01-17
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-01-17'));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should return true for recent sets without status', () => {
+      const set = createSet({ releaseDate: '2025-01-01' }); // 12 months old
+      expect(isSetInPrint(set)).toBe(true);
+    });
+
+    it('should return true for sets exactly 24 months old', () => {
+      const set = createSet({ releaseDate: '2024-01-17' }); // Exactly 24 months
+      expect(isSetInPrint(set)).toBe(true);
+    });
+
+    it('should return false for sets older than 24 months', () => {
+      const set = createSet({ releaseDate: '2023-01-01' }); // 36+ months old
+      expect(isSetInPrint(set)).toBe(false);
+    });
+
+    it('should respect custom maxAgeMonths parameter', () => {
+      const set = createSet({ releaseDate: '2025-07-01' }); // 6 months old
+      expect(isSetInPrint(set, 12)).toBe(true);
+      expect(isSetInPrint(set, 3)).toBe(false);
+    });
+  });
+});
+
+describe('filterInPrintSets', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-17'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const createSets = (): CachedSet[] => [
+    {
+      setId: 's1',
+      gameSlug: 'pokemon',
+      name: 'Set 1',
+      series: 'Test',
+      releaseDate: '2025-06-01',
+      totalCards: 100,
+      isInPrint: true,
+    },
+    {
+      setId: 's2',
+      gameSlug: 'pokemon',
+      name: 'Set 2',
+      series: 'Test',
+      releaseDate: '2020-01-01',
+      totalCards: 100,
+      isInPrint: false,
+    },
+    {
+      setId: 's3',
+      gameSlug: 'pokemon',
+      name: 'Set 3',
+      series: 'Test',
+      releaseDate: '2025-01-01',
+      totalCards: 100,
+      printStatus: 'current',
+    },
+    {
+      setId: 's4',
+      gameSlug: 'pokemon',
+      name: 'Set 4',
+      series: 'Test',
+      releaseDate: '2018-01-01',
+      totalCards: 100,
+      printStatus: 'vintage',
+    },
+    {
+      setId: 's5',
+      gameSlug: 'pokemon',
+      name: 'Set 5',
+      series: 'Test',
+      releaseDate: '2025-09-01',
+      totalCards: 100,
+    }, // Recent, no status
+    {
+      setId: 's6',
+      gameSlug: 'pokemon',
+      name: 'Set 6',
+      series: 'Test',
+      releaseDate: '2020-01-01',
+      totalCards: 100,
+    }, // Old, no status
+  ];
+
+  it('should filter to only in-print sets', () => {
+    const sets = createSets();
+    const inPrint = filterInPrintSets(sets);
+
+    // s1 (isInPrint: true), s3 (printStatus: current), s5 (recent release, no status)
+    expect(inPrint).toHaveLength(3);
+    expect(inPrint.map((s) => s.setId)).toContain('s1'); // isInPrint: true
+    expect(inPrint.map((s) => s.setId)).toContain('s3'); // printStatus: current
+    expect(inPrint.map((s) => s.setId)).toContain('s5'); // recent, no status
+    expect(inPrint.map((s) => s.setId)).not.toContain('s2'); // isInPrint: false
+    expect(inPrint.map((s) => s.setId)).not.toContain('s4'); // printStatus: vintage
+    expect(inPrint.map((s) => s.setId)).not.toContain('s6'); // old, no status
+  });
+
+  it('should return empty array for empty input', () => {
+    expect(filterInPrintSets([])).toEqual([]);
+  });
+});
+
+describe('groupSetsByPrintStatus', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-17'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('should group sets into inPrint and outOfPrint', () => {
+    const sets: CachedSet[] = [
+      {
+        setId: 's1',
+        gameSlug: 'pokemon',
+        name: 'Set 1',
+        series: 'Test',
+        releaseDate: '2025-06-01',
+        totalCards: 100,
+        isInPrint: true,
+      },
+      {
+        setId: 's2',
+        gameSlug: 'pokemon',
+        name: 'Set 2',
+        series: 'Test',
+        releaseDate: '2020-01-01',
+        totalCards: 100,
+        printStatus: 'out_of_print',
+      },
+      {
+        setId: 's3',
+        gameSlug: 'pokemon',
+        name: 'Set 3',
+        series: 'Test',
+        releaseDate: '2025-01-01',
+        totalCards: 100,
+      },
+    ];
+
+    const grouped = groupSetsByPrintStatus(sets);
+
+    expect(grouped.inPrint).toHaveLength(2);
+    expect(grouped.outOfPrint).toHaveLength(1);
+    expect(grouped.inPrint.map((s) => s.setId)).toContain('s1');
+    expect(grouped.inPrint.map((s) => s.setId)).toContain('s3');
+    expect(grouped.outOfPrint.map((s) => s.setId)).toContain('s2');
+  });
+
+  it('should handle empty arrays', () => {
+    const grouped = groupSetsByPrintStatus([]);
+    expect(grouped.inPrint).toEqual([]);
+    expect(grouped.outOfPrint).toEqual([]);
+  });
+});
+
+describe('getInPrintCutoffDate', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-17'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('should return date 24 months ago by default', () => {
+    const cutoff = getInPrintCutoffDate();
+    expect(cutoff.getFullYear()).toBe(2024);
+    expect(cutoff.getMonth()).toBe(0); // January
+    // Note: exact day may vary slightly due to how Date handles month overflow
+    expect(cutoff.getDate()).toBeGreaterThanOrEqual(16);
+    expect(cutoff.getDate()).toBeLessThanOrEqual(18);
+  });
+
+  it('should respect custom maxAgeMonths', () => {
+    const cutoff12 = getInPrintCutoffDate(12);
+    expect(cutoff12.getFullYear()).toBe(2025);
+    expect(cutoff12.getMonth()).toBe(0); // January
+
+    const cutoff6 = getInPrintCutoffDate(6);
+    expect(cutoff6.getFullYear()).toBe(2025);
+    expect(cutoff6.getMonth()).toBe(6); // July
+  });
+});
+
+describe('determinePrintStatusByDate', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-17'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('should return current for recent releases', () => {
+    expect(determinePrintStatusByDate('2025-01-01')).toBe('current');
+    expect(determinePrintStatusByDate('2024-06-01')).toBe('current');
+  });
+
+  it('should return out_of_print for sets 2-5 years old', () => {
+    expect(determinePrintStatusByDate('2023-01-01')).toBe('out_of_print');
+    expect(determinePrintStatusByDate('2022-01-01')).toBe('out_of_print');
+  });
+
+  it('should return vintage for sets over 5 years old', () => {
+    expect(determinePrintStatusByDate('2020-01-01')).toBe('vintage');
+    expect(determinePrintStatusByDate('2015-01-01')).toBe('vintage');
+  });
+
+  it('should respect custom month thresholds', () => {
+    // With 12 months out_of_print threshold
+    expect(determinePrintStatusByDate('2024-06-01', 12, 60)).toBe('out_of_print');
+
+    // With 36 months vintage threshold
+    expect(determinePrintStatusByDate('2022-06-01', 24, 36)).toBe('vintage');
+  });
+});
+
+describe('getPrintStatusStats', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-17'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('should calculate correct statistics', () => {
+    const sets: CachedSet[] = [
+      {
+        setId: 's1',
+        gameSlug: 'pokemon',
+        name: 'Set 1',
+        series: 'Test',
+        releaseDate: '2025-06-01',
+        totalCards: 100,
+        printStatus: 'current',
+      },
+      {
+        setId: 's2',
+        gameSlug: 'pokemon',
+        name: 'Set 2',
+        series: 'Test',
+        releaseDate: '2020-01-01',
+        totalCards: 100,
+        printStatus: 'out_of_print',
+      },
+      {
+        setId: 's3',
+        gameSlug: 'pokemon',
+        name: 'Set 3',
+        series: 'Test',
+        releaseDate: '2025-01-01',
+        totalCards: 100,
+        printStatus: 'limited',
+      },
+      {
+        setId: 's4',
+        gameSlug: 'pokemon',
+        name: 'Set 4',
+        series: 'Test',
+        releaseDate: '2018-01-01',
+        totalCards: 100,
+        printStatus: 'vintage',
+      },
+      {
+        setId: 's5',
+        gameSlug: 'pokemon',
+        name: 'Set 5',
+        series: 'Test',
+        releaseDate: '2025-09-01',
+        totalCards: 100,
+      }, // No status
+    ];
+
+    const stats = getPrintStatusStats(sets);
+
+    expect(stats.total).toBe(5);
+    expect(stats.inPrint).toBe(3); // s1, s3, s5
+    expect(stats.outOfPrint).toBe(2); // s2, s4
+    expect(stats.byStatus.current).toBe(1);
+    expect(stats.byStatus.limited).toBe(1);
+    expect(stats.byStatus.out_of_print).toBe(1);
+    expect(stats.byStatus.vintage).toBe(1);
+    expect(stats.byStatus.unknown).toBe(1);
+    expect(stats.percentInPrint).toBe(60);
+  });
+
+  it('should handle empty array', () => {
+    const stats = getPrintStatusStats([]);
+
+    expect(stats.total).toBe(0);
+    expect(stats.inPrint).toBe(0);
+    expect(stats.outOfPrint).toBe(0);
+    expect(stats.percentInPrint).toBe(0);
+  });
+
+  it('should handle all in-print sets', () => {
+    const sets: CachedSet[] = [
+      {
+        setId: 's1',
+        gameSlug: 'pokemon',
+        name: 'Set 1',
+        series: 'Test',
+        releaseDate: '2025-06-01',
+        totalCards: 100,
+        isInPrint: true,
+      },
+      {
+        setId: 's2',
+        gameSlug: 'pokemon',
+        name: 'Set 2',
+        series: 'Test',
+        releaseDate: '2025-01-01',
+        totalCards: 100,
+        isInPrint: true,
+      },
+    ];
+
+    const stats = getPrintStatusStats(sets);
+
+    expect(stats.percentInPrint).toBe(100);
+    expect(stats.inPrint).toBe(2);
+    expect(stats.outOfPrint).toBe(0);
+  });
+});
+
+describe('CachedSet with print status fields', () => {
+  it('should validate set with print status fields', () => {
+    const set: CachedSet = {
+      setId: 'sv1',
+      gameSlug: 'pokemon',
+      name: 'Scarlet & Violet',
+      series: 'Scarlet & Violet',
+      releaseDate: '2023-03-31',
+      totalCards: 198,
+      isInPrint: true,
+      printStatus: 'current',
+    };
+
+    const result = validateSet(set);
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('should normalize set without changing print status fields', () => {
+    const set: Partial<CachedSet> = {
+      setId: 'sv1',
+      name: 'Scarlet & Violet',
+      series: 'SV',
+      releaseDate: '2023-03-31',
+      totalCards: 198,
+      isInPrint: true,
+      printStatus: 'current',
+    };
+
+    const normalized = normalizeSet(set, 'pokemon');
+    // Print status fields are not touched by normalizeSet (optional fields)
+    expect(normalized.setId).toBe('sv1');
+    expect(normalized.gameSlug).toBe('pokemon');
   });
 });

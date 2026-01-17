@@ -220,10 +220,21 @@ export default defineSchema({
     totalCards: v.number(),
     logoUrl: v.optional(v.string()),
     symbolUrl: v.optional(v.string()),
+    // Kid-friendly set filtering fields (January 2026)
+    isInPrint: v.optional(v.boolean()), // Whether set is currently available at retail
+    printStatus: v.optional(
+      v.union(
+        v.literal('current'), // Currently in print, widely available
+        v.literal('limited'), // Limited availability, may be out of print soon
+        v.literal('out_of_print'), // No longer in print at retail
+        v.literal('vintage') // Vintage/collector sets (>5 years old)
+      )
+    ),
   })
     .index('by_set_id', ['setId'])
     .index('by_game', ['gameSlug'])
-    .index('by_game_and_release', ['gameSlug', 'releaseDate']),
+    .index('by_game_and_release', ['gameSlug', 'releaseDate'])
+    .index('by_game_and_print_status', ['gameSlug', 'isInPrint']),
 
   cachedCards: defineTable({
     cardId: v.string(), // TCG API card ID (e.g., "sv1-1" for Pokemon, "LOB-001" for Yu-Gi-Oh!)
