@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from 'convex/react';
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -42,8 +42,13 @@ interface ActivityFeedProps {
 
 /**
  * Skeleton loader for activity feed
+ * Memoized to prevent unnecessary re-renders when parent component updates
  */
-export function ActivityFeedSkeleton({ count = 5 }: { count?: number }) {
+export const ActivityFeedSkeleton = memo(function ActivityFeedSkeleton({
+  count = 5,
+}: {
+  count?: number;
+}) {
   return (
     <div className="space-y-3">
       {Array.from({ length: count }).map((_, i) => (
@@ -57,7 +62,7 @@ export function ActivityFeedSkeleton({ count = 5 }: { count?: number }) {
       ))}
     </div>
   );
-}
+});
 
 /**
  * Format a timestamp into a relative time string
@@ -163,8 +168,9 @@ function formatActivityDescription(log: ActivityLog): { main: string; sub?: stri
 
 /**
  * Single activity item component
+ * Memoized to prevent unnecessary re-renders when parent component updates
  */
-function ActivityItem({ log }: { log: ActivityLog }) {
+const ActivityItem = memo(function ActivityItem({ log }: { log: ActivityLog }) {
   const actionDisplay = getActionDisplay(log.action);
   const Icon = actionDisplay.icon;
   const description = formatActivityDescription(log);
@@ -228,7 +234,7 @@ function ActivityItem({ log }: { log: ActivityLog }) {
       </div>
     </article>
   );
-}
+});
 
 /**
  * Get badge type based on achievement type from metadata
@@ -254,8 +260,13 @@ function getBadgeType(achievementType?: string): 'gold' | 'silver' | 'bronze' | 
 
 /**
  * Activity feed component showing recent collection activity
+ * Memoized to prevent unnecessary re-renders when parent component updates
  */
-export function ActivityFeed({ limit = 10, showHeader = true, className }: ActivityFeedProps) {
+export const ActivityFeed = memo(function ActivityFeed({
+  limit = 10,
+  showHeader = true,
+  className,
+}: ActivityFeedProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { celebrate } = useCelebration();
   const { announce } = useLiveRegion();
@@ -399,4 +410,4 @@ export function ActivityFeed({ limit = 10, showHeader = true, className }: Activ
       </div>
     </section>
   );
-}
+});
