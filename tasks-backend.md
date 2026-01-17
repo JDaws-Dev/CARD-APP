@@ -6,7 +6,7 @@
 | ------------------------------------ | -------- | --------- |
 | **CRITICAL - Multi-TCG API**         | 0        | **5**     |
 | **CRITICAL - Auth Fixes**            | 0        | **4**     |
-| **HIGH - Performance Optimization**  | 0        | **7**     |
+| **HIGH - Performance Optimization**  | 1        | **6**     |
 | HIGH PRIORITY - Auth & Pricing       | 9        | **1**     |
 | Card Variants                        | 3        | 0         |
 | Achievement System                   | 6        | 0         |
@@ -19,7 +19,7 @@
 | Educational Content                  | 3        | 0         |
 | Additional Features                  | 5        | 0         |
 | Launch Prep                          | 4        | **5**     |
-| **TOTAL**                            | **58**   | **31**    |
+| **TOTAL**                            | **59**   | **30**    |
 
 ### Critical Path for Launch
 
@@ -77,7 +77,7 @@ My Collection page is slow due to redundant/inefficient Convex queries. These ba
 - [ ] Create combined `getCollectionWithStats` query - Merge `getCollection` + `getCollectionStats` into single query returning both data and calculated stats
 - [ ] Create batch query for VirtualCardGrid - Merge 4 queries (collection, wishlist, newlyAdded, priorityCount) into `getSetViewData` single query
 - [ ] Optimize `getNewlyAddedCards` query - Add database-level filtering with composite index `by_profile_and_action_time` instead of collecting all logs and filtering in JS
-- [ ] Add composite index to activityLogs - Create index `by_profile_action_time` for (profileId, action, _creationTime) in schema
+- [x] Add composite index to activityLogs - Create index `by_profile_action_time` for (profileId, action, _creationTime) in schema
 - [ ] Optimize wishlist queries - Add index for profile+game queries if missing
 - [ ] Add pagination to activity feed queries - Use `.take()` with cursor for large activity histories instead of `.collect()`
 - [ ] Profile query batching - Consolidate multiple profile lookups into batch queries where used
@@ -198,6 +198,13 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-17: Add composite index to activityLogs
+
+- Added `by_profile_action_time` index to `activityLogs` table in `convex/schema.ts`
+- Index on (profileId, action) supports efficient queries filtered by profile and action type
+- Enables Convex to use `_creationTime` ordering when filtering by profile+action
+- Supports `getNewlyAddedCards` optimization (filtering `card_added` actions by profile)
 
 ### 2026-01-16: Write E2E tests for critical user flows
 
