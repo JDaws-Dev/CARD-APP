@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL fixes first, then HIGH priority
 
 ```
-Progress: ████████████░░░░░░░░░░░░░░░░  110/331 (33%)
-Remaining: 221 tasks (42 are LOW priority - do after launch)
+Progress: ████████████░░░░░░░░░░░░░░░░  110/315 (35%)
+Remaining: 205 tasks (42 are LOW priority - do after launch)
 ```
 
 ## Status Summary (Updated 2026-01-17 - Post Comprehensive Evaluation)
@@ -27,7 +27,7 @@ Remaining: 221 tasks (42 are LOW priority - do after launch)
 | **NEW - Kid-Friendly Set Display**        | 0        | **15**    |
 | **NEW - AI-Powered Features UI**          | 0        | **14**    |
 | **NEW - Landing Page AI Features**        | 0        | **13**    |
-| **NEW - Sibling Trade Tracking UI**       | 0        | **28**    |
+| **NEW - Trade Logging UI**                | 0        | **12**    |
 | **LOW - Mobile UX Evaluation**            | 0        | **20**    |
 | **LOW - Gamification Evaluation**         | 0        | **22**    |
 | HIGH PRIORITY - Landing Page              | 9        | 0         |
@@ -48,7 +48,7 @@ Remaining: 221 tasks (42 are LOW priority - do after launch)
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **221**   |
+| **TOTAL**                                 | **110**  | **205**   |
 
 ### Priority Order for Remaining Tasks
 
@@ -66,7 +66,7 @@ Remaining: 221 tasks (42 are LOW priority - do after launch)
 12. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section, update features
 13. **Landing Page AI Features** (13 tasks) - AI Magic section, pricing updates, trust badges
 14. **AI-Powered Features UI** (14 tasks) - Card scanner, chatbot, story modal, quiz components
-15. **Sibling Trade Tracking UI** (28 tasks) - Trade proposal, inbox, timeline display, parent dashboard
+15. **Trade Logging UI** (12 tasks) - Log trade modal, timeline display, entry points
 16. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
 17. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
 18. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
@@ -140,7 +140,7 @@ These specific issues were discovered during code review and need immediate atte
 - [x] Create `src/components/layout/AppFooter.tsx` - Footer component with Help, Privacy Policy, Terms of Service, Contact links
 - [x] Add AppFooter to `src/app/layout.tsx` - Include footer on all authenticated pages
 - [x] Create `/privacy` page stub - Placeholder privacy policy page
-- [ ] Create `/terms` page stub - Placeholder terms of service page
+- [x] Create `/terms` page stub - Placeholder terms of service page
 
 ### Image Error Handling (Prevent Broken Images)
 
@@ -223,7 +223,7 @@ Image components lack error handlers, causing silent failures when images don't 
 The My Collection page is slow to load. These UI-side optimizations will help.
 
 - [x] Add React.memo() to ActivityFeed component - Prevent unnecessary re-renders
-- [ ] Add useMemo to CollectionView set grouping logic (lines 115-151) - Cache expensive grouping computation
+- [x] Add useMemo to CollectionView set grouping logic (lines 115-151) - Cache expensive grouping computation
 - [x] Add loading="lazy" to CardGrid card images - Defer offscreen image loading
 - [x] Add loading="lazy" to CollectionView card images - Defer offscreen image loading
 - [x] Add loading="lazy" to VirtualCardGrid card images - Defer offscreen image loading
@@ -692,6 +692,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Added AppFooter to layout.tsx for authenticated pages - Created AuthAwareFooter component (src/components/layout/AuthAwareFooter.tsx) following the same pattern as AuthAwareHeader. Uses useConvexAuth hook to conditionally render AppFooter only for authenticated users. Updated root layout.tsx to include AuthAwareFooter after main content, wrapped in a flex container with min-h-screen to ensure footer stays at bottom. Added comprehensive test suite (7 tests) covering loading state, unauthenticated state, and authenticated state behavior. ESLint and Prettier clean.
 
 - **2026-01-17**: Created /privacy page stub - Added placeholder privacy policy page at src/app/privacy/page.tsx with kid-friendly, COPPA-focused content. Features: COPPA compliance section with emerald gradient highlighting family-focused design; Information We Collect section (account, profile, collection, usage data); How We Use Your Information section; "What We Don't Do" section in rose gradient (no selling data, no ads, no sharing, no sending children's info to AI); Data Retention & Deletion section; Contact section with email link. Uses Heroicons (ShieldCheckIcon, UserGroupIcon, LockClosedIcon, EyeSlashIcon, TrashIcon, EnvelopeIcon, ArrowLeftIcon). Full dark mode support and accessible focus states. Includes disclaimer noting this is a placeholder to be replaced with legal-reviewed policy. ESLint and Prettier clean. Commit: 24ee127
+
+- **2026-01-17**: Added useMemo to CollectionView set grouping logic - Wrapped the expensive set grouping computation in useMemo to cache results and prevent recalculating grouping, sorting, and map creation on every render. Now only recalculates when collection or cardData changes. Also fixed CollectionView test mock to wrap card data in { data: mockCards } to match API response structure. All 5 CollectionView tests pass. ESLint and Prettier clean. Commit: 47d112d
 
 ---
 
