@@ -418,4 +418,54 @@ export default defineSchema({
   })
     .index('by_profile', ['profileId'])
     .index('by_profile_and_time', ['profileId', 'timestamp']),
+
+  // ============================================================================
+  // PARENT NOTIFICATIONS
+  // ============================================================================
+
+  /**
+   * Notifications for parents about their children's activity.
+   * Used for in-app notification bell and activity summaries.
+   */
+  notifications: defineTable({
+    familyId: v.id('families'), // Which family this notification belongs to
+    profileId: v.optional(v.id('profiles')), // Optional: which child triggered this (for child-specific notifications)
+    type: v.union(
+      v.literal('achievement_earned'), // A child earned an achievement
+      v.literal('milestone_reached'), // A child reached a collection milestone
+      v.literal('streak_update'), // Streak started, maintained, or at risk
+      v.literal('collection_activity'), // Daily summary of card additions
+      v.literal('wishlist_update'), // New items added to wishlist
+      v.literal('system') // System notifications (updates, tips, etc.)
+    ),
+    title: v.string(), // Short notification title
+    message: v.string(), // Full notification message
+    metadata: v.optional(v.any()), // Additional data (achievement key, card count, etc.)
+    isRead: v.boolean(), // Whether the parent has seen this notification
+    readAt: v.optional(v.number()), // Unix timestamp when marked as read
+    createdAt: v.number(), // Unix timestamp when notification was created
+  })
+    .index('by_family', ['familyId'])
+    .index('by_family_and_read', ['familyId', 'isRead'])
+    .index('by_family_and_type', ['familyId', 'type'])
+    .index('by_profile', ['profileId'])
+    .index('by_created', ['createdAt']),
+
+  /**
+   * Parent notification preferences.
+   * Controls which notifications parents want to receive.
+   */
+  notificationPreferences: defineTable({
+    familyId: v.id('families'), // One preferences record per family
+    achievementNotifications: v.boolean(), // Notify when children earn achievements
+    milestoneNotifications: v.boolean(), // Notify when children reach milestones
+    streakNotifications: v.boolean(), // Notify about streak updates
+    dailySummary: v.boolean(), // Send daily activity summaries
+    weeklySummary: v.boolean(), // Send weekly collection reports
+    systemNotifications: v.boolean(), // Receive system updates and tips
+    quietHoursEnabled: v.optional(v.boolean()), // Enable quiet hours
+    quietHoursStart: v.optional(v.string()), // Start time (HH:MM format, e.g., "22:00")
+    quietHoursEnd: v.optional(v.string()), // End time (HH:MM format, e.g., "07:00")
+    updatedAt: v.number(), // Unix timestamp of last update
+  }).index('by_family', ['familyId']),
 });
