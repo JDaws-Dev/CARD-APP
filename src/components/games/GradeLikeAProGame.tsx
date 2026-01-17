@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { getAllConditionGrades, type ConditionInfo } from '@/lib/conditionGuide';
 import {
   SparklesIcon,
@@ -100,24 +101,21 @@ const MOCK_CHALLENGES: CardChallenge[] = [
     imageUrl: 'https://images.pokemontcg.io/swsh1/75.png',
     correctCondition: 'hp',
     hints: ['Are there any creases?', 'Check the corners closely'],
-    explanation:
-      'Heavy corner wear and visible creasing indicate this card is Heavily Played.',
+    explanation: 'Heavy corner wear and visible creasing indicate this card is Heavily Played.',
   },
   {
     id: '5',
     imageUrl: 'https://images.pokemontcg.io/swsh1/100.png',
     correctCondition: 'nm',
     hints: ['Fresh from the pack look?', 'Any damage at all?'],
-    explanation:
-      'Perfect corners, pristine edges, flawless surface - this card is Near Mint!',
+    explanation: 'Perfect corners, pristine edges, flawless surface - this card is Near Mint!',
   },
   {
     id: '6',
     imageUrl: 'https://images.pokemontcg.io/swsh1/136.png',
     correctCondition: 'lp',
     hints: ['Inspect the holo surface', 'Barely noticeable wear'],
-    explanation:
-      'Light surface scratches only visible under direct light - Lightly Played grade.',
+    explanation: 'Light surface scratches only visible under direct light - Lightly Played grade.',
   },
   {
     id: '7',
@@ -132,8 +130,7 @@ const MOCK_CHALLENGES: CardChallenge[] = [
     imageUrl: 'https://images.pokemontcg.io/swsh1/175.png',
     correctCondition: 'nm',
     hints: ['Pack fresh quality', 'Examine every detail'],
-    explanation:
-      'No flaws whatsoever - sharp corners, clean edges, perfect surface. Near Mint!',
+    explanation: 'No flaws whatsoever - sharp corners, clean edges, perfect surface. Near Mint!',
   },
 ];
 
@@ -196,12 +193,8 @@ function ConditionButton({
         <p className="font-semibold text-gray-900">{condition.shortName}</p>
         <p className="text-xs text-gray-500">{condition.name}</p>
       </div>
-      {isSelected && isCorrect === true && (
-        <CheckIcon className="h-6 w-6 text-emerald-500" />
-      )}
-      {isSelected && isCorrect === false && (
-        <XMarkIcon className="h-6 w-6 text-red-500" />
-      )}
+      {isSelected && isCorrect === true && <CheckIcon className="h-6 w-6 text-emerald-500" />}
+      {isSelected && isCorrect === false && <XMarkIcon className="h-6 w-6 text-red-500" />}
     </button>
   );
 }
@@ -243,9 +236,7 @@ function IntroScreen({ onStart }: IntroScreenProps) {
         </div>
         <div className="flex items-start gap-3 rounded-xl bg-emerald-50 p-3">
           <LightBulbIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-500" />
-          <p className="text-sm text-gray-700">
-            Use hints to help you learn what to look for
-          </p>
+          <p className="text-sm text-gray-700">Use hints to help you learn what to look for</p>
         </div>
       </div>
 
@@ -348,9 +339,7 @@ function GameScreen({
 
       {/* Condition Options */}
       <div className="space-y-2">
-        <p className="text-center font-medium text-gray-700">
-          What condition is this card?
-        </p>
+        <p className="text-center font-medium text-gray-700">What condition is this card?</p>
         <div className="grid grid-cols-2 gap-2">
           {gameConditions.map((condition) => (
             <ConditionButton
@@ -395,8 +384,7 @@ interface FeedbackScreenProps {
 }
 
 function FeedbackScreen({ gameState, conditions, onNextRound }: FeedbackScreenProps) {
-  const { currentChallenge, selectedAnswer, isCorrect, currentRound, totalRounds } =
-    gameState;
+  const { currentChallenge, selectedAnswer, isCorrect, currentRound, totalRounds } = gameState;
 
   if (!currentChallenge) return null;
 
@@ -428,9 +416,7 @@ function FeedbackScreen({ gameState, conditions, onNextRound }: FeedbackScreenPr
         <h3 className={cn('text-xl font-bold', isCorrect ? 'text-emerald-600' : 'text-red-600')}>
           {isCorrect ? 'Correct!' : 'Not quite!'}
         </h3>
-        {isCorrect && (
-          <p className="text-sm text-gray-600">+{XP_PER_CORRECT} XP earned!</p>
-        )}
+        {isCorrect && <p className="text-sm text-gray-600">+{XP_PER_CORRECT} XP earned!</p>}
       </div>
 
       {/* Correct Answer Display */}
@@ -546,7 +532,9 @@ function ResultsScreen({ gameState, onPlayAgain, onClose }: ResultsScreenProps) 
 
       {/* Score Display */}
       <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 p-6">
-        <div className="mb-4 text-5xl font-bold text-gray-900">{correctCount}/{totalRounds}</div>
+        <div className="mb-4 text-5xl font-bold text-gray-900">
+          {correctCount}/{totalRounds}
+        </div>
         <p className="text-gray-600">Correct Answers</p>
         <div className="mt-4 flex items-center justify-center gap-4">
           <div className="rounded-xl bg-white px-4 py-2 shadow-sm">
@@ -691,7 +679,8 @@ export function GradeLikeAProGame({ isOpen, onClose, onXPEarned }: GradeLikeAPro
 
     if (currentRound >= totalRounds) {
       // Calculate final XP with bonuses
-      const correctCount = roundResults.filter((r) => r.isCorrect).length + (gameState.isCorrect ? 1 : 0);
+      const correctCount =
+        roundResults.filter((r) => r.isCorrect).length + (gameState.isCorrect ? 1 : 0);
       const isPerfect = correctCount === totalRounds;
       const finalXP = xpEarned + (isPerfect ? XP_BONUS_PERFECT : 0);
 
@@ -784,12 +773,53 @@ export function GradeLikeAProGame({ isOpen, onClose, onXPEarned }: GradeLikeAPro
           )}
 
           {gameState.phase === 'results' && (
-            <ResultsScreen
-              gameState={gameState}
-              onPlayAgain={handlePlayAgain}
-              onClose={onClose}
-            />
+            <ResultsScreen gameState={gameState} onPlayAgain={handlePlayAgain} onClose={onClose} />
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// LOADING SKELETON - For use as Suspense fallback
+// ============================================================================
+
+/**
+ * Loading skeleton for GradeLikeAProGame modal.
+ * Used as a Suspense fallback when lazy loading the game component.
+ */
+export function GradeLikeAProGameSkeleton() {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Loading Grade Like a Pro Game"
+    >
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="p-6">
+          {/* Header skeleton */}
+          <div className="flex flex-col items-center space-y-4">
+            <Skeleton className="h-20 w-20 rounded-full" />
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+
+          {/* Instructions skeleton */}
+          <div className="mx-auto mt-6 max-w-sm space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-start gap-3 rounded-xl bg-gray-50 p-3">
+                <Skeleton className="mt-0.5 h-5 w-5 flex-shrink-0 rounded" />
+                <Skeleton className="h-4 flex-1" />
+              </div>
+            ))}
+          </div>
+
+          {/* Button skeleton */}
+          <div className="mt-6 flex justify-center">
+            <Skeleton className="h-12 w-36 rounded-xl" />
+          </div>
         </div>
       </div>
     </div>

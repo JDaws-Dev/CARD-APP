@@ -1,24 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import Link from 'next/link';
 import { LearnToCollect } from '@/components/tutorials/LearnToCollect';
 import {
-  GradeLikeAProGame,
   GradeLikeAProButton,
+  GradeLikeAProGameSkeleton,
 } from '@/components/games/GradeLikeAProGame';
-import {
-  RarityGuessingGame,
-  RarityGuessingButton,
-} from '@/components/games/RarityGuessingGame';
+
+// Lazy load GradeLikeAProGame - improves initial page load by deferring game bundle
+const GradeLikeAProGame = lazy(() =>
+  import('@/components/games/GradeLikeAProGame').then((mod) => ({
+    default: mod.GradeLikeAProGame,
+  }))
+);
+import { RarityGuessingGame, RarityGuessingButton } from '@/components/games/RarityGuessingGame';
 import {
   SetSymbolMatchingGame,
   SetSymbolMatchingButton,
 } from '@/components/games/SetSymbolMatchingGame';
-import {
-  PokemonTypeQuiz,
-  PokemonTypeQuizButton,
-} from '@/components/games/PokemonTypeQuiz';
+import { PokemonTypeQuiz, PokemonTypeQuizButton } from '@/components/games/PokemonTypeQuiz';
 import {
   PriceEstimationGame,
   PriceEstimationGameButton,
@@ -102,8 +103,12 @@ export default function LearnPage() {
         </div>
       </div>
 
-      {/* Grade Like a Pro Game Modal */}
-      <GradeLikeAProGame isOpen={isGradeGameOpen} onClose={() => setIsGradeGameOpen(false)} />
+      {/* Grade Like a Pro Game Modal - Lazy loaded with Suspense */}
+      {isGradeGameOpen && (
+        <Suspense fallback={<GradeLikeAProGameSkeleton />}>
+          <GradeLikeAProGame isOpen={isGradeGameOpen} onClose={() => setIsGradeGameOpen(false)} />
+        </Suspense>
+      )}
 
       {/* Educational Mini-Game - Rarity Guessing */}
       <div className="mb-8 rounded-2xl border border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 p-6 shadow-sm">
