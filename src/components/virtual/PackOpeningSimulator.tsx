@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import Image from 'next/image';
 import { useQuery } from 'convex/react';
+import { CardImage } from '@/components/ui/CardImage';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -93,7 +93,10 @@ function usePacksRemaining() {
     } else {
       const today = new Date().toDateString();
       setLastResetDate(today);
-      localStorage.setItem('packOpeningData', JSON.stringify({ packsUsed: 0, lastResetDate: today }));
+      localStorage.setItem(
+        'packOpeningData',
+        JSON.stringify({ packsUsed: 0, lastResetDate: today })
+      );
     }
   }, []);
 
@@ -101,7 +104,10 @@ function usePacksRemaining() {
     const newCount = packsUsed + 1;
     setPacksUsed(newCount);
     const today = new Date().toDateString();
-    localStorage.setItem('packOpeningData', JSON.stringify({ packsUsed: newCount, lastResetDate: today }));
+    localStorage.setItem(
+      'packOpeningData',
+      JSON.stringify({ packsUsed: newCount, lastResetDate: today })
+    );
   }, [packsUsed]);
 
   return {
@@ -212,14 +218,25 @@ function CardReveal({ card, index, onReveal, autoReveal, onCardRevealEffect }: C
 
   useEffect(() => {
     if (autoReveal && !card.revealed) {
-      const timer = setTimeout(() => {
-        setIsFlipping(true);
-        onCardRevealEffect?.(card.isRare);
-        setTimeout(onReveal, prefersReducedMotion ? 0 : 300);
-      }, index * (prefersReducedMotion ? 100 : 200));
+      const timer = setTimeout(
+        () => {
+          setIsFlipping(true);
+          onCardRevealEffect?.(card.isRare);
+          setTimeout(onReveal, prefersReducedMotion ? 0 : 300);
+        },
+        index * (prefersReducedMotion ? 100 : 200)
+      );
       return () => clearTimeout(timer);
     }
-  }, [autoReveal, card.revealed, index, onReveal, prefersReducedMotion, onCardRevealEffect, card.isRare]);
+  }, [
+    autoReveal,
+    card.revealed,
+    index,
+    onReveal,
+    prefersReducedMotion,
+    onCardRevealEffect,
+    card.isRare,
+  ]);
 
   const handleClick = () => {
     if (!card.revealed) {
@@ -250,7 +267,10 @@ function CardReveal({ card, index, onReveal, autoReveal, onCardRevealEffect }: C
         )}
         style={{
           transformStyle: 'preserve-3d',
-          transform: !prefersReducedMotion && (isFlipping || card.revealed) ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          transform:
+            !prefersReducedMotion && (isFlipping || card.revealed)
+              ? 'rotateY(180deg)'
+              : 'rotateY(0deg)',
         }}
       >
         {/* Card back */}
@@ -271,7 +291,7 @@ function CardReveal({ card, index, onReveal, autoReveal, onCardRevealEffect }: C
           className={cn(
             'absolute inset-0 overflow-hidden rounded-xl shadow-lg',
             !card.revealed && 'hidden',
-            card.isRare && 'ring-2 ring-amber-400 shadow-amber-400/50 shadow-xl'
+            card.isRare && 'shadow-xl shadow-amber-400/50 ring-2 ring-amber-400'
           )}
           style={{
             backfaceVisibility: 'hidden',
@@ -279,7 +299,7 @@ function CardReveal({ card, index, onReveal, autoReveal, onCardRevealEffect }: C
           }}
         >
           {card.imageSmall ? (
-            <Image
+            <CardImage
               src={card.imageSmall}
               alt={card.name}
               fill
@@ -494,7 +514,7 @@ export function PackOpeningSimulator({ isOpen, onClose }: PackOpeningSimulatorPr
       </div>
 
       {/* Content */}
-      <div className="flex h-full w-full flex-col items-center justify-center px-4 pt-16 pb-4">
+      <div className="flex h-full w-full flex-col items-center justify-center px-4 pb-4 pt-16">
         {/* Loading state */}
         {(profileLoading || packState === 'opening') && (
           <div className="flex flex-col items-center gap-4">
@@ -582,24 +602,27 @@ export function PackOpeningSimulator({ isOpen, onClose }: PackOpeningSimulatorPr
         )}
 
         {/* Empty collection message */}
-        {!profileLoading && packState === 'revealing' && randomCards && randomCards.length === 0 && (
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="rounded-full bg-white/10 p-6">
-              <GiftIcon className="h-12 w-12 text-white/60" />
+        {!profileLoading &&
+          packState === 'revealing' &&
+          randomCards &&
+          randomCards.length === 0 && (
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="rounded-full bg-white/10 p-6">
+                <GiftIcon className="h-12 w-12 text-white/60" />
+              </div>
+              <h3 className="text-xl font-semibold text-white">No cards in your collection yet!</h3>
+              <p className="max-w-sm text-white/60">
+                Add some cards to your collection first, then come back to open virtual packs from
+                your sets.
+              </p>
+              <button
+                onClick={handleClose}
+                className="mt-4 rounded-full bg-kid-primary px-6 py-2.5 font-semibold text-white transition-colors hover:bg-kid-primary/80"
+              >
+                Start Collecting
+              </button>
             </div>
-            <h3 className="text-xl font-semibold text-white">No cards in your collection yet!</h3>
-            <p className="max-w-sm text-white/60">
-              Add some cards to your collection first, then come back to open virtual packs from
-              your sets.
-            </p>
-            <button
-              onClick={handleClose}
-              className="mt-4 rounded-full bg-kid-primary px-6 py-2.5 font-semibold text-white transition-colors hover:bg-kid-primary/80"
-            >
-              Start Collecting
-            </button>
-          </div>
-        )}
+          )}
       </div>
 
       {/* CSS for shimmer animation */}
@@ -641,10 +664,7 @@ export function PackOpeningButton({ onClick, className }: PackOpeningButtonProps
     >
       {/* Shimmer effect */}
       {!prefersReducedMotion && (
-        <div
-          className="absolute inset-0 overflow-hidden rounded-2xl"
-          style={{ opacity: 0.3 }}
-        >
+        <div className="absolute inset-0 overflow-hidden rounded-2xl" style={{ opacity: 0.3 }}>
           <div
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent"
             style={{
