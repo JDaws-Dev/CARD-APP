@@ -96,11 +96,11 @@ These issues relate to inconsistent behavior between logged-in and logged-out st
 - [x] **CRITICAL: `/signup` should redirect to `/dashboard` if already authenticated** - Logged-in users can still access signup page
 - [x] Protect `/dashboard` route - Redirect to `/login` if not authenticated
 - [x] Protect `/collection` route - Redirect to `/login` if not authenticated
-- [ ] Protect `/my-wishlist` route - Redirect to `/login` if not authenticated
+- [x] Protect `/my-wishlist` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/badges` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/settings` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/parent-dashboard` route - Redirect to `/login` if not authenticated (also check parent role)
-- [ ] Protect `/streak` route - Redirect to `/login` if not authenticated
+- [x] Protect `/streak` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/learn` route - Redirect to `/login` if not authenticated
 
 ## Multi-TCG Pages Update
@@ -536,6 +536,7 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 ## Progress
 
+- **2026-01-17**: Completed Protect /my-wishlist route task - Added authentication protection to `/my-wishlist` page to redirect unauthenticated users to `/login`. Updated `src/app/my-wishlist/page.tsx` to use `useConvexAuth` hook for auth state checking, `useRouter` for navigation, and `useEffect` for redirect logic. Added loading spinner while auth state is being checked. Follows same pattern as other protected routes (`/dashboard`, `/collection`). Commit: 2601c71
 - **2026-01-17**: Completed CRITICAL auth redirect fixes for login/signup pages - Updated both `/login/page.tsx` and `/signup/page.tsx` to redirect authenticated users appropriately. Both pages now check `hasCompletedOnboarding()` from onboardingFlow lib: if user has completed onboarding, redirect to `/dashboard`; if not, redirect to `/onboarding`. This ensures existing users visiting auth pages go to dashboard while new users who just signed up still go through onboarding. Commit: 3a11eec
 - **2026-01-17**: Completed Create BackLink component - Created reusable BackLink component (src/components/ui/BackLink.tsx) for consistent back navigation across all pages. Features: ArrowLeftIcon from Heroicons, consistent text styling (text-sm, font-medium, text-gray-600), hover transition to kid-primary brand color, focus-visible ring styling for keyboard navigation, dark mode support (dark:text-slate-400), withMargin prop for optional mb-4 spacing, aria-label prop for custom accessibility labels, full TypeScript types with JSDoc documentation. Added 28 unit tests covering prop validation, styling, icon properties, usage patterns, and accessibility requirements. Uses cn() utility for class merging. Commit: 3205d6c
 - **2026-01-17**: Completed Create /signup page - Created dedicated signup page at src/app/signup/page.tsx with CardDex branding, kid-primary/kid-secondary gradients, and signup-focused copy. Updated AuthForm component to accept defaultMode prop for controlling initial mode. Redirects authenticated users to /onboarding. Commit: f9b4f63
@@ -708,6 +709,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Protected /dashboard route with auth redirect - Updated src/app/dashboard/page.tsx to redirect unauthenticated users to /login automatically. Uses useConvexAuth hook to check authentication state, redirects via useEffect when not authenticated. Also redirects users without a profile to /onboarding for initial setup. Shows loading spinner while checking auth status. Added comprehensive test suite (11 tests) covering authentication protection, profile loading states, and authenticated behavior. All dashboard tests pass, ESLint and Prettier clean. Commit: 2a2eae1
 
 - **2026-01-17**: Protected /collection route with auth redirect - Updated src/app/collection/page.tsx to redirect unauthenticated users to /login automatically. Uses useConvexAuth hook to check authentication state, redirects via useEffect when not authenticated. Shows loading spinner while checking auth status. Added comprehensive test suite (11 tests) covering authentication protection, loading states, empty collection state, and authenticated behavior. All collection page tests pass, ESLint and Prettier clean. Commit: 65916f2
+
+- **2026-01-17**: Protected /streak route with auth redirect - Updated src/app/streak/page.tsx to redirect unauthenticated users to /login automatically. Uses useConvexAuth hook to check authentication state, useRouter for navigation, and useEffect for redirect logic. Shows loading spinner with orange theme while checking auth status. Changed "No profile" state from sign-in prompt to "Profile Not Found" message directing to dashboard. Removed unused HomeIcon and ShieldCheckIcon imports. Added comprehensive test suite (13 tests) covering authentication protection, loading states, profile loading, authenticated behavior, and no-profile edge case. All streak page tests pass, ESLint and Prettier clean. Commit: 32515ea
 
 ---
 
