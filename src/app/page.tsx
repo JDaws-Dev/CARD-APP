@@ -29,6 +29,9 @@ import {
   CloudIcon,
   NoSymbolIcon,
   ShieldExclamationIcon,
+  CameraIcon,
+  ChatBubbleBottomCenterTextIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/solid';
 
 // Decorative floating card component (purely decorative, hidden from screen readers)
@@ -312,6 +315,71 @@ export default function Home() {
                 and holidays!
               </p>
               <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-kid-secondary/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Magic Section */}
+      <section className="bg-white px-3 py-12 sm:px-6 sm:py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-8 text-center sm:mb-12">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-100 to-purple-100 px-4 py-2">
+              <SparklesIcon className="h-5 w-5 text-violet-600" />
+              <span className="text-sm font-semibold text-violet-700">AI Magic</span>
+            </div>
+            <h2 className="mb-3 text-2xl font-bold text-gray-900 sm:mb-4 sm:text-3xl md:text-4xl">
+              Supercharge Your Collection with <span className="text-violet-600">AI</span>
+            </h2>
+            <p className="mx-auto max-w-2xl text-sm text-gray-600 sm:text-base">
+              Our kid-friendly AI makes collecting even more fun and magical!
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-3 md:gap-8">
+            {/* Snap to Add Feature */}
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
+              <div className="mb-3 inline-flex rounded-xl bg-violet-500/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
+                <CameraIcon className="h-6 w-6 text-violet-500 sm:h-8 sm:w-8" />
+              </div>
+              <h3 className="mb-2 text-lg font-bold text-gray-900 sm:mb-3 sm:text-xl">
+                Snap to Add
+              </h3>
+              <p className="text-sm text-gray-600 sm:text-base">
+                Point your camera at a card and we&apos;ll add it to your collection instantly! No more
+                searching through thousands of cards.
+              </p>
+              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-violet-500/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
+            </div>
+
+            {/* Ask Your Collection Feature */}
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-50 to-teal-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
+              <div className="mb-3 inline-flex rounded-xl bg-cyan-500/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
+                <ChatBubbleBottomCenterTextIcon className="h-6 w-6 text-cyan-500 sm:h-8 sm:w-8" />
+              </div>
+              <h3 className="mb-2 text-lg font-bold text-gray-900 sm:mb-3 sm:text-xl">
+                Ask Your Collection
+              </h3>
+              <p className="text-sm text-gray-600 sm:text-base">
+                Chat with your collection! Ask &quot;What fire-type cards do I have?&quot; or
+                &quot;Which set am I closest to completing?&quot;
+              </p>
+              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-cyan-500/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
+            </div>
+
+            {/* Card Stories Feature */}
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-50 to-orange-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
+              <div className="mb-3 inline-flex rounded-xl bg-rose-500/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
+                <BookOpenIcon className="h-6 w-6 text-rose-500 sm:h-8 sm:w-8" />
+              </div>
+              <h3 className="mb-2 text-lg font-bold text-gray-900 sm:mb-3 sm:text-xl">
+                Card Stories
+              </h3>
+              <p className="text-sm text-gray-600 sm:text-base">
+                Tap any card to hear a fun story about it! Learn cool facts about your favorite cards
+                in a magical, kid-friendly way.
+              </p>
+              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-rose-500/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
             </div>
           </div>
         </div>
