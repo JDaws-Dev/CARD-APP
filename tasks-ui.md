@@ -93,7 +93,7 @@ These specific issues were discovered during code review and need immediate atte
 
 ### Parent Dashboard Fixes
 
-- [ ] Update `/parent-dashboard/page.tsx` line 75 - Change "Manage your family's Pokemon collections" to "Manage your family's trading card collections"
+- [x] Update `/parent-dashboard/page.tsx` line 75 - Change "Manage your family's Pokemon collections" to "Manage your family's trading card collections"
 - [ ] Fix "Settings" button in parent dashboard - Currently non-functional (lines 80-83), add onClick to navigate to /settings
 - [ ] Fix "Add Profile" button in parent dashboard - Currently non-functional (lines 84-87), implement add profile modal or navigate to onboarding
 
@@ -518,6 +518,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 - **2026-01-17**: Updated signup page tagline - Changed "Start tracking your trading card collection" to "Start your collecting adventure!" in src/app/signup/page.tsx for more exciting, kid-friendly copy. Commit: a4d921c
 
+- **2026-01-17**: Updated parent dashboard text for multi-TCG support - Changed "Manage your family's Pokemon collections" to "Manage your family's trading card collections" in src/app/parent-dashboard/page.tsx line 75 to reflect that the app supports multiple trading card games. Commit: a506f8d
+
 ---
 
 ## NEW - SEO & Marketing Tasks (January 17, 2026 Evaluation)
@@ -625,3 +627,101 @@ These tasks ensure the UI only shows sets that kids can actually buy and collect
 - [ ] Update POKEMON_SERIES constant - Add 'Mega Evolution' era, keep 'Scarlet & Violet'
 - [ ] Filter out Sword & Shield sets by default - Too old for retail
 - [ ] Add "Mega Evolution Era" badge to newest sets - Highlight what's hot
+
+---
+
+## NEW - Mobile UX Evaluation (January 17, 2026)
+
+Comprehensive mobile-first evaluation to ensure the app works well on phones and tablets where kids primarily use it.
+
+### Touch Target Audit
+- [ ] Audit all buttons for minimum 44x44px touch targets - iOS Human Interface Guidelines requirement
+- [ ] Check card grid tap targets on small screens (iPhone SE, small Androids) - Cards may be too small to tap accurately
+- [ ] Test quantity +/- buttons on mobile - May be too close together
+- [ ] Test wishlist star button size - Small icons hard to tap
+- [ ] Test back/navigation buttons - Ensure thumb-reachable on large phones
+
+### Gesture Support
+- [ ] Evaluate swipe gestures for card browsing - Kids expect swipe-to-navigate
+- [ ] Add pull-to-refresh on collection/wishlist pages - Standard mobile pattern
+- [ ] Test pinch-to-zoom on card images - Kids want to see card details
+- [ ] Evaluate swipe-to-delete/remove patterns - Easier than tap-hold-confirm
+
+### Mobile Layout Issues
+- [ ] Test all pages in portrait AND landscape orientation - Some pages may break
+- [ ] Check for horizontal scroll issues on set grids - Content shouldn't overflow
+- [ ] Test modal/popup sizing on small screens - May cover entire screen poorly
+- [ ] Evaluate bottom navigation vs hamburger menu - Bottom nav better for kids
+- [ ] Test keyboard behavior on search/input fields - Ensure content doesn't get hidden
+
+### Performance on Mobile
+- [ ] Test load times on 4G/LTE connection - Target <3 seconds
+- [ ] Test on older devices (iPhone 8, budget Androids) - Kids often have hand-me-down phones
+- [ ] Evaluate memory usage on card-heavy pages - May crash on low-RAM devices
+- [ ] Test image loading on slow connections - Need progressive loading or placeholders
+
+### Mobile-Specific Features
+- [ ] Evaluate "Add to Home Screen" prompt - PWA installation flow
+- [ ] Test offline mode on mobile - Collection should be viewable without internet
+- [ ] Check notification permissions flow - Don't ask immediately on first load
+- [ ] Test share functionality - Native share sheet vs custom modal
+
+---
+
+## NEW - Gamification Evaluation (January 17, 2026)
+
+Critical evaluation of ALL gamification features to ensure they make sense for REAL collectors, not just engagement metrics.
+
+### Pack Opening Simulator - NEEDS REVIEW
+- [ ] **EVALUATE: Remove or repurpose Pack Opening Simulator** - Why would a real collector want to open fake digital packs? This doesn't help track a real collection.
+- [ ] If keeping: Rename to "Pack Probability Calculator" - Show odds of pulling cards you need
+- [ ] If keeping: Connect to wishlist - "Here's what you might get if you buy X pack"
+- [ ] If keeping: Add educational angle - Teach kids about probability/statistics
+- [ ] Alternative: Convert to "What's in this Set?" feature - Preview set contents before buying
+- [ ] **DECISION NEEDED**: Does this feature add value or is it just empty gamification?
+
+### Achievement System - Evaluate Value
+- [ ] Review all 37 badges - Do they reward COLLECTING or just app engagement?
+- [ ] Identify badges that encourage real collecting behavior (good):
+  - Set completion badges ✅ (rewards actual collecting)
+  - Type specialist badges ✅ (rewards themed collecting)
+  - First card badges ✅ (celebrates real milestones)
+- [ ] Identify badges that are just engagement hacks (questionable):
+  - Streak badges ⚠️ (rewards daily login, not collecting)
+  - "Add X cards in a session" ⚠️ (rewards data entry speed)
+- [ ] Consider removing pure engagement badges - Focus on collection achievements
+
+### Streak System - Evaluate Necessity
+- [ ] **QUESTION**: Should streaks reset if kid doesn't ADD cards, or just if they don't OPEN the app?
+- [ ] Current: Streak resets after 48 hours of no activity - Too punishing for casual collectors
+- [ ] Consider: Only count days when cards are ADDED - Rewards actual collecting
+- [ ] Consider: Remove streaks entirely - They may cause unhealthy app checking behavior
+- [ ] If keeping: Add "grace days" for vacations/breaks - Already implemented, verify it works
+- [ ] If keeping: Max streak reward at 30 days - Don't incentivize infinite streaking
+
+### XP/Level System - Evaluate Purpose
+- [ ] What does leveling up DO for the user? - If nothing, remove it
+- [ ] XP for adding cards makes sense - Rewards collecting
+- [ ] XP for daily login is engagement hacking - Remove or reduce
+- [ ] Consider: Tie levels to unlocking avatar items - Tangible reward
+- [ ] Consider: Remove levels if they don't unlock anything meaningful
+
+### Celebration Animations - Evaluate Kid Experience
+- [ ] Are celebrations too frequent? - May become annoying/dismissable
+- [ ] Are celebrations too long? - Kids may want to get back to browsing
+- [ ] Test with real kids (or parent feedback) - Do they like or skip celebrations?
+- [ ] Consider: Add "Skip" button to all celebrations
+- [ ] Consider: Reduce celebration frequency in Settings (Low-Stimulation Mode)
+
+### Virtual Features - Evaluate Relevance
+- [ ] **Digital Binder** - Good: Visualizes collection. Keep.
+- [ ] **Trophy Room** - Good: Shows achievements. Keep.
+- [ ] **Adventure Map** - Questionable: Does unlocking regions help track cards? Evaluate.
+- [ ] **Collector's Journey Story** - Questionable: Is narrative content relevant to collecting? Evaluate.
+- [ ] **Pack Opening Simulator** - Problematic: See above. Likely remove.
+
+### Gamification Philosophy Check
+- [ ] Create "Gamification Audit" document - List every gamified element
+- [ ] For each element, answer: "Does this help kids COLLECT or just use the app?"
+- [ ] Remove elements that don't serve the core mission
+- [ ] Ensure gamification enhances, not replaces, the collecting experience
