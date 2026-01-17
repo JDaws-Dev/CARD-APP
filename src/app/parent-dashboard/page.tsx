@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery } from 'convex/react';
+import { useState, useEffect } from 'react';
+import { useQuery, useConvexAuth } from 'convex/react';
+import { useRouter } from 'next/navigation';
 import { api } from '../../../convex/_generated/api';
 import Link from 'next/link';
 import { ShieldCheckIcon, ArrowLeftIcon, Cog6ToothIcon, PlusIcon } from '@heroicons/react/24/solid';
@@ -10,8 +11,30 @@ import { AddProfileModal } from '@/components/dashboard/AddProfileModal';
 
 export default function ParentDashboardPage() {
   const [isAddProfileModalOpen, setIsAddProfileModalOpen] = useState(false);
-  // Use authenticated parent access check
-  const parentAccess = useQuery(api.profiles.hasParentAccess);
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const router = useRouter();
+
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // Use authenticated parent access check (only runs when authenticated)
+  const parentAccess = useQuery(api.profiles.hasParentAccess, isAuthenticated ? {} : 'skip');
+
+  // Show loading while checking auth or if redirecting
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Loading state - still fetching access info
   if (parentAccess === undefined) {
@@ -31,7 +54,7 @@ export default function ParentDashboardPage() {
     );
   }
 
-  // Access denied - show appropriate message
+  // Access denied - not a parent account (user is authenticated but lacks parent role)
   if (!parentAccess.hasAccess) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50 px-4 py-8">
@@ -43,15 +66,6 @@ export default function ParentDashboardPage() {
             <h1 className="mb-2 text-2xl font-bold text-gray-800">Access Denied</h1>
             <p className="text-gray-600">{parentAccess.message}</p>
           </div>
-
-          {parentAccess.reason === 'NOT_AUTHENTICATED' && (
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-kid-primary to-purple-500 px-6 py-3 text-sm font-medium text-white shadow-md transition hover:shadow-lg"
-            >
-              Sign In
-            </Link>
-          )}
 
           {parentAccess.reason === 'NO_FAMILY' && (
             <Link
