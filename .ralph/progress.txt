@@ -104,3 +104,9 @@
 **Files:** src/app/page.tsx
 **Commit:** ad7d786
 ---
+## CD-3m6 - AI-008: Build camera capture component (CardScanner.tsx)
+**Status:** Completed
+**Changes:** Created CardScanner.tsx component with camera preview, photo capture, image preview, and AI card scanning integration
+**Files:** src/components/ai/CardScanner.tsx (new)
+**Commit:** ac24ea1
+---
