@@ -181,11 +181,8 @@ describe('/api/cards', () => {
         const validGames = [
           'pokemon',
           'yugioh',
-          'mtg',
           'onepiece',
           'lorcana',
-          'digimon',
-          'dragonball',
         ];
 
         for (const game of validGames) {
@@ -408,11 +405,8 @@ describe('/api/cards', () => {
         expect(data.availableGames).toEqual([
           'pokemon',
           'yugioh',
-          'mtg',
           'onepiece',
           'lorcana',
-          'digimon',
-          'dragonball',
         ]);
       });
     });
@@ -444,11 +438,8 @@ describe('/api/cards', () => {
         const validGames = [
           'pokemon',
           'yugioh',
-          'mtg',
           'onepiece',
           'lorcana',
-          'digimon',
-          'dragonball',
         ];
 
         for (const game of validGames) {
@@ -687,11 +678,8 @@ describe('/api/cards', () => {
         expect(data.availableGames).toEqual([
           'pokemon',
           'yugioh',
-          'mtg',
           'onepiece',
           'lorcana',
-          'digimon',
-          'dragonball',
         ]);
       });
     });

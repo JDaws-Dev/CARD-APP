@@ -80,21 +80,6 @@ const mockYugiohCard = {
   priceMarket: 25.0,
 };
 
-const mockMtgCard = {
-  cardId: 'dmu-123',
-  gameSlug: 'mtg',
-  setId: 'dmu',
-  name: 'Lightning Bolt',
-  number: '123',
-  supertype: 'Instant',
-  subtypes: [],
-  types: ['R'],
-  rarity: 'Common',
-  imageSmall: 'https://cards.scryfall.io/small/front/a/b/abc.jpg',
-  imageLarge: 'https://cards.scryfall.io/large/front/a/b/abc.jpg',
-  tcgPlayerUrl: undefined,
-  priceMarket: undefined,
-};
 
 const mockLorcanaCard = {
   cardId: 'tfc-42',
@@ -128,37 +113,6 @@ const mockOnePieceCard = {
   priceMarket: undefined,
 };
 
-const mockDigimonCard = {
-  cardId: 'digimon-BT1-001',
-  gameSlug: 'digimon',
-  setId: 'BT1',
-  name: 'Agumon',
-  number: 'BT1-001',
-  supertype: 'Digimon',
-  subtypes: ['Rookie'],
-  types: ['Red'],
-  rarity: 'Common',
-  imageSmall: 'https://digimoncard.io/images/cards/BT1-001.png',
-  imageLarge: 'https://digimoncard.io/images/cards/BT1-001.png',
-  tcgPlayerUrl: undefined,
-  priceMarket: undefined,
-};
-
-const mockDragonBallCard = {
-  cardId: 'dragonball-FB01-001',
-  gameSlug: 'dragonball',
-  setId: 'FB01',
-  name: 'Son Goku',
-  number: 'FB01-001',
-  supertype: 'Battle',
-  subtypes: ['Saiyan'],
-  types: ['Red'],
-  rarity: 'Rare',
-  imageSmall: 'https://dbfw.com/images/FB01-001.png',
-  imageLarge: 'https://dbfw.com/images/FB01-001_large.png',
-  tcgPlayerUrl: undefined,
-  priceMarket: undefined,
-};
 
 function createRequest(url: string): NextRequest {
   return new NextRequest(new URL(url, 'http://localhost'));
@@ -308,11 +262,8 @@ describe('GET /api/filter', () => {
       const validGames = [
         'pokemon',
         'yugioh',
-        'mtg',
         'onepiece',
         'lorcana',
-        'digimon',
-        'dragonball',
       ];
 
       for (const game of validGames) {
@@ -335,7 +286,7 @@ describe('GET /api/filter', () => {
       expect(data.error).toBe('Invalid game parameter');
       expect(data.validOptions).toContain('pokemon');
       expect(data.validOptions).toContain('yugioh');
-      expect(data.validOptions).toContain('mtg');
+      expect(data.validOptions).toContain('onepiece');
       expect(data.validOptions).toContain('lorcana');
       expect(data.received).toBe('invalidgame');
       expect(mockQuery).not.toHaveBeenCalled();
@@ -637,9 +588,14 @@ describe('GET /api/filter', () => {
     });
 
     it('handles cards without tcgplayer data', async () => {
-      mockQuery.mockResolvedValue(createFilterResult([mockMtgCard]));
+      const cardWithoutTcgplayer = {
+        ...mockLorcanaCard,
+        tcgPlayerUrl: undefined,
+        priceMarket: undefined,
+      };
+      mockQuery.mockResolvedValue(createFilterResult([cardWithoutTcgplayer]));
 
-      const request = createRequest('/api/filter?type=R&game=mtg');
+      const request = createRequest('/api/filter?type=Amber&game=lorcana');
       const response = await GET(request);
       const data = await response.json();
 
@@ -708,11 +664,8 @@ describe('GET /api/filter', () => {
       expect(data.availableGames).toEqual([
         'pokemon',
         'yugioh',
-        'mtg',
         'onepiece',
         'lorcana',
-        'digimon',
-        'dragonball',
       ]);
     });
 
@@ -840,17 +793,6 @@ describe('GET /api/filter', () => {
       expect(data.data[0].gameSlug).toBe('yugioh');
     });
 
-    it('filters mtg cards correctly', async () => {
-      mockQuery.mockResolvedValue(createFilterResult([mockMtgCard]));
-
-      const request = createRequest('/api/filter?setId=dmu&game=mtg');
-      const response = await GET(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.game).toBe('mtg');
-    });
-
     it('filters lorcana cards correctly', async () => {
       mockQuery.mockResolvedValue(createFilterResult([mockLorcanaCard]));
 
@@ -873,27 +815,6 @@ describe('GET /api/filter', () => {
       expect(data.game).toBe('onepiece');
     });
 
-    it('filters digimon cards correctly', async () => {
-      mockQuery.mockResolvedValue(createFilterResult([mockDigimonCard]));
-
-      const request = createRequest('/api/filter?setId=BT1&game=digimon');
-      const response = await GET(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.game).toBe('digimon');
-    });
-
-    it('filters dragonball cards correctly', async () => {
-      mockQuery.mockResolvedValue(createFilterResult([mockDragonBallCard]));
-
-      const request = createRequest('/api/filter?type=Red&game=dragonball');
-      const response = await GET(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.game).toBe('dragonball');
-    });
   });
 
   describe('pagination', () => {

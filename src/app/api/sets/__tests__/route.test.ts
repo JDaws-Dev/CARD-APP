@@ -261,15 +261,8 @@ describe('GET /api/sets', () => {
       const response = await GET(request);
       const data = await response.json();
 
-      expect(data.availableGames).toEqual([
-        'pokemon',
-        'yugioh',
-        'mtg',
-        'onepiece',
-        'lorcana',
-        'digimon',
-        'dragonball',
-      ]);
+      // Only 4 games are supported
+      expect(data.availableGames).toEqual(['pokemon', 'yugioh', 'onepiece', 'lorcana']);
     });
 
     it('sorts availableSeries alphabetically', async () => {
@@ -290,7 +283,7 @@ describe('GET /api/sets', () => {
     it('returns empty data array when no sets exist for game', async () => {
       mockQuery.mockResolvedValue([]);
 
-      const request = createRequest('/api/sets?game=dragonball');
+      const request = createRequest('/api/sets?game=onepiece');
       const response = await GET(request);
       const data = await response.json();
 

@@ -64,18 +64,18 @@ const mockYugiohCard = {
   priceMarket: 25.0,
 };
 
-const mockMtgCard = {
-  cardId: 'dmu-123',
-  gameSlug: 'mtg',
-  setId: 'dmu',
-  name: 'Lightning Bolt',
-  number: '123',
-  supertype: 'Instant',
-  subtypes: [],
-  types: ['Instant'],
-  rarity: 'Common',
-  imageSmall: 'https://cards.scryfall.io/small/front/a/b/abc.jpg',
-  imageLarge: 'https://cards.scryfall.io/large/front/a/b/abc.jpg',
+const mockOnePieceCard = {
+  cardId: 'op-001',
+  gameSlug: 'onepiece',
+  setId: 'op1',
+  name: 'Monkey D. Luffy',
+  number: '001',
+  supertype: 'Character',
+  subtypes: ['Straw Hat Crew'],
+  types: ['Red'],
+  rarity: 'Leader',
+  imageSmall: 'https://onepiece-cardgame.com/images/op1-001.png',
+  imageLarge: 'https://onepiece-cardgame.com/images/op1-001_large.png',
   tcgPlayerUrl: undefined,
   priceMarket: undefined,
 };
@@ -253,16 +253,17 @@ describe('GET /api/search', () => {
       });
     });
 
-    it('returns mtg cards when game=mtg', async () => {
-      mockQuery.mockResolvedValue([mockMtgCard]);
+    it('returns onepiece cards when game=onepiece', async () => {
+      mockQuery.mockResolvedValue([mockOnePieceCard]);
 
-      const request = createRequest('/api/search?q=Lightning&game=mtg');
+      const request = createRequest('/api/search?q=Luffy&game=onepiece');
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.game).toBe('mtg');
+      expect(data.game).toBe('onepiece');
       expect(data.data).toHaveLength(1);
+      expect(data.data[0].name).toBe('Monkey D. Luffy');
     });
 
     it('returns lorcana cards when game=lorcana', async () => {
@@ -282,11 +283,8 @@ describe('GET /api/search', () => {
       const validGames = [
         'pokemon',
         'yugioh',
-        'mtg',
         'onepiece',
         'lorcana',
-        'digimon',
-        'dragonball',
       ];
 
       for (const game of validGames) {
@@ -309,7 +307,7 @@ describe('GET /api/search', () => {
       expect(data.error).toBe('Invalid game parameter');
       expect(data.validOptions).toContain('pokemon');
       expect(data.validOptions).toContain('yugioh');
-      expect(data.validOptions).toContain('mtg');
+      expect(data.validOptions).toContain('onepiece');
       expect(data.validOptions).toContain('lorcana');
       expect(data.received).toBe('invalidgame');
       expect(mockQuery).not.toHaveBeenCalled();
@@ -441,9 +439,14 @@ describe('GET /api/search', () => {
     });
 
     it('handles cards without tcgplayer data', async () => {
-      mockQuery.mockResolvedValue([mockMtgCard]);
+      const cardWithoutTcgplayer = {
+        ...mockLorcanaCard,
+        tcgPlayerUrl: undefined,
+        priceMarket: undefined,
+      };
+      mockQuery.mockResolvedValue([cardWithoutTcgplayer]);
 
-      const request = createRequest('/api/search?q=Lightning&game=mtg');
+      const request = createRequest('/api/search?q=Mickey&game=lorcana');
       const response = await GET(request);
       const data = await response.json();
 
@@ -521,11 +524,8 @@ describe('GET /api/search', () => {
       expect(data.availableGames).toEqual([
         'pokemon',
         'yugioh',
-        'mtg',
         'onepiece',
         'lorcana',
-        'digimon',
-        'dragonball',
       ]);
     });
 
@@ -619,58 +619,16 @@ describe('GET /api/search', () => {
       expect(data.data[0].gameSlug).toBe('yugioh');
     });
 
-    it('onepiece search works correctly', async () => {
-      const mockOnePieceCard = {
-        ...mockPokemonCard1,
-        cardId: 'op-001',
-        gameSlug: 'onepiece',
-        setId: 'op1',
-        name: 'Monkey D. Luffy',
-      };
-      mockQuery.mockResolvedValue([mockOnePieceCard]);
+    it('lorcana search works correctly', async () => {
+      mockQuery.mockResolvedValue([mockLorcanaCard]);
 
-      const request = createRequest('/api/search?q=Luffy&game=onepiece');
+      const request = createRequest('/api/search?q=Mickey&game=lorcana');
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.game).toBe('onepiece');
-    });
-
-    it('digimon search works correctly', async () => {
-      const mockDigimonCard = {
-        ...mockPokemonCard1,
-        cardId: 'bt1-001',
-        gameSlug: 'digimon',
-        setId: 'bt1',
-        name: 'Agumon',
-      };
-      mockQuery.mockResolvedValue([mockDigimonCard]);
-
-      const request = createRequest('/api/search?q=Agumon&game=digimon');
-      const response = await GET(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.game).toBe('digimon');
-    });
-
-    it('dragonball search works correctly', async () => {
-      const mockDragonBallCard = {
-        ...mockPokemonCard1,
-        cardId: 'fb01-001',
-        gameSlug: 'dragonball',
-        setId: 'fb01',
-        name: 'Goku',
-      };
-      mockQuery.mockResolvedValue([mockDragonBallCard]);
-
-      const request = createRequest('/api/search?q=Goku&game=dragonball');
-      const response = await GET(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.game).toBe('dragonball');
+      expect(data.game).toBe('lorcana');
+      expect(data.data[0].name).toBe('Mickey Mouse');
     });
   });
 });
