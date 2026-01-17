@@ -66,6 +66,9 @@ export default defineSchema({
     subscriptionTier: v.union(v.literal('free'), v.literal('family')),
     subscriptionExpiresAt: v.optional(v.number()), // Unix timestamp
     parentPinHash: v.optional(v.string()),
+    // Trade settings (TRADE-003)
+    tradeApprovalRequired: v.optional(v.boolean()), // Require parent approval for trades
+    tradeNotificationsEnabled: v.optional(v.boolean()), // Notify parent of trades
   }).index('by_email', ['email']),
 
   /**
@@ -190,7 +193,8 @@ export default defineSchema({
     action: v.union(
       v.literal('card_added'),
       v.literal('card_removed'),
-      v.literal('achievement_earned')
+      v.literal('achievement_earned'),
+      v.literal('trade_completed') // TRADE-002: New action type for trade events
     ),
     metadata: v.optional(v.any()), // Additional data about the action
     timestamp: v.optional(v.number()), // Unix timestamp for database-level time filtering
@@ -198,6 +202,78 @@ export default defineSchema({
     .index('by_profile', ['profileId'])
     .index('by_profile_and_action', ['profileId', 'action'])
     .index('by_profile_action_time', ['profileId', 'action', 'timestamp']),
+
+  // ============================================================================
+  // SIBLING TRADE TRACKING (TRADE-001)
+  // ============================================================================
+
+  /**
+   * Trade proposals between siblings within a family.
+   * Tracks the full lifecycle from proposal to completion/cancellation.
+   */
+  trades: defineTable({
+    familyId: v.id('families'), // Family context for parent visibility
+    initiatorProfileId: v.id('profiles'), // Who proposed the trade
+    recipientProfileId: v.id('profiles'), // Who receives the proposal
+    status: v.union(
+      v.literal('proposed'),
+      v.literal('accepted'),
+      v.literal('completed'),
+      v.literal('declined'),
+      v.literal('cancelled'),
+      v.literal('expired')
+    ),
+    offeredCards: v.array(
+      v.object({
+        // Cards initiator is giving
+        cardId: v.string(),
+        quantity: v.number(),
+        variant: v.optional(
+          v.union(
+            v.literal('normal'),
+            v.literal('holofoil'),
+            v.literal('reverseHolofoil'),
+            v.literal('1stEditionHolofoil'),
+            v.literal('1stEditionNormal')
+          )
+        ),
+        cardName: v.optional(v.string()), // Denormalized for display
+        setName: v.optional(v.string()),
+      })
+    ),
+    requestedCards: v.array(
+      v.object({
+        // Cards initiator wants
+        cardId: v.string(),
+        quantity: v.number(),
+        variant: v.optional(
+          v.union(
+            v.literal('normal'),
+            v.literal('holofoil'),
+            v.literal('reverseHolofoil'),
+            v.literal('1stEditionHolofoil'),
+            v.literal('1stEditionNormal')
+          )
+        ),
+        cardName: v.optional(v.string()), // Denormalized for display
+        setName: v.optional(v.string()),
+      })
+    ),
+    message: v.optional(v.string()), // Optional trade message ("Please? 🙏")
+    requiresParentApproval: v.boolean(), // Family setting for trade oversight
+    parentApprovedAt: v.optional(v.number()),
+    parentApprovedBy: v.optional(v.id('profiles')),
+    createdAt: v.number(),
+    respondedAt: v.optional(v.number()), // When accepted/declined
+    completedAt: v.optional(v.number()), // When cards transferred
+    expiresAt: v.number(), // Auto-expire after 7 days
+  })
+    .index('by_family', ['familyId'])
+    .index('by_initiator', ['initiatorProfileId'])
+    .index('by_recipient', ['recipientProfileId'])
+    .index('by_status', ['status'])
+    .index('by_family_and_status', ['familyId', 'status'])
+    .index('by_recipient_and_status', ['recipientProfileId', 'status']),
 
   // ============================================================================
   // CACHED CARD DATA (for offline support and faster queries)
