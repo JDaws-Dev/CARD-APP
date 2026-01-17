@@ -17,9 +17,9 @@ export default function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-kid-primary/10 to-kid-secondary/10">
         <div className="text-center">
-          <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <div className="animate-spin h-10 w-10 border-4 border-kid-primary border-t-transparent rounded-full mx-auto mb-4" />
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -31,10 +31,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-kid-primary/10 to-kid-secondary/10 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">CardDex</h1>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-kid-primary to-kid-secondary bg-clip-text text-transparent mb-2">CardDex</h1>
           <p className="text-gray-600">Track your trading card collection</p>
         </div>
         <AuthForm />
