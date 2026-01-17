@@ -110,3 +110,9 @@
 **Files:** src/components/ai/CardScanner.tsx (new)
 **Commit:** ac24ea1
 ---
+## CD-7dn - AI-011: Snap to Add UI flow with confirmation
+**Status:** Completed
+**Changes:** Created SnapToAddFlow component for confirming AI card identification before adding to collection. Includes AI result display, variant selection, manual search fallback, success feedback, and error handling.
+**Files:** src/components/ai/SnapToAddFlow.tsx (605 lines)
+**Commit:** 1d8e449
+---
