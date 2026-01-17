@@ -1,6 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useConvexAuth } from 'convex/react';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { StreakCalendar, StreakCalendarSkeleton } from '@/components/gamification/StreakCalendar';
 import { StreakCounter } from '@/components/gamification/StreakCounter';
@@ -14,10 +17,7 @@ import {
   WeekendPauseStatus,
   WeekendPauseStatusSkeleton,
 } from '@/components/gamification/GraceDayStatus';
-import {
-  StreakRepairStatus,
-  StreakRepairSkeleton,
-} from '@/components/gamification/StreakRepair';
+import { StreakRepairStatus, StreakRepairSkeleton } from '@/components/gamification/StreakRepair';
 import {
   DailyStampCollection,
   DailyStampCollectionSkeleton,
@@ -26,23 +26,36 @@ import {
   WeeklyChallenges,
   WeeklyChallengesSkeleton,
 } from '@/components/gamification/WeeklyChallenges';
-import {
-  ComebackStatus,
-  ComebackStatusSkeleton,
-} from '@/components/gamification/ComebackRewards';
-import { FireIcon, SparklesIcon, HomeIcon } from '@heroicons/react/24/solid';
-import {
-  ArrowLeftIcon,
-  CalendarDaysIcon,
-  BoltIcon,
-  ShieldCheckIcon,
-} from '@heroicons/react/24/outline';
+import { ComebackStatus, ComebackStatusSkeleton } from '@/components/gamification/ComebackRewards';
+import { FireIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { ArrowLeftIcon, CalendarDaysIcon, BoltIcon } from '@heroicons/react/24/outline';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function StreakPage() {
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const router = useRouter();
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
 
-  // Loading state
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // Show loading while checking auth or if redirecting
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-orange-50 via-amber-50 to-yellow-50">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-orange-400 border-t-transparent" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state for profile
   if (profileLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-yellow-50 px-4 py-8">
@@ -84,7 +97,7 @@ export default function StreakPage() {
     );
   }
 
-  // No profile - prompt to sign in
+  // No profile available (edge case - user is authenticated but profile not found)
   if (!profileId) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-yellow-50 px-4 py-8">
@@ -93,25 +106,16 @@ export default function StreakPage() {
             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-500">
               <FireIcon className="h-10 w-10 text-white" />
             </div>
-            <h1 className="mb-2 text-2xl font-bold text-gray-800">Track Your Streak!</h1>
+            <h1 className="mb-2 text-2xl font-bold text-gray-800">Profile Not Found</h1>
             <p className="mb-6 text-gray-500">
-              Sign in to view your activity calendar and keep your streak going.
+              Please complete your profile setup to view your activity calendar.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-200"
-              >
-                <HomeIcon className="h-5 w-5" />
-                Go Home
-              </Link>
-            </div>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg"
+            >
+              Go to Dashboard
+            </Link>
           </div>
         </div>
       </main>
