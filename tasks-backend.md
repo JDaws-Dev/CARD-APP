@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: █████████████████████░░░░░░░  63/89 (71%)
-Remaining: 26 tasks
+Progress: █████████████████████░░░░░░░  65/89 (73%)
+Remaining: 24 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -14,7 +14,7 @@ Remaining: 26 tasks
 | Section                             | Complete | Remaining |
 | ----------------------------------- | -------- | --------- |
 | **CRITICAL - Multi-TCG API**        | 0        | **5**     |
-| **CRITICAL - Auth Fixes**           | 0        | **4**     |
+| **CRITICAL - Auth Fixes**           | 2        | **2**     |
 | **HIGH - Performance Optimization** | 5        | **2**     |
 | HIGH PRIORITY - Auth & Pricing      | 9        | **1**     |
 | Card Variants                       | 3        | 0         |
@@ -28,7 +28,7 @@ Remaining: 26 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | Launch Prep                         | 4        | **5**     |
-| **TOTAL**                           | **63**   | **26**    |
+| **TOTAL**                           | **65**   | **24**    |
 
 ### Critical Path for Launch
 
@@ -82,8 +82,8 @@ These API routes are currently hardcoded to Pokemon and must be updated to suppo
 ### NEW - Code Review Backend Fixes (January 17, 2026)
 
 - [ ] Delete `getOrCreateDemoProfile` mutation from `convex/profiles.ts` - This demo function should not exist in production, it creates fake data
-- [ ] Add `hasParentAccess` helper function to `convex/profiles.ts` - Check if authenticated user has parent role in their family
-- [ ] Create `getParentDashboardData` query in `convex/profiles.ts` - Secure query that returns family data only for authenticated parent users
+- [x] Add `hasParentAccess` helper function to `convex/profiles.ts` - Check if authenticated user has parent role in their family
+- [x] Create `getParentDashboardData` query in `convex/profiles.ts` - Secure query that returns family data only for authenticated parent users
 
 ### HIGH - Performance Optimization Backend (January 2026 Evaluation)
 
@@ -213,6 +213,22 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-17: Add hasParentAccess query and getParentDashboardData query
+
+- Added `hasParentAccess` query to `convex/profiles.ts`:
+  - Checks if the current authenticated user has parent access in their family
+  - Returns detailed access information with reason codes (NOT_AUTHENTICATED, NO_EMAIL, NO_FAMILY, NO_PARENT_PROFILE)
+  - When access is granted, returns parent profile, family info, and child profiles
+  - Intended for use in parent dashboard access control
+- Added `getParentDashboardData` query to `convex/profiles.ts`:
+  - Secure query that returns comprehensive family data only for authenticated parent users
+  - Gathers stats for each child profile in parallel (collection, achievements, wishlist, activity, streaks)
+  - Returns family-wide totals and recent activity across all profiles
+  - Includes subscription status (active, expired, free) and profile limits
+  - Returns authorization error info if user doesn't have parent access
+- Both queries use `getAuthUserId` for authentication verification
+- TypeScript compiles cleanly, all linting passes
 
 ### 2026-01-17: Add pagination to activity feed queries
 

@@ -1253,3 +1253,350 @@ function formatRelativeTime(timestamp: number): string {
     return 'Just now';
   }
 }
+
+// ============================================================================
+// PARENT ACCESS CONTROL
+// ============================================================================
+
+/**
+ * Check if the current authenticated user has parent access in their family.
+ * Returns detailed access information including the family and profile data.
+ *
+ * Use this to protect parent-only features like the parent dashboard.
+ *
+ * Returns:
+ * - hasAccess: true if user is authenticated AND has a parent profile
+ * - reason: explanation if access is denied
+ * - profile/family: data if access is granted
+ */
+export const hasParentAccess = query({
+  args: {},
+  handler: async (ctx) => {
+    // Get the authenticated user's ID
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return {
+        hasAccess: false,
+        reason: 'NOT_AUTHENTICATED',
+        message: 'Please sign in to access this feature',
+        profile: null,
+        family: null,
+      };
+    }
+
+    // Get the user's email from the users table
+    const user = await ctx.db.get(userId);
+    if (!user || !user.email) {
+      return {
+        hasAccess: false,
+        reason: 'NO_EMAIL',
+        message: 'User account has no email associated',
+        profile: null,
+        family: null,
+      };
+    }
+
+    // Find the family associated with this email
+    const family = await ctx.db
+      .query('families')
+      .withIndex('by_email', (q) => q.eq('email', user.email!.toLowerCase()))
+      .first();
+
+    if (!family) {
+      return {
+        hasAccess: false,
+        reason: 'NO_FAMILY',
+        message: 'No family account found for this user',
+        profile: null,
+        family: null,
+      };
+    }
+
+    // Get all profiles for this family
+    const profiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', (q) => q.eq('familyId', family._id))
+      .collect();
+
+    // Find the parent profile
+    const parentProfile = profiles.find((p) => p.profileType === 'parent');
+
+    if (!parentProfile) {
+      return {
+        hasAccess: false,
+        reason: 'NO_PARENT_PROFILE',
+        message: 'No parent profile exists for this family. Please create a parent profile first.',
+        profile: null,
+        family: {
+          id: family._id,
+          subscriptionTier: family.subscriptionTier,
+        },
+      };
+    }
+
+    // User has parent access
+    return {
+      hasAccess: true,
+      reason: null,
+      message: null,
+      profile: {
+        id: parentProfile._id,
+        displayName: parentProfile.displayName,
+        avatarUrl: parentProfile.avatarUrl,
+        profileType: parentProfile.profileType,
+      },
+      family: {
+        id: family._id,
+        email: family.email,
+        subscriptionTier: family.subscriptionTier,
+        subscriptionExpiresAt: family.subscriptionExpiresAt,
+      },
+      userId,
+      childProfiles: profiles
+        .filter((p) => p.profileType === 'child')
+        .map((p) => ({
+          id: p._id,
+          displayName: p.displayName,
+          avatarUrl: p.avatarUrl,
+        })),
+    };
+  },
+});
+
+/**
+ * Get comprehensive parent dashboard data.
+ * This is a secure query that only returns data for authenticated parent users.
+ *
+ * Returns:
+ * - Family and subscription info
+ * - All child profiles with their collection stats
+ * - Recent activity across all family profiles
+ * - Achievement summaries per child
+ * - Wishlist summaries per child
+ *
+ * If the user doesn't have parent access, returns null with error info.
+ */
+export const getParentDashboardData = query({
+  args: {},
+  handler: async (ctx) => {
+    // First, verify parent access
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return {
+        authorized: false,
+        error: 'NOT_AUTHENTICATED',
+        message: 'Please sign in to access the parent dashboard',
+        data: null,
+      };
+    }
+
+    const user = await ctx.db.get(userId);
+    if (!user || !user.email) {
+      return {
+        authorized: false,
+        error: 'NO_EMAIL',
+        message: 'User account has no email associated',
+        data: null,
+      };
+    }
+
+    const family = await ctx.db
+      .query('families')
+      .withIndex('by_email', (q) => q.eq('email', user.email!.toLowerCase()))
+      .first();
+
+    if (!family) {
+      return {
+        authorized: false,
+        error: 'NO_FAMILY',
+        message: 'No family account found',
+        data: null,
+      };
+    }
+
+    const profiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', (q) => q.eq('familyId', family._id))
+      .collect();
+
+    const parentProfile = profiles.find((p) => p.profileType === 'parent');
+    if (!parentProfile) {
+      return {
+        authorized: false,
+        error: 'NO_PARENT_PROFILE',
+        message: 'No parent profile found. Please create a parent profile first.',
+        data: null,
+      };
+    }
+
+    // User is authorized - gather dashboard data
+    const childProfiles = profiles.filter((p) => p.profileType === 'child');
+
+    // Gather stats for each child profile in parallel
+    const childStatsPromises = childProfiles.map(async (child) => {
+      // Get collection stats
+      const collectionCards = await ctx.db
+        .query('collectionCards')
+        .withIndex('by_profile', (q) => q.eq('profileId', child._id))
+        .collect();
+
+      const uniqueCardIds = new Set(collectionCards.map((c) => c.cardId));
+      const totalCards = collectionCards.reduce((sum, c) => sum + c.quantity, 0);
+      const setsStarted = new Set(collectionCards.map((c) => c.cardId.split('-')[0])).size;
+
+      // Get achievements
+      const achievements = await ctx.db
+        .query('achievements')
+        .withIndex('by_profile', (q) => q.eq('profileId', child._id))
+        .collect();
+
+      // Get wishlist
+      const wishlist = await ctx.db
+        .query('wishlistCards')
+        .withIndex('by_profile', (q) => q.eq('profileId', child._id))
+        .collect();
+
+      // Get recent activity (last 7 days)
+      const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const recentActivity = await ctx.db
+        .query('activityLogs')
+        .withIndex('by_profile', (q) => q.eq('profileId', child._id))
+        .collect();
+
+      const recentActivityFiltered = recentActivity.filter(
+        (log) => log._creationTime >= sevenDaysAgo
+      );
+
+      // Calculate activity by day
+      const activityByDay = new Map<string, number>();
+      for (const log of recentActivityFiltered) {
+        const dateStr = new Date(log._creationTime).toISOString().split('T')[0];
+        activityByDay.set(dateStr, (activityByDay.get(dateStr) || 0) + 1);
+      }
+
+      // Calculate streak
+      const cardAddLogs = recentActivity.filter((log) => log.action === 'card_added');
+      const activityDates = [
+        ...new Set(
+          cardAddLogs.map((log) => new Date(log._creationTime).toISOString().split('T')[0])
+        ),
+      ].sort();
+      const streakInfo = calculateStreakFromDates(activityDates);
+
+      return {
+        profile: {
+          id: child._id,
+          displayName: child.displayName,
+          avatarUrl: child.avatarUrl,
+        },
+        collection: {
+          uniqueCards: uniqueCardIds.size,
+          totalCards,
+          setsStarted,
+        },
+        achievements: {
+          total: achievements.length,
+          recentlyEarned: achievements.filter((a) => a.earnedAt >= sevenDaysAgo).length,
+          latestAchievement:
+            achievements.length > 0
+              ? achievements.sort((a, b) => b.earnedAt - a.earnedAt)[0]
+              : null,
+        },
+        wishlist: {
+          total: wishlist.length,
+          priorityCount: wishlist.filter((w) => w.isPriority).length,
+        },
+        activity: {
+          lastSevenDays: recentActivityFiltered.length,
+          byDay: Object.fromEntries(activityByDay),
+          cardsAddedRecently: recentActivityFiltered.filter((log) => log.action === 'card_added')
+            .length,
+        },
+        streak: {
+          currentStreak: streakInfo.currentStreak,
+          longestStreak: streakInfo.longestStreak,
+          isActiveToday: streakInfo.isActiveToday,
+        },
+      };
+    });
+
+    const childStats = await Promise.all(childStatsPromises);
+
+    // Get family-wide recent activity (last 20 items)
+    const allProfileIds = profiles.map((p) => p._id);
+    const allActivityPromises = allProfileIds.map((profileId) =>
+      ctx.db
+        .query('activityLogs')
+        .withIndex('by_profile', (q) => q.eq('profileId', profileId))
+        .collect()
+    );
+    const allActivities = (await Promise.all(allActivityPromises)).flat();
+
+    // Sort by time and take top 20
+    const recentFamilyActivity = allActivities
+      .sort((a, b) => b._creationTime - a._creationTime)
+      .slice(0, 20)
+      .map((log) => {
+        const profile = profiles.find((p) => p._id === log.profileId);
+        return {
+          id: log._id,
+          profileId: log.profileId,
+          profileName: profile?.displayName || 'Unknown',
+          action: log.action,
+          metadata: log.metadata,
+          timestamp: log._creationTime,
+          relativeTime: formatRelativeTime(log._creationTime),
+        };
+      });
+
+    // Calculate family totals
+    const familyTotals = {
+      totalCards: childStats.reduce((sum, c) => sum + c.collection.totalCards, 0),
+      uniqueCards: childStats.reduce((sum, c) => sum + c.collection.uniqueCards, 0),
+      totalAchievements: childStats.reduce((sum, c) => sum + c.achievements.total, 0),
+      totalWishlistItems: childStats.reduce((sum, c) => sum + c.wishlist.total, 0),
+      childProfileCount: childStats.length,
+    };
+
+    // Get subscription status
+    let subscriptionStatus: 'active' | 'expired' | 'free' = 'free';
+    if (family.subscriptionTier === 'family') {
+      if (family.subscriptionExpiresAt && family.subscriptionExpiresAt <= Date.now()) {
+        subscriptionStatus = 'expired';
+      } else {
+        subscriptionStatus = 'active';
+      }
+    }
+
+    return {
+      authorized: true,
+      error: null,
+      message: null,
+      data: {
+        parent: {
+          id: parentProfile._id,
+          displayName: parentProfile.displayName,
+          email: user.email,
+        },
+        family: {
+          id: family._id,
+          subscriptionTier: family.subscriptionTier,
+          subscriptionExpiresAt: family.subscriptionExpiresAt,
+          subscriptionStatus,
+        },
+        children: childStats,
+        familyTotals,
+        recentActivity: recentFamilyActivity,
+        limits: {
+          maxChildProfiles: getMaxChildProfilesInternal(
+            subscriptionStatus === 'active' ? 'family' : 'free'
+          ),
+          maxTotalProfiles: getMaxTotalProfilesInternal(
+            subscriptionStatus === 'active' ? 'family' : 'free'
+          ),
+          currentChildCount: childStats.length,
+        },
+      },
+    };
+  },
+});
