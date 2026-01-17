@@ -4,7 +4,11 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useConvexAuth } from 'convex/react';
-import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowLeftIcon,
+  Cog6ToothIcon,
+  ShieldCheckIcon,
+} from '@heroicons/react/24/outline';
 import { DarkModeToggle } from '@/components/layout/DarkModeToggle';
 import { KidModeToggle } from '@/components/layout/KidModeToggle';
 import { LowStimulationToggle } from '@/components/layout/LowStimulationToggle';
@@ -65,19 +69,35 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Settings Sections */}
+        {/* ================================================================== */}
+        {/* MY SETTINGS - Kid-accessible preferences */}
+        {/* ================================================================== */}
         <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-kid-primary to-kid-secondary">
+              <Cog6ToothIcon className="h-6 w-6 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                My Settings
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-slate-400">
+                Personalize your CardDex experience
+              </p>
+            </div>
+          </div>
+
           {/* Display Settings */}
           <section
             className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
             aria-labelledby="display-settings-heading"
           >
-            <h2
+            <h3
               id="display-settings-heading"
               className="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
             >
               Display
-            </h2>
+            </h3>
             <p className="mb-4 text-sm text-gray-600 dark:text-slate-400">
               Adjust how the app looks and feels.
             </p>
@@ -108,12 +128,12 @@ export default function SettingsPage() {
             className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
             aria-labelledby="accessibility-settings-heading"
           >
-            <h2
+            <h3
               id="accessibility-settings-heading"
               className="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
             >
               Accessibility
-            </h2>
+            </h3>
             <p className="mb-4 text-sm text-gray-600 dark:text-slate-400">
               Options to make the app more comfortable for everyone.
             </p>
@@ -168,54 +188,73 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {/* Games Settings */}
+          {/* Notifications Settings (placeholder for future) */}
           <section
             className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+            aria-labelledby="notifications-settings-heading"
+          >
+            <h3
+              id="notifications-settings-heading"
+              className="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
+            >
+              Notifications
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-slate-400">
+              Notification preferences coming soon.
+            </p>
+          </section>
+        </div>
+
+        {/* ================================================================== */}
+        {/* FAMILY CONTROLS - Parent-only settings */}
+        {/* ================================================================== */}
+        <div className="mt-12 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600">
+              <ShieldCheckIcon className="h-6 w-6 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Family Controls
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-slate-400">
+                Parent-managed settings for healthy app usage
+              </p>
+            </div>
+          </div>
+
+          {/* Games Settings - Parent controlled */}
+          <section
+            className="rounded-2xl border-2 border-amber-200 bg-white p-6 shadow-sm dark:border-amber-700/50 dark:bg-slate-800"
             aria-labelledby="games-settings-heading"
           >
-            <h2
+            <h3
               id="games-settings-heading"
               className="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
             >
               Games You Collect
-            </h2>
+            </h3>
             <p className="mb-4 text-sm text-gray-600 dark:text-slate-400">
               Choose which trading card games to show in your collection.
             </p>
             <GameSettingsToggle />
           </section>
 
-          {/* Family Controls */}
+          {/* Sleep Mode Settings - Parent controlled */}
           <section
-            className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+            className="rounded-2xl border-2 border-amber-200 bg-white p-6 shadow-sm dark:border-amber-700/50 dark:bg-slate-800"
             aria-labelledby="family-settings-heading"
           >
-            <h2
+            <h3
               id="family-settings-heading"
               className="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
             >
-              Family Controls
-            </h2>
+              Sleep Mode
+            </h3>
             <p className="mb-4 text-sm text-gray-600 dark:text-slate-400">
-              Parent-controlled features for healthy app usage.
+              Set quiet hours to encourage healthy screen time habits.
             </p>
             <SleepModeSettings />
-          </section>
-
-          {/* Notifications Settings (placeholder for future) */}
-          <section
-            className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
-            aria-labelledby="notifications-settings-heading"
-          >
-            <h2
-              id="notifications-settings-heading"
-              className="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
-            >
-              Notifications
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-slate-400">
-              Notification preferences coming soon.
-            </p>
           </section>
         </div>
       </div>
