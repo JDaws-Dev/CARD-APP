@@ -28,3 +28,9 @@
 **Files:** src/app/settings/page.tsx
 **Commit:** 5815da3
 ---
+## CD-8a6 - Add PIN protection to Family Controls
+**Status:** Completed
+**Changes:** Created PinProtectionWrapper component that requires PIN verification when a Parent PIN is set. Wrapped Family Controls section (Game Selection, Sleep Mode) with PIN protection on the settings page. When no PIN is set, settings are shown directly to allow initial setup. When PIN is set, shows lock screen requiring entry.
+**Files:** src/components/settings/PinProtectionWrapper.tsx (new), src/app/settings/page.tsx (modified)
+**Commit:** d5d2595
+---
