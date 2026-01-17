@@ -8,9 +8,7 @@ import {
   MagnifyingGlassMinusIcon,
   ArrowsPointingOutIcon,
 } from '@heroicons/react/24/outline';
-
-// Standard Pokemon card back image
-const POKEMON_CARD_BACK_URL = 'https://images.pokemontcg.io/cardback.png';
+import { CardBack } from '@/components/ui/CardImage';
 
 interface FlippableCardProps {
   frontImage: string;
@@ -58,10 +56,7 @@ export function FlippableCard({
   );
 
   return (
-    <div
-      className={cn('flip-card-container', className)}
-      style={{ perspective: '1000px' }}
-    >
+    <div className={cn('flip-card-container', className)} style={{ perspective: '1000px' }}>
       <div
         role="button"
         tabIndex={disableFlip ? -1 : 0}
@@ -108,9 +103,7 @@ export function FlippableCard({
           }}
         >
           <div className="relative h-full w-full overflow-hidden rounded-lg bg-gradient-to-br from-blue-600 to-blue-800">
-            <Image
-              src={POKEMON_CARD_BACK_URL}
-              alt="Pokemon card back"
+            <CardBack
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
               className="object-contain"
@@ -164,7 +157,8 @@ export function CardFlipModal({ frontImage, cardName, isOpen, onClose }: CardFli
         {/* Instructions */}
         <div className="mt-4 text-center">
           <p className="text-sm text-white/70">
-            Tap card or press <kbd className="rounded bg-white/20 px-1.5 py-0.5 font-mono text-xs">F</kbd> to flip
+            Tap card or press{' '}
+            <kbd className="rounded bg-white/20 px-1.5 py-0.5 font-mono text-xs">F</kbd> to flip
           </p>
         </div>
 
@@ -175,7 +169,12 @@ export function CardFlipModal({ frontImage, cardName, isOpen, onClose }: CardFli
           aria-label="Close card viewer"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -191,7 +190,12 @@ interface ZoomableCardModalProps {
   onClose: () => void;
 }
 
-export function ZoomableCardModal({ frontImage, cardName, isOpen, onClose }: ZoomableCardModalProps) {
+export function ZoomableCardModal({
+  frontImage,
+  cardName,
+  isOpen,
+  onClose,
+}: ZoomableCardModalProps) {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -246,20 +250,23 @@ export function ZoomableCardModal({ frontImage, cardName, isOpen, onClose }: Zoo
   };
 
   // Handle touch start
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      // Pinch start
-      e.preventDefault();
-      const distance = getTouchDistance(e.touches[0], e.touches[1]);
-      lastPinchDistanceRef.current = distance;
-    } else if (e.touches.length === 1 && scale > 1) {
-      // Pan start (only when zoomed in)
-      lastTouchRef.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-      };
-    }
-  }, [scale]);
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 2) {
+        // Pinch start
+        e.preventDefault();
+        const distance = getTouchDistance(e.touches[0], e.touches[1]);
+        lastPinchDistanceRef.current = distance;
+      } else if (e.touches.length === 1 && scale > 1) {
+        // Pan start (only when zoomed in)
+        lastTouchRef.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+        };
+      }
+    },
+    [scale]
+  );
 
   // Handle touch move
   const handleTouchMove = useCallback(
@@ -400,7 +407,10 @@ export function ZoomableCardModal({ frontImage, cardName, isOpen, onClose }: Zoo
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        style={{ touchAction: 'none', cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'pointer' }}
+        style={{
+          touchAction: 'none',
+          cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
+        }}
       >
         <div
           className="relative h-[70vh] max-h-[550px] w-full max-w-[380px] transition-transform duration-100"
@@ -452,13 +462,10 @@ export function ZoomableCardModal({ frontImage, cardName, isOpen, onClose }: Zoo
                   transform: 'rotateY(180deg)',
                 }}
               >
-                <Image
-                  src={POKEMON_CARD_BACK_URL}
-                  alt="Pokemon card back"
+                <CardBack
                   fill
                   sizes="(max-width: 640px) 90vw, 380px"
                   className="rounded-lg object-contain"
-                  draggable={false}
                 />
               </div>
             </div>
@@ -520,7 +527,12 @@ export function ZoomableCardModal({ frontImage, cardName, isOpen, onClose }: Zoo
         aria-label="Close card viewer"
       >
         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
 
