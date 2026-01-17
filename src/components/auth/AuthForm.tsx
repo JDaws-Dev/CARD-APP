@@ -6,9 +6,13 @@ import {
   EnvelopeIcon,
   ArrowPathIcon,
   CheckCircleIcon,
+  UserGroupIcon,
+  UserIcon,
 } from "@heroicons/react/24/outline";
 
 type AuthMode = "signIn" | "signUp";
+type AccountType = "family" | "individual" | null;
+type SignUpStep = "account-type" | "credentials";
 
 interface AuthFormProps {
   defaultMode?: AuthMode;
@@ -24,6 +28,8 @@ export function AuthForm({ defaultMode = "signIn" }: AuthFormProps) {
   const [verificationPending, setVerificationPending] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [accountType, setAccountType] = useState<AccountType>(null);
+  const [signUpStep, setSignUpStep] = useState<SignUpStep>("account-type");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +41,8 @@ export function AuthForm({ defaultMode = "signIn" }: AuthFormProps) {
         email,
         password,
         flow: mode,
+        // Pass account type to backend for profile creation
+        ...(mode === "signUp" && accountType ? { accountType } : {}),
       });
       // If signup succeeded without redirect, show verification pending
       if (mode === "signUp") {
@@ -55,6 +63,16 @@ export function AuthForm({ defaultMode = "signIn" }: AuthFormProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAccountTypeSelect = (type: AccountType) => {
+    setAccountType(type);
+    setSignUpStep("credentials");
+  };
+
+  const handleBackToAccountType = () => {
+    setSignUpStep("account-type");
+    setError(null);
   };
 
   const handleResendVerification = async () => {
@@ -156,12 +174,98 @@ export function AuthForm({ defaultMode = "signIn" }: AuthFormProps) {
     );
   }
 
+  // Account type selection step for signup
+  if (mode === "signUp" && signUpStep === "account-type") {
+    return (
+      <div className="w-full max-w-md mx-auto">
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
+            Create Account
+          </h2>
+          <p className="text-gray-600 text-center mb-6">
+            How will you be using CardDex?
+          </p>
+
+          <div className="space-y-4">
+            <button
+              onClick={() => handleAccountTypeSelect("family")}
+              className="w-full p-4 border-2 border-gray-200 rounded-xl hover:border-kid-primary hover:bg-kid-primary/5 transition-all group text-left"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-kid-primary to-kid-secondary flex items-center justify-center flex-shrink-0">
+                  <UserGroupIcon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 group-hover:text-kid-primary transition-colors">
+                    Family Account
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Manage collections for your kids. Create separate profiles, set parental controls, and track their progress.
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleAccountTypeSelect("individual")}
+              className="w-full p-4 border-2 border-gray-200 rounded-xl hover:border-kid-secondary hover:bg-kid-secondary/5 transition-all group text-left"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-kid-secondary to-purple-500 flex items-center justify-center flex-shrink-0">
+                  <UserIcon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 group-hover:text-kid-secondary transition-colors">
+                    Individual Collector
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Track your own collection. Perfect for solo collectors who want to organize their cards.
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => setMode("signIn")}
+              className="text-kid-primary hover:text-kid-primary/80 text-sm font-medium"
+            >
+              Already have an account? Sign in
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white rounded-2xl shadow-lg p-8">
         <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">
           {mode === "signIn" ? "Welcome Back!" : "Create Account"}
         </h2>
+
+        {mode === "signUp" && accountType && (
+          <div className="mb-6 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {accountType === "family" ? (
+                <UserGroupIcon className="w-5 h-5 text-kid-primary" />
+              ) : (
+                <UserIcon className="w-5 h-5 text-kid-secondary" />
+              )}
+              <span className="text-sm text-gray-700">
+                {accountType === "family" ? "Family Account" : "Individual Collector"}
+              </span>
+            </div>
+            <button
+              onClick={handleBackToAccountType}
+              className="text-sm text-kid-primary hover:text-kid-primary/80 font-medium"
+            >
+              Change
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -177,8 +281,8 @@ export function AuthForm({ defaultMode = "signIn" }: AuthFormProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              placeholder="parent@example.com"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-kid-primary focus:border-transparent transition-colors"
+              placeholder={accountType === "family" ? "parent@example.com" : "collector@example.com"}
             />
           </div>
 
@@ -196,7 +300,7 @@ export function AuthForm({ defaultMode = "signIn" }: AuthFormProps) {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-kid-primary focus:border-transparent transition-colors"
               placeholder="••••••••"
             />
           </div>
@@ -210,7 +314,7 @@ export function AuthForm({ defaultMode = "signIn" }: AuthFormProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors"
+            className="w-full py-3 px-4 bg-gradient-to-r from-kid-primary to-kid-secondary hover:opacity-90 disabled:opacity-50 text-white font-semibold rounded-lg transition-opacity"
           >
             {loading
               ? "Please wait..."
@@ -222,8 +326,14 @@ export function AuthForm({ defaultMode = "signIn" }: AuthFormProps) {
 
         <div className="mt-6 text-center">
           <button
-            onClick={() => setMode(mode === "signIn" ? "signUp" : "signIn")}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            onClick={() => {
+              setMode(mode === "signIn" ? "signUp" : "signIn");
+              if (mode === "signIn") {
+                setSignUpStep("account-type");
+                setAccountType(null);
+              }
+            }}
+            className="text-kid-primary hover:text-kid-primary/80 text-sm font-medium"
           >
             {mode === "signIn"
               ? "Don't have an account? Sign up"

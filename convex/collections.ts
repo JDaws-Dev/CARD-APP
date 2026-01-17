@@ -1077,17 +1077,18 @@ export const getNewlyAddedCards = query({
     const limit = args.limit ?? 50;
     const cutoffDate = Date.now() - days * 24 * 60 * 60 * 1000;
 
-    // Get activity logs for this profile
-    const allLogs = await ctx.db
+    // Use by_profile_and_action index to filter at database level
+    // This avoids fetching ALL logs and filtering in JS
+    const cardAddedLogs = await ctx.db
       .query('activityLogs')
-      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .withIndex('by_profile_and_action', (q) =>
+        q.eq('profileId', args.profileId).eq('action', 'card_added')
+      )
       .order('desc')
       .collect();
 
-    // Filter to card_added events within the time window
-    const recentCardAdds = allLogs.filter(
-      (log) => log.action === 'card_added' && log._creationTime >= cutoffDate
-    );
+    // Filter by time window
+    const recentCardAdds = cardAddedLogs.filter((log) => log._creationTime >= cutoffDate);
 
     // Get unique card IDs from the activity logs
     const cardAdditions: Array<{
@@ -1198,16 +1199,18 @@ export const getNewlyAddedCardsSummary = query({
     const days = args.days ?? 7;
     const cutoffDate = Date.now() - days * 24 * 60 * 60 * 1000;
 
-    // Get activity logs for this profile
-    const allLogs = await ctx.db
+    // Use by_profile_and_action index to filter at database level
+    // This avoids fetching ALL logs and filtering in JS
+    const cardAddedLogs = await ctx.db
       .query('activityLogs')
-      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .withIndex('by_profile_and_action', (q) =>
+        q.eq('profileId', args.profileId).eq('action', 'card_added')
+      )
+      .order('desc')
       .collect();
 
-    // Filter to card_added events within the time window
-    const recentCardAdds = allLogs.filter(
-      (log) => log.action === 'card_added' && log._creationTime >= cutoffDate
-    );
+    // Filter by time window
+    const recentCardAdds = cardAddedLogs.filter((log) => log._creationTime >= cutoffDate);
 
     // Group by date
     const byDate = new Map<
