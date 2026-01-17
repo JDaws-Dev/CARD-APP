@@ -437,6 +437,10 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
     [viewportWidth, features.simplifiedLayout]
   );
 
+  // Calculate overscan based on viewport - use more rows on mobile for smoother scrolling on slower devices
+  const isMobile = viewportWidth > 0 && viewportWidth < 640;
+  const overscanCount = isMobile ? 5 : 3;
+
   // Organize cards into rows
   const rows = useMemo(() => {
     const result: PokemonCard[][] = [];
@@ -459,7 +463,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
     count: rows.length,
     getScrollElement: () => parentRef.current,
     estimateSize: estimateRowHeight,
-    overscan: 3, // Render 3 extra rows above and below viewport
+    overscan: overscanCount, // Render extra rows above and below viewport (5 on mobile, 3 on desktop)
   });
 
   // Build a map of owned cards for quick lookup
@@ -614,14 +618,24 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
     setSelectorPosition(null);
   }, []);
 
-  const handleToggleWishlist = async (cardId: string, e: React.MouseEvent) => {
+  const handleToggleWishlist = async (card: PokemonCard, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!profileId) return;
 
-    if (wishlistedCards.has(cardId)) {
-      await removeFromWishlist({ profileId: profileId as Id<'profiles'>, cardId });
+    if (wishlistedCards.has(card.id)) {
+      await removeFromWishlist({
+        profileId: profileId as Id<'profiles'>,
+        cardId: card.id,
+        cardName: card.name,
+        setName,
+      });
     } else {
-      await addToWishlist({ profileId: profileId as Id<'profiles'>, cardId });
+      await addToWishlist({
+        profileId: profileId as Id<'profiles'>,
+        cardId: card.id,
+        cardName: card.name,
+        setName,
+      });
     }
   };
 
@@ -741,7 +755,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
                 ? 'bg-rose-500 text-white'
                 : 'bg-white/90 text-gray-400 opacity-0 hover:bg-white hover:text-rose-500 group-hover:opacity-100'
             )}
-            onClick={(e) => handleToggleWishlist(card.id, e)}
+            onClick={(e) => handleToggleWishlist(card, e)}
             aria-label={
               isWishlisted ? `Remove ${card.name} from wishlist` : `Add ${card.name} to wishlist`
             }
@@ -866,6 +880,24 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
 
   return (
     <div>
+      {/* Collection Progress Bar */}
+      <div className="mb-4 rounded-2xl bg-white p-4 shadow-md">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-600">Collection Progress</span>
+          <span className="text-lg font-bold text-kid-primary">
+            {ownedCount} / {totalCount} cards
+          </span>
+        </div>
+        <div className="progress-bar mt-2">
+          <div className="progress-bar-fill" style={{ width: `${progressPercent}%` }} />
+        </div>
+        {ownedCount === 0 && (
+          <p className="mt-2 text-center text-sm text-gray-500">
+            Start tapping cards below to add them to your collection!
+          </p>
+        )}
+      </div>
+
       {/* Stats Bar */}
       <div className="mb-4 rounded-xl bg-white p-3 shadow-sm sm:mb-6 sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
