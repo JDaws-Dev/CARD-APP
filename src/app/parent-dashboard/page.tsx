@@ -72,7 +72,7 @@ export default function ParentDashboardPage() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-800">Parent Dashboard</h1>
-                <p className="text-gray-500">Manage your family&apos;s Pokemon collections</p>
+                <p className="text-gray-500">Manage your family&apos;s trading card collections</p>
               </div>
             </div>
 
