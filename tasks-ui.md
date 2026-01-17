@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL fixes first, then HIGH priority
 
 ```
-Progress: ████████████████░░░░░░░░░░░░  110/218 (50%)
-Remaining: 108 tasks
+Progress: ████████████░░░░░░░░░░░░░░░░  110/260 (42%)
+Remaining: 150 tasks (42 are LOW priority - do after launch)
 ```
 
 ## Status Summary (Updated 2026-01-17 - Post Comprehensive Evaluation)
@@ -25,6 +25,8 @@ Remaining: 108 tasks
 | **NEW - Architecture Improvements**       | 0        | **13**    |
 | **NEW - Security Hardening**              | 0        | **6**     |
 | **NEW - Kid-Friendly Set Display**        | 0        | **15**    |
+| **LOW - Mobile UX Evaluation**            | 0        | **20**    |
+| **LOW - Gamification Evaluation**         | 0        | **22**    |
 | HIGH PRIORITY - Landing Page              | 9        | 0         |
 | UI Tasks                                  | 20       | 0         |
 | Core Features                             | 6        | 0         |
@@ -42,7 +44,7 @@ Remaining: 108 tasks
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **108**   |
+| **TOTAL**                                 | **110**  | **150**   |
 
 ### Priority Order for Remaining Tasks
 
@@ -59,6 +61,8 @@ Remaining: 108 tasks
 11. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
 12. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section, update features
 13. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
+14. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
+15. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
 
 ---
 
@@ -185,7 +189,7 @@ Improve site organization, navigation, and user flow clarity.
 - [ ] Create AppFooter component - Footer for authenticated pages with Help, Privacy, Terms links
 - [ ] Add AppFooter to all app pages - Consistent footer across the app
 - [ ] Add ESC key handler to mobile menu - Close menu on Escape key press
-- [ ] Fix onboarding redirect - Change /onboarding completion to redirect to /collection instead of /dashboard
+- [x] Fix onboarding redirect - Change /onboarding completion to redirect to /collection instead of /dashboard
 - [ ] Add "What's Next" card to Dashboard - Guide new users to Browse Sets, Learning Resources after onboarding
 - [ ] Standardize back link styling - Use consistent gap, font-weight, and hover colors across all pages
 - [ ] Add parent features indicator - Badge on profile menu showing "Parent features available" when applicable
@@ -520,6 +524,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 - **2026-01-17**: Updated parent dashboard text for multi-TCG support - Changed "Manage your family's Pokemon collections" to "Manage your family's trading card collections" in src/app/parent-dashboard/page.tsx line 75 to reflect that the app supports multiple trading card games. Commit: a506f8d
 
+- **2026-01-17**: Fixed onboarding redirect to /collection - Updated OnboardingFlow completion to redirect users to /collection instead of /dashboard. After completing onboarding, users now see "View My Collection" button (previously "Go to Dashboard") which takes them directly to their collection page to start building their card collection. Changes in src/components/onboarding/OnboardingFlow.tsx: renamed handleGoToDashboard to handleGoToCollection, updated router.push from '/dashboard' to '/collection', renamed prop onGoToDashboard to onGoToCollection, updated button text. Commit: 9bf7f8c
+
 ---
 
 ## NEW - SEO & Marketing Tasks (January 17, 2026 Evaluation)
@@ -630,11 +636,14 @@ These tasks ensure the UI only shows sets that kids can actually buy and collect
 
 ---
 
-## NEW - Mobile UX Evaluation (January 17, 2026)
+## LOW PRIORITY - Mobile UX Evaluation (January 17, 2026)
+
+> ⏳ **Do AFTER core features are complete** - These are polish items, not launch blockers.
 
 Comprehensive mobile-first evaluation to ensure the app works well on phones and tablets where kids primarily use it.
 
 ### Touch Target Audit
+
 - [ ] Audit all buttons for minimum 44x44px touch targets - iOS Human Interface Guidelines requirement
 - [ ] Check card grid tap targets on small screens (iPhone SE, small Androids) - Cards may be too small to tap accurately
 - [ ] Test quantity +/- buttons on mobile - May be too close together
@@ -642,12 +651,14 @@ Comprehensive mobile-first evaluation to ensure the app works well on phones and
 - [ ] Test back/navigation buttons - Ensure thumb-reachable on large phones
 
 ### Gesture Support
+
 - [ ] Evaluate swipe gestures for card browsing - Kids expect swipe-to-navigate
 - [ ] Add pull-to-refresh on collection/wishlist pages - Standard mobile pattern
 - [ ] Test pinch-to-zoom on card images - Kids want to see card details
 - [ ] Evaluate swipe-to-delete/remove patterns - Easier than tap-hold-confirm
 
 ### Mobile Layout Issues
+
 - [ ] Test all pages in portrait AND landscape orientation - Some pages may break
 - [ ] Check for horizontal scroll issues on set grids - Content shouldn't overflow
 - [ ] Test modal/popup sizing on small screens - May cover entire screen poorly
@@ -655,12 +666,14 @@ Comprehensive mobile-first evaluation to ensure the app works well on phones and
 - [ ] Test keyboard behavior on search/input fields - Ensure content doesn't get hidden
 
 ### Performance on Mobile
+
 - [ ] Test load times on 4G/LTE connection - Target <3 seconds
 - [ ] Test on older devices (iPhone 8, budget Androids) - Kids often have hand-me-down phones
 - [ ] Evaluate memory usage on card-heavy pages - May crash on low-RAM devices
 - [ ] Test image loading on slow connections - Need progressive loading or placeholders
 
 ### Mobile-Specific Features
+
 - [ ] Evaluate "Add to Home Screen" prompt - PWA installation flow
 - [ ] Test offline mode on mobile - Collection should be viewable without internet
 - [ ] Check notification permissions flow - Don't ask immediately on first load
@@ -668,11 +681,14 @@ Comprehensive mobile-first evaluation to ensure the app works well on phones and
 
 ---
 
-## NEW - Gamification Evaluation (January 17, 2026)
+## LOW PRIORITY - Gamification Evaluation (January 17, 2026)
+
+> ⏳ **Do AFTER launch** - Strategic review to ensure gamification serves collectors, not just engagement metrics. Not a launch blocker.
 
 Critical evaluation of ALL gamification features to ensure they make sense for REAL collectors, not just engagement metrics.
 
 ### Pack Opening Simulator - NEEDS REVIEW
+
 - [ ] **EVALUATE: Remove or repurpose Pack Opening Simulator** - Why would a real collector want to open fake digital packs? This doesn't help track a real collection.
 - [ ] If keeping: Rename to "Pack Probability Calculator" - Show odds of pulling cards you need
 - [ ] If keeping: Connect to wishlist - "Here's what you might get if you buy X pack"
@@ -681,6 +697,7 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - [ ] **DECISION NEEDED**: Does this feature add value or is it just empty gamification?
 
 ### Achievement System - Evaluate Value
+
 - [ ] Review all 37 badges - Do they reward COLLECTING or just app engagement?
 - [ ] Identify badges that encourage real collecting behavior (good):
   - Set completion badges ✅ (rewards actual collecting)
@@ -692,6 +709,7 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - [ ] Consider removing pure engagement badges - Focus on collection achievements
 
 ### Streak System - Evaluate Necessity
+
 - [ ] **QUESTION**: Should streaks reset if kid doesn't ADD cards, or just if they don't OPEN the app?
 - [ ] Current: Streak resets after 48 hours of no activity - Too punishing for casual collectors
 - [ ] Consider: Only count days when cards are ADDED - Rewards actual collecting
@@ -700,6 +718,7 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - [ ] If keeping: Max streak reward at 30 days - Don't incentivize infinite streaking
 
 ### XP/Level System - Evaluate Purpose
+
 - [ ] What does leveling up DO for the user? - If nothing, remove it
 - [ ] XP for adding cards makes sense - Rewards collecting
 - [ ] XP for daily login is engagement hacking - Remove or reduce
@@ -707,6 +726,7 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - [ ] Consider: Remove levels if they don't unlock anything meaningful
 
 ### Celebration Animations - Evaluate Kid Experience
+
 - [ ] Are celebrations too frequent? - May become annoying/dismissable
 - [ ] Are celebrations too long? - Kids may want to get back to browsing
 - [ ] Test with real kids (or parent feedback) - Do they like or skip celebrations?
@@ -714,6 +734,7 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - [ ] Consider: Reduce celebration frequency in Settings (Low-Stimulation Mode)
 
 ### Virtual Features - Evaluate Relevance
+
 - [ ] **Digital Binder** - Good: Visualizes collection. Keep.
 - [ ] **Trophy Room** - Good: Shows achievements. Keep.
 - [ ] **Adventure Map** - Questionable: Does unlocking regions help track cards? Evaluate.
@@ -721,6 +742,7 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - [ ] **Pack Opening Simulator** - Problematic: See above. Likely remove.
 
 ### Gamification Philosophy Check
+
 - [ ] Create "Gamification Audit" document - List every gamified element
 - [ ] For each element, answer: "Does this help kids COLLECT or just use the app?"
 - [ ] Remove elements that don't serve the core mission
