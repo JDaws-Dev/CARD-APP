@@ -2466,7 +2466,7 @@ These tasks address backend requirements for SEO and infrastructure improvements
 
 ### Security Improvements
 
-- [ ] Add rate limiting to API routes - Prevent abuse of search/filter endpoints
+- [x] Add rate limiting to API routes - Prevent abuse of search/filter endpoints
 - [ ] Add request validation middleware - Validate game parameter is valid enum value
 - [ ] Log suspicious API access patterns - Track unusual request volumes
 
@@ -2631,3 +2631,36 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - chunkProfileIds tests (4)
   - mergeBatchResults tests (5)
 - All 217 profile tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Add rate limiting to search and filter API routes
+
+- **Created `src/lib/rateLimit.ts` rate limiting utility:**
+  - Sliding window rate limiter using in-memory storage
+  - IP-based key extraction from x-forwarded-for, x-real-ip, x-vercel-forwarded-for headers
+  - Custom key generator support for user-based limiting
+  - Rate limit headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset
+  - Periodic cleanup of expired entries (every 5 minutes)
+  - Configurable limits per endpoint type
+  - `withRateLimit` higher-order function for easy handler wrapping
+- **Predefined rate limit configurations:**
+  - `search`: 30 requests/minute (for /api/search)
+  - `filter`: 60 requests/minute (for /api/filter)
+  - `cards`: 100 requests/minute
+  - `sets`: 60 requests/minute
+  - `health`: 10 requests/minute
+  - `strict`: 10 requests/minute (for expensive operations)
+- **Applied rate limiting to `/api/search` and `/api/filter`:**
+  - Returns 429 Too Many Requests when limit exceeded
+  - Includes Retry-After header with seconds until reset
+  - Adds rate limit headers to all successful responses
+- **Wrote 39 tests in `src/lib/__tests__/rateLimit.test.ts`:**
+  - getClientIp header extraction tests (7)
+  - checkRateLimit functionality tests (10)
+  - createRateLimitResponse tests (4)
+  - addRateLimitHeaders tests (3)
+  - RATE_LIMIT_CONFIGS validation tests (6)
+  - withRateLimit wrapper tests (3)
+  - Store management tests (4)
+  - Integration tests with endpoint configs (2)
+- **Updated route test files to clear rate limit store between tests**
+- All 130 tests pass (39 rate limit + 39 search + 52 filter), ESLint clean, Prettier formatted
