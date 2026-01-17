@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { CardImage } from '@/components/ui/CardImage';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import { CollectionGroupSkeleton, Skeleton } from '@/components/ui/Skeleton';
 import { ErrorFallback } from '@/components/ui/ErrorBoundary';
@@ -343,12 +343,11 @@ export function CollectionView({ collection }: CollectionViewProps) {
 
                   {/* Card Image */}
                   <div className="relative aspect-[2.5/3.5] overflow-hidden rounded">
-                    <Image
+                    <CardImage
                       src={card.images.small}
                       alt={card.name}
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                      className="object-contain"
                     />
 
                     {/* Quantity Badge */}
@@ -405,12 +404,11 @@ export function CollectionView({ collection }: CollectionViewProps) {
               >
                 {/* Card Image */}
                 <div className="relative aspect-[2.5/3.5] overflow-hidden rounded">
-                  <Image
+                  <CardImage
                     src={card.images.small}
                     alt={card.name}
                     fill
                     sizes="(max-width: 640px) 33vw, (max-width: 1024px) 16vw, 12vw"
-                    className="object-contain"
                   />
 
                   {/* Quantity Badge */}
