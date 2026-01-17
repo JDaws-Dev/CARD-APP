@@ -38,7 +38,7 @@ function FloatingCard({ className, delay = '0s' }: { className?: string; delay?:
       aria-hidden="true"
     >
       <div className="flex h-full w-full items-center justify-center">
-        <SparklesIcon className="h-6 w-6 text-pokemon-yellow" />
+        <SparklesIcon className="h-6 w-6 text-kid-primary" />
       </div>
     </div>
   );
@@ -48,7 +48,7 @@ function FloatingCard({ className, delay = '0s' }: { className?: string; delay?:
 function FloatingStar({
   className,
   delay = '0s',
-  color = 'text-pokemon-yellow',
+  color = 'text-kid-primary',
 }: {
   className?: string;
   delay?: string;
@@ -92,7 +92,7 @@ export default function Home() {
         <div className="relative mx-auto max-w-4xl text-center">
           {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm backdrop-blur">
-            <SparklesIcon className="h-5 w-5 text-pokemon-yellow" />
+            <SparklesIcon className="h-5 w-5 text-kid-primary" />
             <span className="text-sm font-medium text-gray-700">Made for young collectors</span>
           </div>
 
@@ -100,7 +100,7 @@ export default function Home() {
           <h1 className="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 sm:mb-6 sm:text-5xl md:text-6xl lg:text-7xl">
             Track Your{' '}
             <span className="bg-gradient-to-r from-kid-primary via-purple-500 to-kid-secondary bg-clip-text text-transparent">
-              Pokemon Cards
+              Trading Cards
             </span>
             <br />
             Like a Pro!
