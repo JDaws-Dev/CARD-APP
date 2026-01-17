@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL fixes first, then HIGH priority
 
 ```
-Progress: ████████████░░░░░░░░░░░░░░░░  110/287 (38%)
-Remaining: 177 tasks (42 are LOW priority - do after launch)
+Progress: ████████████░░░░░░░░░░░░░░░░  110/303 (36%)
+Remaining: 193 tasks (42 are LOW priority - do after launch)
 ```
 
 ## Status Summary (Updated 2026-01-17 - Post Comprehensive Evaluation)
@@ -32,6 +32,7 @@ Remaining: 177 tasks (42 are LOW priority - do after launch)
 | HIGH PRIORITY - Landing Page              | 9        | 0         |
 | UI Tasks                                  | 20       | 0         |
 | Core Features                             | 6        | 0         |
+| Master Set Mode & Variant Tracking UI     | 0        | 16        |
 | Gamification UI                           | 4        | 0         |
 | Educational Features UI                   | 5        | 0         |
 | Navigation & Dashboard                    | 7        | 0         |
@@ -46,7 +47,7 @@ Remaining: 177 tasks (42 are LOW priority - do after launch)
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **177**   |
+| **TOTAL**                                 | **110**  | **193**   |
 
 ### Priority Order for Remaining Tasks
 
@@ -67,6 +68,7 @@ Remaining: 177 tasks (42 are LOW priority - do after launch)
 15. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
 16. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
 17. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
+18. **MEDIUM - Master Set Mode & Variant Tracking** (16 tasks) - For completionist collectors who want to track all variants
 
 ---
 
@@ -133,7 +135,7 @@ These specific issues were discovered during code review and need immediate atte
 
 ### App Footer (Critical for Professional Look)
 
-- [ ] Create `src/components/layout/AppFooter.tsx` - Footer component with Help, Privacy Policy, Terms of Service, Contact links
+- [x] Create `src/components/layout/AppFooter.tsx` - Footer component with Help, Privacy Policy, Terms of Service, Contact links
 - [ ] Add AppFooter to `src/app/layout.tsx` - Include footer on all authenticated pages
 - [ ] Create `/privacy` page stub - Placeholder privacy policy page
 - [ ] Create `/terms` page stub - Placeholder terms of service page
@@ -324,6 +326,46 @@ Detailed landing page text changes to support multi-TCG while keeping Pokemon pr
 - [x] "New in collection" badge - Cards added in last 7 days get sparkle/shimmer effect
 - [x] Kid mode / age toggle - Simplified interface option for younger users (6-8) vs full features (12-14)
 - [x] Japanese promo cards display - Show Japanese promos correctly
+
+### Master Set Mode & Variant Tracking UI
+
+For families with serious collectors who want to track complete "master sets" including all variants.
+
+**Master Set Mode Toggle:**
+
+- [ ] Add "Master Set Mode" toggle to Settings page under "Collector Preferences" section
+- [ ] Show description: "Track every variant (Normal, Holo, Reverse Holo) separately for complete master set progress"
+- [ ] Toggle should be per-profile (each family member can have different preference)
+
+**Dual Progress Display in Stats Bar:**
+
+- [ ] Update VirtualCardGrid stats bar to support dual progress mode
+- [ ] Primary row: "172/172 cards" with percentage (always visible, big numbers)
+- [ ] Secondary row: "280/344 variants" with percentage (smaller text, muted color)
+- [ ] Only show secondary row when: Master Set Mode ON, or user has any variant tracking data
+- [ ] Add info tooltip explaining "Cards = unique Pokemon, Variants = including Normal/Holo/Reverse versions"
+
+**Variant Badges on All Cards:**
+
+- [ ] Show N/H/R variant indicators on ALL cards in grid (not just owned)
+- [ ] Unowned variants: muted/outline badge style (gray border, no fill)
+- [ ] Owned variants: filled badge with quantity (e.g., "N×2", "R×1")
+- [ ] Add hover tooltip: "Normal: 2 owned", "Reverse Holo: Not owned"
+- [ ] Hide variant badges in simplified/kid mode to reduce visual clutter
+
+**Missing Variants Filter:**
+
+- [ ] Add VariantFilter component next to RarityFilter on set detail page
+- [ ] Filter pill options: "All Variants", "Missing Normal", "Missing Reverse", "Missing Any", "Complete"
+- [ ] When filter active, highlight the specific missing variant badge on each card
+- [ ] Add card count badge to each filter option showing how many cards match
+
+**Master Set Achievement Badges UI:**
+
+- [ ] Add "Master Collector" badge category to Trophy Case
+- [ ] Badge: "Set Master" - Complete all variants for any set (special crown icon)
+- [ ] Badge: "Reverse Hunter" milestone badges (10/50/100/250 reverse holos collected)
+- [ ] Badge: "Variant Completionist" - Own both Normal and Reverse for 50+ cards
 
 ### Gamification UI
 
@@ -642,6 +684,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Added loading="lazy" to CollectionView card images - Added explicit `loading="lazy"` prop to both CardImage components in CollectionView (src/components/collection/CollectionView.tsx) for the Most Valuable Cards section and main collection grid. Added test to verify lazy loading is applied for performance optimization. This defers loading of offscreen card images, improving initial page load time for collections with many cards. Commit: 1205700
 
 - **2026-01-17**: Completed CRITICAL redirect for logged-in users from landing page to dashboard - Converted src/app/page.tsx from server component to client component to enable auth hooks. Added useConvexAuth and useRouter hooks to check authentication status and redirect authenticated users to /dashboard immediately. Shows loading spinner while checking auth state, returns null during redirect to prevent flash of landing content. Updated LandingPage.test.tsx with mocks for convex/react and next/navigation, added 3 new tests covering loading state, redirect behavior, and unauthenticated content display. All 29 landing page tests pass. ESLint and Prettier clean. Commit: f78b53c
+
+- **2026-01-17**: Created AppFooter component for authenticated pages - Added `src/components/layout/AppFooter.tsx` with navigation links to Help, Privacy Policy, Terms of Service, and Contact using Heroicons (QuestionMarkCircleIcon, ShieldCheckIcon, DocumentTextIcon, EnvelopeIcon). Features: full dark mode support, responsive layout (stacked on mobile, horizontal on desktop), proper accessibility with contentinfo role and aria-label on nav, copyright notice with dynamic year, and TCG company trademark disclaimer. Added comprehensive test suite (19 tests) covering structure, links, icons, accessibility, and responsive behavior. ESLint and Prettier clean. Commit: 0f2e7c6
 
 ---
 
