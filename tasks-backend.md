@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: █████████████████████████░░░░  105/124 (85%)
-Remaining: 19 tasks
+Progress: █████████████████████████░░░░  107/124 (86%)
+Remaining: 17 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -28,10 +28,10 @@ Remaining: 19 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | **AI-Powered Features**             | 18       | **3**     |
-| **Trade Logging**                   | 5        | **2**     |
+| **Trade Logging**                   | 7        | **0**     |
 | Launch Prep                         | 4        | **5**     |
 | **Kid-Friendly Set Filtering**      | **7**    | **0**     |
-| **TOTAL**                           | **105**  | **19**    |
+| **TOTAL**                           | **107**  | **17**    |
 
 ### Critical Path for Launch
 
@@ -270,8 +270,8 @@ Simple trade logging to record real-life trades. Kids log what they gave and rec
 
 #### Testing
 
-- [ ] TRADE-006: Write unit tests for `logTrade` mutation - Test giving/receiving cards, collection updates, activity logging
-- [ ] TRADE-007: Write tests for trade validation - Test insufficient quantity, invalid card IDs, empty trade prevention
+- [x] TRADE-006: Write unit tests for `logTrade` mutation - Test giving/receiving cards, collection updates, activity logging
+- [x] TRADE-007: Write tests for trade validation - Test insufficient quantity, invalid card IDs, empty trade prevention
 
 ### Launch Prep
 
@@ -3143,6 +3143,30 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - Set completion info tests (2)
   - Game slug support tests (2)
 - All 60 tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Add comprehensive unit tests for trade logging system (TRADE-006/007)
+
+- **Created `src/lib/trades.ts` with pure utility functions for trade validation:**
+  - Types: `TradeCardEntry`, `CollectionEntry`, `OwnershipCheckResult`, `TradeValidationResult`, `TradeSummary`, `TradeActivityMetadata`
+  - Constants: `DEFAULT_TRADE_VARIANT`, `MAX_TRADE_CARDS` (100), `MAX_CARD_QUANTITY` (99), `MAX_TRADING_PARTNER_LENGTH` (100)
+  - Validation: `validateTradeCard`, `validateTradingPartner`, `checkCardOwnership`, `validateTrade`
+  - Duplicate handling: `findDuplicateTradeCards`, `normalizeTradeCards`
+  - Collection operations: `removeCardsFromCollection`, `addCardsToCollection`, `simulateTrade`
+  - Summary functions: `calculateTotalQuantity`, `calculateUniqueCards`, `createTradeSummary`, `createTradeActivityMetadata`
+  - Formatting: `formatTradeCard`, `formatVariant`, `formatTradeSummary`, `getTradeDescription`, `formatNetChange`
+- **Created `src/lib/__tests__/trades.test.ts` with 108 comprehensive tests:**
+  - Constants validation tests (4)
+  - validateTradeCard tests (14) - valid cards, invalid card ID, invalid quantity, invalid variant, null handling
+  - validateTradingPartner tests (8) - valid names, trimming, null/undefined, empty strings, max length
+  - checkCardOwnership tests (9) - ownership confirmation, insufficient quantity, card not found, wrong variant
+  - validateTrade tests (15) - valid trades, empty trade, ownership validation, card validation, limits
+  - Duplicate detection tests (8) - findDuplicateTradeCards, normalizeTradeCards
+  - Collection update tests (12) - removeCardsFromCollection, addCardsToCollection, simulateTrade
+  - Summary function tests (10) - calculateTotalQuantity, calculateUniqueCards, createTradeSummary, createTradeActivityMetadata
+  - Formatting tests (8) - formatTradeCard, formatVariant, formatTradeSummary, getTradeDescription, formatNetChange
+  - Integration scenarios (12) - friend trade, family gift, donation, invalid trade, variant upgrade
+  - Edge case tests (8) - empty collections, large quantities, special characters
+- All 108 tests pass, ESLint clean, Prettier formatted
 
 ---
 
