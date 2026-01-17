@@ -5,7 +5,7 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: ██████████████████████░░░░░░  75/89 (84%)
+Progress: ████████████████████████░░░░  82/96 (85%)
 Remaining: 14 tasks
 ```
 
@@ -28,7 +28,8 @@ Remaining: 14 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | Launch Prep                         | 4        | **5**     |
-| **TOTAL**                           | **75**   | **14**    |
+| **Kid-Friendly Set Filtering**      | **7**    | **0**     |
+| **TOTAL**                           | **82**   | **14**    |
 
 ### Critical Path for Launch
 
@@ -2520,16 +2521,16 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
 
 ### Schema Updates
 
-- [ ] Add `isInPrint` boolean field to `cachedSets` table - Track whether set is currently available at retail
-- [ ] Add `releaseDate` index to enable date-based filtering - `by_game_and_release_date`
-- [ ] Add `printStatus` enum field - Values: 'current', 'limited', 'out_of_print', 'vintage'
+- [x] Add `isInPrint` boolean field to `cachedSets` table - Track whether set is currently available at retail
+- [x] Add `releaseDate` index to enable date-based filtering - `by_game_and_release_date` (already exists: `by_game_and_release`)
+- [x] Add `printStatus` enum field - Values: 'current', 'limited', 'out_of_print', 'vintage'
 
 ### Set Filtering Logic
 
-- [ ] Create `getInPrintSets` query - Return only sets with `isInPrint: true` or released within 24 months
-- [ ] Create `markOutOfPrintSets` mutation - Admin tool to mark sets as out of print
-- [ ] Add `cutoffDate` parameter to `getSetsByGame` - Filter by release date
-- [ ] Create set availability update cron job - Automatically mark sets older than 24 months as limited/out_of_print
+- [x] Create `getInPrintSets` query - Return only sets with `isInPrint: true` or released within 24 months
+- [x] Create `markOutOfPrintSets` mutation - Admin tool to mark sets as out of print
+- [x] Add `cutoffDate` parameter to `getSetsByGame` - Filter by release date
+- [x] Create set availability update cron job - Automatically mark sets older than 24 months as limited/out_of_print
 
 ### Game Removal: Magic: The Gathering
 
@@ -2849,3 +2850,47 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - Filters at database level instead of fetching all logs then filtering in JS
   - Especially helpful for active users with 1000+ activity logs
 - ESLint clean, Prettier formatted, tests pass (6 pre-existing failures unrelated to this change)
+
+### 2026-01-17: Add kid-friendly set filtering with print status tracking
+
+- **Added schema fields to `cachedSets` in `convex/schema.ts`:**
+  - `isInPrint`: Optional boolean to track if set is available at retail
+  - `printStatus`: Optional enum ('current', 'limited', 'out_of_print', 'vintage')
+  - `by_game_and_print_status` index for efficient in-print queries
+- **Enhanced `getSetsByGame` query in `convex/dataPopulation.ts`:**
+  - Added `cutoffDate` parameter for date-based filtering
+  - Added `includeOutOfPrint` parameter to exclude out-of-print sets
+  - Backwards compatible - defaults to returning all sets
+- **Added `getInPrintSets` query:**
+  - Returns sets available at retail (kid-friendly)
+  - Uses isInPrint flag, printStatus field, or 24-month release date fallback
+  - Supports custom `maxAgeMonths` parameter
+  - Returns count and cutoff date metadata
+- **Added admin mutations:**
+  - `markOutOfPrintSets`: Batch update print status for multiple sets
+  - `updateSetPrintStatus`: Update single set's print status
+  - `autoUpdatePrintStatus`: Cron job helper that auto-marks sets as out_of_print (>24 months) or vintage (>60 months)
+- **Added client-side utilities to `src/lib/dataPopulation.ts`:**
+  - `PrintStatus` type and `PRINT_STATUSES` constant
+  - `isValidPrintStatus()`: Type guard for print status validation
+  - `getPrintStatusLabel()`: Human-readable labels ('In Print', 'Out of Print', etc.)
+  - `getPrintStatusDescription()`: Detailed descriptions for tooltips
+  - `isSetInPrint()`: Client-side logic matching server query
+  - `filterInPrintSets()`: Filter array to only in-print sets
+  - `groupSetsByPrintStatus()`: Group into inPrint/outOfPrint arrays
+  - `getInPrintCutoffDate()`: Calculate cutoff date for maxAgeMonths
+  - `determinePrintStatusByDate()`: Auto-determine status from release date
+  - `getPrintStatusStats()`: Statistics about print status distribution
+- **Added 32 new tests to `src/lib/__tests__/dataPopulation.test.ts`:**
+  - Print status constants tests (1)
+  - isValidPrintStatus validation tests (2)
+  - getPrintStatusLabel tests (2)
+  - getPrintStatusDescription tests (2)
+  - isSetInPrint tests (8) - explicit flag, printStatus, date fallback
+  - filterInPrintSets tests (2)
+  - groupSetsByPrintStatus tests (2)
+  - getInPrintCutoffDate tests (2)
+  - determinePrintStatusByDate tests (4)
+  - getPrintStatusStats tests (3)
+  - CachedSet interface tests (2)
+- All 93 dataPopulation tests pass, ESLint clean, Prettier formatted
