@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: ██████████████████████░░░░░░  72/89 (81%)
-Remaining: 17 tasks
+Progress: ██████████████████████░░░░░░  73/89 (82%)
+Remaining: 16 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -15,7 +15,7 @@ Remaining: 17 tasks
 | ----------------------------------- | -------- | --------- |
 | **CRITICAL - Multi-TCG API**        | 4        | **1**     |
 | **CRITICAL - Auth Fixes**           | 5        | **0**     |
-| **HIGH - Performance Optimization** | 5        | **2**     |
+| **HIGH - Performance Optimization** | 6        | **1**     |
 | HIGH PRIORITY - Auth & Pricing      | 9        | **1**     |
 | Card Variants                       | 3        | 0         |
 | Achievement System                  | 6        | 0         |
@@ -28,7 +28,7 @@ Remaining: 17 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | Launch Prep                         | 4        | **5**     |
-| **TOTAL**                           | **72**   | **17**    |
+| **TOTAL**                           | **73**   | **16**    |
 
 ### Critical Path for Launch
 
@@ -93,7 +93,7 @@ My Collection page is slow due to redundant/inefficient Convex queries. These ba
 - [x] Create batch query for VirtualCardGrid - Merge 4 queries (collection, wishlist, newlyAdded, priorityCount) into `getSetViewData` single query
 - [x] Optimize `getNewlyAddedCards` query - Add database-level filtering with composite index `by_profile_and_action_time` instead of collecting all logs and filtering in JS
 - [x] Add composite index to activityLogs - Create index `by_profile_action_time` for (profileId, action, \_creationTime) in schema
-- [ ] Optimize wishlist queries - Add index for profile+game queries if missing
+- [x] Optimize wishlist queries - Add index for profile+game queries if missing
 - [x] Add pagination to activity feed queries - Use `.take()` with cursor for large activity histories instead of `.collect()`
 - [ ] Profile query batching - Consolidate multiple profile lookups into batch queries where used
 
@@ -213,6 +213,39 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-17: Optimize wishlist queries with gameSlug index for multi-TCG support
+
+- **Added `gameSlug` field to `wishlistCards` schema in `convex/schema.ts`**
+  - Optional field (denormalized from cachedCards for query performance)
+  - Supports all 7 TCGs: pokemon, yugioh, mtg, onepiece, lorcana, digimon, dragonball
+  - Added `by_profile_and_game` index for efficient game-filtered queries
+- **Added 3 optimized Convex queries to `convex/wishlist.ts`:**
+  - `getWishlistByGame`: Uses by_profile_and_game index for efficient filtering
+  - `getWishlistByGameWithCards`: Returns wishlist with enriched card data (name, image, price)
+  - `getWishlistCountsByGame`: Returns item counts per game for UI tabs
+- **Updated `addToWishlist` mutation:**
+  - Accepts optional `gameSlug` parameter
+  - Auto-lookup gameSlug from cachedCards when not provided
+  - Backfills gameSlug on existing cards when re-added with gameSlug
+- **Added `backfillWishlistGameSlugs` migration mutation:**
+  - Batch processes wishlist cards without gameSlug
+  - Looks up game from cachedCards and updates
+  - Safe to run multiple times, reports progress
+- **Added client-side utilities to `src/lib/wishlist.ts`:**
+  - `VALID_GAME_SLUGS`: Array of 7 valid game slug constants
+  - `isValidGameSlug()`: Type guard for validating game slugs
+  - `filterWishlistByGame()`: Client-side filtering by game
+  - `countWishlistByGame()`: Count items by game with priority breakdown
+  - `getWishlistSummary()`: Full wishlist statistics with game breakdown
+- **Wrote 25 new tests in `src/lib/__tests__/wishlist.test.ts`:**
+  - VALID_GAME_SLUGS constant tests (2)
+  - isValidGameSlug validation tests (3)
+  - filterWishlistByGame functionality tests (7)
+  - countWishlistByGame calculation tests (4)
+  - getWishlistSummary statistics tests (6)
+  - Multi-TCG integration scenarios (3)
+- All 46 wishlist tests pass (21 existing + 25 new), ESLint clean, Prettier formatted
 
 ### 2026-01-17: Create health check endpoint at /api/health
 
