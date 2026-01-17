@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../../convex/_generated/api';
+import {
+  checkRateLimit,
+  createRateLimitResponse,
+  addRateLimitHeaders,
+  RATE_LIMIT_CONFIGS,
+} from '../../../lib/rateLimit';
 
 /**
  * Valid game slugs for the API
@@ -65,6 +71,12 @@ const COMMON_TYPES_BY_GAME: Record<GameSlug, string[]> = {
  * At least one filter (setId, type, name, or rarity) is required.
  */
 export async function GET(request: NextRequest) {
+  // Check rate limit first
+  const rateLimitResult = checkRateLimit(request, RATE_LIMIT_CONFIGS.filter);
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult);
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const game = searchParams.get('game') || 'pokemon';
@@ -197,7 +209,7 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       data: transformedCards,
       game,
       filters: {
@@ -214,6 +226,10 @@ export async function GET(request: NextRequest) {
       availableGames: VALID_GAMES,
       commonTypes: COMMON_TYPES_BY_GAME[game],
     });
+
+    // Add rate limit headers to successful response
+    addRateLimitHeaders(response, rateLimitResult);
+    return response;
   } catch (error) {
     console.error('Error filtering cards:', error);
     return NextResponse.json(

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GET } from '../route';
 import { NextRequest } from 'next/server';
+import { clearRateLimitStore } from '../../../../lib/rateLimit';
 
 // Mock the Convex HTTP client
 const mockQuery = vi.fn();
@@ -180,6 +181,8 @@ function createFilterResult(
 describe('GET /api/filter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Clear rate limit store before each test to prevent test interference
+    clearRateLimitStore();
     // Set up environment variable
     process.env = {
       ...originalEnv,

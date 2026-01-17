@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../../convex/_generated/api';
+import {
+  checkRateLimit,
+  createRateLimitResponse,
+  addRateLimitHeaders,
+  RATE_LIMIT_CONFIGS,
+} from '../../../lib/rateLimit';
 
 /**
  * Valid game slugs for the API
@@ -35,6 +41,12 @@ function isValidGameSlug(value: string): value is GameSlug {
  * Searches by card name (case-insensitive partial match).
  */
 export async function GET(request: NextRequest) {
+  // Check rate limit first
+  const rateLimitResult = checkRateLimit(request, RATE_LIMIT_CONFIGS.search);
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult);
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
@@ -146,7 +158,7 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       data: transformedCards,
       query: trimmedQuery,
       game,
@@ -154,6 +166,10 @@ export async function GET(request: NextRequest) {
       limit,
       availableGames: VALID_GAMES,
     });
+
+    // Add rate limit headers to successful response
+    addRateLimitHeaders(response, rateLimitResult);
+    return response;
   } catch (error) {
     console.error('Error searching cards:', error);
     return NextResponse.json(
