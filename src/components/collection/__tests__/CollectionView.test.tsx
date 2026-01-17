@@ -82,7 +82,7 @@ describe('CollectionView', () => {
     vi.clearAllMocks();
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve(mockCards),
+      json: () => Promise.resolve({ data: mockCards }),
     });
   });
 

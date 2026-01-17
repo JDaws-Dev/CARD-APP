@@ -51,6 +51,7 @@ interface CollectionViewProps {
 
 interface CardWithQuantity extends PokemonCard {
   quantity: number;
+  collectionId: string; // Unique ID from the collection entry
 }
 
 interface SetGroup {
@@ -89,7 +90,8 @@ export function CollectionView({ collection }: CollectionViewProps) {
         throw new Error('Failed to fetch card data');
       }
 
-      const cards: PokemonCard[] = await response.json();
+      const json = await response.json();
+      const cards: PokemonCard[] = json.data || [];
 
       // Build a map for quick lookup
       const cardMap = new Map<string, PokemonCard>();
@@ -111,44 +113,49 @@ export function CollectionView({ collection }: CollectionViewProps) {
     setRetryCount((prev) => prev + 1);
   }, []);
 
-  // Group cards by set
-  const setGroups: SetGroup[] = [];
-  const setMap = new Map<string, SetGroup>();
+  // Group cards by set - memoized to cache expensive grouping computation
+  const setGroups = useMemo(() => {
+    const groups: SetGroup[] = [];
+    const setMap = new Map<string, SetGroup>();
 
-  collection.forEach((item) => {
-    const card = cardData.get(item.cardId);
-    if (card) {
-      const setId = card.set.id;
-      const setName = card.set.name;
+    collection.forEach((item) => {
+      const card = cardData.get(item.cardId);
+      if (card) {
+        const setId = card.set.id;
+        const setName = card.set.name;
 
-      if (!setMap.has(setId)) {
-        setMap.set(setId, {
-          setId,
-          setName,
-          cards: [],
+        if (!setMap.has(setId)) {
+          setMap.set(setId, {
+            setId,
+            setName,
+            cards: [],
+          });
+        }
+
+        setMap.get(setId)!.cards.push({
+          ...card,
+          quantity: item.quantity,
+          collectionId: item._id,
         });
       }
-
-      setMap.get(setId)!.cards.push({
-        ...card,
-        quantity: item.quantity,
-      });
-    }
-  });
-
-  // Convert map to array and sort by set name
-  setMap.forEach((group) => {
-    // Sort cards within set by number
-    group.cards.sort((a, b) => {
-      const numA = parseInt(a.number) || 0;
-      const numB = parseInt(b.number) || 0;
-      return numA - numB;
     });
-    setGroups.push(group);
-  });
 
-  // Sort sets alphabetically
-  setGroups.sort((a, b) => a.setName.localeCompare(b.setName));
+    // Convert map to array and sort by set name
+    setMap.forEach((group) => {
+      // Sort cards within set by number
+      group.cards.sort((a, b) => {
+        const numA = parseInt(a.number) || 0;
+        const numB = parseInt(b.number) || 0;
+        return numA - numB;
+      });
+      groups.push(group);
+    });
+
+    // Sort sets alphabetically
+    groups.sort((a, b) => a.setName.localeCompare(b.setName));
+
+    return groups;
+  }, [collection, cardData]);
 
   // Calculate total collection value
   const collectionValue = useMemo(() => {
@@ -174,14 +181,19 @@ export function CollectionView({ collection }: CollectionViewProps) {
 
   // Get top 5 most valuable cards
   const mostValuableCards = useMemo(() => {
-    const cardsWithPrices: { card: PokemonCard; price: number; quantity: number }[] = [];
+    const cardsWithPrices: {
+      card: PokemonCard;
+      price: number;
+      quantity: number;
+      collectionId: string;
+    }[] = [];
 
     collection.forEach((item) => {
       const card = cardData.get(item.cardId);
       if (card) {
         const price = getCardMarketPrice(card);
         if (price !== null && price > 0) {
-          cardsWithPrices.push({ card, price, quantity: item.quantity });
+          cardsWithPrices.push({ card, price, quantity: item.quantity, collectionId: item._id });
         }
       }
     });
@@ -196,7 +208,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
     collection.forEach((item) => {
       const card = cardData.get(item.cardId);
       if (card) {
-        cards.push({ ...card, quantity: item.quantity });
+        cards.push({ ...card, quantity: item.quantity, collectionId: item._id });
       }
     });
     return cards;
@@ -317,9 +329,9 @@ export function CollectionView({ collection }: CollectionViewProps) {
             </div>
 
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-              {mostValuableCards.map(({ card, price, quantity }, index) => (
+              {mostValuableCards.map(({ card, price, quantity, collectionId }, index) => (
                 <div
-                  key={card.id}
+                  key={collectionId}
                   className="group relative rounded-lg bg-white p-3 shadow-sm transition hover:shadow-md"
                 >
                   {/* Rank Badge */}
@@ -400,7 +412,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
             {group.cards.map((card) => (
               <div
-                key={card.id}
+                key={card.collectionId}
                 className="group relative rounded-lg bg-gray-50 p-1.5 transition hover:shadow-md"
               >
                 {/* Card Image */}
