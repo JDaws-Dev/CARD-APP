@@ -12,9 +12,11 @@ import {
   TrophyIcon,
   FireIcon,
   ArrowRightIcon,
+  MagnifyingGlassPlusIcon,
 } from '@heroicons/react/24/solid';
 import { RandomCardButton } from './RandomCardButton';
 import { DigitalBinder, DigitalBinderButton } from '@/components/virtual/DigitalBinder';
+import { CardDetailModal } from './CardDetailModal';
 
 // Helper function to get the best market price from a card's TCGPlayer prices
 function getCardMarketPrice(card: PokemonCard): number | null {
@@ -66,6 +68,8 @@ export function CollectionView({ collection }: CollectionViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isBinderOpen, setIsBinderOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<CardWithQuantity | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Memoize cardData Map to prevent recreation on every render
   // Only rebuilds when fetchedCards array reference changes
@@ -219,6 +223,40 @@ export function CollectionView({ collection }: CollectionViewProps) {
     });
     return cards;
   }, [collection, cardData]);
+
+  // Handle card click to open detail modal
+  const handleCardClick = useCallback((card: CardWithQuantity) => {
+    setSelectedCard(card);
+    setIsDetailModalOpen(true);
+  }, []);
+
+  // Navigate to previous/next card in the collection
+  const handlePreviousCard = useCallback(() => {
+    if (!selectedCard || allCardsForBinder.length === 0) return;
+    const currentIndex = allCardsForBinder.findIndex(
+      (c) => c.collectionId === selectedCard.collectionId
+    );
+    if (currentIndex > 0) {
+      setSelectedCard(allCardsForBinder[currentIndex - 1]);
+    }
+  }, [selectedCard, allCardsForBinder]);
+
+  const handleNextCard = useCallback(() => {
+    if (!selectedCard || allCardsForBinder.length === 0) return;
+    const currentIndex = allCardsForBinder.findIndex(
+      (c) => c.collectionId === selectedCard.collectionId
+    );
+    if (currentIndex < allCardsForBinder.length - 1) {
+      setSelectedCard(allCardsForBinder[currentIndex + 1]);
+    }
+  }, [selectedCard, allCardsForBinder]);
+
+  // Check if there are previous/next cards
+  const selectedCardIndex = selectedCard
+    ? allCardsForBinder.findIndex((c) => c.collectionId === selectedCard.collectionId)
+    : -1;
+  const hasPreviousCard = selectedCardIndex > 0;
+  const hasNextCard = selectedCardIndex >= 0 && selectedCardIndex < allCardsForBinder.length - 1;
 
   if (isLoading) {
     // Show skeleton for estimated number of groups based on collection size
@@ -417,9 +455,12 @@ export function CollectionView({ collection }: CollectionViewProps) {
           {/* Cards Grid */}
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
             {group.cards.map((card) => (
-              <div
+              <button
                 key={card.collectionId}
-                className="group relative rounded-lg bg-gray-50 p-1.5 transition hover:shadow-md"
+                type="button"
+                onClick={() => handleCardClick(card)}
+                className="group relative rounded-lg bg-gray-50 p-1.5 text-left transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-kid-primary focus:ring-offset-2"
+                aria-label={`View ${card.name} details`}
               >
                 {/* Card Image */}
                 <div className="relative aspect-[2.5/3.5] overflow-hidden rounded">
@@ -437,17 +478,33 @@ export function CollectionView({ collection }: CollectionViewProps) {
                       x{card.quantity}
                     </div>
                   )}
+
+                  {/* Magnifying glass overlay on hover */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/20 group-hover:opacity-100">
+                    <MagnifyingGlassPlusIcon className="h-8 w-8 text-white drop-shadow-lg" />
+                  </div>
                 </div>
 
                 {/* Card Name */}
                 <p className="mt-1 truncate text-center text-xs font-medium text-gray-700">
                   {card.name}
                 </p>
-              </div>
+              </button>
             ))}
           </div>
         </div>
       ))}
+
+      {/* Card Detail Modal */}
+      <CardDetailModal
+        card={selectedCard}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        onPrevious={handlePreviousCard}
+        onNext={handleNextCard}
+        hasPrevious={hasPreviousCard}
+        hasNext={hasNextCard}
+      />
     </div>
   );
 }
