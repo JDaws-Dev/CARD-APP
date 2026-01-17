@@ -289,6 +289,50 @@ Simple trade logging to record real-life trades. Kids log what they gave and rec
 
 ## Progress
 
+### 2026-01-17: Add maxAgeMonths parameter to all populateGameSets actions
+
+- **Added `maxAgeMonths` filtering to all 7 game-specific populate actions in `convex/dataPopulation.ts`:**
+  - `populatePokemonSets`: Added `maxAgeMonths` arg, filters by release date
+  - `populateYugiohSets`: Added `maxAgeMonths` arg, filters by release date
+  - `populateMtgSets`: Added `maxAgeMonths` arg (alongside existing `collectibleOnly`)
+  - `populateLorcanaSets`: Added `maxAgeMonths` arg, filters by release date
+  - `populateOnePieceSets`: Added `maxAgeMonths` + `minSetNumber` args with approximate release dates (OP01 = July 2022)
+  - `populateDigimonSets`: Added `maxAgeMonths` + `minSetNumber` args with approximate release dates (BT01 = April 2020)
+  - `populateDragonBallSets`: Added `maxAgeMonths` + `minSetNumber` args with approximate release dates (FB01 = Feb 2024)
+- **Added helper functions:**
+  - `getCutoffDate()`: Calculates cutoff date from maxAgeMonths
+  - `isSetWithinAgeLimit()`: Checks if release date is within allowed age
+- **Updated wrapper actions to pass through maxAgeMonths:**
+  - `internalPopulateSets`: Now accepts and passes `maxAgeMonths` to game-specific actions
+  - `populateSets`: Now accepts `maxAgeMonths` parameter
+  - `populateGameData`: Now accepts `maxAgeMonths` parameter, includes `setsSkipped` in result
+- **Added client-side utilities to `src/lib/dataPopulation.ts`:**
+  - `DEFAULT_MAX_AGE_MONTHS` constant (24 months = in-print)
+  - `MAX_AGE_PRESETS`: CURRENT (6), RECENT (12), IN_PRINT (24), EXTENDED (36), ALL
+  - `isValidMaxAgeMonths()`: Validates maxAgeMonths values
+  - `calculateCutoffDate()`: Calculates cutoff date from months
+  - `formatCutoffDate()`: Human-readable date formatting
+  - `getMaxAgeDescription()`: Human-readable filter description
+  - `isReleaseDateWithinLimit()`: Check single release date
+  - `filterSetsByAge()`: Filter array of sets by age
+  - `countFilteredSets()`: Count included/excluded sets
+- **Updated types:**
+  - `PopulationResult`: Added `skipped` field
+  - `GamePopulationResult`: Added `setsSkipped` field
+  - Added `PopulateSetsOptions` and `PopulateGameDataOptions` types
+- **Added 52 new tests to `src/lib/__tests__/dataPopulation.test.ts`:**
+  - Max Age Constants tests (2)
+  - isValidMaxAgeMonths tests (4)
+  - calculateCutoffDate tests (5)
+  - formatCutoffDate tests (3)
+  - getMaxAgeDescription tests (5)
+  - isReleaseDateWithinLimit tests (5)
+  - filterSetsByAge tests (5)
+  - countFilteredSets tests (5)
+  - Type tests for PopulationResult, GamePopulationResult, options (5)
+  - Integration tests simulating real game filtering (3)
+- All 134 dataPopulation tests pass, ESLint clean, Prettier formatted
+
 ### 2026-01-17: Add AI Quiz Generator for personalized collection quizzes
 
 - **Created `convex/ai/quizGenerator.ts` (AI-027, AI-029, AI-031)**
@@ -2649,7 +2693,7 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
 - [ ] Update Yu-Gi-Oh! API adapter - Only fetch sets from 2024 onwards
 - [ ] Update One Piece API adapter - Only fetch OP-10 through latest
 - [ ] Update Digimon API adapter - Only fetch sets from 2024 onwards
-- [ ] Add `maxAgeMonths` parameter to all `populateGameSets` actions
+- [x] Add `maxAgeMonths` parameter to all `populateGameSets` actions
 
 ### 2026-01-17: Add proper profile validation for secure ownership checks
 
