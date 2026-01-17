@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/components/providers/ReducedMotionProvider';
+import { CardImage } from '@/components/ui/CardImage';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import {
   BookOpenIcon,
@@ -15,25 +15,94 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/solid';
-import {
-  FireIcon,
-  BoltIcon,
-} from '@heroicons/react/24/outline';
+import { FireIcon, BoltIcon } from '@heroicons/react/24/outline';
 
 // Binder cover themes based on Pokemon types and starters
 const BINDER_THEMES = [
-  { id: 'classic', name: 'Classic', gradient: 'from-slate-800 via-slate-700 to-slate-900', accent: 'bg-slate-600', icon: BookOpenIcon },
-  { id: 'fire', name: 'Fire Type', gradient: 'from-red-600 via-orange-500 to-red-700', accent: 'bg-orange-400', icon: FireIcon },
-  { id: 'water', name: 'Water Type', gradient: 'from-blue-600 via-cyan-500 to-blue-700', accent: 'bg-cyan-400', icon: SparklesIcon },
-  { id: 'grass', name: 'Grass Type', gradient: 'from-green-600 via-emerald-500 to-green-700', accent: 'bg-emerald-400', icon: SparklesIcon },
-  { id: 'electric', name: 'Electric Type', gradient: 'from-yellow-500 via-amber-400 to-yellow-600', accent: 'bg-amber-300', icon: BoltIcon },
-  { id: 'psychic', name: 'Psychic Type', gradient: 'from-purple-600 via-pink-500 to-purple-700', accent: 'bg-pink-400', icon: SparklesIcon },
-  { id: 'dragon', name: 'Dragon Type', gradient: 'from-indigo-700 via-violet-600 to-indigo-800', accent: 'bg-violet-400', icon: SparklesIcon },
-  { id: 'charmander', name: 'Charmander', gradient: 'from-orange-500 via-red-400 to-orange-600', accent: 'bg-red-300', icon: FireIcon },
-  { id: 'squirtle', name: 'Squirtle', gradient: 'from-sky-500 via-blue-400 to-sky-600', accent: 'bg-blue-300', icon: SparklesIcon },
-  { id: 'bulbasaur', name: 'Bulbasaur', gradient: 'from-teal-500 via-green-400 to-teal-600', accent: 'bg-green-300', icon: SparklesIcon },
-  { id: 'pikachu', name: 'Pikachu', gradient: 'from-yellow-400 via-amber-300 to-yellow-500', accent: 'bg-amber-200', icon: BoltIcon },
-  { id: 'eevee', name: 'Eevee', gradient: 'from-amber-600 via-yellow-500 to-amber-700', accent: 'bg-yellow-400', icon: SparklesIcon },
+  {
+    id: 'classic',
+    name: 'Classic',
+    gradient: 'from-slate-800 via-slate-700 to-slate-900',
+    accent: 'bg-slate-600',
+    icon: BookOpenIcon,
+  },
+  {
+    id: 'fire',
+    name: 'Fire Type',
+    gradient: 'from-red-600 via-orange-500 to-red-700',
+    accent: 'bg-orange-400',
+    icon: FireIcon,
+  },
+  {
+    id: 'water',
+    name: 'Water Type',
+    gradient: 'from-blue-600 via-cyan-500 to-blue-700',
+    accent: 'bg-cyan-400',
+    icon: SparklesIcon,
+  },
+  {
+    id: 'grass',
+    name: 'Grass Type',
+    gradient: 'from-green-600 via-emerald-500 to-green-700',
+    accent: 'bg-emerald-400',
+    icon: SparklesIcon,
+  },
+  {
+    id: 'electric',
+    name: 'Electric Type',
+    gradient: 'from-yellow-500 via-amber-400 to-yellow-600',
+    accent: 'bg-amber-300',
+    icon: BoltIcon,
+  },
+  {
+    id: 'psychic',
+    name: 'Psychic Type',
+    gradient: 'from-purple-600 via-pink-500 to-purple-700',
+    accent: 'bg-pink-400',
+    icon: SparklesIcon,
+  },
+  {
+    id: 'dragon',
+    name: 'Dragon Type',
+    gradient: 'from-indigo-700 via-violet-600 to-indigo-800',
+    accent: 'bg-violet-400',
+    icon: SparklesIcon,
+  },
+  {
+    id: 'charmander',
+    name: 'Charmander',
+    gradient: 'from-orange-500 via-red-400 to-orange-600',
+    accent: 'bg-red-300',
+    icon: FireIcon,
+  },
+  {
+    id: 'squirtle',
+    name: 'Squirtle',
+    gradient: 'from-sky-500 via-blue-400 to-sky-600',
+    accent: 'bg-blue-300',
+    icon: SparklesIcon,
+  },
+  {
+    id: 'bulbasaur',
+    name: 'Bulbasaur',
+    gradient: 'from-teal-500 via-green-400 to-teal-600',
+    accent: 'bg-green-300',
+    icon: SparklesIcon,
+  },
+  {
+    id: 'pikachu',
+    name: 'Pikachu',
+    gradient: 'from-yellow-400 via-amber-300 to-yellow-500',
+    accent: 'bg-amber-200',
+    icon: BoltIcon,
+  },
+  {
+    id: 'eevee',
+    name: 'Eevee',
+    gradient: 'from-amber-600 via-yellow-500 to-amber-700',
+    accent: 'bg-yellow-400',
+    icon: SparklesIcon,
+  },
 ] as const;
 
 const CARDS_PER_PAGE = 9; // 3x3 grid per page
@@ -102,11 +171,14 @@ export function DigitalBinder({ cards, isOpen, onClose }: DigitalBinderProps) {
     }, duration);
   }, [currentSpread, isFlipping, reducedMotion]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowRight') goToNextPage();
-    if (e.key === 'ArrowLeft') goToPrevPage();
-    if (e.key === 'Escape') onClose();
-  }, [goToNextPage, goToPrevPage, onClose]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'ArrowRight') goToNextPage();
+      if (e.key === 'ArrowLeft') goToPrevPage();
+      if (e.key === 'Escape') onClose();
+    },
+    [goToNextPage, goToPrevPage, onClose]
+  );
 
   if (!isOpen) return null;
 
@@ -130,7 +202,7 @@ export function DigitalBinder({ cards, isOpen, onClose }: DigitalBinderProps) {
       {/* Theme selector panel */}
       {showThemeSelector && (
         <div
-          className="absolute right-4 top-4 z-60 w-64 rounded-xl bg-white p-4 shadow-2xl"
+          className="z-60 absolute right-4 top-4 w-64 rounded-xl bg-white p-4 shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="mb-3 flex items-center justify-between">
@@ -160,7 +232,9 @@ export function DigitalBinder({ cards, isOpen, onClose }: DigitalBinderProps) {
                 aria-pressed={selectedTheme.id === theme.id}
               >
                 <theme.icon className="h-5 w-5 text-white/80" />
-                <span className="mt-1 text-[10px] font-medium text-white/90">{theme.name.split(' ')[0]}</span>
+                <span className="mt-1 text-[10px] font-medium text-white/90">
+                  {theme.name.split(' ')[0]}
+                </span>
               </button>
             ))}
           </div>
@@ -221,7 +295,12 @@ export function DigitalBinder({ cards, isOpen, onClose }: DigitalBinderProps) {
             {/* Page header with icon */}
             <div className="mb-2 flex items-center justify-between border-b border-gray-200 pb-2">
               <div className="flex items-center gap-2">
-                <ThemeIcon className={cn('h-5 w-5', selectedTheme.id === 'classic' ? 'text-gray-600' : 'text-gray-500')} />
+                <ThemeIcon
+                  className={cn(
+                    'h-5 w-5',
+                    selectedTheme.id === 'classic' ? 'text-gray-600' : 'text-gray-500'
+                  )}
+                />
                 <span className="text-sm font-medium text-gray-500">Page {leftPageIndex + 1}</span>
               </div>
               <span className="text-xs text-gray-400">{cards.length} cards</span>
@@ -234,7 +313,7 @@ export function DigitalBinder({ cards, isOpen, onClose }: DigitalBinderProps) {
                   key={`${card.id}-${idx}`}
                   className="group relative aspect-[2.5/3.5] overflow-hidden rounded-lg bg-gray-100 shadow-sm transition-all hover:shadow-md"
                 >
-                  <Image
+                  <CardImage
                     src={card.images.small}
                     alt={card.name}
                     fill
@@ -285,7 +364,9 @@ export function DigitalBinder({ cards, isOpen, onClose }: DigitalBinderProps) {
             <div className="mb-2 flex items-center justify-between border-b border-gray-200 pb-2">
               <span className="text-sm font-medium text-gray-500">Page {rightPageIndex + 1}</span>
               <div className="flex items-center gap-1 text-xs text-gray-400">
-                <span>{currentSpread + 1} of {totalSpreads}</span>
+                <span>
+                  {currentSpread + 1} of {totalSpreads}
+                </span>
               </div>
             </div>
 
@@ -296,7 +377,7 @@ export function DigitalBinder({ cards, isOpen, onClose }: DigitalBinderProps) {
                   key={`${card.id}-${idx}`}
                   className="group relative aspect-[2.5/3.5] overflow-hidden rounded-lg bg-gray-100 shadow-sm transition-all hover:shadow-md"
                 >
-                  <Image
+                  <CardImage
                     src={card.images.small}
                     alt={card.name}
                     fill
