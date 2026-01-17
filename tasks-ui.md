@@ -162,7 +162,7 @@ We are focusing on **only 4 kid-friendly TCGs** based on Q4 2025 market data. Re
 **Unsupported games (REMOVE):** Digimon, Dragon Ball, Magic: The Gathering
 
 - [x] Update `GameFilter.tsx` - Remove `digimon`, `dragonball`, `mtg` from GAMES array and GAME_COLORS
-- [ ] Update `GameSwitcher.tsx` - Remove unsupported games from game selector dropdown
+- [x] Update `GameSwitcher.tsx` - Remove unsupported games from game selector dropdown
 - [ ] Update onboarding game selector - Only show 4 supported games in "What do you collect?" screen
 - [ ] Update settings game toggle - Remove unsupported games from game selection options
 - [ ] Remove unsupported game icons - Delete or hide `DigimonLogo.tsx`, `DragonBallLogo.tsx`, `MtgLogo.tsx` from `src/components/icons/tcg/`
@@ -1068,3 +1068,5 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - **2026-01-17**: Completed Line 141 Update GameFilter.tsx task - Removed unsupported games (digimon, dragonball, mtg) from `gameSelector.ts`. Updated GameId type from 7 games to 4 games (pokemon, yugioh, onepiece, lorcana). Removed game configurations from GAMES array and CSS variables from GAME_CSS_VARIABLES. Updated 5 test files to reflect the 4-game configuration: gameSelector.test.ts, games.test.ts, GameFilter.test.tsx, GameThemeProvider.test.tsx. All 160 game-related tests pass. ESLint and Prettier clean. Commit: ac8adcb
 
 - **2026-01-17**: Completed Add onError handlers to SearchResults card images task - Replaced raw Next.js Image component with CardImage component (src/components/ui/CardImage.tsx) in SearchResults (src/components/search/SearchResults.tsx). This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling across search results. Created comprehensive test suite (src/components/search/__tests__/SearchResults.test.tsx) with 6 tests covering card rendering, empty state, loading state, error handling, and accessibility. All tests pass, ESLint and Prettier clean. Commit: c53aab3
+
+- **2026-01-17**: Completed Update GameSwitcher.tsx task - Removed unsupported games (DragonBall, Digimon, MTG) from the game switcher dropdown component (src/components/header/GameSwitcher.tsx). Removed imports for DragonBallIcon, DigimonIcon, and MtgIcon. Updated ICON_COMPONENTS record to only include the 4 supported games: Pokemon, Yu-Gi-Oh!, One Piece, and Lorcana. The GenericTcgIcon fallback remains for any unknown game IDs. ESLint and Prettier clean, no test failures related to this change. Commit: 3d6b18a
