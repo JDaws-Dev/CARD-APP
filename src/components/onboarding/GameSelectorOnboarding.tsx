@@ -11,14 +11,10 @@ import {
   DEFAULT_SELECTED_GAMES,
 } from '@/lib/gameSelector';
 import {
-  GAME_ICONS,
   PokemonIcon,
   YugiohIcon,
   OnePieceIcon,
-  DragonBallIcon,
   LorcanaIcon,
-  DigimonIcon,
-  MtgIcon,
   GenericTcgIcon,
 } from '@/components/icons/tcg';
 import {
@@ -36,14 +32,15 @@ import {
 // GAME ICON COMPONENT LOOKUP
 // ============================================================================
 
+/**
+ * Icon components for supported TCG games.
+ * Only includes the 4 supported games: Pokemon, Yu-Gi-Oh!, One Piece, and Disney Lorcana.
+ */
 const ICON_COMPONENTS: Record<string, React.ComponentType<{ className?: string }>> = {
   pokemon: PokemonIcon,
   yugioh: YugiohIcon,
   onepiece: OnePieceIcon,
-  dragonball: DragonBallIcon,
   lorcana: LorcanaIcon,
-  digimon: DigimonIcon,
-  mtg: MtgIcon,
 };
 
 function getIconComponent(gameId: string): React.ComponentType<{ className?: string }> {
@@ -64,9 +61,9 @@ export function GameSelectorOnboardingSkeleton() {
         <div className="mx-auto h-4 w-80 rounded bg-gray-200" />
       </div>
 
-      {/* Game grid skeleton */}
+      {/* Game grid skeleton - 4 supported games */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-        {Array.from({ length: 7 }).map((_, i) => (
+        {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="h-40 rounded-2xl bg-gray-200" />
         ))}
       </div>
