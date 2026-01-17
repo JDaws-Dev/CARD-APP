@@ -117,8 +117,9 @@ export const addToWishlist = mutation({
     if (wantsPriority) {
       const priorityItems = await ctx.db
         .query('wishlistCards')
-        .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
-        .filter((q) => q.eq(q.field('isPriority'), true))
+        .withIndex('by_profile_and_priority', (q) =>
+          q.eq('profileId', args.profileId).eq('isPriority', true)
+        )
         .collect();
 
       if (priorityItems.length >= MAX_PRIORITY_ITEMS) {
@@ -192,8 +193,9 @@ export const togglePriority = mutation({
     // If toggling ON, check current priority count
     const priorityItems = await ctx.db
       .query('wishlistCards')
-      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
-      .filter((q) => q.eq(q.field('isPriority'), true))
+      .withIndex('by_profile_and_priority', (q) =>
+        q.eq('profileId', args.profileId).eq('isPriority', true)
+      )
       .collect();
 
     if (priorityItems.length >= MAX_PRIORITY_ITEMS) {
