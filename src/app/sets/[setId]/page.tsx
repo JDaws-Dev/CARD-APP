@@ -6,6 +6,7 @@ import { api } from '../../../../convex/_generated/api';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
+import { ScannerButton } from '@/components/ai/ScannerButton';
 import { SetDetailClient } from '@/components/collection/SetDetailClient';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -192,6 +193,15 @@ export default function SetDetailPage({ params }: SetDetailPageProps) {
                 className="h-10 w-10"
               />
             )}
+
+            {/* Scanner Button */}
+            <div className="sm:ml-auto">
+              <ScannerButton
+                gameSlug={gameSlug}
+                variant="primary"
+                label="Scan Card"
+              />
+            </div>
           </div>
 
           {/* Progress Bar */}

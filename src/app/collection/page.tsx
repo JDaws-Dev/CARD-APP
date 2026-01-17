@@ -18,7 +18,9 @@ import {
   ArrowRightIcon,
   HeartIcon,
   CalendarDaysIcon,
+  CameraIcon,
 } from '@heroicons/react/24/outline';
+import { ScannerButton } from '@/components/ai/ScannerButton';
 import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
 import { TrophyRoomSkeleton } from '@/components/virtual/VirtualTrophyRoom';
@@ -127,6 +129,11 @@ export default function MyCollectionPage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <ScannerButton
+                gameSlug="pokemon"
+                variant="primary"
+                label="Scan Card"
+              />
               <Link
                 href="/timeline"
                 className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-400 to-purple-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-indigo-500 hover:to-purple-600"
