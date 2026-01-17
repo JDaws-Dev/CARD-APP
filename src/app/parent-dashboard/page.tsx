@@ -101,10 +101,13 @@ export default function ParentDashboardPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50">
+              <Link
+                href="/settings"
+                className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
+              >
                 <Cog6ToothIcon className="h-5 w-5" />
                 Settings
-              </button>
+              </Link>
               <button className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-kid-primary to-purple-500 px-4 py-2.5 text-sm font-medium text-white shadow-md transition hover:shadow-lg">
                 <PlusIcon className="h-5 w-5" />
                 Add Profile
