@@ -2468,7 +2468,7 @@ These tasks address backend requirements for SEO and infrastructure improvements
 
 - [x] Add rate limiting to API routes - Prevent abuse of search/filter endpoints
 - [x] Add request validation middleware - Validate game parameter is valid enum value
-- [ ] Log suspicious API access patterns - Track unusual request volumes
+- [x] Log suspicious API access patterns - Track unusual request volumes
 
 ### Analytics & Monitoring
 
@@ -2751,3 +2751,46 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - combineValidations tests (4)
   - Integration flow tests (4)
 - All 81 tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Add suspicious API access pattern detection
+
+- **Created `src/lib/suspiciousAccessLog.ts` for tracking unusual API access patterns:**
+  - Detects rate limit exhaustion (repeated 429 responses)
+  - Detects rapid request bursts (many requests in short time window)
+  - Detects sequential/enumeration patterns (potential scraping via card IDs, set IDs)
+  - Detects multi-game scanning (accessing all games in rapid succession)
+  - Detects high error rate patterns (many 4xx/5xx errors)
+- **Core features:**
+  - In-memory storage with automatic cleanup of expired entries (configurable window)
+  - Configurable thresholds for all detection patterns via `SuspiciousAccessConfig`
+  - Custom log function support for integration with external monitoring services
+  - Event logging to console with severity levels (info, warn, error)
+- **Monitoring utilities:**
+  - `recordApiAccess()` - main function to record API requests and check for patterns
+  - `getRecentSuspiciousEvents()` - returns recent suspicious events for monitoring
+  - `getSuspiciousEventCounts()` - returns counts by pattern type
+  - `getClientAccessStats()` - returns detailed stats for a specific client IP
+  - `checkSuspiciousActivity()` - checks if an IP has suspicious activity flags
+  - `clearAccessHistory()` - clears all stored data (useful for testing)
+  - `getAccessHistorySize()` - returns store size for monitoring
+- **Types exported:**
+  - `LogLevel`, `SuspiciousPatternType`, `AccessLogEntry`, `SuspiciousAccessEvent`
+  - `SuspiciousAccessConfig` with default configuration `DEFAULT_SUSPICIOUS_ACCESS_CONFIG`
+- **Wrote 32 tests in `src/lib/__tests__/suspiciousAccessLog.test.ts`:**
+  - recordApiAccess tests (5): request tracking, error counts, games accessed
+  - Rate limit exhaustion detection tests (2)
+  - Rapid burst detection tests (2)
+  - Multi-game scan detection tests (2)
+  - High error rate detection tests (3)
+  - Sequential enumeration detection tests (2)
+  - getRecentSuspiciousEvents tests (2)
+  - getSuspiciousEventCounts tests (1)
+  - getClientAccessStats tests (2)
+  - clearAccessHistory tests (2)
+  - checkSuspiciousActivity tests (3)
+  - Custom log function tests (1)
+  - Default configuration tests (1)
+  - Isolated client tracking tests (1)
+  - Event details tests (1)
+  - Query params tracking tests (2)
+- All 32 tests pass, ESLint clean, Prettier formatted
