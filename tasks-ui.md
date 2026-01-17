@@ -18,10 +18,10 @@
 | **Collection Timeline & Story**      | 5        | **0**     |
 | **Family & Social Features**         | 5        | **0**     |
 | **Financial Literacy**               | 4        | **0**     |
-| **Educational Mini-Games**           | 2        | **3**     |
+| **Educational Mini-Games**           | 3        | **2**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
 | **Engagement & Retention**           | 4        | **0**     |
-| **TOTAL**                            | **102**  | **4**     |
+| **TOTAL**                            | **103**  | **3**     |
 
 ### Priority Order for Remaining Tasks
 
@@ -191,7 +191,7 @@
 - [x] "Grade Like a Pro" mini-game - Show card images, user guesses condition (NM/LP/MP/HP), earn XP for correct answers
 - [x] Rarity guessing game - Show card artwork only, guess the rarity before reveal
 - [x] Set symbol matching game - Match set symbols to set names for learning
-- [ ] Pokemon type quiz - Quick quiz on Pokemon types based on cards in collection
+- [x] Pokemon type quiz - Quick quiz on Pokemon types based on cards in collection
 - [ ] Price estimation game - Guess if card is worth more or less than $X (teaches value awareness)
 
 ### Enhanced Accessibility
@@ -214,6 +214,7 @@
 
 ## Progress
 
+- **2026-01-16**: Completed Pokemon Type Quiz - Created PokemonTypeQuiz component (src/components/games/PokemonTypeQuiz.tsx) for learning Pokemon TCG energy types. Features: 10 types (Fire, Water, Grass, Electric, Psychic, Fighting, Darkness, Metal, Dragon, Colorless), 12 Pokemon challenges from Sword & Shield base set, 5-round quiz with 4 type options per round, hint system, XP rewards (20 per correct, 50 bonus for perfect), results screen with round summary. Added game banner to Learn page with FireIcon in orange/red gradient theme. Uses Heroicons (FireIcon, StarIcon, LightBulbIcon, TrophyIcon, SparklesIcon, CheckIcon, XMarkIcon, ArrowPathIcon, PlayIcon, ChevronRightIcon, BoltIcon). Commit: 14758c8
 - **2026-01-16**: Completed Set Symbol Matching Game - Created SetSymbolMatchingGame component (src/components/games/SetSymbolMatchingGame.tsx) for learning Pokemon TCG set symbols. Features: 12 popular sets from Sword & Shield and Scarlet & Violet eras, 5-round matching gameplay where players match symbols to set names from 4 options, hint system with set descriptions, XP rewards (20 per correct, 50 bonus for perfect), progress tracking, results screen with round summary. Added game banner to Learn page with PuzzlePieceIcon in blue/cyan gradient theme. Uses Heroicons (PuzzlePieceIcon, StarIcon, LightBulbIcon, TrophyIcon, SparklesIcon, CheckIcon, XMarkIcon, ArrowPathIcon, PlayIcon, ChevronRightIcon, BoltIcon). Commit: 8a3cc14
 - **2026-01-16**: Completed Rarity Guessing Game - Integrated RarityGuessingGame component into Learn page. Game shows Pokemon card images and asks users to guess the rarity (Common, Uncommon, Rare, Rare Holo, Ultra Rare, Secret Rare). Features: intro screen with tips on identifying rarities, 5-round gameplay with hint system, instant feedback with explanations, progress tracking and XP rewards, results screen with round summary and play again option. Added game banner section to Learn page with QuestionMarkCircleIcon. Component at src/components/games/RarityGuessingGame.tsx. Uses Heroicons throughout. Commit: 779c7b3
 - **2026-01-16**: Completed "Is it worth it?" helper - Created IsItWorthIt component (src/components/financial/IsItWorthIt.tsx) for educational price comparison. Features: shows what else the card's price could buy (movie tickets, pizza, video games, bowling, booster packs, ETBs, sleeves, binders, savings), quick stats showing equivalent booster packs and movie tickets, category filter (All/Fun/Collect/Save), thoughtful prompt encouraging kids to consider value, custom SVG icons for each comparison item, IsItWorthItButton compact modal trigger for cards >= $5. Integrated into wishlist cards alongside budget alternatives. Uses Heroicons (ScaleIcon, XMarkIcon, ShoppingCartIcon, SparklesIcon, LightBulbIcon, ChevronRightIcon, ArrowRightIcon). Commit: 6b4afc7
