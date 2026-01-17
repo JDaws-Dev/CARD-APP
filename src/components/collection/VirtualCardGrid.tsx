@@ -385,8 +385,8 @@ const VIRTUAL_SCROLL_THRESHOLD = 50;
 
 // Estimated card dimensions for row calculation
 const CARD_DIMENSIONS = {
-  BASE_HEIGHT: 280, // Approximate height of a card item including padding
-  GAP: 12, // Grid gap in pixels
+  BASE_HEIGHT: 300, // Approximate height of a card item including padding and variant badges
+  GAP: 24, // Grid gap in pixels (gap-6 = 1.5rem = 24px)
 };
 
 // Helper to calculate columns based on viewport width (to match Tailwind responsive breakpoints)
@@ -1066,7 +1066,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
                   className={cn(
-                    'grid gap-3',
+                    'grid gap-4 px-1 sm:gap-5 md:gap-6',
                     features.simplifiedLayout
                       ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
                       : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
@@ -1082,7 +1082,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
           <div
             className={cn(
               features.simplifiedLayout
-                ? 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4'
+                ? 'grid grid-cols-2 gap-4 px-1 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 md:gap-6'
                 : 'card-grid'
             )}
           >
