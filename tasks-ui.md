@@ -14,6 +14,7 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 | Section                                   | Complete | Remaining |
 | ----------------------------------------- | -------- | --------- |
 | **CRITICAL - Site Evaluation Fixes**      | 7        | **1**     |
+| **CRITICAL - Remove Unsupported Games**   | 0        | **7**     |
 | **CRITICAL - Settings Permissions**       | 0        | **7**     |
 | **CRITICAL - Landing Page Content**       | 0        | **10**    |
 | **HIGH - Broken Images & Error Handling** | 0        | **10**    |
@@ -54,24 +55,25 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 ### Priority Order for Remaining Tasks
 
 1. **CRITICAL - Site Evaluation Fixes** (1 task) - Profile switcher for families
-2. **CRITICAL - Settings Permissions** (7 tasks) - Parent vs kid settings access control
-3. **CRITICAL - Landing Page Content** (10 tasks) - Specific text changes for multi-TCG
-4. **CRITICAL - Kid-Friendly Set Display** (15 tasks) - Only show sets kids can actually buy
-5. **HIGH - Security Hardening** (6 tasks) - CSP headers, external resource integrity
-6. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
-7. **HIGH - Performance Optimization UI** (8 tasks) - Memoization, lazy loading, faster collection page
-8. **HIGH - UX & Navigation Improvements** (12 tasks) - Back links, breadcrumbs, footer, user flow
-9. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
-10. **MEDIUM - Architecture Improvements** (13 tasks) - Provider optimization, error boundaries, code splitting
-11. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
-12. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section, update features
-13. **Landing Page AI Features** (13 tasks) - AI Magic section, pricing updates, trust badges
-14. **AI-Powered Features UI** (14 tasks) - Card scanner, chatbot, story modal, quiz components
-15. **Trade Logging UI** (12 tasks) - Log trade modal, timeline display, entry points
-16. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
-17. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
-18. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
-19. **MEDIUM - Master Set Mode & Variant Tracking** (16 tasks) - For completionist collectors who want to track all variants
+2. **CRITICAL - Remove Unsupported Games** (7 tasks) - Remove Digimon, Dragon Ball, MTG from UI (only support Pokemon, One Piece, Lorcana, Yu-Gi-Oh!)
+3. **CRITICAL - Settings Permissions** (7 tasks) - Parent vs kid settings access control
+4. **CRITICAL - Landing Page Content** (10 tasks) - Specific text changes for multi-TCG (4 games only)
+5. **CRITICAL - Kid-Friendly Set Display** (15 tasks) - Only show sets kids can actually buy
+6. **HIGH - Security Hardening** (6 tasks) - CSP headers, external resource integrity
+7. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
+8. **HIGH - Performance Optimization UI** (8 tasks) - Memoization, lazy loading, faster collection page
+9. **HIGH - UX & Navigation Improvements** (12 tasks) - Back links, breadcrumbs, footer, user flow
+10. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
+11. **MEDIUM - Architecture Improvements** (13 tasks) - Provider optimization, error boundaries, code splitting
+12. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
+13. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section for 4 supported games
+14. **Landing Page AI Features** (13 tasks) - AI Magic section, pricing updates, trust badges
+15. **AI-Powered Features UI** (14 tasks) - Card scanner, chatbot, story modal, quiz components
+16. **Trade Logging UI** (12 tasks) - Log trade modal, timeline display, entry points
+17. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
+18. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
+19. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
+20. **MEDIUM - Master Set Mode & Variant Tracking** (16 tasks) - For completionist collectors who want to track all variants
 
 ---
 
@@ -103,6 +105,23 @@ These issues relate to inconsistent behavior between logged-in and logged-out st
 - [x] Protect `/parent-dashboard` route - Redirect to `/login` if not authenticated (also check parent role)
 - [x] Protect `/streak` route - Redirect to `/login` if not authenticated
 - [x] Protect `/learn` route - Redirect to `/login` if not authenticated
+
+## CRITICAL - Remove Unsupported Games (January 2026)
+
+We are focusing on **only 4 kid-friendly TCGs** based on Q4 2025 market data. Remove all references to Digimon, Dragon Ball, and Magic: The Gathering from the UI.
+
+**Supported games (KEEP):** Pokemon, One Piece, Disney Lorcana, Yu-Gi-Oh!
+**Unsupported games (REMOVE):** Digimon, Dragon Ball, Magic: The Gathering
+
+- [ ] Update `GameFilter.tsx` - Remove `digimon`, `dragonball`, `mtg` from GAMES array and GAME_COLORS
+- [ ] Update `GameSwitcher.tsx` - Remove unsupported games from game selector dropdown
+- [ ] Update onboarding game selector - Only show 4 supported games in "What do you collect?" screen
+- [ ] Update settings game toggle - Remove unsupported games from game selection options
+- [ ] Remove unsupported game icons - Delete or hide `DigimonLogo.tsx`, `DragonBallLogo.tsx`, `MtgLogo.tsx` from `src/components/icons/tcg/`
+- [ ] Update any game-specific achievements - Remove Digimon, Dragon Ball, MTG themed badges if they exist
+- [ ] Search codebase for hardcoded game lists - Find and update any other places that list all 7 games
+
+---
 
 ## Multi-TCG Pages Update
 
@@ -154,13 +173,15 @@ These specific issues were discovered during code review and need immediate atte
 
 ## Landing Page Multi-TCG Updates
 
-The landing page currently only mentions Pokemon. Update to feature all supported TCGs.
+The landing page currently only mentions Pokemon. Update to feature the **4 supported kid-friendly TCGs**: Pokemon, One Piece, Disney Lorcana, and Yu-Gi-Oh!
+
+**IMPORTANT:** We only support 4 games (not 6 or 7). Do NOT include Digimon, Dragon Ball, or Magic: The Gathering.
 
 - [ ] Update hero section - Change "Track Your Pokemon Cards" to "Track Your Trading Card Collection" and mention multiple games
-- [ ] Add "Supported Games" section - Feature grid showing Pokemon, Yu-Gi-Oh!, Lorcana, One Piece, Digimon, Dragon Ball logos with brief taglines
+- [ ] Add "Supported Games" section - Feature grid showing ONLY: Pokemon, One Piece, Disney Lorcana, Yu-Gi-Oh! logos with brief taglines (NO Digimon, NO Dragon Ball, NO MTG)
 - [ ] Update "How It Works" section - Remove Pokemon-specific language, make game-agnostic
-- [ ] Update pricing section - Change "500+ Pokemon sets" to "1,000+ sets across 6 popular games"
-- [ ] Update features section - Add "Multiple Games" as a key feature with game icons
+- [ ] Update pricing section - Change "500+ Pokemon sets" to "500+ sets across 4 popular games"
+- [ ] Update features section - Add "Multiple Games" as a key feature showing the 4 supported game icons
 
 ## NEW - Landing Page AI Features Section
 
@@ -253,16 +274,19 @@ Improve site organization, navigation, and user flow clarity.
 
 Detailed landing page text changes to support multi-TCG while keeping Pokemon prominent.
 
+**IMPORTANT:** We support ONLY 4 games: Pokemon, One Piece, Disney Lorcana, Yu-Gi-Oh!
+Do NOT mention Digimon, Dragon Ball, or Magic: The Gathering anywhere.
+
 - [ ] Line 103: Change "Pokemon Cards" to "Trading Cards" in main headline
-- [ ] Line 185: Change "Browse through all Pokemon card sets" to "Browse sets from Pokemon, Yu-Gi-Oh!, Lorcana, and more"
+- [x] Line 185: Change "Browse through all Pokemon card sets" to "Browse sets from Pokemon, Yu-Gi-Oh!, Lorcana, One Piece, and more"
 - [ ] Line 236: Change "CardDex makes tracking your Pokemon cards fun" to "CardDex makes tracking your trading cards fun"
 - [ ] Line 564: Change "Pokemon Sets" to "Trading Card Sets" in stats section
-- [ ] Line 628: Change "All 500+ Pokemon sets" to "All 500+ sets across 6 games" (Free plan)
-- [ ] Line 703: Change "All 500+ Pokemon sets" to "All 500+ sets across 6 games" (Family plan)
-- [ ] Lines 524-544: Diversify wishlist example cards to include Yu-Gi-Oh! and Lorcana examples alongside Pokemon
+- [ ] Line 628: Change "All 500+ Pokemon sets" to "All 500+ sets across 4 games" (Free plan)
+- [ ] Line 703: Change "All 500+ Pokemon sets" to "All 500+ sets across 4 games" (Family plan)
+- [ ] Lines 524-544: Diversify wishlist example cards to include Yu-Gi-Oh! and Lorcana examples alongside Pokemon (NO Digimon, Dragon Ball, or MTG)
 - [ ] Line 779: Change "organize their Pokemon card collections" to "organize their trading card collections"
 - [ ] Line 1004: Change "take control of your Pokemon card collection" to "take control of your trading card collection"
-- [ ] Add TCG disclaimer for other games in footer - Currently only has Pokemon Company disclaimer
+- [ ] Add TCG disclaimer for other games in footer - Add disclaimers for Yu-Gi-Oh! (Konami), Disney Lorcana (Ravensburger), One Piece (Bandai) alongside Pokemon Company
 
 ---
 
@@ -397,8 +421,11 @@ For families with serious collectors who want to track complete "master sets" in
 
 ### Multi-TCG Game Selector
 
-- [x] Onboarding game selector - "What do you collect?" screen with TCG logos (Pokémon, Yu-Gi-Oh!, One Piece, Dragon Ball, Lorcana, Digimon, MTG)
-- [x] Settings game toggle - Allow changing selected games anytime in profile settings
+**NOTE:** We now only support 4 games: Pokemon, One Piece, Disney Lorcana, Yu-Gi-Oh!
+The tasks below were completed with 7 games - see CRITICAL section for removal tasks.
+
+- [x] Onboarding game selector - "What do you collect?" screen with TCG logos (needs update to 4 games)
+- [x] Settings game toggle - Allow changing selected games anytime in profile settings (needs update to 4 games)
 - [x] Sets page game filter - Tabs: [All] [Pokémon] [Yu-Gi-Oh!] [One Piece]... Only show enabled games
 - [x] Per-game color theming - CSS variables for each game's primary color
 - [x] Game-specific achievements - "Pokémon Master" vs "Duelist Champion" vs cross-game badges
@@ -986,3 +1013,5 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - [ ] For each element, answer: "Does this help kids COLLECT or just use the app?"
 - [ ] Remove elements that don't serve the core mission
 - [ ] Ensure gamification enhances, not replaces, the collecting experience
+
+- **2026-01-17**: Completed Line 185 landing page multi-TCG update - Changed "Pick Your Sets" Step 1 description from "Browse through all Pokemon card sets and choose which ones you want to track" to "Browse sets from Pokemon, Yu-Gi-Oh!, Lorcana, and more to track your favorites" in `src/app/page.tsx`. This makes the landing page more inclusive of all supported TCGs instead of only mentioning Pokemon. Landing page tests pass (29 tests). ESLint and Prettier clean. Commit: 8b64aa8
