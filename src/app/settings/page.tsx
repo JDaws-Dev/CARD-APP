@@ -1,6 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useConvexAuth } from 'convex/react';
 import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { DarkModeToggle } from '@/components/layout/DarkModeToggle';
 import { KidModeToggle } from '@/components/layout/KidModeToggle';
@@ -13,6 +16,28 @@ import { GameSettingsToggle } from '@/components/settings/GameSettingsToggle';
 import { SleepModeSettings } from '@/components/settings/SleepModeSettings';
 
 export default function SettingsPage() {
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const router = useRouter();
+
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // Show loading while checking auth or if redirecting
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-400 border-t-transparent" />
+          <p className="text-gray-600 dark:text-slate-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
@@ -104,7 +129,9 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4 dark:bg-slate-700/50">
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-white">Dyslexic-Friendly Font</p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    Dyslexic-Friendly Font
+                  </p>
                   <p className="text-sm text-gray-600 dark:text-slate-400">
                     Use OpenDyslexic font for easier reading
                   </p>
