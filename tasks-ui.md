@@ -156,7 +156,7 @@ Image components lack error handlers, causing silent failures when images don't 
 - [x] Add onError handler to FlippableCard card back image - Show placeholder when `https://images.pokemontcg.io/cardback.png` fails
 - [ ] Add onError handlers to CardGrid card images - Display fallback placeholder on image load failure
 - [x] Add onError handlers to DigitalBinder card images - Graceful degradation for binder view
-- [ ] Add onError handlers to PackOpeningSimulator - Don't break pack opening experience if image fails
+- [x] Add onError handlers to PackOpeningSimulator - Don't break pack opening experience if image fails
 - [ ] Add onError handlers to CollectionView card images (2 Image components) - Show placeholder instead of broken image
 - [ ] Add onError handlers to SearchResults card images - Handle API image failures gracefully
 - [ ] Add onError handlers to JustPulledMode card images - Maintain celebration UX even with failed images
@@ -540,6 +540,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Updated VirtualCardGrid to use CardImage component - Replaced raw Next.js Image component with CardImage component in VirtualCardGrid (src/components/collection/VirtualCardGrid.tsx) for card image display. This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling across the virtual card grid. Prevents broken image icons from appearing when browsing large card sets with virtual scrolling. All tests pass (5730 tests), ESLint and Prettier clean. Commit: 53ff0a0
 
 - **2026-01-17**: Added error handling to DigitalBinder card images - Replaced raw Next.js Image components with CardImage component in DigitalBinder (src/components/virtual/DigitalBinder.tsx) for both left and right page card grids. This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling across the digital binder view. Ensures graceful degradation when viewing collection in binder mode. All tests pass (5730 tests), ESLint and Prettier clean. Commit: 2e4b5b1
+
+- **2026-01-17**: Added error handling to PackOpeningSimulator card images - Replaced raw Next.js Image component with CardImage component in PackOpeningSimulator (src/components/virtual/PackOpeningSimulator.tsx) for revealed card display. This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling. Ensures pack opening experience doesn't break when card images fail to load. Added comprehensive test suite (7 tests) covering component rendering, sealed pack view, packs remaining display, close functionality, and card image error handling. All tests pass, ESLint and Prettier clean. Commit: d1ed9e4
 
 ---
 
