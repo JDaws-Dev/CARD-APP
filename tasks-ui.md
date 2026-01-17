@@ -240,7 +240,7 @@ Improve site organization, navigation, and user flow clarity.
 - [x] Create PageHeader component - Reusable page header with title, description, optional icon (src/components/ui/PageHeader.tsx)
 - [x] Add back navigation to /learn page - Users can get stuck without way to return
 - [x] Add breadcrumb to /condition-guide - Show "Home > Learn > Condition Guide"
-- [ ] Add breadcrumb to /sets/[setId] - Show "Home > Browse Sets > [Set Name]"
+- [x] Add breadcrumb to /sets/[setId] - Show "Home > Browse Sets > [Set Name]"
 - [ ] Create AppFooter component - Footer for authenticated pages with Help, Privacy, Terms links
 - [ ] Add AppFooter to all app pages - Consistent footer across the app
 - [x] Add ESC key handler to mobile menu - Close menu on Escape key press
@@ -720,6 +720,7 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Protected /streak route with auth redirect - Updated src/app/streak/page.tsx to redirect unauthenticated users to /login automatically. Uses useConvexAuth hook to check authentication state, useRouter for navigation, and useEffect for redirect logic. Shows loading spinner with orange theme while checking auth status. Changed "No profile" state from sign-in prompt to "Profile Not Found" message directing to dashboard. Removed unused HomeIcon and ShieldCheckIcon imports. Added comprehensive test suite (13 tests) covering authentication protection, loading states, profile loading, authenticated behavior, and no-profile edge case. All streak page tests pass, ESLint and Prettier clean. Commit: 32515ea
 
 - **2026-01-17**: Completed Protect /settings route task - Added authentication protection to `/settings` page to redirect unauthenticated users to `/login`. Updated `src/app/settings/page.tsx` to use `useConvexAuth` hook for auth state checking, `useRouter` for navigation, and `useEffect` for redirect logic. Added loading spinner with slate gradient theme matching the page styling. Follows same pattern as other protected routes (`/dashboard`, `/collection`, `/my-wishlist`, `/badges`, `/streak`). Commit: 97c3bff
+- **2026-01-17**: Completed Add breadcrumb to /sets/[setId] task - Added breadcrumb navigation to set detail page showing "Home > Browse Sets > [Set Name]". Replaced the previous "Back to Sets" link with the reusable Breadcrumb component. Uses existing Breadcrumb component from src/components/ui/Breadcrumb.tsx with HomeIcon, proper navigation hierarchy, and current page indication. Commit: 5fcc42e
 
 ---
 
