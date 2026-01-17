@@ -93,6 +93,43 @@ async function fetchJSON<T>(url: string, headers: Record<string, string> = {}): 
   return response.json();
 }
 
+/**
+ * Calculate cutoff date for filtering sets by age
+ * @param maxAgeMonths - Maximum age in months for sets to include (null means no filter)
+ * @returns Date object representing the cutoff, or null if no filtering
+ */
+function getCutoffDate(maxAgeMonths: number | null | undefined): Date | null {
+  if (maxAgeMonths === null || maxAgeMonths === undefined || maxAgeMonths <= 0) {
+    return null;
+  }
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() - maxAgeMonths, now.getDate());
+}
+
+/**
+ * Check if a set's release date is within the allowed age range
+ * @param releaseDate - The release date string (YYYY-MM-DD format)
+ * @param cutoffDate - The cutoff date (sets released before this are excluded)
+ * @returns true if the set should be included, false if it should be filtered out
+ */
+function isSetWithinAgeLimit(releaseDate: string, cutoffDate: Date | null): boolean {
+  if (cutoffDate === null) {
+    return true; // No filtering when cutoffDate is null
+  }
+
+  try {
+    const releaseDateObj = new Date(releaseDate);
+    // Invalid dates should be included (don't filter on bad data)
+    if (isNaN(releaseDateObj.getTime())) {
+      return true;
+    }
+    return releaseDateObj.getTime() >= cutoffDate.getTime();
+  } catch {
+    // If date parsing fails, include the set
+    return true;
+  }
+}
+
 // =============================================================================
 // INTERNAL MUTATIONS - For data insertion
 // =============================================================================
@@ -348,6 +385,43 @@ export const getCachedSets = internalQuery({
     sets.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
 
     return args.limit ? sets.slice(0, args.limit) : sets;
+  },
+});
+
+/**
+ * Get cached sets by their IDs (public query)
+ * Returns a map of setId -> set name for efficient lookup.
+ *
+ * @param setIds - Array of set IDs to look up (max 100)
+ * @returns Object with setId keys and set name values
+ */
+export const getSetNamesByIds = query({
+  args: {
+    setIds: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Limit to prevent abuse
+    const setIds = args.setIds.slice(0, 100);
+
+    // Look up each set in parallel
+    const setLookups = await Promise.all(
+      setIds.map((setId) =>
+        ctx.db
+          .query('cachedSets')
+          .withIndex('by_set_id', (q) => q.eq('setId', setId))
+          .first()
+      )
+    );
+
+    // Build a map of setId -> name
+    const setNames: Record<string, string> = {};
+    for (const set of setLookups) {
+      if (set) {
+        setNames[set.setId] = set.name;
+      }
+    }
+
+    return setNames;
   },
 });
 
@@ -966,12 +1040,20 @@ export const getCardsByIds = query({
 
 /**
  * Populate Pokemon sets from pokemontcg.io (internal)
+ * @param maxAgeMonths - Optional filter to only include sets released within the last N months
  */
 export const populatePokemonSets = internalAction({
-  args: {},
-  handler: async (ctx): Promise<{ success: boolean; count: number; errors: string[] }> => {
+  args: {
+    maxAgeMonths: v.optional(v.number()),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
     const errors: string[] = [];
     let count = 0;
+    let skipped = 0;
+    const cutoffDate = getCutoffDate(args.maxAgeMonths);
 
     try {
       interface PokemonSet {
@@ -986,13 +1068,20 @@ export const populatePokemonSets = internalAction({
       const data = await fetchJSON<{ data: PokemonSet[] }>('https://api.pokemontcg.io/v2/sets');
 
       for (const set of data.data) {
+        // Filter by release date if maxAgeMonths is specified
+        const releaseDate = set.releaseDate || '1999-01-01';
+        if (!isSetWithinAgeLimit(releaseDate, cutoffDate)) {
+          skipped++;
+          continue;
+        }
+
         try {
           await ctx.runMutation(internal.dataPopulation.upsertCachedSet, {
             setId: set.id,
             gameSlug: 'pokemon',
             name: set.name,
             series: set.series || 'Unknown',
-            releaseDate: set.releaseDate || '1999-01-01',
+            releaseDate,
             totalCards: set.total || 0,
             logoUrl: set.images?.logo,
             symbolUrl: set.images?.symbol,
@@ -1004,12 +1093,13 @@ export const populatePokemonSets = internalAction({
         await delay(RATE_LIMITS.pokemon);
       }
 
-      return { success: errors.length === 0, count, errors };
+      return { success: errors.length === 0, count, errors, skipped };
     } catch (e) {
       return {
         success: false,
         count,
         errors: [...errors, e instanceof Error ? e.message : 'Unknown error'],
+        skipped,
       };
     }
   },
@@ -1088,12 +1178,20 @@ export const populatePokemonSetCards = internalAction({
 
 /**
  * Populate Yu-Gi-Oh! sets from ygoprodeck.com
+ * @param maxAgeMonths - Optional filter to only include sets released within the last N months
  */
 export const populateYugiohSets = internalAction({
-  args: {},
-  handler: async (ctx): Promise<{ success: boolean; count: number; errors: string[] }> => {
+  args: {
+    maxAgeMonths: v.optional(v.number()),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
     const errors: string[] = [];
     let count = 0;
+    let skipped = 0;
+    const cutoffDate = getCutoffDate(args.maxAgeMonths);
 
     try {
       interface YugiohSet {
@@ -1107,13 +1205,20 @@ export const populateYugiohSets = internalAction({
       const data = await fetchJSON<YugiohSet[]>('https://db.ygoprodeck.com/api/v7/cardsets.php');
 
       for (const set of data) {
+        // Filter by release date if maxAgeMonths is specified
+        const releaseDate = set.tcg_date || '1999-01-01';
+        if (!isSetWithinAgeLimit(releaseDate, cutoffDate)) {
+          skipped++;
+          continue;
+        }
+
         try {
           await ctx.runMutation(internal.dataPopulation.upsertCachedSet, {
             setId: set.set_code,
             gameSlug: 'yugioh',
             name: set.set_name,
             series: 'Yu-Gi-Oh!',
-            releaseDate: set.tcg_date || '1999-01-01',
+            releaseDate,
             totalCards: set.num_of_cards || 0,
             logoUrl: set.set_image,
             symbolUrl: undefined,
@@ -1125,12 +1230,13 @@ export const populateYugiohSets = internalAction({
         await delay(RATE_LIMITS.yugioh);
       }
 
-      return { success: errors.length === 0, count, errors };
+      return { success: errors.length === 0, count, errors, skipped };
     } catch (e) {
       return {
         success: false,
         count,
         errors: [...errors, e instanceof Error ? e.message : 'Unknown error'],
+        skipped,
       };
     }
   },
@@ -1209,14 +1315,22 @@ export const populateYugiohSetCards = internalAction({
 
 /**
  * Populate MTG sets from scryfall.com
+ * @param collectibleOnly - If true, only include collectible set types (default true)
+ * @param maxAgeMonths - Optional filter to only include sets released within the last N months
  */
 export const populateMtgSets = internalAction({
   args: {
     collectibleOnly: v.optional(v.boolean()),
+    maxAgeMonths: v.optional(v.number()),
   },
-  handler: async (ctx, args): Promise<{ success: boolean; count: number; errors: string[] }> => {
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
     const errors: string[] = [];
     let count = 0;
+    let skipped = 0;
+    const cutoffDate = getCutoffDate(args.maxAgeMonths);
 
     try {
       interface MtgSet {
@@ -1241,13 +1355,20 @@ export const populateMtgSets = internalAction({
           : data.data;
 
       for (const set of sets) {
+        // Filter by release date if maxAgeMonths is specified
+        const releaseDate = set.released_at || '1993-08-05';
+        if (!isSetWithinAgeLimit(releaseDate, cutoffDate)) {
+          skipped++;
+          continue;
+        }
+
         try {
           await ctx.runMutation(internal.dataPopulation.upsertCachedSet, {
             setId: set.code,
             gameSlug: 'mtg',
             name: set.name,
             series: set.block || 'Standalone',
-            releaseDate: set.released_at || '1993-08-05',
+            releaseDate,
             totalCards: set.card_count || 0,
             logoUrl: set.icon_svg_uri,
             symbolUrl: set.icon_svg_uri,
@@ -1259,12 +1380,13 @@ export const populateMtgSets = internalAction({
         await delay(RATE_LIMITS.mtg);
       }
 
-      return { success: errors.length === 0, count, errors };
+      return { success: errors.length === 0, count, errors, skipped };
     } catch (e) {
       return {
         success: false,
         count,
         errors: [...errors, e instanceof Error ? e.message : 'Unknown error'],
+        skipped,
       };
     }
   },
@@ -1355,12 +1477,20 @@ export const populateMtgSetCards = internalAction({
 
 /**
  * Populate Lorcana sets from lorcast.com
+ * @param maxAgeMonths - Optional filter to only include sets released within the last N months
  */
 export const populateLorcanaSets = internalAction({
-  args: {},
-  handler: async (ctx): Promise<{ success: boolean; count: number; errors: string[] }> => {
+  args: {
+    maxAgeMonths: v.optional(v.number()),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
     const errors: string[] = [];
     let count = 0;
+    let skipped = 0;
+    const cutoffDate = getCutoffDate(args.maxAgeMonths);
 
     try {
       interface LorcanaSet {
@@ -1373,13 +1503,20 @@ export const populateLorcanaSets = internalAction({
       const data = await fetchJSON<{ results: LorcanaSet[] }>('https://api.lorcast.com/v0/sets');
 
       for (const set of data.results) {
+        // Filter by release date if maxAgeMonths is specified
+        const releaseDate = set.released_at || '2023-08-18';
+        if (!isSetWithinAgeLimit(releaseDate, cutoffDate)) {
+          skipped++;
+          continue;
+        }
+
         try {
           await ctx.runMutation(internal.dataPopulation.upsertCachedSet, {
             setId: set.code || set.id,
             gameSlug: 'lorcana',
             name: set.name,
             series: 'Disney Lorcana',
-            releaseDate: set.released_at || '2023-08-18',
+            releaseDate,
             totalCards: 0, // Lorcast doesn't include card count
             logoUrl: undefined,
             symbolUrl: undefined,
@@ -1391,12 +1528,13 @@ export const populateLorcanaSets = internalAction({
         await delay(RATE_LIMITS.lorcana);
       }
 
-      return { success: errors.length === 0, count, errors };
+      return { success: errors.length === 0, count, errors, skipped };
     } catch (e) {
       return {
         success: false,
         count,
         errors: [...errors, e instanceof Error ? e.message : 'Unknown error'],
+        skipped,
       };
     }
   },
@@ -1473,12 +1611,38 @@ export const populateLorcanaSetCards = internalAction({
 /**
  * Populate One Piece sets from optcg-api
  * Note: API doesn't have a sets endpoint, so we fetch all cards and extract unique sets
+ * @param maxAgeMonths - Optional filter to only include sets released within the last N months
+ *                       For One Piece, uses set number filtering (OP01 = 2022, OP10 = 2024)
+ *                       since exact release dates aren't available from the API
+ * @param minSetNumber - Alternative filter: only include sets with number >= this value (e.g., 10 for OP10+)
  */
 export const populateOnePieceSets = internalAction({
-  args: {},
-  handler: async (ctx): Promise<{ success: boolean; count: number; errors: string[] }> => {
+  args: {
+    maxAgeMonths: v.optional(v.number()),
+    minSetNumber: v.optional(v.number()),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
     const errors: string[] = [];
     let count = 0;
+    let skipped = 0;
+    const cutoffDate = getCutoffDate(args.maxAgeMonths);
+
+    // Approximate release dates for One Piece sets (used for maxAgeMonths filtering)
+    // OP01 = July 2022, subsequent sets roughly every 3-4 months
+    const getApproximateReleaseDate = (setCode: string): string => {
+      const match = setCode.match(/^OP(\d+)/i);
+      if (!match) return '2022-07-22'; // Default to launch date
+      const setNum = parseInt(match[1], 10);
+      // OP01 = July 2022, each set ~3.5 months later
+      const monthsFromLaunch = (setNum - 1) * 3.5;
+      const launchDate = new Date(2022, 6, 22); // July 22, 2022
+      const releaseDate = new Date(launchDate);
+      releaseDate.setMonth(releaseDate.getMonth() + Math.floor(monthsFromLaunch));
+      return releaseDate.toISOString().split('T')[0];
+    };
 
     try {
       interface OnePieceCard {
@@ -1532,15 +1696,36 @@ export const populateOnePieceSets = internalAction({
         }
       }
 
-      // Insert sets
+      // Insert sets (with filtering)
       for (const [setCode, data] of setMap.entries()) {
+        // Filter by minSetNumber if specified
+        if (args.minSetNumber !== undefined) {
+          const match = setCode.match(/^OP(\d+)/i);
+          if (match) {
+            const setNum = parseInt(match[1], 10);
+            if (setNum < args.minSetNumber) {
+              skipped++;
+              continue;
+            }
+          }
+        }
+
+        // Calculate approximate release date for this set
+        const releaseDate = getApproximateReleaseDate(setCode);
+
+        // Filter by release date if maxAgeMonths is specified
+        if (!isSetWithinAgeLimit(releaseDate, cutoffDate)) {
+          skipped++;
+          continue;
+        }
+
         try {
           await ctx.runMutation(internal.dataPopulation.upsertCachedSet, {
             setId: setCode,
             gameSlug: 'onepiece',
             name: data.name,
             series: 'One Piece TCG',
-            releaseDate: '2022-07-22', // Game launch date as default
+            releaseDate,
             totalCards: data.cardCount,
             logoUrl: undefined,
             symbolUrl: undefined,
@@ -1552,12 +1737,13 @@ export const populateOnePieceSets = internalAction({
         await delay(RATE_LIMITS.onepiece);
       }
 
-      return { success: errors.length === 0, count, errors };
+      return { success: errors.length === 0, count, errors, skipped };
     } catch (e) {
       return {
         success: false,
         count,
         errors: [...errors, e instanceof Error ? e.message : 'Unknown error'],
+        skipped,
       };
     }
   },
@@ -1671,55 +1857,55 @@ export const populateOnePieceSetCards = internalAction({
 /**
  * Populate Digimon sets from digimoncard.io
  * Note: API doesn't have a dedicated sets endpoint, so we search by pack name patterns
+ * @param maxAgeMonths - Optional filter to only include sets released within the last N months
+ *                       Uses approximate release dates based on set numbers
+ * @param minSetNumber - Alternative filter: only include BT/EX sets >= this number
  */
 export const populateDigimonSets = internalAction({
-  args: {},
-  handler: async (ctx): Promise<{ success: boolean; count: number; errors: string[] }> => {
+  args: {
+    maxAgeMonths: v.optional(v.number()),
+    minSetNumber: v.optional(v.number()),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
     const errors: string[] = [];
     let count = 0;
+    let skipped = 0;
+    const cutoffDate = getCutoffDate(args.maxAgeMonths);
 
-    try {
-      interface DigimonCard {
-        id: string;
-        name: string;
-        set_name: string[];
+    // Approximate release dates for Digimon sets
+    // BT01 = April 2020, BT sets roughly every 3 months
+    // EX01 = December 2021, EX sets roughly every 6 months
+    const getApproximateReleaseDate = (setCode: string): string => {
+      const btMatch = setCode.match(/^BT(\d+)$/i);
+      if (btMatch) {
+        const setNum = parseInt(btMatch[1], 10);
+        // BT01 = April 2020, each set ~3 months later
+        const monthsFromLaunch = (setNum - 1) * 3;
+        const launchDate = new Date(2020, 3, 24); // April 24, 2020
+        const releaseDate = new Date(launchDate);
+        releaseDate.setMonth(releaseDate.getMonth() + monthsFromLaunch);
+        return releaseDate.toISOString().split('T')[0];
       }
 
-      // Known set prefixes for Digimon TCG
-      const setPatterns = [
-        'BT',
-        'EX',
-        'ST',
-        'P-',
-        'RB',
-        'LM',
-        'BT01',
-        'BT02',
-        'BT03',
-        'BT04',
-        'BT05',
-        'BT06',
-        'BT07',
-        'BT08',
-        'BT09',
-        'BT10',
-        'BT11',
-        'BT12',
-        'BT13',
-        'BT14',
-        'BT15',
-        'BT16',
-        'BT17',
-        'BT18',
-        'EX01',
-        'EX02',
-        'EX03',
-        'EX04',
-        'EX05',
-        'EX06',
-        'EX07',
-      ];
+      const exMatch = setCode.match(/^EX(\d+)$/i);
+      if (exMatch) {
+        const setNum = parseInt(exMatch[1], 10);
+        // EX01 = December 2021, each set ~6 months later
+        const monthsFromLaunch = (setNum - 1) * 6;
+        const launchDate = new Date(2021, 11, 24); // December 24, 2021
+        const releaseDate = new Date(launchDate);
+        releaseDate.setMonth(releaseDate.getMonth() + monthsFromLaunch);
+        return releaseDate.toISOString().split('T')[0];
+      }
 
+      // Starter decks and promos use launch date
+      return '2020-04-24';
+    };
+
+    try {
       // Get all card numbers to extract unique sets
       const response = await fetchJSON<{ name: string; cardnumber: string }[]>(
         'https://digimoncard.io/index.php/api-public/getAllCards?series=Digimon%20Card%20Game&sort=card_number&sortdirection=asc'
@@ -1747,15 +1933,44 @@ export const populateDigimonSets = internalAction({
         }
       }
 
-      // Insert sets
+      // Insert sets (with filtering)
       for (const [setCode, data] of setMap.entries()) {
+        // Filter by minSetNumber if specified (applies to BT and EX sets)
+        if (args.minSetNumber !== undefined) {
+          const btMatch = setCode.match(/^BT(\d+)$/i);
+          const exMatch = setCode.match(/^EX(\d+)$/i);
+          if (btMatch) {
+            const setNum = parseInt(btMatch[1], 10);
+            if (setNum < args.minSetNumber) {
+              skipped++;
+              continue;
+            }
+          }
+          if (exMatch) {
+            const setNum = parseInt(exMatch[1], 10);
+            if (setNum < args.minSetNumber) {
+              skipped++;
+              continue;
+            }
+          }
+        }
+
+        // Calculate approximate release date for this set
+        const releaseDate = getApproximateReleaseDate(setCode);
+
+        // Filter by release date if maxAgeMonths is specified
+        if (!isSetWithinAgeLimit(releaseDate, cutoffDate)) {
+          skipped++;
+          continue;
+        }
+
         try {
           await ctx.runMutation(internal.dataPopulation.upsertCachedSet, {
             setId: setCode,
             gameSlug: 'digimon',
             name: data.name,
             series: 'Digimon Card Game',
-            releaseDate: '2020-04-24', // Game launch date as default
+            releaseDate,
             totalCards: data.cardCount,
             logoUrl: undefined,
             symbolUrl: undefined,
@@ -1767,12 +1982,13 @@ export const populateDigimonSets = internalAction({
         await delay(RATE_LIMITS.digimon);
       }
 
-      return { success: errors.length === 0, count, errors };
+      return { success: errors.length === 0, count, errors, skipped };
     } catch (e) {
       return {
         success: false,
         count,
         errors: [...errors, e instanceof Error ? e.message : 'Unknown error'],
+        skipped,
       };
     }
   },
@@ -1868,12 +2084,37 @@ export const populateDigimonSetCards = internalAction({
 /**
  * Populate Dragon Ball Fusion World sets from apitcg.com
  * Note: Sets endpoint is under construction, so we extract from cards
+ * @param maxAgeMonths - Optional filter to only include sets released within the last N months
+ *                       Dragon Ball Fusion World launched Feb 2024, uses set number filtering
+ * @param minSetNumber - Alternative filter: only include FB sets >= this number
  */
 export const populateDragonBallSets = internalAction({
-  args: {},
-  handler: async (ctx): Promise<{ success: boolean; count: number; errors: string[] }> => {
+  args: {
+    maxAgeMonths: v.optional(v.number()),
+    minSetNumber: v.optional(v.number()),
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
     const errors: string[] = [];
     let count = 0;
+    let skipped = 0;
+    const cutoffDate = getCutoffDate(args.maxAgeMonths);
+
+    // Approximate release dates for Dragon Ball Fusion World sets
+    // FB01 = February 2024, subsequent sets roughly every 3 months
+    const getApproximateReleaseDate = (setCode: string): string => {
+      const match = setCode.match(/^FB(\d+)/i);
+      if (!match) return '2024-02-16'; // Default to launch date
+      const setNum = parseInt(match[1], 10);
+      // FB01 = February 2024, each set ~3 months later
+      const monthsFromLaunch = (setNum - 1) * 3;
+      const launchDate = new Date(2024, 1, 16); // February 16, 2024
+      const releaseDate = new Date(launchDate);
+      releaseDate.setMonth(releaseDate.getMonth() + monthsFromLaunch);
+      return releaseDate.toISOString().split('T')[0];
+    };
 
     try {
       interface DragonBallCard {
@@ -1944,15 +2185,36 @@ export const populateDragonBallSets = internalAction({
         }
       }
 
-      // Insert sets
+      // Insert sets (with filtering)
       for (const [setCode, data] of setMap.entries()) {
+        // Filter by minSetNumber if specified
+        if (args.minSetNumber !== undefined) {
+          const match = setCode.match(/^FB(\d+)/i);
+          if (match) {
+            const setNum = parseInt(match[1], 10);
+            if (setNum < args.minSetNumber) {
+              skipped++;
+              continue;
+            }
+          }
+        }
+
+        // Calculate approximate release date for this set
+        const releaseDate = getApproximateReleaseDate(setCode);
+
+        // Filter by release date if maxAgeMonths is specified
+        if (!isSetWithinAgeLimit(releaseDate, cutoffDate)) {
+          skipped++;
+          continue;
+        }
+
         try {
           await ctx.runMutation(internal.dataPopulation.upsertCachedSet, {
             setId: setCode,
             gameSlug: 'dragonball',
             name: data.name,
             series: 'Dragon Ball Fusion World',
-            releaseDate: '2024-02-16', // Game launch date as default
+            releaseDate,
             totalCards: data.cardCount,
             logoUrl: undefined,
             symbolUrl: undefined,
@@ -1964,12 +2226,13 @@ export const populateDragonBallSets = internalAction({
         await delay(RATE_LIMITS.dragonball);
       }
 
-      return { success: errors.length === 0, count, errors };
+      return { success: errors.length === 0, count, errors, skipped };
     } catch (e) {
       return {
         success: false,
         count,
         errors: [...errors, e instanceof Error ? e.message : 'Unknown error'],
+        skipped,
       };
     }
   },
@@ -2099,41 +2362,58 @@ export const populateDragonBallSetCards = internalAction({
 
 /**
  * Internal populate sets for any game (used by populateGameData)
+ * @param gameSlug - The game to populate sets for
+ * @param maxAgeMonths - Optional filter to only include sets released within the last N months
  */
 export const internalPopulateSets = internalAction({
   args: {
     gameSlug: gameSlugValidator,
+    maxAgeMonths: v.optional(v.number()),
   },
-  handler: async (ctx, args): Promise<{ success: boolean; count: number; errors: string[] }> => {
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
+    const maxAgeMonths = args.maxAgeMonths;
     switch (args.gameSlug) {
       case 'pokemon':
-        return ctx.runAction(internal.dataPopulation.populatePokemonSets, {});
+        return ctx.runAction(internal.dataPopulation.populatePokemonSets, { maxAgeMonths });
       case 'yugioh':
-        return ctx.runAction(internal.dataPopulation.populateYugiohSets, {});
+        return ctx.runAction(internal.dataPopulation.populateYugiohSets, { maxAgeMonths });
       case 'mtg':
-        return ctx.runAction(internal.dataPopulation.populateMtgSets, { collectibleOnly: true });
+        return ctx.runAction(internal.dataPopulation.populateMtgSets, {
+          collectibleOnly: true,
+          maxAgeMonths,
+        });
       case 'lorcana':
-        return ctx.runAction(internal.dataPopulation.populateLorcanaSets, {});
+        return ctx.runAction(internal.dataPopulation.populateLorcanaSets, { maxAgeMonths });
       case 'onepiece':
-        return ctx.runAction(internal.dataPopulation.populateOnePieceSets, {});
+        return ctx.runAction(internal.dataPopulation.populateOnePieceSets, { maxAgeMonths });
       case 'digimon':
-        return ctx.runAction(internal.dataPopulation.populateDigimonSets, {});
+        return ctx.runAction(internal.dataPopulation.populateDigimonSets, { maxAgeMonths });
       case 'dragonball':
-        return ctx.runAction(internal.dataPopulation.populateDragonBallSets, {});
+        return ctx.runAction(internal.dataPopulation.populateDragonBallSets, { maxAgeMonths });
     }
   },
 });
 
 /**
  * Populate sets for any game (public API)
+ * @param gameSlug - The game to populate sets for
+ * @param maxAgeMonths - Optional filter to only include sets released within the last N months
  */
 export const populateSets = internalAction({
   args: {
     gameSlug: gameSlugValidator,
+    maxAgeMonths: v.optional(v.number()),
   },
-  handler: async (ctx, args): Promise<{ success: boolean; count: number; errors: string[] }> => {
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
     return ctx.runAction(internal.dataPopulation.internalPopulateSets, {
       gameSlug: args.gameSlug,
+      maxAgeMonths: args.maxAgeMonths,
     });
   },
 });
@@ -2200,11 +2480,15 @@ export const populateSetCards = internalAction({
  * Populate all data for a game (sets + cards for each set)
  * WARNING: This can take a long time and may hit rate limits for large games.
  * Consider using populateSets and populateSetCards separately for better control.
+ * @param gameSlug - The game to populate
+ * @param maxSets - Limit number of sets to process (for testing)
+ * @param maxAgeMonths - Only include sets released within the last N months
  */
 export const populateGameData = action({
   args: {
     gameSlug: gameSlugValidator,
     maxSets: v.optional(v.number()), // Limit for testing
+    maxAgeMonths: v.optional(v.number()), // Only include recent sets
   },
   handler: async (
     ctx,
@@ -2212,21 +2496,24 @@ export const populateGameData = action({
   ): Promise<{
     success: boolean;
     setsProcessed: number;
+    setsSkipped: number;
     cardsProcessed: number;
     errors: string[];
   }> => {
     const errors: string[] = [];
     let cardsProcessed = 0;
 
-    // First populate sets
+    // First populate sets (with maxAgeMonths filtering)
     const setsResult = await ctx.runAction(internal.dataPopulation.internalPopulateSets, {
       gameSlug: args.gameSlug,
+      maxAgeMonths: args.maxAgeMonths,
     });
 
     if (!setsResult.success && setsResult.count === 0) {
       return {
         success: false,
         setsProcessed: 0,
+        setsSkipped: setsResult.skipped,
         cardsProcessed: 0,
         errors: setsResult.errors,
       };
@@ -2259,6 +2546,7 @@ export const populateGameData = action({
     return {
       success: errors.length === 0,
       setsProcessed: setsResult.count,
+      setsSkipped: setsResult.skipped,
       cardsProcessed,
       errors,
     };

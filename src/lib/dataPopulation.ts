@@ -136,6 +136,7 @@ export interface PopulationResult {
   success: boolean;
   count: number;
   errors: string[];
+  skipped: number; // Sets skipped due to maxAgeMonths filtering
 }
 
 /**
@@ -144,8 +145,26 @@ export interface PopulationResult {
 export interface GamePopulationResult {
   success: boolean;
   setsProcessed: number;
+  setsSkipped: number; // Sets skipped due to maxAgeMonths filtering
   cardsProcessed: number;
   errors: string[];
+}
+
+/**
+ * Options for populating sets
+ */
+export interface PopulateSetsOptions {
+  gameSlug: GameSlug;
+  maxAgeMonths?: number; // Only include sets released within the last N months
+}
+
+/**
+ * Options for populating all game data
+ */
+export interface PopulateGameDataOptions {
+  gameSlug: GameSlug;
+  maxSets?: number; // Limit number of sets for testing
+  maxAgeMonths?: number; // Only include sets released within the last N months
 }
 
 /**
@@ -458,6 +477,163 @@ export function needsPopulation(
   }
 
   return false;
+}
+
+// =============================================================================
+// SET AGE FILTERING
+// =============================================================================
+
+/**
+ * Default recommended maxAgeMonths for kid-friendly set filtering
+ * 24 months ensures sets are still "in print" and available at retail
+ */
+export const DEFAULT_MAX_AGE_MONTHS = 24;
+
+/**
+ * Common maxAgeMonths presets
+ */
+export const MAX_AGE_PRESETS = {
+  /** Only current sets (last 6 months) */
+  CURRENT: 6,
+  /** Recent sets (last 12 months) */
+  RECENT: 12,
+  /** In-print sets (last 24 months) - recommended for kids */
+  IN_PRINT: 24,
+  /** Extended (last 36 months) */
+  EXTENDED: 36,
+  /** All sets (no filtering) */
+  ALL: undefined as undefined,
+} as const;
+
+/**
+ * Validate maxAgeMonths value
+ * @param months - The maxAgeMonths value to validate
+ * @returns true if valid (positive number or undefined/null for no filter)
+ */
+export function isValidMaxAgeMonths(months: number | null | undefined): boolean {
+  if (months === null || months === undefined) {
+    return true; // No filter is valid
+  }
+  return typeof months === 'number' && months > 0 && Number.isFinite(months);
+}
+
+/**
+ * Calculate the cutoff date for filtering sets by age
+ * @param maxAgeMonths - Maximum age in months for sets to include
+ * @returns Date representing the cutoff, or null if no filtering
+ */
+export function calculateCutoffDate(maxAgeMonths: number | null | undefined): Date | null {
+  if (maxAgeMonths === null || maxAgeMonths === undefined || maxAgeMonths <= 0) {
+    return null;
+  }
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() - maxAgeMonths, now.getDate());
+}
+
+/**
+ * Format cutoff date for display
+ * @param cutoffDate - The cutoff date to format
+ * @returns Human-readable string like "January 2024"
+ */
+export function formatCutoffDate(cutoffDate: Date | null): string {
+  if (cutoffDate === null) {
+    return 'No filter (all sets)';
+  }
+  return cutoffDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+  });
+}
+
+/**
+ * Get a human-readable description of maxAgeMonths filter
+ * @param maxAgeMonths - The maxAgeMonths value
+ * @returns Description like "Sets from the last 24 months"
+ */
+export function getMaxAgeDescription(maxAgeMonths: number | null | undefined): string {
+  if (maxAgeMonths === null || maxAgeMonths === undefined) {
+    return 'All sets (no age filter)';
+  }
+  if (maxAgeMonths === 1) {
+    return 'Sets from the last month';
+  }
+  if (maxAgeMonths === 12) {
+    return 'Sets from the last year';
+  }
+  if (maxAgeMonths === 24) {
+    return 'Sets from the last 2 years (in-print)';
+  }
+  return `Sets from the last ${maxAgeMonths} months`;
+}
+
+/**
+ * Check if a release date is within the age limit
+ * @param releaseDate - The release date string (YYYY-MM-DD format)
+ * @param maxAgeMonths - Maximum age in months
+ * @returns true if within limit, false if filtered out
+ */
+export function isReleaseDateWithinLimit(
+  releaseDate: string,
+  maxAgeMonths: number | null | undefined
+): boolean {
+  const cutoffDate = calculateCutoffDate(maxAgeMonths);
+  if (cutoffDate === null) {
+    return true;
+  }
+
+  try {
+    const releaseDateObj = new Date(releaseDate);
+    if (isNaN(releaseDateObj.getTime())) {
+      return true; // Invalid dates pass through
+    }
+    return releaseDateObj.getTime() >= cutoffDate.getTime();
+  } catch {
+    return true; // Errors pass through
+  }
+}
+
+/**
+ * Filter an array of sets by release date
+ * @param sets - Array of sets with releaseDate field
+ * @param maxAgeMonths - Maximum age in months
+ * @returns Filtered array of sets
+ */
+export function filterSetsByAge<T extends { releaseDate: string }>(
+  sets: T[],
+  maxAgeMonths: number | null | undefined
+): T[] {
+  if (maxAgeMonths === null || maxAgeMonths === undefined) {
+    return sets;
+  }
+  return sets.filter((set) => isReleaseDateWithinLimit(set.releaseDate, maxAgeMonths));
+}
+
+/**
+ * Count how many sets would be filtered out
+ * @param sets - Array of sets with releaseDate field
+ * @param maxAgeMonths - Maximum age in months
+ * @returns Object with included and excluded counts
+ */
+export function countFilteredSets<T extends { releaseDate: string }>(
+  sets: T[],
+  maxAgeMonths: number | null | undefined
+): { included: number; excluded: number; total: number } {
+  if (maxAgeMonths === null || maxAgeMonths === undefined) {
+    return { included: sets.length, excluded: 0, total: sets.length };
+  }
+
+  let included = 0;
+  let excluded = 0;
+
+  for (const set of sets) {
+    if (isReleaseDateWithinLimit(set.releaseDate, maxAgeMonths)) {
+      included++;
+    } else {
+      excluded++;
+    }
+  }
+
+  return { included, excluded, total: sets.length };
 }
 
 // =============================================================================

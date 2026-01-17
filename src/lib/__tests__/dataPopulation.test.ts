@@ -5,18 +5,25 @@ import {
   RATE_LIMITS,
   API_CONFIGS,
   PRINT_STATUSES,
+  DEFAULT_MAX_AGE_MONTHS,
+  MAX_AGE_PRESETS,
   // Types
   type GameSlug,
   type CachedSet,
   type CachedCard,
   type PopulationStatus,
   type PrintStatus,
+  type PopulationResult,
+  type GamePopulationResult,
+  type PopulateSetsOptions,
+  type PopulateGameDataOptions,
   // Validation functions
   isValidGameSlug,
   isValidSetId,
   isValidCardId,
   validateSet,
   validateCard,
+  isValidMaxAgeMonths,
   // Normalization functions
   normalizeSet,
   normalizeCard,
@@ -44,6 +51,13 @@ import {
   getInPrintCutoffDate,
   determinePrintStatusByDate,
   getPrintStatusStats,
+  // Max age filtering utilities
+  calculateCutoffDate,
+  formatCutoffDate,
+  getMaxAgeDescription,
+  isReleaseDateWithinLimit,
+  filterSetsByAge,
+  countFilteredSets,
 } from '../dataPopulation';
 
 // =============================================================================
@@ -1142,5 +1156,418 @@ describe('CachedSet with print status fields', () => {
     // Print status fields are not touched by normalizeSet (optional fields)
     expect(normalized.setId).toBe('sv1');
     expect(normalized.gameSlug).toBe('pokemon');
+  });
+});
+
+// =============================================================================
+// MAX AGE FILTERING TESTS
+// =============================================================================
+
+describe('Max Age Constants', () => {
+  it('should have DEFAULT_MAX_AGE_MONTHS set to 24', () => {
+    expect(DEFAULT_MAX_AGE_MONTHS).toBe(24);
+  });
+
+  it('should have MAX_AGE_PRESETS with expected values', () => {
+    expect(MAX_AGE_PRESETS.CURRENT).toBe(6);
+    expect(MAX_AGE_PRESETS.RECENT).toBe(12);
+    expect(MAX_AGE_PRESETS.IN_PRINT).toBe(24);
+    expect(MAX_AGE_PRESETS.EXTENDED).toBe(36);
+    expect(MAX_AGE_PRESETS.ALL).toBeUndefined();
+  });
+});
+
+describe('isValidMaxAgeMonths', () => {
+  it('should return true for positive numbers', () => {
+    expect(isValidMaxAgeMonths(1)).toBe(true);
+    expect(isValidMaxAgeMonths(12)).toBe(true);
+    expect(isValidMaxAgeMonths(24)).toBe(true);
+    expect(isValidMaxAgeMonths(100)).toBe(true);
+  });
+
+  it('should return true for null and undefined (no filter)', () => {
+    expect(isValidMaxAgeMonths(null)).toBe(true);
+    expect(isValidMaxAgeMonths(undefined)).toBe(true);
+  });
+
+  it('should return false for zero and negative numbers', () => {
+    expect(isValidMaxAgeMonths(0)).toBe(false);
+    expect(isValidMaxAgeMonths(-1)).toBe(false);
+    expect(isValidMaxAgeMonths(-24)).toBe(false);
+  });
+
+  it('should return false for non-finite numbers', () => {
+    expect(isValidMaxAgeMonths(Infinity)).toBe(false);
+    expect(isValidMaxAgeMonths(-Infinity)).toBe(false);
+    expect(isValidMaxAgeMonths(NaN)).toBe(false);
+  });
+});
+
+describe('calculateCutoffDate', () => {
+  beforeEach(() => {
+    // Mock Date to a fixed point: January 17, 2026
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 0, 17)); // January is month 0
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('should return null for null/undefined maxAgeMonths', () => {
+    expect(calculateCutoffDate(null)).toBeNull();
+    expect(calculateCutoffDate(undefined)).toBeNull();
+  });
+
+  it('should return null for zero or negative maxAgeMonths', () => {
+    expect(calculateCutoffDate(0)).toBeNull();
+    expect(calculateCutoffDate(-12)).toBeNull();
+  });
+
+  it('should calculate cutoff date for 24 months (2 years ago)', () => {
+    const cutoff = calculateCutoffDate(24);
+    expect(cutoff).not.toBeNull();
+    expect(cutoff!.getFullYear()).toBe(2024);
+    expect(cutoff!.getMonth()).toBe(0); // January
+    expect(cutoff!.getDate()).toBe(17);
+  });
+
+  it('should calculate cutoff date for 12 months (1 year ago)', () => {
+    const cutoff = calculateCutoffDate(12);
+    expect(cutoff).not.toBeNull();
+    expect(cutoff!.getFullYear()).toBe(2025);
+    expect(cutoff!.getMonth()).toBe(0); // January
+    expect(cutoff!.getDate()).toBe(17);
+  });
+
+  it('should calculate cutoff date for 6 months', () => {
+    const cutoff = calculateCutoffDate(6);
+    expect(cutoff).not.toBeNull();
+    expect(cutoff!.getFullYear()).toBe(2025);
+    expect(cutoff!.getMonth()).toBe(6); // July
+    expect(cutoff!.getDate()).toBe(17);
+  });
+});
+
+describe('formatCutoffDate', () => {
+  it('should return "No filter (all sets)" for null', () => {
+    expect(formatCutoffDate(null)).toBe('No filter (all sets)');
+  });
+
+  it('should format date as month and year', () => {
+    const date = new Date(2024, 0, 17); // January 17, 2024
+    expect(formatCutoffDate(date)).toBe('January 2024');
+  });
+
+  it('should format date for different months', () => {
+    expect(formatCutoffDate(new Date(2025, 5, 1))).toBe('June 2025');
+    expect(formatCutoffDate(new Date(2023, 11, 31))).toBe('December 2023');
+  });
+});
+
+describe('getMaxAgeDescription', () => {
+  it('should return description for null/undefined', () => {
+    expect(getMaxAgeDescription(null)).toBe('All sets (no age filter)');
+    expect(getMaxAgeDescription(undefined)).toBe('All sets (no age filter)');
+  });
+
+  it('should return special description for 1 month', () => {
+    expect(getMaxAgeDescription(1)).toBe('Sets from the last month');
+  });
+
+  it('should return special description for 12 months', () => {
+    expect(getMaxAgeDescription(12)).toBe('Sets from the last year');
+  });
+
+  it('should return special description for 24 months', () => {
+    expect(getMaxAgeDescription(24)).toBe('Sets from the last 2 years (in-print)');
+  });
+
+  it('should return generic description for other values', () => {
+    expect(getMaxAgeDescription(6)).toBe('Sets from the last 6 months');
+    expect(getMaxAgeDescription(36)).toBe('Sets from the last 36 months');
+    expect(getMaxAgeDescription(18)).toBe('Sets from the last 18 months');
+  });
+});
+
+describe('isReleaseDateWithinLimit', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 0, 17)); // January 17, 2026
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('should return true when maxAgeMonths is null/undefined', () => {
+    expect(isReleaseDateWithinLimit('2020-01-01', null)).toBe(true);
+    expect(isReleaseDateWithinLimit('2020-01-01', undefined)).toBe(true);
+  });
+
+  it('should return true for sets within the limit', () => {
+    // 24 months from Jan 2026 = Jan 2024
+    expect(isReleaseDateWithinLimit('2025-01-01', 24)).toBe(true);
+    expect(isReleaseDateWithinLimit('2024-06-15', 24)).toBe(true);
+    expect(isReleaseDateWithinLimit('2024-01-18', 24)).toBe(true); // Day after cutoff
+  });
+
+  it('should return false for sets outside the limit', () => {
+    // 24 months from Jan 2026 = Jan 2024
+    expect(isReleaseDateWithinLimit('2023-12-31', 24)).toBe(false);
+    expect(isReleaseDateWithinLimit('2022-01-01', 24)).toBe(false);
+    expect(isReleaseDateWithinLimit('2020-01-01', 24)).toBe(false);
+  });
+
+  it('should return true for invalid/unparseable dates (safe default)', () => {
+    expect(isReleaseDateWithinLimit('invalid-date', 24)).toBe(true);
+    expect(isReleaseDateWithinLimit('', 24)).toBe(true);
+    expect(isReleaseDateWithinLimit('not a date', 12)).toBe(true);
+  });
+
+  it('should work with different maxAgeMonths values', () => {
+    // 6 months from Jan 2026 = July 2025
+    expect(isReleaseDateWithinLimit('2025-08-01', 6)).toBe(true);
+    expect(isReleaseDateWithinLimit('2025-06-01', 6)).toBe(false);
+
+    // 12 months from Jan 2026 = Jan 2025
+    expect(isReleaseDateWithinLimit('2025-03-01', 12)).toBe(true);
+    expect(isReleaseDateWithinLimit('2024-12-31', 12)).toBe(false);
+  });
+});
+
+describe('filterSetsByAge', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 0, 17));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const testSets = [
+    { setId: 'old-1', releaseDate: '2020-01-01', name: 'Very Old Set' },
+    { setId: 'old-2', releaseDate: '2023-06-01', name: 'Old Set' },
+    { setId: 'recent-1', releaseDate: '2024-06-01', name: 'Recent Set' },
+    { setId: 'new-1', releaseDate: '2025-06-01', name: 'New Set' },
+    { setId: 'newest', releaseDate: '2025-12-01', name: 'Newest Set' },
+  ];
+
+  it('should return all sets when maxAgeMonths is null/undefined', () => {
+    expect(filterSetsByAge(testSets, null)).toHaveLength(5);
+    expect(filterSetsByAge(testSets, undefined)).toHaveLength(5);
+  });
+
+  it('should filter sets older than maxAgeMonths', () => {
+    // 24 months = cutoff at Jan 2024
+    const filtered = filterSetsByAge(testSets, 24);
+    expect(filtered).toHaveLength(3);
+    expect(filtered.map((s) => s.setId)).toEqual(['recent-1', 'new-1', 'newest']);
+  });
+
+  it('should filter with 12 months', () => {
+    // 12 months = cutoff at Jan 2025
+    const filtered = filterSetsByAge(testSets, 12);
+    expect(filtered).toHaveLength(2);
+    expect(filtered.map((s) => s.setId)).toEqual(['new-1', 'newest']);
+  });
+
+  it('should filter with 6 months', () => {
+    // 6 months = cutoff at July 2025
+    const filtered = filterSetsByAge(testSets, 6);
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].setId).toBe('newest');
+  });
+
+  it('should handle empty array', () => {
+    expect(filterSetsByAge([], 24)).toEqual([]);
+  });
+});
+
+describe('countFilteredSets', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 0, 17));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const testSets = [
+    { setId: 'old-1', releaseDate: '2020-01-01', name: 'Very Old Set' },
+    { setId: 'old-2', releaseDate: '2023-06-01', name: 'Old Set' },
+    { setId: 'recent-1', releaseDate: '2024-06-01', name: 'Recent Set' },
+    { setId: 'new-1', releaseDate: '2025-06-01', name: 'New Set' },
+    { setId: 'newest', releaseDate: '2025-12-01', name: 'Newest Set' },
+  ];
+
+  it('should return all included when maxAgeMonths is null/undefined', () => {
+    expect(countFilteredSets(testSets, null)).toEqual({
+      included: 5,
+      excluded: 0,
+      total: 5,
+    });
+    expect(countFilteredSets(testSets, undefined)).toEqual({
+      included: 5,
+      excluded: 0,
+      total: 5,
+    });
+  });
+
+  it('should count correctly with 24 months filter', () => {
+    const result = countFilteredSets(testSets, 24);
+    expect(result.included).toBe(3);
+    expect(result.excluded).toBe(2);
+    expect(result.total).toBe(5);
+  });
+
+  it('should count correctly with 12 months filter', () => {
+    const result = countFilteredSets(testSets, 12);
+    expect(result.included).toBe(2);
+    expect(result.excluded).toBe(3);
+    expect(result.total).toBe(5);
+  });
+
+  it('should count correctly with 6 months filter', () => {
+    const result = countFilteredSets(testSets, 6);
+    expect(result.included).toBe(1);
+    expect(result.excluded).toBe(4);
+    expect(result.total).toBe(5);
+  });
+
+  it('should handle empty array', () => {
+    expect(countFilteredSets([], 24)).toEqual({
+      included: 0,
+      excluded: 0,
+      total: 0,
+    });
+  });
+});
+
+describe('PopulationResult type with skipped field', () => {
+  it('should have skipped field in PopulationResult', () => {
+    const result: PopulationResult = {
+      success: true,
+      count: 10,
+      errors: [],
+      skipped: 5,
+    };
+    expect(result.skipped).toBe(5);
+  });
+});
+
+describe('GamePopulationResult type with setsSkipped field', () => {
+  it('should have setsSkipped field in GamePopulationResult', () => {
+    const result: GamePopulationResult = {
+      success: true,
+      setsProcessed: 10,
+      setsSkipped: 5,
+      cardsProcessed: 1000,
+      errors: [],
+    };
+    expect(result.setsSkipped).toBe(5);
+    expect(result.setsProcessed).toBe(10);
+  });
+});
+
+describe('PopulateSetsOptions type', () => {
+  it('should have optional maxAgeMonths field', () => {
+    const options: PopulateSetsOptions = {
+      gameSlug: 'pokemon',
+      maxAgeMonths: 24,
+    };
+    expect(options.maxAgeMonths).toBe(24);
+
+    const optionsNoFilter: PopulateSetsOptions = {
+      gameSlug: 'yugioh',
+    };
+    expect(optionsNoFilter.maxAgeMonths).toBeUndefined();
+  });
+});
+
+describe('PopulateGameDataOptions type', () => {
+  it('should have optional maxAgeMonths and maxSets fields', () => {
+    const options: PopulateGameDataOptions = {
+      gameSlug: 'pokemon',
+      maxSets: 10,
+      maxAgeMonths: 24,
+    };
+    expect(options.maxSets).toBe(10);
+    expect(options.maxAgeMonths).toBe(24);
+
+    const minimalOptions: PopulateGameDataOptions = {
+      gameSlug: 'lorcana',
+    };
+    expect(minimalOptions.maxSets).toBeUndefined();
+    expect(minimalOptions.maxAgeMonths).toBeUndefined();
+  });
+});
+
+describe('Max Age Integration with Population', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 0, 17));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('should simulate Pokemon set filtering with 24 months', () => {
+    // Simulate Pokemon sets spanning multiple years
+    const pokemonSets = [
+      { setId: 'base1', releaseDate: '1999-01-09', name: 'Base Set' },
+      { setId: 'swsh1', releaseDate: '2020-02-07', name: 'Sword & Shield' },
+      { setId: 'swsh12', releaseDate: '2022-11-11', name: 'Silver Tempest' },
+      { setId: 'sv1', releaseDate: '2023-03-31', name: 'Scarlet & Violet' },
+      { setId: 'sv3', releaseDate: '2023-08-11', name: 'Obsidian Flames' },
+      { setId: 'sv6', releaseDate: '2024-05-24', name: 'Twilight Masquerade' },
+      { setId: 'sv8', releaseDate: '2024-11-08', name: 'Surging Sparks' },
+      { setId: 'sv9', releaseDate: '2025-02-07', name: 'Journey Together' },
+    ];
+
+    // 24 months filter from Jan 2026 = Jan 2024
+    const filtered = filterSetsByAge(pokemonSets, 24);
+    expect(filtered.map((s) => s.setId)).toEqual(['sv6', 'sv8', 'sv9']);
+
+    const counts = countFilteredSets(pokemonSets, 24);
+    expect(counts.included).toBe(3);
+    expect(counts.excluded).toBe(5);
+  });
+
+  it('should simulate Yu-Gi-Oh! set filtering with 12 months', () => {
+    // Yu-Gi-Oh! has many sets per year
+    const yugiohSets = [
+      { setId: 'LOB', releaseDate: '2002-03-08', name: 'Legend of Blue Eyes' },
+      { setId: 'LEDE', releaseDate: '2024-07-19', name: 'Legacy of Destruction' },
+      { setId: 'AGOV', releaseDate: '2024-10-25', name: 'Age of Overlord' },
+      { setId: 'BLCR', releaseDate: '2025-01-24', name: 'Blazing Core' },
+    ];
+
+    // 12 months filter from Jan 2026 = Jan 2025
+    const filtered = filterSetsByAge(yugiohSets, 12);
+    expect(filtered.map((s) => s.setId)).toEqual(['BLCR']);
+
+    // 24 months filter from Jan 2026 = Jan 2024
+    const filtered24 = filterSetsByAge(yugiohSets, 24);
+    expect(filtered24.map((s) => s.setId)).toEqual(['LEDE', 'AGOV', 'BLCR']);
+  });
+
+  it('should demonstrate kid-friendly filtering with IN_PRINT preset', () => {
+    const sets = [
+      { setId: 'vintage', releaseDate: '2015-01-01', name: 'Vintage Set' },
+      { setId: 'old', releaseDate: '2023-06-01', name: 'Old but Good' },
+      { setId: 'recent', releaseDate: '2024-06-01', name: 'Recent Release' },
+      { setId: 'new', releaseDate: '2025-06-01', name: 'New Release' },
+    ];
+
+    const inPrintSets = filterSetsByAge(sets, MAX_AGE_PRESETS.IN_PRINT);
+    // Only sets from Jan 2024 onwards should be included
+    expect(inPrintSets.map((s) => s.setId)).toEqual(['recent', 'new']);
+
+    // For kid-friendly app, this ensures we only show sets kids can find at stores
+    expect(inPrintSets.every((s) => new Date(s.releaseDate) >= new Date('2024-01-17'))).toBe(true);
   });
 });
