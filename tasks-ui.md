@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL fixes first, then HIGH priority
 
 ```
-Progress: ████████████░░░░░░░░░░░░░░░░  110/318 (35%)
-Remaining: 208 tasks (42 are LOW priority - do after launch)
+Progress: █████████████░░░░░░░░░░░░░░░  117/318 (37%)
+Remaining: 201 tasks (42 are LOW priority - do after launch)
 ```
 
 ## Status Summary (Updated 2026-01-17 - Post Comprehensive Evaluation)
@@ -16,7 +16,7 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 | **HIGH - My Collection Page Card Details** | 0       | **14**    |
 | **HIGH - Sets Page Card Viewing & Sorting** | 0      | **20**    |
 | **CRITICAL - Site Evaluation Fixes**      | 7        | **1**     |
-| **CRITICAL - Remove Unsupported Games**   | 0        | **7**     |
+| **CRITICAL - Remove Unsupported Games**   | 7        | **0**     |
 | **CRITICAL - Settings Permissions**       | 0        | **7**     |
 | **CRITICAL - Landing Page Content**       | 0        | **10**    |
 | **HIGH - Broken Images & Error Handling** | 0        | **10**    |
@@ -53,14 +53,14 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **244**   |
+| **TOTAL**                                 | **117**  | **237**   |
 
 ### Priority Order for Remaining Tasks
 
 1. **HIGH - My Collection Page Card Details** (14 tasks) - Click to see close-up, show owned variants, quick actions, card navigation
 2. **HIGH - Sets Page Card Viewing & Sorting** (20 tasks) - **VARIANT BADGES NOT WORKING** - Debug why badges don't show, research Pokemon API variants, fix implementation
 3. **CRITICAL - Site Evaluation Fixes** (1 task) - Profile switcher for families
-4. **CRITICAL - Remove Unsupported Games** (7 tasks) - Remove Digimon, Dragon Ball, MTG from UI (only support Pokemon, One Piece, Lorcana, Yu-Gi-Oh!)
+4. ~~**CRITICAL - Remove Unsupported Games** (7 tasks)~~ ✅ COMPLETE - All 7 tasks done
 5. **CRITICAL - Settings Permissions** (7 tasks) - Parent vs kid settings access control
 6. **CRITICAL - Landing Page Content** (10 tasks) - Specific text changes for multi-TCG (4 games only)
 7. **CRITICAL - Kid-Friendly Set Display** (15 tasks) - Only show sets kids can actually buy
@@ -212,8 +212,8 @@ We are focusing on **only 4 kid-friendly TCGs** based on Q4 2025 market data. Re
 - [x] Update onboarding game selector - Only show 4 supported games in "What do you collect?" screen
 - [x] Update settings game toggle - Remove unsupported games from game selection options
 - [x] Remove unsupported game icons - Delete or hide `DigimonLogo.tsx`, `DragonBallLogo.tsx`, `MtgLogo.tsx` from `src/components/icons/tcg/` (VERIFIED: Icons don't exist - never created)
-- [ ] Update any game-specific achievements - Remove Digimon, Dragon Ball, MTG themed badges if they exist
-- [ ] Search codebase for hardcoded game lists - Find and update any other places that list all 7 games
+- [x] Update any game-specific achievements - Remove Digimon, Dragon Ball, MTG themed badges if they exist (Updated `gameAchievements.ts` and `TrophyCase.tsx`)
+- [x] Search codebase for hardcoded game lists - Find and update any other places that list all 7 games (Updated `apiValidation.ts`, `tcg-api.ts`, and all related test files)
 
 ---
 
@@ -1152,3 +1152,5 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 
 - **2026-01-17**: Completed FIX: Recent Activity missing set name - Dashboard Recent Activity now shows which set cards were added from. Updated four Convex activity queries to enrich setName from cachedCards/cachedSets when metadata is missing: getRecentActivityWithNames, getRecentActivityWithNamesPaginated, getFamilyActivityWithNames, getFamilyActivityPaginated. The queries now: 1) collect cardIds needing enrichment (missing cardName OR setName), 2) fetch card info (name + setId) from cachedCards, 3) collect unique setIds, 4) fetch set names from cachedSets via by_set_id index, 5) enrich both cardName and setName in activity metadata. ActivityFeed UI already supported displaying setName via formatActivityDescription() - the fix was in the backend data enrichment. Handles legacy activity logs that were created before setName was passed to addCard mutation. TypeScript compiles clean, ESLint and Prettier clean.
 - **2026-01-17**: Completed Update onboarding game selector task - Removed unsupported games (Digimon, Dragon Ball, MTG) from the onboarding game selector component (src/components/onboarding/GameSelectorOnboarding.tsx). Removed imports for DragonBallIcon, DigimonIcon, MtgIcon, and unused GAME_ICONS. Updated ICON_COMPONENTS record to only include the 4 supported games: Pokemon, Yu-Gi-Oh!, One Piece, and Lorcana. Updated skeleton to show 4 placeholder cards instead of 7. Added JSDoc comment documenting supported games. Created comprehensive test suite (src/components/onboarding/__tests__/GameSelectorOnboarding.test.tsx) with 27 tests covering: skeleton rendering (4 cards), supported games display, unsupported games exclusion, game selection/toggle, primary game setting, navigation, accessibility. All tests pass, ESLint and Prettier clean. Commit: 1f929ca
+
+- **2026-01-17**: Completed "CRITICAL - Remove Unsupported Games" section tasks - Updated hardcoded game lists and game-specific achievements to only include 4 supported games (Pokemon, Yu-Gi-Oh!, One Piece, Lorcana). Changes: 1) Updated apiValidation.ts VALID_GAMES from 7 to 4 games and removed COMMON_TYPES_BY_GAME entries for digimon/dragonball, 2) Updated gameAchievements.ts to remove GAME_MASTERY_TITLES and GAME_MILESTONE_NAMES for unsupported games, updated CROSS_GAME_ACHIEVEMENTS from 4 tiers to 3 (max is now 4 games), 3) Updated TrophyCase.tsx GAME_ICONS to only 4 games, 4) Updated 8 test files (apiValidation.test.ts, dataPopulation.test.ts, tcg-api.test.ts, gameAchievements.test.ts, route.test.ts files for cards/sets/search/filter) to test only 4 games. All 6328 tests pass (7 unrelated pre-existing failures in registration and AppHeader tests). ESLint shows only warnings in test files. Prettier clean. Commit: da41010
