@@ -122,12 +122,24 @@ export default defineSchema({
 
   wishlistCards: defineTable({
     profileId: v.id('profiles'),
-    cardId: v.string(), // Pokemon TCG API card ID
+    cardId: v.string(), // TCG API card ID (e.g., "sv1-1" for Pokemon, "LOB-001" for Yu-Gi-Oh!)
     isPriority: v.boolean(),
+    gameSlug: v.optional(
+      v.union(
+        v.literal('pokemon'),
+        v.literal('yugioh'),
+        v.literal('mtg'),
+        v.literal('onepiece'),
+        v.literal('lorcana'),
+        v.literal('digimon'),
+        v.literal('dragonball')
+      )
+    ), // Game the card belongs to (denormalized for query performance)
   })
     .index('by_profile', ['profileId'])
     .index('by_profile_and_card', ['profileId', 'cardId'])
-    .index('by_profile_and_priority', ['profileId', 'isPriority']),
+    .index('by_profile_and_priority', ['profileId', 'isPriority'])
+    .index('by_profile_and_game', ['profileId', 'gameSlug']),
 
   wishlistShares: defineTable({
     profileId: v.id('profiles'),

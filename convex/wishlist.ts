@@ -4,6 +4,26 @@ import { mutation, query } from './_generated/server';
 // Maximum number of priority (starred) items per profile
 export const MAX_PRIORITY_ITEMS = 5;
 
+// Valid game slugs for wishlist filtering
+const gameSlugValidator = v.union(
+  v.literal('pokemon'),
+  v.literal('yugioh'),
+  v.literal('mtg'),
+  v.literal('onepiece'),
+  v.literal('lorcana'),
+  v.literal('digimon'),
+  v.literal('dragonball')
+);
+
+export type GameSlug =
+  | 'pokemon'
+  | 'yugioh'
+  | 'mtg'
+  | 'onepiece'
+  | 'lorcana'
+  | 'digimon'
+  | 'dragonball';
+
 // ============================================================================
 // QUERIES
 // ============================================================================
@@ -89,6 +109,111 @@ export const getWishlistByToken = query({
   },
 });
 
+/**
+ * Get wishlist filtered by game - uses the by_profile_and_game index for efficient queries.
+ * This is the optimized query for multi-TCG support, avoiding the need to join with cachedCards.
+ */
+export const getWishlistByGame = query({
+  args: {
+    profileId: v.id('profiles'),
+    gameSlug: gameSlugValidator,
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query('wishlistCards')
+      .withIndex('by_profile_and_game', (q) =>
+        q.eq('profileId', args.profileId).eq('gameSlug', args.gameSlug)
+      )
+      .collect();
+  },
+});
+
+/**
+ * Get wishlist with game filtering and card enrichment.
+ * Returns wishlist items with cached card data (name, image, price) for a specific game.
+ */
+export const getWishlistByGameWithCards = query({
+  args: {
+    profileId: v.id('profiles'),
+    gameSlug: gameSlugValidator,
+  },
+  handler: async (ctx, args) => {
+    // Use the optimized by_profile_and_game index
+    const wishlistItems = await ctx.db
+      .query('wishlistCards')
+      .withIndex('by_profile_and_game', (q) =>
+        q.eq('profileId', args.profileId).eq('gameSlug', args.gameSlug)
+      )
+      .collect();
+
+    // Enrich with card data from cache
+    const enrichedCards = await Promise.all(
+      wishlistItems.map(async (item) => {
+        const cachedCard = await ctx.db
+          .query('cachedCards')
+          .withIndex('by_card_id', (q) => q.eq('cardId', item.cardId))
+          .first();
+
+        return {
+          _id: item._id,
+          cardId: item.cardId,
+          isPriority: item.isPriority,
+          gameSlug: item.gameSlug,
+          // Card data from cache
+          name: cachedCard?.name ?? 'Unknown Card',
+          setId: cachedCard?.setId,
+          rarity: cachedCard?.rarity,
+          imageSmall: cachedCard?.imageSmall,
+          imageLarge: cachedCard?.imageLarge,
+          priceMarket: cachedCard?.priceMarket,
+          tcgPlayerUrl: cachedCard?.tcgPlayerUrl,
+        };
+      })
+    );
+
+    return {
+      items: enrichedCards,
+      count: enrichedCards.length,
+      priorityCount: enrichedCards.filter((c) => c.isPriority).length,
+    };
+  },
+});
+
+/**
+ * Get wishlist counts per game for a profile.
+ * Useful for showing game tabs with counts in the wishlist UI.
+ */
+export const getWishlistCountsByGame = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    // Get all wishlist items for the profile
+    const allItems = await ctx.db
+      .query('wishlistCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Count by game
+    const countsByGame: Record<string, { total: number; priority: number }> = {};
+
+    for (const item of allItems) {
+      const game = item.gameSlug ?? 'unknown';
+      if (!countsByGame[game]) {
+        countsByGame[game] = { total: 0, priority: 0 };
+      }
+      countsByGame[game].total++;
+      if (item.isPriority) {
+        countsByGame[game].priority++;
+      }
+    }
+
+    return {
+      byGame: countsByGame,
+      totalItems: allItems.length,
+      totalPriority: allItems.filter((i) => i.isPriority).length,
+    };
+  },
+});
+
 // ============================================================================
 // MUTATIONS
 // ============================================================================
@@ -98,6 +223,7 @@ export const addToWishlist = mutation({
     profileId: v.id('profiles'),
     cardId: v.string(),
     isPriority: v.optional(v.boolean()),
+    gameSlug: v.optional(gameSlugValidator),
   },
   handler: async (ctx, args) => {
     // Check if already on wishlist
@@ -109,7 +235,21 @@ export const addToWishlist = mutation({
       .first();
 
     if (existing) {
+      // If gameSlug is provided but not stored, update it (backfill scenario)
+      if (args.gameSlug && !existing.gameSlug) {
+        await ctx.db.patch(existing._id, { gameSlug: args.gameSlug });
+      }
       return { cardId: existing._id, alreadyExists: true };
+    }
+
+    // If gameSlug not provided, try to look it up from cached cards
+    let gameSlug = args.gameSlug;
+    if (!gameSlug) {
+      const cachedCard = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_card_id', (q) => q.eq('cardId', args.cardId))
+        .first();
+      gameSlug = cachedCard?.gameSlug;
     }
 
     // If adding with priority, check the limit
@@ -128,6 +268,7 @@ export const addToWishlist = mutation({
           profileId: args.profileId,
           cardId: args.cardId,
           isPriority: false,
+          gameSlug,
         });
         return {
           cardId,
@@ -142,6 +283,7 @@ export const addToWishlist = mutation({
       profileId: args.profileId,
       cardId: args.cardId,
       isPriority: wantsPriority,
+      gameSlug,
     });
 
     return { cardId, alreadyExists: false };
@@ -549,6 +691,68 @@ export const getCardsAffiliateLinks = query({
       totalCards: results.length,
       cardsWithLinks: results.filter((r) => r.hasLink).length,
       cardsWithAffiliateTracking: results.filter((r) => r.hasAffiliateTracking).length,
+    };
+  },
+});
+
+// ============================================================================
+// MIGRATION MUTATIONS
+// ============================================================================
+
+/**
+ * Backfill gameSlug for existing wishlist cards that don't have it.
+ * Looks up each card in cachedCards and updates the wishlist entry.
+ * Can be called multiple times safely - only updates cards without gameSlug.
+ *
+ * @param batchSize - Number of cards to process per call (default 100)
+ * @returns Stats about processed cards
+ */
+export const backfillWishlistGameSlugs = mutation({
+  args: {
+    batchSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const batchSize = Math.min(args.batchSize ?? 100, 500); // Cap at 500 for safety
+
+    // Find wishlist cards without gameSlug
+    const cardsToUpdate = await ctx.db
+      .query('wishlistCards')
+      .filter((q) => q.eq(q.field('gameSlug'), undefined))
+      .take(batchSize);
+
+    let updated = 0;
+    let notFound = 0;
+
+    for (const wishlistCard of cardsToUpdate) {
+      // Look up the game from cached cards
+      const cachedCard = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_card_id', (q) => q.eq('cardId', wishlistCard.cardId))
+        .first();
+
+      if (cachedCard?.gameSlug) {
+        await ctx.db.patch(wishlistCard._id, { gameSlug: cachedCard.gameSlug });
+        updated++;
+      } else {
+        notFound++;
+      }
+    }
+
+    // Check if there are more to process
+    const remaining = await ctx.db
+      .query('wishlistCards')
+      .filter((q) => q.eq(q.field('gameSlug'), undefined))
+      .take(1);
+
+    return {
+      processed: cardsToUpdate.length,
+      updated,
+      notFound,
+      hasMore: remaining.length > 0,
+      message:
+        remaining.length > 0
+          ? `Backfilled ${updated} cards. Call again to continue.`
+          : `Backfill complete. Updated ${updated} cards.`,
     };
   },
 });
