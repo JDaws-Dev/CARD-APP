@@ -153,7 +153,7 @@ The settings page currently allows ALL settings to be changed by anyone, includi
 
 Image components lack error handlers, causing silent failures when images don't load.
 
-- [ ] Add onError handler to FlippableCard card back image - Show placeholder when `https://images.pokemontcg.io/cardback.png` fails
+- [x] Add onError handler to FlippableCard card back image - Show placeholder when `https://images.pokemontcg.io/cardback.png` fails
 - [ ] Add onError handlers to CardGrid card images - Display fallback placeholder on image load failure
 - [ ] Add onError handlers to DigitalBinder card images - Graceful degradation for binder view
 - [ ] Add onError handlers to PackOpeningSimulator - Don't break pack opening experience if image fails
@@ -534,6 +534,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Fixed Add Profile button in parent dashboard - Created AddProfileModal component (src/components/dashboard/AddProfileModal.tsx) with: real-time name validation using Convex queries (canCreateChildProfile, validateChildProfileName), profile limit checks based on subscription tier (free vs family), kid-safe content filtering for display names, loading/error/success states with appropriate icons, escape key handling and click-outside-to-close, accessible modal with proper ARIA attributes (role="dialog", aria-modal, aria-labelledby). Updated parent dashboard page to use useState for modal visibility, added onClick handler to Add Profile button, integrated AddProfileModal component. Uses Heroicons (XMarkIcon, UserPlusIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowUpCircleIcon). Commit: f5ec86d
 
 - **2026-01-17**: Updated landing page hero for multi-TCG branding - Fixed Landing Page Hero section in src/app/page.tsx to use CardDex brand colors instead of Pokemon-specific styling. Changes: FloatingCard SparklesIcon color changed from text-pokemon-yellow to text-kid-primary (line 41); FloatingStar default color prop changed from text-pokemon-yellow to text-kid-primary (line 51); "Made for young collectors" badge SparklesIcon changed from text-pokemon-yellow to text-kid-primary (line 95); Hero headline changed from "Pokemon Cards" to "Trading Cards" (lines 102-104). These changes align the landing page with CardDex's multi-TCG identity. All 26 LandingPage tests pass. Commit: cbb9b46
+
+- **2026-01-17**: Added onError handler to FlippableCard card back images - Updated FlippableCard component (src/components/collection/FlippableCard.tsx) to use the CardBack component from CardImage.tsx instead of raw Next.js Image components. This provides automatic error handling with fallback to placeholder when the Pokemon card back URL (https://images.pokemontcg.io/cardback.png) fails to load. Changes: imported CardBack from @/components/ui/CardImage, replaced Image components with CardBack in both FlippableCard and ZoomableCardModal. Added comprehensive test suite (25 tests) covering FlippableCard, CardFlipModal, and ZoomableCardModal components including: flip functionality, keyboard navigation (F key), accessibility (ARIA labels), controlled/uncontrolled modes, CardBack integration verification, zoom controls, and modal interactions. All FlippableCard tests pass. Commit: edb71fe
 
 ---
 
