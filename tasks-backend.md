@@ -11,24 +11,24 @@ Remaining: 27 tasks
 
 ## Status Summary (Updated 2026-01-17)
 
-| Section                              | Complete | Remaining |
-| ------------------------------------ | -------- | --------- |
-| **CRITICAL - Multi-TCG API**         | 0        | **5**     |
-| **CRITICAL - Auth Fixes**            | 0        | **4**     |
-| **HIGH - Performance Optimization**  | 4        | **3**     |
-| HIGH PRIORITY - Auth & Pricing       | 9        | **1**     |
-| Card Variants                        | 3        | 0         |
-| Achievement System                   | 6        | 0         |
-| Wishlist & Sharing                   | 4        | 0         |
-| Family Features                      | 2        | **1**     |
-| Testing & Performance                | 4        | 0         |
-| Data Persistence & Sync              | 2        | **1**     |
-| Multi-TCG Architecture               | 12       | **7**     |
-| Gamification Backend                 | 3        | 0         |
-| Educational Content                  | 3        | 0         |
-| Additional Features                  | 5        | 0         |
-| Launch Prep                          | 4        | **5**     |
-| **TOTAL**                            | **62**   | **27**    |
+| Section                             | Complete | Remaining |
+| ----------------------------------- | -------- | --------- |
+| **CRITICAL - Multi-TCG API**        | 0        | **5**     |
+| **CRITICAL - Auth Fixes**           | 0        | **4**     |
+| **HIGH - Performance Optimization** | 4        | **3**     |
+| HIGH PRIORITY - Auth & Pricing      | 9        | **1**     |
+| Card Variants                       | 3        | 0         |
+| Achievement System                  | 6        | 0         |
+| Wishlist & Sharing                  | 4        | 0         |
+| Family Features                     | 2        | **1**     |
+| Testing & Performance               | 4        | 0         |
+| Data Persistence & Sync             | 2        | **1**     |
+| Multi-TCG Architecture              | 12       | **7**     |
+| Gamification Backend                | 3        | 0         |
+| Educational Content                 | 3        | 0         |
+| Additional Features                 | 5        | 0         |
+| Launch Prep                         | 4        | **5**     |
+| **TOTAL**                           | **62**   | **27**    |
 
 ### Critical Path for Launch
 
@@ -74,10 +74,16 @@ These API routes are currently hardcoded to Pokemon and must be updated to suppo
 
 ### CRITICAL - Auth & Security Fixes (January 2026 Evaluation)
 
-- [ ] Fix parent dashboard to use authenticated user - Remove `getOrCreateDemoProfile()` call, use actual authenticated user's family data
+- [ ] Fix parent dashboard to use authenticated user - Remove `getOrCreateDemoProfile()` call in `src/app/parent-dashboard/page.tsx:23`, use `getCurrentUserProfile()` from `convex/profiles.ts` instead
 - [ ] Add role-based access control to parent dashboard - Check `hasParentAccess()` before allowing access to `/parent-dashboard`
 - [ ] Add proper profile validation - Ensure users can only access their own profiles and family data
-- [ ] Create /signup route - Either create dedicated page or redirect to /login?mode=signup
+- [x] Create /signup route - Either create dedicated page or redirect to /login?mode=signup (DONE - signup page exists)
+
+### NEW - Code Review Backend Fixes (January 17, 2026)
+
+- [ ] Delete `getOrCreateDemoProfile` mutation from `convex/profiles.ts` - This demo function should not exist in production, it creates fake data
+- [ ] Add `hasParentAccess` helper function to `convex/profiles.ts` - Check if authenticated user has parent role in their family
+- [ ] Create `getParentDashboardData` query in `convex/profiles.ts` - Secure query that returns family data only for authenticated parent users
 
 ### HIGH - Performance Optimization Backend (January 2026 Evaluation)
 
@@ -86,7 +92,7 @@ My Collection page is slow due to redundant/inefficient Convex queries. These ba
 - [x] Create combined `getCollectionWithStats` query - Merge `getCollection` + `getCollectionStats` into single query returning both data and calculated stats
 - [x] Create batch query for VirtualCardGrid - Merge 4 queries (collection, wishlist, newlyAdded, priorityCount) into `getSetViewData` single query
 - [x] Optimize `getNewlyAddedCards` query - Add database-level filtering with composite index `by_profile_and_action_time` instead of collecting all logs and filtering in JS
-- [x] Add composite index to activityLogs - Create index `by_profile_action_time` for (profileId, action, _creationTime) in schema
+- [x] Add composite index to activityLogs - Create index `by_profile_action_time` for (profileId, action, \_creationTime) in schema
 - [ ] Optimize wishlist queries - Add index for profile+game queries if missing
 - [ ] Add pagination to activity feed queries - Use `.take()` with cursor for large activity histories instead of `.collect()`
 - [ ] Profile query batching - Consolidate multiple profile lookups into batch queries where used
@@ -207,6 +213,17 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-17: Add batch getCardsByIds query for efficient card lookups
+
+- Added `getCardsByIds` public query to `convex/dataPopulation.ts`
+  - Fetches multiple cards by their IDs in a single batch operation
+  - Accepts array of card IDs (max 200 to prevent memory issues)
+  - Deduplicates card IDs automatically
+  - Returns a map structure for O(1) lookups by cardId
+  - Includes stats about requested/unique/found/missing/truncated counts
+- Reduces N+1 query patterns in wishlist enrichment and collection display
+- Uses existing `by_card_id` index on cachedCards table
 
 ### 2026-01-17: Optimize getNewlyAddedCards query with by_profile_and_action index
 
@@ -2170,3 +2187,107 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
     - `cleanupExpiredTokens`: Internal mutation for token cleanup
 - All functions include proper error handling and return structured results
 - Task was previously implemented but not marked complete in tasks-backend.md
+
+---
+
+## NEW - SEO & Infrastructure Tasks (January 17, 2026 Evaluation)
+
+These tasks address backend requirements for SEO and infrastructure improvements.
+
+### Sitemap Generation
+
+- [ ] Create sitemap generation function - Generate XML sitemap with all public routes
+- [ ] Add sitemap.xml route handler - Serve dynamic sitemap at /sitemap.xml
+- [ ] Include all set pages in sitemap - Dynamic routes for /sets/[setId]
+- [ ] Add lastmod dates based on data freshness - When sets/cards were last updated
+
+### API Route Multi-TCG Updates
+
+- [ ] Update /api/sets/route.ts to accept game parameter - Route to game-specific data source
+- [ ] Update /api/cards/route.ts to accept game parameter - Fetch from correct cachedCards by game
+- [ ] Update /api/search/route.ts to accept game parameter - Search within selected game's cards
+- [ ] Update /api/filter/route.ts to accept game parameter - Filter within selected game's cards
+- [ ] Create unified API adapter pattern - Single interface for all TCG API sources
+
+### Security Improvements
+
+- [ ] Add rate limiting to API routes - Prevent abuse of search/filter endpoints
+- [ ] Add request validation middleware - Validate game parameter is valid enum value
+- [ ] Log suspicious API access patterns - Track unusual request volumes
+
+### Analytics & Monitoring
+
+- [ ] Set up error tracking (Sentry integration) - Capture runtime errors with context
+- [ ] Add performance monitoring - Track slow queries and page loads
+- [ ] Create health check endpoint - /api/health for uptime monitoring
+- [ ] Add API response time logging - Track p50, p95, p99 latency
+
+---
+
+## NEW - Performance Optimization Backend (January 17, 2026 Evaluation)
+
+### Collection Query Optimization
+
+- [ ] Create paginated getCollection query - Return 50 cards at a time with cursor
+- [ ] Merge getCollection and getCollectionStats into single query - Reduce round trips
+- [ ] Add database-level filtering to getNewlyAddedCards - Filter by timestamp in query, not JS
+- [x] Create batch getCards query - Fetch multiple cards in single query for wishlist/collection
+
+### Caching Strategy
+
+- [ ] Add edge caching for static set data - Sets don't change after release
+- [ ] Cache card data in Convex - Reduce external API calls
+- [ ] Implement stale-while-revalidate for card prices - Show cached price, update in background
+
+---
+
+## NEW - Parent Notification System (January 17, 2026 Evaluation)
+
+### Email Notifications
+
+- [ ] Create email notification preferences table - Store parent notification settings
+- [ ] Build daily activity summary email - Cards added, achievements earned, streaks
+- [ ] Build weekly collection report email - Collection growth, wishlist updates
+- [ ] Add milestone notification emails - Alert parent when kid earns major achievement
+- [ ] Integrate email service (Resend or SendGrid) - Send transactional emails
+
+### In-App Notifications
+
+- [ ] Create notifications table in schema - Store parent notifications
+- [ ] Build notification bell component for parent dashboard - Show unread count
+- [ ] Create notification preferences UI - Toggle which notifications to receive
+
+---
+
+## NEW - Kid-Friendly Set Filtering (January 17, 2026 Evaluation)
+
+These tasks ensure we only show sets that kids can actually buy at retail TODAY.
+
+### Schema Updates
+
+- [ ] Add `isInPrint` boolean field to `cachedSets` table - Track whether set is currently available at retail
+- [ ] Add `releaseDate` index to enable date-based filtering - `by_game_and_release_date`
+- [ ] Add `printStatus` enum field - Values: 'current', 'limited', 'out_of_print', 'vintage'
+
+### Set Filtering Logic
+
+- [ ] Create `getInPrintSets` query - Return only sets with `isInPrint: true` or released within 24 months
+- [ ] Create `markOutOfPrintSets` mutation - Admin tool to mark sets as out of print
+- [ ] Add `cutoffDate` parameter to `getSetsByGame` - Filter by release date
+- [ ] Create set availability update cron job - Automatically mark sets older than 24 months as limited/out_of_print
+
+### Game Removal: Magic: The Gathering
+
+- [ ] Remove 'mtg' from `gameSlug` union type in schema - Breaking change, requires migration
+- [ ] Delete MTG entries from `games` table via migration
+- [ ] Delete MTG entries from `cachedSets` and `cachedCards` tables
+- [ ] Remove `populateMtgSets` and `populateMtgSetCards` from dataPopulation.ts
+- [ ] Update `GAME_SLUGS` to exclude 'mtg'
+
+### API Adapter Updates
+
+- [ ] Update Pokemon API adapter - Only fetch Scarlet & Violet and Mega Evolution era sets
+- [ ] Update Yu-Gi-Oh! API adapter - Only fetch sets from 2024 onwards
+- [ ] Update One Piece API adapter - Only fetch OP-10 through latest
+- [ ] Update Digimon API adapter - Only fetch sets from 2024 onwards
+- [ ] Add `maxAgeMonths` parameter to all `populateGameSets` actions
