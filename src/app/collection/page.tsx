@@ -1,7 +1,8 @@
 'use client';
 
-import { lazy, Suspense } from 'react';
-import { useQuery } from 'convex/react';
+import { lazy, Suspense, useEffect } from 'react';
+import { useQuery, useConvexAuth } from 'convex/react';
+import { useRouter } from 'next/navigation';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { CollectionView } from '@/components/collection/CollectionView';
@@ -26,6 +27,8 @@ import { TrophyRoomSkeleton } from '@/components/virtual/VirtualTrophyRoom';
 const VirtualTrophyRoom = lazy(() => import('@/components/virtual/VirtualTrophyRoom'));
 
 export default function MyCollectionPage() {
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const router = useRouter();
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
 
   const collection = useQuery(
@@ -37,6 +40,25 @@ export default function MyCollectionPage() {
     api.collections.getCollectionStats,
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
+
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // Show loading while checking auth or if redirecting
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-indigo-50 to-purple-50">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-kid-primary border-t-transparent" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Loading state with skeleton screens
   if (profileLoading || collection === undefined || stats === undefined) {
