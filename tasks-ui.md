@@ -237,7 +237,7 @@ Improve site organization, navigation, and user flow clarity.
 
 - [x] Create BackLink component - Reusable consistent back navigation (src/components/ui/BackLink.tsx)
 - [x] Create PageHeader component - Reusable page header with title, description, optional icon (src/components/ui/PageHeader.tsx)
-- [ ] Add back navigation to /learn page - Users can get stuck without way to return
+- [x] Add back navigation to /learn page - Users can get stuck without way to return
 - [ ] Add breadcrumb to /condition-guide - Show "Home > Learn > Condition Guide"
 - [ ] Add breadcrumb to /sets/[setId] - Show "Home > Browse Sets > [Set Name]"
 - [ ] Create AppFooter component - Footer for authenticated pages with Help, Privacy, Terms links
@@ -701,6 +701,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Added useMemo to CollectionView set grouping logic - Wrapped the expensive set grouping computation in useMemo to cache results and prevent recalculating grouping, sorting, and map creation on every render. Now only recalculates when collection or cardData changes. Also fixed CollectionView test mock to wrap card data in { data: mockCards } to match API response structure. All 5 CollectionView tests pass. ESLint and Prettier clean. Commit: 47d112d
 
 - **2026-01-17**: Added ESC key handler to close mobile menus - Added keyboard accessibility to AppHeader and MarketingHeader by closing mobile menu on Escape key press. Also closes profile menu and quick settings popover in AppHeader when Escape is pressed. Uses useEffect with keydown listener and useCallback for stable handler reference. Added 4 tests covering ESC key behavior (3 for AppHeader: mobile menu, profile menu, quick settings; 1 for MarketingHeader: mobile menu). All new tests pass, ESLint and Prettier clean. Commit: d154bae
+
+- **2026-01-17**: Added back navigation and page header to /learn page - Users could previously get stuck on the Learn page without a way to return. Added back link to dashboard at top of page following the same pattern as settings page (ArrowLeftIcon, consistent styling with hover:text-kid-primary, dark mode support). Added page header with AcademicCapIcon in purple/indigo gradient, "Learn to Collect" title, and "Guides and mini-games to become a card expert" subtitle. Added comprehensive test suite (13 tests) covering back navigation, page header, page content, and accessibility. All tests pass, ESLint and Prettier clean. Commit: d7302c2
 
 ---
 
