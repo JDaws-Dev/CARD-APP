@@ -20,6 +20,10 @@ import {
   PokemonTypeQuizButton,
 } from '@/components/games/PokemonTypeQuiz';
 import {
+  PriceEstimationGame,
+  PriceEstimationGameButton,
+} from '@/components/games/PriceEstimationGame';
+import {
   BookOpenIcon,
   SparklesIcon,
   ArrowRightIcon,
@@ -29,6 +33,7 @@ import {
   QuestionMarkCircleIcon,
   PuzzlePieceIcon,
   FireIcon,
+  CurrencyDollarIcon,
 } from '@heroicons/react/24/solid';
 
 export default function LearnPage() {
@@ -36,6 +41,7 @@ export default function LearnPage() {
   const [isRarityGameOpen, setIsRarityGameOpen] = useState(false);
   const [isSetSymbolGameOpen, setIsSetSymbolGameOpen] = useState(false);
   const [isTypeQuizOpen, setIsTypeQuizOpen] = useState(false);
+  const [isPriceGameOpen, setIsPriceGameOpen] = useState(false);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -185,6 +191,34 @@ export default function LearnPage() {
 
       {/* Pokemon Type Quiz Modal */}
       <PokemonTypeQuiz isOpen={isTypeQuizOpen} onClose={() => setIsTypeQuizOpen(false)} />
+
+      {/* Educational Mini-Game - Price Estimation */}
+      <div className="mb-8 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-6 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-md">
+              <CurrencyDollarIcon className="h-7 w-7 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900">Price Estimation Game</h2>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  <StarIcon className="h-3 w-3" aria-hidden="true" />
+                  Mini-Game
+                </span>
+              </div>
+              <p className="text-gray-600">
+                Learn card values by guessing if cards are worth more or less than a given price.
+                Great for understanding what makes cards valuable!
+              </p>
+            </div>
+          </div>
+          <PriceEstimationGameButton onClick={() => setIsPriceGameOpen(true)} />
+        </div>
+      </div>
+
+      {/* Price Estimation Game Modal */}
+      <PriceEstimationGame isOpen={isPriceGameOpen} onClose={() => setIsPriceGameOpen(false)} />
 
       <LearnToCollect />
     </main>
