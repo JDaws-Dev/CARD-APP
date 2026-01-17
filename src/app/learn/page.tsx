@@ -12,6 +12,10 @@ import {
   RarityGuessingButton,
 } from '@/components/games/RarityGuessingGame';
 import {
+  SetSymbolMatchingGame,
+  SetSymbolMatchingButton,
+} from '@/components/games/SetSymbolMatchingGame';
+import {
   BookOpenIcon,
   SparklesIcon,
   ArrowRightIcon,
@@ -19,11 +23,13 @@ import {
   AcademicCapIcon,
   StarIcon,
   QuestionMarkCircleIcon,
+  PuzzlePieceIcon,
 } from '@heroicons/react/24/solid';
 
 export default function LearnPage() {
   const [isGradeGameOpen, setIsGradeGameOpen] = useState(false);
   const [isRarityGameOpen, setIsRarityGameOpen] = useState(false);
+  const [isSetSymbolGameOpen, setIsSetSymbolGameOpen] = useState(false);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -114,6 +120,37 @@ export default function LearnPage() {
 
       {/* Rarity Guessing Game Modal */}
       <RarityGuessingGame isOpen={isRarityGameOpen} onClose={() => setIsRarityGameOpen(false)} />
+
+      {/* Educational Mini-Game - Set Symbol Matching */}
+      <div className="mb-8 rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 p-6 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md">
+              <PuzzlePieceIcon className="h-7 w-7 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900">Set Symbol Matching</h2>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  <StarIcon className="h-3 w-3" aria-hidden="true" />
+                  Mini-Game
+                </span>
+              </div>
+              <p className="text-gray-600">
+                Learn to recognize Pokemon TCG set symbols! Match symbols to their set names and
+                become a set identification expert.
+              </p>
+            </div>
+          </div>
+          <SetSymbolMatchingButton onClick={() => setIsSetSymbolGameOpen(true)} />
+        </div>
+      </div>
+
+      {/* Set Symbol Matching Game Modal */}
+      <SetSymbolMatchingGame
+        isOpen={isSetSymbolGameOpen}
+        onClose={() => setIsSetSymbolGameOpen(false)}
+      />
 
       <LearnToCollect />
     </main>
