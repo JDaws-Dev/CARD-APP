@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL fixes first, then HIGH priority
 
 ```
-Progress: ████████████░░░░░░░░░░░░░░░░  110/315 (35%)
-Remaining: 205 tasks (42 are LOW priority - do after launch)
+Progress: ████████████░░░░░░░░░░░░░░░░  110/318 (35%)
+Remaining: 208 tasks (42 are LOW priority - do after launch)
 ```
 
 ## Status Summary (Updated 2026-01-17 - Post Comprehensive Evaluation)
@@ -28,6 +28,7 @@ Remaining: 205 tasks (42 are LOW priority - do after launch)
 | **NEW - AI-Powered Features UI**          | 0        | **14**    |
 | **NEW - Landing Page AI Features**        | 0        | **13**    |
 | **NEW - Trade Logging UI**                | 0        | **12**    |
+| **NEW - Parent Notification UI**          | 0        | **3**     |
 | **LOW - Mobile UX Evaluation**            | 0        | **20**    |
 | **LOW - Gamification Evaluation**         | 0        | **22**    |
 | HIGH PRIORITY - Landing Page              | 9        | 0         |
@@ -48,7 +49,7 @@ Remaining: 205 tasks (42 are LOW priority - do after launch)
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **205**   |
+| **TOTAL**                                 | **110**  | **208**   |
 
 ### Priority Order for Remaining Tasks
 
@@ -101,7 +102,7 @@ These issues relate to inconsistent behavior between logged-in and logged-out st
 - [x] Protect `/settings` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/parent-dashboard` route - Redirect to `/login` if not authenticated (also check parent role)
 - [x] Protect `/streak` route - Redirect to `/login` if not authenticated
-- [ ] Protect `/learn` route - Redirect to `/login` if not authenticated
+- [x] Protect `/learn` route - Redirect to `/login` if not authenticated
 
 ## Multi-TCG Pages Update
 
@@ -536,6 +537,7 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 ## Progress
 
+- **2026-01-17**: Completed Protect /learn route task - Added authentication protection to `/learn` page to redirect unauthenticated users to `/login`. Updated `src/app/learn/page.tsx` to use `useConvexAuth` hook for auth state checking, `useRouter` for navigation, and `useEffect` for redirect logic. Added loading spinner with purple/indigo gradient theme matching the page design. Updated `src/app/__tests__/LearnPage.test.tsx` to mock convex/react and next/navigation hooks to support new auth requirements. Follows same pattern as other protected routes (`/dashboard`, `/collection`, `/my-wishlist`, `/badges`, `/settings`, `/streak`). Commit: 153121c
 - **2026-01-17**: Completed Protect /badges route task - Added authentication protection to `/badges` (Trophy Case) page to redirect unauthenticated users to `/login`. Updated `src/app/badges/page.tsx` to use `useConvexAuth` hook for auth state checking, `useRouter` for navigation, and `useEffect` for redirect logic. Added loading spinner with amber/orange gradient theme matching the page. Follows same pattern as other protected routes (`/dashboard`, `/collection`, `/my-wishlist`, `/streak`). Commit: 956a639
 - **2026-01-17**: Completed Protect /my-wishlist route task - Added authentication protection to `/my-wishlist` page to redirect unauthenticated users to `/login`. Updated `src/app/my-wishlist/page.tsx` to use `useConvexAuth` hook for auth state checking, `useRouter` for navigation, and `useEffect` for redirect logic. Added loading spinner while auth state is being checked. Follows same pattern as other protected routes (`/dashboard`, `/collection`). Commit: 2601c71
 - **2026-01-17**: Completed CRITICAL auth redirect fixes for login/signup pages - Updated both `/login/page.tsx` and `/signup/page.tsx` to redirect authenticated users appropriately. Both pages now check `hasCompletedOnboarding()` from onboardingFlow lib: if user has completed onboarding, redirect to `/dashboard`; if not, redirect to `/onboarding`. This ensures existing users visiting auth pages go to dashboard while new users who just signed up still go through onboarding. Commit: 3a11eec
@@ -767,6 +769,18 @@ These tasks address critical SEO gaps identified during the comprehensive site e
 - [ ] Lazy load PokemonTypeQuiz - Use React.lazy() and Suspense
 - [ ] Lazy load PriceEstimationGame - Use React.lazy() and Suspense
 - [ ] Create GameLoader component - Shared Suspense fallback for all mini-games
+
+---
+
+## NEW - Parent Notification System UI (Moved from tasks-backend.md)
+
+These are UI components for the notification system. Backend schema and queries are already complete.
+
+### In-App Notifications UI
+
+- [ ] Build notification bell component for parent dashboard - Show unread count, dropdown list of recent notifications
+- [ ] Create notification preferences UI - Toggle which notifications to receive (achievements, milestones, streaks, daily summaries)
+- [ ] Add notification toast component - Pop-up notifications for real-time alerts
 
 ---
 
