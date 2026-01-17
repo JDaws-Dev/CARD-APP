@@ -264,7 +264,7 @@ export default function Home() {
               Everything You Need to Be a <span className="text-kid-primary">Super Collector</span>
             </h2>
             <p className="mx-auto max-w-2xl text-sm text-gray-600 sm:text-base">
-              CardDex makes tracking your Pokemon cards fun and easy.
+              CardDex makes tracking your trading cards fun and easy.
             </p>
           </div>
 
@@ -552,8 +552,8 @@ export default function Home() {
                   <div className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lg">
                     <div className="h-16 w-12 rounded-lg bg-gradient-to-br from-amber-200 to-yellow-300" />
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-800">Charizard EX</p>
-                      <p className="text-sm text-gray-500">Scarlet & Violet</p>
+                      <p className="font-semibold text-gray-800">Fire Drake</p>
+                      <p className="text-sm text-gray-500">Ultra Rare</p>
                     </div>
                     <div className="flex gap-0.5">
                       <StarIcon className="h-4 w-4 text-amber-400" />
@@ -564,8 +564,8 @@ export default function Home() {
                   <div className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lg">
                     <div className="h-16 w-12 rounded-lg bg-gradient-to-br from-blue-200 to-cyan-300" />
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-800">Pikachu VMAX</p>
-                      <p className="text-sm text-gray-500">Celebrations</p>
+                      <p className="font-semibold text-gray-800">Thunder Mage</p>
+                      <p className="text-sm text-gray-500">Secret Rare</p>
                     </div>
                     <div className="flex gap-0.5">
                       <StarIcon className="h-4 w-4 text-amber-400" />
@@ -591,8 +591,8 @@ export default function Home() {
       <section className="bg-gradient-to-r from-kid-primary to-purple-600 px-4 py-12 sm:px-8">
         <div className="mx-auto grid max-w-4xl gap-8 text-center text-white sm:grid-cols-3">
           <div>
-            <div className="mb-2 text-4xl font-bold">500+</div>
-            <div className="text-indigo-200">Pokemon Sets</div>
+            <div className="mb-2 text-4xl font-bold">4</div>
+            <div className="text-indigo-200">TCGs Supported</div>
           </div>
           <div>
             <div className="mb-2 text-4xl font-bold">20,000+</div>
@@ -656,7 +656,7 @@ export default function Home() {
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-success/10">
                     <CheckIcon className="h-4 w-4 text-kid-success" />
                   </div>
-                  <span className="text-gray-700">All 500+ Pokemon sets</span>
+                  <span className="text-gray-700">All 4 TCGs with full set coverage</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-success/10">
@@ -731,7 +731,7 @@ export default function Home() {
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-secondary/10">
                     <CheckIcon className="h-4 w-4 text-kid-secondary" />
                   </div>
-                  <span className="text-gray-700">All 500+ Pokemon sets</span>
+                  <span className="text-gray-700">All 4 TCGs with full set coverage</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-secondary/10">
@@ -807,7 +807,7 @@ export default function Home() {
               <span className="text-kid-secondary">Parents</span>
             </h2>
             <p className="mx-auto max-w-2xl text-gray-600">
-              See why families are choosing CardDex to organize their Pokemon card collections.
+              See why families are choosing CardDex to organize their trading card collections.
             </p>
           </div>
 
@@ -1032,7 +1032,7 @@ export default function Home() {
             Start Your Collection Today!
           </h2>
           <p className="mb-8 text-lg text-gray-600">
-            Join other young collectors and take control of your Pokemon card collection. It&apos;s
+            Join other young collectors and take control of your trading card collection. It&apos;s
             free, fun, and family-friendly!
           </p>
           <Link
@@ -1050,7 +1050,10 @@ export default function Home() {
         className="bg-gray-900 px-4 py-8 text-center text-sm text-gray-400"
         role="contentinfo"
       >
-        <p>CardDex is not affiliated with The Pokemon Company or Nintendo.</p>
+        <p>
+          CardDex is not affiliated with The Pokemon Company, Konami, Disney, or Wizards of the
+          Coast.
+        </p>
         <p className="mt-2">Made with love for young collectors everywhere.</p>
       </footer>
     </div>
