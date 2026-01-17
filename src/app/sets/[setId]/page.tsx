@@ -10,7 +10,7 @@ import { SetDetailClient } from '@/components/collection/SetDetailClient';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/utils';
-import { SUPPORTED_GAMES } from '@/lib/games';
+import { GAMES } from '@/lib/gameSelector';
 
 type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
@@ -21,7 +21,7 @@ interface SetDetailPageProps {
 export default function SetDetailPage({ params }: SetDetailPageProps) {
   const searchParams = useSearchParams();
   const gameSlug = (searchParams.get('game') || 'pokemon') as GameSlug;
-  const game = SUPPORTED_GAMES.find((g) => g.id === gameSlug);
+  const game = GAMES.find((g) => g.id === gameSlug);
 
   // Get sets for this game to find the current set
   const sets = useQuery(api.dataPopulation.getSetsByGame, { gameSlug });
