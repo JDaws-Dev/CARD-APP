@@ -5,52 +5,60 @@
 ## Current Focus: CRITICAL fixes first, then HIGH priority
 
 ```
-Progress: ████████████████░░░░░░░░░░░░  110/176 (63%)
-Remaining: 66 tasks
+Progress: ████████████████░░░░░░░░░░░░  110/218 (50%)
+Remaining: 108 tasks
 ```
 
-## Status Summary (Updated 2026-01-17)
+## Status Summary (Updated 2026-01-17 - Post Comprehensive Evaluation)
 
-| Section                                  | Complete | Remaining |
-| ---------------------------------------- | -------- | --------- |
-| **CRITICAL - Site Evaluation Fixes**     | 7        | **1**     |
-| **CRITICAL - Settings Permissions**      | 0        | **7**     |
-| **CRITICAL - Landing Page Content**      | 0        | **10**    |
-| **HIGH - Broken Images & Error Handling**| 0        | **10**    |
-| **HIGH - Performance Optimization UI**   | 0        | **8**     |
-| **HIGH - UX & Navigation Improvements**  | 0        | **12**    |
-| **Multi-TCG Pages Update**               | 1        | **6**     |
-| **Landing Page Multi-TCG**               | 0        | **5**     |
-| HIGH PRIORITY - Landing Page             | 9        | 0         |
-| UI Tasks                                 | 20       | 0         |
-| Core Features                            | 6        | 0         |
-| Gamification UI                          | 4        | 0         |
-| Educational Features UI                  | 5        | 0         |
-| Navigation & Dashboard                   | 7        | 0         |
-| Multi-TCG Game Selector                  | 6        | 0         |
-| Polish & UX                              | 7        | 0         |
-| UI Cleanup & Settings                    | 6        | 0         |
-| Forgiving Streak System                  | 5        | 0         |
-| Virtual Experience Features              | 6        | 0         |
-| Collection Timeline & Story              | 5        | 0         |
-| Family & Social Features                 | 5        | 0         |
-| Financial Literacy                       | 4        | 0         |
-| Educational Mini-Games                   | 3        | 2         |
-| Enhanced Accessibility                   | 6        | 0         |
-| Engagement & Retention                   | 4        | 0         |
-| **TOTAL**                                | **109**  | **67**    |
+| Section                                   | Complete | Remaining |
+| ----------------------------------------- | -------- | --------- |
+| **CRITICAL - Site Evaluation Fixes**      | 7        | **1**     |
+| **CRITICAL - Settings Permissions**       | 0        | **7**     |
+| **CRITICAL - Landing Page Content**       | 0        | **10**    |
+| **HIGH - Broken Images & Error Handling** | 0        | **10**    |
+| **HIGH - Performance Optimization UI**    | 0        | **8**     |
+| **HIGH - UX & Navigation Improvements**   | 0        | **12**    |
+| **Multi-TCG Pages Update**                | 1        | **6**     |
+| **Landing Page Multi-TCG**                | 0        | **5**     |
+| **NEW - SEO & Marketing**                 | 0        | **12**    |
+| **NEW - Architecture Improvements**       | 0        | **13**    |
+| **NEW - Security Hardening**              | 0        | **6**     |
+| **NEW - Kid-Friendly Set Display**        | 0        | **15**    |
+| HIGH PRIORITY - Landing Page              | 9        | 0         |
+| UI Tasks                                  | 20       | 0         |
+| Core Features                             | 6        | 0         |
+| Gamification UI                           | 4        | 0         |
+| Educational Features UI                   | 5        | 0         |
+| Navigation & Dashboard                    | 7        | 0         |
+| Multi-TCG Game Selector                   | 6        | 0         |
+| Polish & UX                               | 7        | 0         |
+| UI Cleanup & Settings                     | 6        | 0         |
+| Forgiving Streak System                   | 5        | 0         |
+| Virtual Experience Features               | 6        | 0         |
+| Collection Timeline & Story               | 5        | 0         |
+| Family & Social Features                  | 5        | 0         |
+| Financial Literacy                        | 4        | 0         |
+| Educational Mini-Games                    | 3        | 2         |
+| Enhanced Accessibility                    | 6        | 0         |
+| Engagement & Retention                    | 4        | 0         |
+| **TOTAL**                                 | **110**  | **108**   |
 
 ### Priority Order for Remaining Tasks
 
-1. **CRITICAL - Site Evaluation Fixes** (7 tasks) - Login copy, auth flow fixes
+1. **CRITICAL - Site Evaluation Fixes** (1 task) - Profile switcher for families
 2. **CRITICAL - Settings Permissions** (7 tasks) - Parent vs kid settings access control
 3. **CRITICAL - Landing Page Content** (10 tasks) - Specific text changes for multi-TCG
-4. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
-5. **HIGH - Performance Optimization UI** (8 tasks) - Memoization, lazy loading, faster collection page
-6. **HIGH - UX & Navigation Improvements** (12 tasks) - Back links, breadcrumbs, footer, user flow
-7. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
-8. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section, update features
-9. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
+4. **CRITICAL - Kid-Friendly Set Display** (15 tasks) - Only show sets kids can actually buy
+5. **HIGH - Security Hardening** (6 tasks) - CSP headers, external resource integrity
+6. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
+7. **HIGH - Performance Optimization UI** (8 tasks) - Memoization, lazy loading, faster collection page
+8. **HIGH - UX & Navigation Improvements** (12 tasks) - Back links, breadcrumbs, footer, user flow
+9. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
+10. **MEDIUM - Architecture Improvements** (13 tasks) - Provider optimization, error boundaries, code splitting
+11. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
+12. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section, update features
+13. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
 
 ---
 
@@ -78,6 +86,42 @@ These pages are currently hardcoded to Pokemon and need to use the game picker (
 - [ ] `/my-wishlist/page.tsx` - Wishlist view - Must show cards from selected game
 - [ ] `/wishlist/[token]/page.tsx` - Public wishlist - Must display correct game context
 - [ ] `/collection/page.tsx` - Collection view - Must filter collection by selected game
+
+## NEW - Code Review Fixes (January 17, 2026)
+
+These specific issues were discovered during code review and need immediate attention.
+
+### Parent Dashboard Fixes
+
+- [ ] Update `/parent-dashboard/page.tsx` line 75 - Change "Manage your family's Pokemon collections" to "Manage your family's trading card collections"
+- [ ] Fix "Settings" button in parent dashboard - Currently non-functional (lines 80-83), add onClick to navigate to /settings
+- [ ] Fix "Add Profile" button in parent dashboard - Currently non-functional (lines 84-87), implement add profile modal or navigate to onboarding
+
+### Landing Page Hero Fixes
+
+- [ ] Update `/page.tsx` line 41 - Change `text-pokemon-yellow` to `text-kid-primary` on SparklesIcon (pokemon-yellow may not exist in Tailwind config)
+- [ ] Update `/page.tsx` line 51 - Change `text-pokemon-yellow` to `text-kid-primary` on FloatingStar default color
+- [ ] Update `/page.tsx` lines 102-104 - Change hero "Track Your Pokemon Cards" to "Track Your Trading Cards"
+
+### Signup Page Polish
+
+- [x] Update `/signup/page.tsx` line 40 - Change "Start tracking your trading card collection" to more exciting copy like "Start your collecting adventure!"
+
+### App Footer (Critical for Professional Look)
+
+- [ ] Create `src/components/layout/AppFooter.tsx` - Footer component with Help, Privacy Policy, Terms of Service, Contact links
+- [ ] Add AppFooter to `src/app/layout.tsx` - Include footer on all authenticated pages
+- [ ] Create `/privacy` page stub - Placeholder privacy policy page
+- [ ] Create `/terms` page stub - Placeholder terms of service page
+
+### Image Error Handling (Prevent Broken Images)
+
+- [ ] Create `src/components/ui/CardImage.tsx` - Reusable card image component with built-in onError handler and fallback
+- [ ] Create `/public/images/card-placeholder.svg` - Simple placeholder SVG for failed card images
+- [ ] Update CardGrid to use CardImage component - Replace raw img/Image with error-handled version
+- [ ] Update VirtualCardGrid to use CardImage component - Replace raw img/Image with error-handled version
+
+---
 
 ## Landing Page Multi-TCG Updates
 
@@ -346,6 +390,18 @@ Detailed landing page text changes to support multi-TCG while keeping Pokemon pr
 
 ---
 
+## LOW PRIORITY - Card Examples Across All TCGs (Polish)
+
+Replace Pokemon-only card examples with diverse examples from all 7 supported TCGs throughout the landing page. These are visual polish tasks - do after core functionality is complete.
+
+- [ ] Hero card showcase - Show 7 cards (one from each TCG) in a fan/spread layout: Charizard (Pokemon), Blue-Eyes White Dragon (Yu-Gi-Oh!), Elsa (Lorcana), Monkey D. Luffy (One Piece), Agumon (Digimon), Goku (Dragon Ball), Black Lotus or popular card (MTG)
+- [ ] Wishlist example section - Replace Pokemon-only wishlist with mixed TCG examples showing cards from at least 4 different games
+- [ ] Collection preview mockup - Update any collection screenshots/mockups to show cards from multiple TCGs
+- [ ] Badge/achievement examples - If showing card-related badges, use diverse TCG examples
+- [ ] Testimonials section - If testimonials mention specific cards/games, diversify across TCGs or make game-agnostic
+
+---
+
 ## Progress
 
 - **2026-01-17**: Completed Create /signup page - Created dedicated signup page at src/app/signup/page.tsx with CardDex branding, kid-primary/kid-secondary gradients, and signup-focused copy. Updated AuthForm component to accept defaultMode prop for controlling initial mode. Redirects authenticated users to /onboarding. Commit: f9b4f63
@@ -459,3 +515,113 @@ Detailed landing page text changes to support multi-TCG while keeping Pokemon pr
 - **2026-01-17**: Updated /login page styling - Replaced generic blue gradients with kid-primary/kid-secondary brand colors for background (from-kid-primary/10 to-kid-secondary/10), loading spinner (border-kid-primary), and logo text (gradient text from-kid-primary to-kid-secondary). Commit: 68cc8c4
 
 - **2026-01-17**: Added email verification UI - Added verification pending state to AuthForm (src/components/auth/AuthForm.tsx) showing after signup. Features: envelope icon with brand gradient, check your email message with user's email address, spam folder reminder in amber alert box, resend verification email button with loading spinner and success confirmation, back to sign in button. Uses Heroicons (EnvelopeIcon, ArrowPathIcon, CheckCircleIcon). Commit: 6f36eec
+
+- **2026-01-17**: Updated signup page tagline - Changed "Start tracking your trading card collection" to "Start your collecting adventure!" in src/app/signup/page.tsx for more exciting, kid-friendly copy. Commit: a4d921c
+
+---
+
+## NEW - SEO & Marketing Tasks (January 17, 2026 Evaluation)
+
+These tasks address critical SEO gaps identified during the comprehensive site evaluation.
+
+### Meta Tags & Social Sharing
+
+- [ ] Add unique meta descriptions to all pages - Each page needs descriptive 150-160 character meta description
+- [ ] Add Open Graph tags to layout.tsx - og:title, og:description, og:image, og:url for social previews
+- [ ] Add Twitter Card meta tags - twitter:card, twitter:title, twitter:description, twitter:image
+- [ ] Create og:image social preview graphic - 1200x630px branded image for link shares
+- [ ] Add page-specific title tags - Each page should have unique, descriptive title (e.g., "Browse Pokemon Sets | CardDex")
+- [ ] Add canonical URL tags - Prevent duplicate content issues
+
+### Sitemap & Robots
+
+- [ ] Create public/sitemap.xml - List all public routes for search engine discovery
+- [ ] Create public/robots.txt - Allow crawling of public pages, disallow /api and auth routes
+- [ ] Add sitemap generation script - Auto-generate sitemap on build
+
+### Structured Data
+
+- [ ] Add JSON-LD SoftwareApplication schema to landing page - Rich results for app searches
+- [ ] Add JSON-LD FAQPage schema to FAQ section - Rich results for FAQ searches
+- [ ] Add JSON-LD BreadcrumbList schema to detail pages - Breadcrumb rich results
+
+---
+
+## NEW - Architecture Improvements (January 17, 2026 Evaluation)
+
+### Provider Optimization
+
+- [ ] Create ProviderComposer component - Reduce 20+ nested providers to single compose pattern
+- [ ] Move non-essential providers to lazy load - Load gamification/celebration providers on demand
+- [ ] Extract game-specific providers - Only load game providers when that game is selected
+
+### Error Boundaries
+
+- [ ] Add error boundary to /collection route - Prevent collection errors from crashing app
+- [ ] Add error boundary to /sets/[setId] route - Prevent set detail errors from crashing app
+- [ ] Add error boundary to /dashboard route - Prevent dashboard errors from crashing app
+- [ ] Create user-friendly error fallback UI - Show helpful message with retry button and home link
+
+### Code Splitting
+
+- [ ] Lazy load GradeLikeAProGame - Use React.lazy() and Suspense
+- [ ] Lazy load RarityGuessingGame - Use React.lazy() and Suspense
+- [ ] Lazy load SetSymbolMatchingGame - Use React.lazy() and Suspense
+- [ ] Lazy load PokemonTypeQuiz - Use React.lazy() and Suspense
+- [ ] Lazy load PriceEstimationGame - Use React.lazy() and Suspense
+- [ ] Create GameLoader component - Shared Suspense fallback for all mini-games
+
+---
+
+## NEW - Security Hardening (January 17, 2026 Evaluation)
+
+### Content Security Policy
+
+- [ ] Add CSP headers to next.config.js - Restrict script sources, prevent XSS
+- [ ] Configure CSP for external images - Allow pokemon card API images
+- [ ] Configure CSP for Convex - Allow Convex API calls
+
+### External Resource Integrity
+
+- [ ] Extract hardcoded Pokemon API URLs to config file - Centralize 50+ card image URLs
+- [ ] Add retry logic for failed external images - Attempt reload before showing fallback
+- [ ] Add monitoring for external image failures - Log/track broken image URLs
+
+---
+
+## NEW - Kid-Friendly Set Display (January 17, 2026 Evaluation)
+
+These tasks ensure the UI only shows sets that kids can actually buy and collect.
+
+### Set Availability Indicators
+
+- [ ] Add availability badge to set cards - Show "In Print ✅", "Limited ⚠️", or "Vintage 📦" status
+- [ ] Color-code set cards by availability - Green border for current, yellow for limited, gray for vintage
+- [ ] Add "Where to Buy" tooltip for in-print sets - Links to Target, Walmart, GameStop, local shops
+
+### Vintage Sets Section
+
+- [ ] Create "Vintage Sets" collapsed section - Grayed out section at bottom of sets list
+- [ ] Add "These sets are no longer in stores" message - Kid-friendly explanation
+- [ ] Add "Ask a parent if you have cards from these!" prompt - Encourages family involvement
+- [ ] Make vintage sets view-only - Can view cards but not track (or require parent unlock)
+
+### MTG Removal from UI
+
+- [ ] Remove 'mtg' from `GAMES` array in gameSelector.ts
+- [ ] Remove 'mtg' from `GAME_CONFIGS` in tcg-api.ts
+- [ ] Update game count on landing page - "6 trading card games" instead of 7
+- [ ] Remove MTG from game picker/selector UI
+- [ ] Delete mtg-api.ts (or archive to /deprecated folder)
+
+### Set Filtering UI
+
+- [ ] Add "Show all sets" toggle for parents - Hidden by default, reveals vintage sets
+- [ ] Add set count showing "X sets available to collect" - Only count in-print sets
+- [ ] Sort sets by availability then release date - Current sets first, then limited, then vintage
+
+### Pokemon-Specific Updates
+
+- [ ] Update POKEMON_SERIES constant - Add 'Mega Evolution' era, keep 'Scarlet & Violet'
+- [ ] Filter out Sword & Shield sets by default - Too old for retail
+- [ ] Add "Mega Evolution Era" badge to newest sets - Highlight what's hot
