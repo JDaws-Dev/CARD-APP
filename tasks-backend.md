@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: █████████████████████████░░░░  100/137 (73%)
-Remaining: 37 tasks
+Progress: █████████████████████████░░░░  100/124 (81%)
+Remaining: 24 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -28,10 +28,10 @@ Remaining: 37 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | **AI-Powered Features**             | 18       | **3**     |
-| **Sibling Trade Tracking**          | 0        | **20**    |
+| **Trade Logging**                   | 0        | **7**     |
 | Launch Prep                         | 4        | **5**     |
 | **Kid-Friendly Set Filtering**      | **7**    | **0**     |
-| **TOTAL**                           | **100**  | **37**    |
+| **TOTAL**                           | **100**  | **24**    |
 
 ### Critical Path for Launch
 
@@ -247,44 +247,31 @@ Backend actions and queries for AI features. Requires `OPENAI_API_KEY` environme
 - [x] AI-034: Create `convex/ai/shoppingAssistant.ts` - Parent gift helper analyzing wishlist, set completion, budget
 - [ ] AI-035: Create `convex/ai/conditionGrader.ts` - Card condition tutoring with GPT-4o Vision explaining grades
 
-### Sibling Trade Tracking System
+### Trade Logging System
 
-Full trade proposal, acceptance, and tracking between siblings within a family. See PRD "Sibling Trade Tracking System" section for complete specification.
+Simple trade logging to record real-life trades. Kids log what they gave and received, and it shows as a single event in the timeline. See PRD "Trade Logging System" section for complete specification.
 
-#### Phase 1: Schema & Core Infrastructure
+#### Schema Update
 
-- [ ] TRADE-001: Add `trades` table to `convex/schema.ts` - Full trade schema with status, offered/requested cards, timestamps, parent approval fields
-- [ ] TRADE-002: Add `trade_completed` action type to `activityLogs` schema - New action type for trade events in timeline
-- [ ] TRADE-003: Add trade settings to `families` table - `tradeApprovalRequired` and `tradeNotificationsEnabled` optional boolean fields
-- [ ] TRADE-004: Create `convex/trades.ts` with core mutations - `proposeTrade`, `acceptTrade`, `declineTrade`, `cancelTrade` mutations
+- [x] TRADE-001: Add `trade_logged` action type to `activityLogs` schema - New action type for trade events with metadata for cardsGiven, cardsReceived, tradingPartner
 
-#### Phase 2: Trade Queries & Validation
+#### Core Mutation
 
-- [ ] TRADE-005: Create trade queries in `convex/trades.ts` - `getTradeById`, `getPendingTradesForProfile`, `getTradeHistory`, `getFamilyTrades`
-- [ ] TRADE-006: Add trade validation helpers - `validateTradeCards` (check cards exist and available), `validateTradeParticipants` (same family, not self)
-- [ ] TRADE-007: Create `getTradeableCardsForTrade` query - Return cards a profile can offer (quantity > 1 or not on their wishlist)
-- [ ] TRADE-008: Create fair trade calculation query - `calculateTradeFairness` using market prices, return fairness indicator
+- [ ] TRADE-002: Create `logTrade` mutation in `convex/trades.ts` - Accepts cardsGiven array, cardsReceived array, optional tradingPartner string. Removes given cards from collection, adds received cards, logs single `trade_logged` activity event
 
-#### Phase 3: Trade Execution & Activity Logging
+#### Queries
 
-- [ ] TRADE-009: Create `executeTrade` internal mutation - Atomic transfer of cards between profiles (remove from giver, add to receiver)
-- [ ] TRADE-010: Create trade activity logging - Log `trade_completed` event for both participants with trade metadata
-- [ ] TRADE-011: Add trade expiration logic - `expireOldTrades` scheduled function to expire trades older than 7 days
-- [ ] TRADE-012: Handle concurrent trade conflicts - Validate card availability before execution, cancel conflicting trades
+- [ ] TRADE-003: Create `getTradeHistory` query - Return all `trade_logged` activity events for a profile, sorted by date
+- [ ] TRADE-004: Update `getRecentActivityWithNames` query - Include `trade_logged` events in timeline data with proper formatting
 
-#### Phase 4: Parent Oversight & Notifications
+#### Validation
 
-- [ ] TRADE-013: Create parent approval flow - `approveTrade` mutation for parent profiles, blocks completion until approved if setting enabled
-- [ ] TRADE-014: Add trade notifications - Create notifications for trade proposed, accepted, declined, completed, needs approval, expired
-- [ ] TRADE-015: Create `getFamilyTradeStats` query - Trade statistics for parent dashboard (total trades, pending, completion rate)
-- [ ] TRADE-016: Add trade settings mutations - `updateFamilyTradeSettings` for parent to toggle approval requirement
+- [ ] TRADE-005: Add trade validation in `logTrade` - Verify user owns cards being given (correct quantity), validate card IDs exist
 
-#### Phase 5: Testing & Integration
+#### Testing
 
-- [ ] TRADE-017: Write unit tests for trade mutations - Test propose, accept, decline, cancel, execute flows
-- [ ] TRADE-018: Write unit tests for trade validation - Test card availability, same-family, self-trade prevention
-- [ ] TRADE-019: Write integration tests for trade lifecycle - Full trade flow from proposal to completion
-- [ ] TRADE-020: Add trade data to `getRecentActivityWithNames` query - Include trade events in timeline data
+- [ ] TRADE-006: Write unit tests for `logTrade` mutation - Test giving/receiving cards, collection updates, activity logging
+- [ ] TRADE-007: Write tests for trade validation - Test insufficient quantity, invalid card IDs, empty trade prevention
 
 ### Launch Prep
 
@@ -3156,3 +3143,28 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - Set completion info tests (2)
   - Game slug support tests (2)
 - All 60 tests pass, ESLint clean, Prettier formatted
+
+---
+
+## Progress: January 17, 2026 - Trade Schema Foundation (TRADE-001)
+
+**Completed:** TRADE-001 - Add `trade_logged` action type to `activityLogs` schema
+
+**Changes Made:**
+- **Updated `convex/schema.ts`:**
+  - Added `trade_logged` action type to `activityLogs.action` union for simple trade logging
+  - Also added `trade_completed` action type for the full Sibling Trade Tracking System
+  - Added `trades` table with full lifecycle support:
+    - Status tracking: proposed, accepted, completed, declined, cancelled, expired
+    - `offeredCards` and `requestedCards` arrays with card details and variants
+    - Parent approval fields: `requiresParentApproval`, `parentApprovedAt`, `parentApprovedBy`
+    - Timestamps: `createdAt`, `respondedAt`, `completedAt`, `expiresAt`
+    - Indexes: by_family, by_initiator, by_recipient, by_status, by_family_and_status, by_recipient_and_status
+  - Added trade settings to `families` table:
+    - `tradeApprovalRequired`: Optional parent approval requirement for trades
+    - `tradeNotificationsEnabled`: Optional parent notifications for trades
+
+**Testing:**
+- Schema compiles successfully via `npx convex dev --once`
+- ESLint passes with only pre-existing warnings
+- Prettier formatting verified (no changes needed)
