@@ -159,7 +159,7 @@ Image components lack error handlers, causing silent failures when images don't 
 - [x] Add onError handlers to PackOpeningSimulator - Don't break pack opening experience if image fails
 - [x] Add onError handlers to CollectionView card images (2 Image components) - Show placeholder instead of broken image
 - [ ] Add onError handlers to SearchResults card images - Handle API image failures gracefully
-- [ ] Add onError handlers to JustPulledMode card images - Maintain celebration UX even with failed images
+- [x] Add onError handlers to JustPulledMode card images - Maintain celebration UX even with failed images
 - [ ] Create /public/fallback-card.png - Default placeholder image for all failed card image loads
 - [ ] Extract hardcoded game card URLs from mini-games - Move to config file (PriceEstimationGame, PokemonTypeQuiz, GradeLikeAProGame, RarityGuessingGame)
 - [ ] Extract hardcoded set symbol URLs from SetSymbolMatchingGame - Move to config and add fallbacks
@@ -544,6 +544,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Added error handling to PackOpeningSimulator card images - Replaced raw Next.js Image component with CardImage component in PackOpeningSimulator (src/components/virtual/PackOpeningSimulator.tsx) for revealed card display. This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling. Ensures pack opening experience doesn't break when card images fail to load. Added comprehensive test suite (7 tests) covering component rendering, sealed pack view, packs remaining display, close functionality, and card image error handling. All tests pass, ESLint and Prettier clean. Commit: d1ed9e4
 
 - **2026-01-17**: Added error handling to CollectionView card images - Replaced 2 raw Next.js Image components with CardImage component in CollectionView (src/components/collection/CollectionView.tsx) for both the "Most Valuable Cards" section and the main card grid. This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling across the collection view. Added comprehensive test suite (4 tests) covering CardImage usage verification, fill mode rendering, empty collection state, and quantity badge display. All tests pass, ESLint and Prettier clean. Commit: bcacd93
+
+- **2026-01-17**: Added error handling to JustPulledMode card images - Replaced 2 raw Next.js Image components with CardImage component in JustPulledMode (src/components/collection/JustPulledMode.tsx) for both the AddedCard animation component and the main card grid. This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling. Maintains the celebration UX even when card images fail to load during pack opening sessions. ESLint and Prettier clean. Commit: 79ae338
 
 ---
 
