@@ -139,7 +139,7 @@ These specific issues were discovered during code review and need immediate atte
 
 - [x] Create `src/components/layout/AppFooter.tsx` - Footer component with Help, Privacy Policy, Terms of Service, Contact links
 - [x] Add AppFooter to `src/app/layout.tsx` - Include footer on all authenticated pages
-- [ ] Create `/privacy` page stub - Placeholder privacy policy page
+- [x] Create `/privacy` page stub - Placeholder privacy policy page
 - [ ] Create `/terms` page stub - Placeholder terms of service page
 
 ### Image Error Handling (Prevent Broken Images)
@@ -691,6 +691,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 - **2026-01-17**: Added AppFooter to layout.tsx for authenticated pages - Created AuthAwareFooter component (src/components/layout/AuthAwareFooter.tsx) following the same pattern as AuthAwareHeader. Uses useConvexAuth hook to conditionally render AppFooter only for authenticated users. Updated root layout.tsx to include AuthAwareFooter after main content, wrapped in a flex container with min-h-screen to ensure footer stays at bottom. Added comprehensive test suite (7 tests) covering loading state, unauthenticated state, and authenticated state behavior. ESLint and Prettier clean.
 
+- **2026-01-17**: Created /privacy page stub - Added placeholder privacy policy page at src/app/privacy/page.tsx with kid-friendly, COPPA-focused content. Features: COPPA compliance section with emerald gradient highlighting family-focused design; Information We Collect section (account, profile, collection, usage data); How We Use Your Information section; "What We Don't Do" section in rose gradient (no selling data, no ads, no sharing, no sending children's info to AI); Data Retention & Deletion section; Contact section with email link. Uses Heroicons (ShieldCheckIcon, UserGroupIcon, LockClosedIcon, EyeSlashIcon, TrashIcon, EnvelopeIcon, ArrowLeftIcon). Full dark mode support and accessible focus states. Includes disclaimer noting this is a placeholder to be replaced with legal-reviewed policy. ESLint and Prettier clean. Commit: 24ee127
+
 ---
 
 ## NEW - SEO & Marketing Tasks (January 17, 2026 Evaluation)
@@ -801,58 +803,33 @@ These tasks ensure the UI only shows sets that kids can actually buy and collect
 
 ---
 
-## Sibling Trade Tracking UI
+## Trade Logging UI
 
-Full trade proposal, acceptance, and tracking UI for siblings within a family. See PRD "Sibling Trade Tracking System" section for complete specification.
+Simple UI for kids to log real-life trades. See PRD "Trade Logging System" section for complete specification.
 
-### Trade Proposal Flow
+### Log Trade Modal
 
-- [ ] TRADE-UI-001: Create `src/components/trades/ProposeTradeModal.tsx` - Multi-step modal: select sibling, pick cards to offer, pick cards to request, add message, review & submit
-- [ ] TRADE-UI-002: Create `src/components/trades/CardSelector.tsx` - Reusable card selection grid with quantity picker, used for both offering and requesting cards
-- [ ] TRADE-UI-003: Create `src/components/trades/TradeSummaryCard.tsx` - Preview component showing "You give X → You get Y" with card thumbnails
-- [ ] TRADE-UI-004: Add "Propose Trade" button to `DuplicateFinder.tsx` - Quick action when viewing tradeable cards with a sibling
-- [ ] TRADE-UI-005: Add "Propose Trade" button to `TradeSuggestionEngine.tsx` - One-click to propose suggested trade
+- [ ] TRADE-UI-001: Create `src/components/trades/LogTradeModal.tsx` - Modal with two card pickers (gave/received), optional trading partner name input, and submit button
+- [ ] TRADE-UI-002: Create `src/components/trades/CardPickerFromCollection.tsx` - Card picker that shows user's owned cards with quantity selector for "cards I gave"
+- [ ] TRADE-UI-003: Create `src/components/trades/CardPickerSearch.tsx` - Card search/browse picker for "cards I received" (cards they don't own yet)
+- [ ] TRADE-UI-004: Create `src/components/trades/TradeSummaryPreview.tsx` - Preview showing "Gave X → Got Y" before submitting
 
-### Trade Inbox & Response
+### Entry Points
 
-- [ ] TRADE-UI-006: Create `src/components/trades/TradeInbox.tsx` - List of pending trade proposals for current profile
-- [ ] TRADE-UI-007: Create `src/components/trades/TradeCard.tsx` - Individual trade proposal card with Accept/Decline buttons
-- [ ] TRADE-UI-008: Create `src/components/trades/TradeDetailModal.tsx` - Full trade details view with card images, values, fairness indicator
-- [ ] TRADE-UI-009: Add pending trade badge to header/nav - Show count of pending trades (e.g., red badge with "2")
-- [ ] TRADE-UI-010: Create `/trades` page - Dedicated page for viewing pending, completed, and cancelled trades
+- [ ] TRADE-UI-005: Add "Log a Trade" button to collection page header - Primary entry point for trade logging
+- [ ] TRADE-UI-006: Add "Log a Trade" quick action to timeline page - Secondary entry point
+- [ ] TRADE-UI-007: Add "I traded this card" option to card detail view - Context-specific entry when viewing owned card
 
 ### Trade in Timeline
 
-- [ ] TRADE-UI-011: Create `src/components/collection/TradeTimelineEvent.tsx` - Trade-specific timeline entry with both parties and card exchange visual
-- [ ] TRADE-UI-012: Update `CollectionTimeline.tsx` to display trade events - Fetch and render `trade_completed` activity logs
-- [ ] TRADE-UI-013: Add trade icons/visuals - ArrowsRightLeftIcon or custom swap icon for trade events
-- [ ] TRADE-UI-014: Create trade detail link - "View Trade Details" button linking to full trade record
+- [ ] TRADE-UI-008: Create `src/components/collection/TradeTimelineEvent.tsx` - Trade-specific timeline entry showing cards given/received and trading partner
+- [ ] TRADE-UI-009: Update `CollectionTimeline.tsx` to display `trade_logged` events - Render trade events with card thumbnails
+- [ ] TRADE-UI-010: Add trade icon (ArrowsRightLeftIcon) for trade events in timeline
 
-### Fair Trade Indicator
+### Empty States & Feedback
 
-- [ ] TRADE-UI-015: Create `src/components/trades/FairTradeIndicator.tsx` - Visual indicator (checkmark/warning) based on market value comparison
-- [ ] TRADE-UI-016: Add fairness tooltip - Explain what "fair trade" means for kids ("Both sides are worth about the same!")
-- [ ] TRADE-UI-017: Show total value on each side - "$X.XX total" under offered and requested cards
-- [ ] TRADE-UI-018: Add "No price data" fallback - Handle cards without market prices gracefully
-
-### Parent Dashboard Integration
-
-- [ ] TRADE-UI-019: Create `src/components/parent/TradeActivitySection.tsx` - List of recent/pending trades between children for parent dashboard
-- [ ] TRADE-UI-020: Add trade approval UI for parents - "Approve" / "Reject" buttons when `tradeApprovalRequired` is enabled
-- [ ] TRADE-UI-021: Create trade settings panel - Toggle for requiring parent approval, notification preferences
-- [ ] TRADE-UI-022: Add trade statistics widget - Show "X trades this month" on parent dashboard
-
-### Notifications & Feedback
-
-- [ ] TRADE-UI-023: Create trade notification toasts - "Emma wants to trade with you!", "Your trade was accepted!"
-- [ ] TRADE-UI-024: Add trade completion celebration - Confetti or animation when trade completes successfully
-- [ ] TRADE-UI-025: Create declined trade feedback - Show reason (if provided) and "Try Another Trade" action
-
-### Trade History & Empty States
-
-- [ ] TRADE-UI-026: Create `src/components/trades/TradeHistory.tsx` - Paginated list of past trades with filters (completed/declined/cancelled)
-- [ ] TRADE-UI-027: Create trade empty states - "No trades yet" with CTA to propose first trade, "No pending trades" message
-- [ ] TRADE-UI-028: Add trade search/filter - Filter by sibling, date range, status
+- [ ] TRADE-UI-011: Add success toast after logging trade - "Trade logged! Your collection has been updated."
+- [ ] TRADE-UI-012: Add validation feedback in modal - Show errors for empty trade, insufficient quantity, etc.
 
 ---
 
