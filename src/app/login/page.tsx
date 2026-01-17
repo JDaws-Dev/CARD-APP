@@ -35,7 +35,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">CardDex</h1>
-          <p className="text-gray-600">Track your Pokemon card collection</p>
+          <p className="text-gray-600">Track your trading card collection</p>
         </div>
         <AuthForm />
       </div>
