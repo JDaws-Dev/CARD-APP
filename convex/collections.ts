@@ -475,6 +475,7 @@ export const addCard = mutation({
     });
 
     // Log activity with card name and set name for display
+    // Include timestamp for database-level time filtering in queries
     await ctx.db.insert('activityLogs', {
       profileId: args.profileId,
       action: 'card_added',
@@ -485,6 +486,7 @@ export const addCard = mutation({
         variant,
         quantity,
       },
+      timestamp: Date.now(),
     });
 
     return cardEntryId;
@@ -514,11 +516,12 @@ export const removeCard = mutation({
       if (existing) {
         await ctx.db.delete(existing._id);
 
-        // Log activity
+        // Log activity with timestamp for database-level time filtering
         await ctx.db.insert('activityLogs', {
           profileId: args.profileId,
           action: 'card_removed',
           metadata: { cardId: args.cardId, cardName, setName: args.setName, variant: args.variant },
+          timestamp: Date.now(),
         });
       }
     } else {
@@ -535,7 +538,7 @@ export const removeCard = mutation({
       }
 
       if (allVariants.length > 0) {
-        // Log activity
+        // Log activity with timestamp for database-level time filtering
         await ctx.db.insert('activityLogs', {
           profileId: args.profileId,
           action: 'card_removed',
@@ -545,6 +548,7 @@ export const removeCard = mutation({
             setName: args.setName,
             variantsRemoved: allVariants.length,
           },
+          timestamp: Date.now(),
         });
       }
     }
@@ -1167,6 +1171,10 @@ export const getCollectionValueBySet = query({
 /**
  * Get cards that were added to the collection in the last N days.
  * Uses activity logs to find card_added events and enriches with card details.
+ *
+ * Performance optimization: Uses by_profile_action_time index with timestamp
+ * range query for database-level filtering instead of JS filtering.
+ * For logs without timestamp field (legacy), falls back to _creationTime filtering.
  */
 export const getNewlyAddedCards = query({
   args: {
@@ -1179,9 +1187,19 @@ export const getNewlyAddedCards = query({
     const limit = args.limit ?? 50;
     const cutoffDate = Date.now() - days * 24 * 60 * 60 * 1000;
 
-    // Use by_profile_and_action index to filter at database level
-    // This avoids fetching ALL logs and filtering in JS
+    // Use by_profile_action_time index with timestamp range query for database-level filtering
+    // This filters at the database level instead of fetching all logs and filtering in JS
     const cardAddedLogs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile_action_time', (q) =>
+        q.eq('profileId', args.profileId).eq('action', 'card_added').gte('timestamp', cutoffDate)
+      )
+      .order('desc')
+      .collect();
+
+    // For legacy logs without timestamp field, also query using the old index
+    // and filter by _creationTime (this handles historical data)
+    const legacyLogs = await ctx.db
       .query('activityLogs')
       .withIndex('by_profile_and_action', (q) =>
         q.eq('profileId', args.profileId).eq('action', 'card_added')
@@ -1189,8 +1207,21 @@ export const getNewlyAddedCards = query({
       .order('desc')
       .collect();
 
-    // Filter by time window
-    const recentCardAdds = cardAddedLogs.filter((log) => log._creationTime >= cutoffDate);
+    // Filter legacy logs by _creationTime and exclude those already in cardAddedLogs
+    const logIds = new Set(cardAddedLogs.map((log) => log._id.toString()));
+    const filteredLegacyLogs = legacyLogs.filter(
+      (log) =>
+        log._creationTime >= cutoffDate &&
+        !log.timestamp && // Only include logs without timestamp (legacy)
+        !logIds.has(log._id.toString())
+    );
+
+    // Combine and sort by time (newest first)
+    const recentCardAdds = [...cardAddedLogs, ...filteredLegacyLogs].sort((a, b) => {
+      const timeA = a.timestamp ?? a._creationTime;
+      const timeB = b.timestamp ?? b._creationTime;
+      return timeB - timeA;
+    });
 
     // Get unique card IDs from the activity logs
     const cardAdditions: Array<{
@@ -1212,7 +1243,7 @@ export const getNewlyAddedCards = query({
       if (metadata?.cardId) {
         cardAdditions.push({
           cardId: metadata.cardId,
-          addedAt: log._creationTime,
+          addedAt: log.timestamp ?? log._creationTime,
           variant: metadata.variant ?? 'normal',
           quantity: metadata.quantity ?? 1,
         });
@@ -1291,6 +1322,9 @@ export const getNewlyAddedCards = query({
 /**
  * Get a summary of cards added recently grouped by day.
  * Useful for showing activity trends and recent additions calendar.
+ *
+ * Performance optimization: Uses by_profile_action_time index with timestamp
+ * range query for database-level filtering instead of JS filtering.
  */
 export const getNewlyAddedCardsSummary = query({
   args: {
@@ -1301,9 +1335,17 @@ export const getNewlyAddedCardsSummary = query({
     const days = args.days ?? 7;
     const cutoffDate = Date.now() - days * 24 * 60 * 60 * 1000;
 
-    // Use by_profile_and_action index to filter at database level
-    // This avoids fetching ALL logs and filtering in JS
+    // Use by_profile_action_time index with timestamp range query for database-level filtering
     const cardAddedLogs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile_action_time', (q) =>
+        q.eq('profileId', args.profileId).eq('action', 'card_added').gte('timestamp', cutoffDate)
+      )
+      .order('desc')
+      .collect();
+
+    // For legacy logs without timestamp field, also query and filter by _creationTime
+    const legacyLogs = await ctx.db
       .query('activityLogs')
       .withIndex('by_profile_and_action', (q) =>
         q.eq('profileId', args.profileId).eq('action', 'card_added')
@@ -1311,8 +1353,14 @@ export const getNewlyAddedCardsSummary = query({
       .order('desc')
       .collect();
 
-    // Filter by time window
-    const recentCardAdds = cardAddedLogs.filter((log) => log._creationTime >= cutoffDate);
+    // Filter legacy logs and exclude duplicates
+    const logIds = new Set(cardAddedLogs.map((log) => log._id.toString()));
+    const filteredLegacyLogs = legacyLogs.filter(
+      (log) => log._creationTime >= cutoffDate && !log.timestamp && !logIds.has(log._id.toString())
+    );
+
+    // Combine results
+    const recentCardAdds = [...cardAddedLogs, ...filteredLegacyLogs];
 
     // Group by date
     const byDate = new Map<
@@ -1321,7 +1369,8 @@ export const getNewlyAddedCardsSummary = query({
     >();
 
     for (const log of recentCardAdds) {
-      const date = new Date(log._creationTime).toISOString().split('T')[0];
+      const logTime = log.timestamp ?? log._creationTime;
+      const date = new Date(logTime).toISOString().split('T')[0];
       const metadata = log.metadata as
         | {
             cardId?: string;
@@ -1388,6 +1437,9 @@ export const getNewlyAddedCardsSummary = query({
 /**
  * Check if a profile has any new cards in the last N days.
  * Lightweight query for showing "New!" badge in UI.
+ *
+ * Performance optimization: Uses by_profile_action_time index with timestamp
+ * range query for database-level filtering instead of JS filtering.
  */
 export const hasNewCards = query({
   args: {
@@ -1398,35 +1450,33 @@ export const hasNewCards = query({
     const days = args.days ?? 7;
     const cutoffDate = Date.now() - days * 24 * 60 * 60 * 1000;
 
-    // Get recent activity logs - just take first one to check
-    const recentLog = await ctx.db
+    // Use by_profile_action_time index with timestamp range query for database-level filtering
+    const recentLogs = await ctx.db
       .query('activityLogs')
-      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
-      .order('desc')
-      .first();
-
-    if (!recentLog) {
-      return { hasNew: false, count: 0 };
-    }
-
-    // If most recent activity is older than cutoff, no new cards
-    if (recentLog._creationTime < cutoffDate) {
-      return { hasNew: false, count: 0 };
-    }
-
-    // Need to count all card_added events in the window
-    const allLogs = await ctx.db
-      .query('activityLogs')
-      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .withIndex('by_profile_action_time', (q) =>
+        q.eq('profileId', args.profileId).eq('action', 'card_added').gte('timestamp', cutoffDate)
+      )
       .collect();
 
-    const recentCardAdds = allLogs.filter(
-      (log) => log.action === 'card_added' && log._creationTime >= cutoffDate
+    // For legacy logs without timestamp field, also query and filter by _creationTime
+    const legacyLogs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile_and_action', (q) =>
+        q.eq('profileId', args.profileId).eq('action', 'card_added')
+      )
+      .collect();
+
+    // Filter legacy logs and exclude duplicates
+    const logIds = new Set(recentLogs.map((log) => log._id.toString()));
+    const filteredLegacyLogs = legacyLogs.filter(
+      (log) => log._creationTime >= cutoffDate && !log.timestamp && !logIds.has(log._id.toString())
     );
 
+    const totalCount = recentLogs.length + filteredLegacyLogs.length;
+
     return {
-      hasNew: recentCardAdds.length > 0,
-      count: recentCardAdds.length,
+      hasNew: totalCount > 0,
+      count: totalCount,
     };
   },
 });
@@ -1872,6 +1922,9 @@ export const getSetRarityDistribution = query({
  * 4. getPriorityCount - Count of priority wishlist items
  *
  * This eliminates multiple round-trips and redundant data fetching.
+ *
+ * Performance optimization: Uses by_profile_action_time index with timestamp
+ * range query for database-level filtering of activity logs.
  */
 export const getSetViewData = query({
   args: {
@@ -1885,27 +1938,39 @@ export const getSetViewData = query({
     const setPrefix = args.setId + '-';
 
     // Run all queries in parallel for maximum efficiency
-    // Use by_profile_and_action index for activity logs to filter at database level
-    const [allCollectionCards, allWishlistCards, cardAddedLogs] = await Promise.all([
-      // Get all collection cards for this profile
-      ctx.db
-        .query('collectionCards')
-        .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
-        .collect(),
-      // Get all wishlist cards for this profile
-      ctx.db
-        .query('wishlistCards')
-        .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
-        .collect(),
-      // Get card_added activity logs only (filtered at database level)
-      ctx.db
-        .query('activityLogs')
-        .withIndex('by_profile_and_action', (q) =>
-          q.eq('profileId', args.profileId).eq('action', 'card_added')
-        )
-        .order('desc')
-        .collect(),
-    ]);
+    // Use by_profile_action_time index for activity logs to filter at database level
+    const [allCollectionCards, allWishlistCards, cardAddedLogs, legacyCardAddedLogs] =
+      await Promise.all([
+        // Get all collection cards for this profile
+        ctx.db
+          .query('collectionCards')
+          .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+          .collect(),
+        // Get all wishlist cards for this profile
+        ctx.db
+          .query('wishlistCards')
+          .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+          .collect(),
+        // Get card_added activity logs with timestamp filtering (database-level)
+        ctx.db
+          .query('activityLogs')
+          .withIndex('by_profile_action_time', (q) =>
+            q
+              .eq('profileId', args.profileId)
+              .eq('action', 'card_added')
+              .gte('timestamp', cutoffDate)
+          )
+          .order('desc')
+          .collect(),
+        // Get legacy card_added logs without timestamp field
+        ctx.db
+          .query('activityLogs')
+          .withIndex('by_profile_and_action', (q) =>
+            q.eq('profileId', args.profileId).eq('action', 'card_added')
+          )
+          .order('desc')
+          .collect(),
+      ]);
 
     // 1. Filter collection to cards in this set
     const collectionBySet = allCollectionCards.filter((card) => card.cardId.startsWith(setPrefix));
@@ -1931,8 +1996,13 @@ export const getSetViewData = query({
       }));
 
     // 3. Build newly added card IDs from recent activity logs
+    // Combine timestamp-indexed logs with filtered legacy logs
+    const logIds = new Set(cardAddedLogs.map((log) => log._id.toString()));
+    const filteredLegacyLogs = legacyCardAddedLogs.filter(
+      (log) => log._creationTime >= cutoffDate && !log.timestamp && !logIds.has(log._id.toString())
+    );
+    const recentCardAdds = [...cardAddedLogs, ...filteredLegacyLogs];
     const newlyAddedCardIds = new Set<string>();
-    const recentCardAdds = cardAddedLogs.filter((log) => log._creationTime >= cutoffDate);
 
     for (const log of recentCardAdds) {
       const metadata = log.metadata as { cardId?: string } | undefined;

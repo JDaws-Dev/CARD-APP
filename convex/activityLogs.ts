@@ -331,6 +331,7 @@ export const getActivityStats = query({
 /**
  * Log an activity action for a profile
  * This mutation can be called from other mutations or directly
+ * Includes timestamp field for database-level time filtering
  */
 export const logActivity = mutation({
   args: {
@@ -343,6 +344,7 @@ export const logActivity = mutation({
       profileId: args.profileId,
       action: args.action,
       metadata: args.metadata,
+      timestamp: Date.now(),
     });
 
     return logId;
@@ -351,6 +353,7 @@ export const logActivity = mutation({
 
 /**
  * Log a card addition with standard metadata structure
+ * Includes timestamp field for database-level time filtering
  */
 export const logCardAdded = mutation({
   args: {
@@ -370,6 +373,7 @@ export const logCardAdded = mutation({
         variant: args.variant ?? 'normal',
         quantity: args.quantity ?? 1,
       },
+      timestamp: Date.now(),
     });
 
     return logId;
@@ -378,6 +382,7 @@ export const logCardAdded = mutation({
 
 /**
  * Log a card removal with standard metadata structure
+ * Includes timestamp field for database-level time filtering
  */
 export const logCardRemoved = mutation({
   args: {
@@ -404,6 +409,7 @@ export const logCardRemoved = mutation({
       profileId: args.profileId,
       action: 'card_removed',
       metadata,
+      timestamp: Date.now(),
     });
 
     return logId;
@@ -412,6 +418,7 @@ export const logCardRemoved = mutation({
 
 /**
  * Log an achievement being earned
+ * Includes timestamp field for database-level time filtering
  */
 export const logAchievementEarned = mutation({
   args: {
@@ -427,6 +434,7 @@ export const logAchievementEarned = mutation({
         achievementKey: args.achievementKey,
         achievementType: args.achievementType,
       },
+      timestamp: Date.now(),
     });
 
     return logId;

@@ -193,10 +193,11 @@ export default defineSchema({
       v.literal('achievement_earned')
     ),
     metadata: v.optional(v.any()), // Additional data about the action
+    timestamp: v.optional(v.number()), // Unix timestamp for database-level time filtering
   })
     .index('by_profile', ['profileId'])
     .index('by_profile_and_action', ['profileId', 'action'])
-    .index('by_profile_action_time', ['profileId', 'action']),
+    .index('by_profile_action_time', ['profileId', 'action', 'timestamp']),
 
   // ============================================================================
   // CACHED CARD DATA (for offline support and faster queries)
@@ -314,4 +315,96 @@ export default defineSchema({
     equippedAccessory: v.optional(v.string()), // itemId of equipped accessory
     lastUpdated: v.number(), // Unix timestamp
   }).index('by_profile', ['profileId']),
+
+  // ============================================================================
+  // AI USAGE TRACKING
+  // ============================================================================
+
+  /**
+   * Tracks AI feature usage for rate limiting and cost monitoring
+   * Each row represents a single AI API call
+   */
+  aiUsageLogs: defineTable({
+    profileId: v.id('profiles'),
+    familyId: v.id('families'),
+    featureType: v.union(
+      v.literal('card_scan'), // AI Card Scanner
+      v.literal('chat'), // Collection Chatbot
+      v.literal('story'), // Card Storyteller
+      v.literal('quiz'), // Quiz Generator
+      v.literal('recommendation'), // Card Recommendations
+      v.literal('trade_advisor'), // Trade Advisor
+      v.literal('shopping_assistant'), // Shopping Assistant
+      v.literal('condition_grading') // Condition Grading Tutor
+    ),
+    model: v.string(), // OpenAI model used (e.g., "gpt-4o", "gpt-4o-mini")
+    inputTokens: v.number(), // Tokens in the prompt
+    outputTokens: v.number(), // Tokens in the response
+    estimatedCost: v.number(), // Estimated cost in USD (cents)
+    gameSlug: v.optional(
+      v.union(
+        v.literal('pokemon'),
+        v.literal('yugioh'),
+        v.literal('mtg'),
+        v.literal('onepiece'),
+        v.literal('lorcana'),
+        v.literal('digimon'),
+        v.literal('dragonball')
+      )
+    ), // Which game this AI call was for
+    metadata: v.optional(v.any()), // Additional context (card ID, chat topic, etc.)
+    timestamp: v.number(), // Unix timestamp
+  })
+    .index('by_profile', ['profileId'])
+    .index('by_family', ['familyId'])
+    .index('by_profile_and_feature', ['profileId', 'featureType'])
+    .index('by_profile_feature_time', ['profileId', 'featureType', 'timestamp'])
+    .index('by_timestamp', ['timestamp']),
+
+  /**
+   * Rate limit tracking for AI features
+   * Aggregated counts per profile per time window
+   */
+  aiRateLimits: defineTable({
+    profileId: v.id('profiles'),
+    featureType: v.union(
+      v.literal('card_scan'),
+      v.literal('chat'),
+      v.literal('story'),
+      v.literal('quiz'),
+      v.literal('recommendation'),
+      v.literal('trade_advisor'),
+      v.literal('shopping_assistant'),
+      v.literal('condition_grading')
+    ),
+    windowStart: v.number(), // Unix timestamp of window start (hourly or daily)
+    windowType: v.union(v.literal('hourly'), v.literal('daily')),
+    count: v.number(), // Number of uses in this window
+  })
+    .index('by_profile', ['profileId'])
+    .index('by_profile_feature_window', ['profileId', 'featureType', 'windowType', 'windowStart']),
+
+  /**
+   * Chat conversation history for Collection Chatbot
+   * Stores messages to maintain context across sessions
+   */
+  aiChatHistory: defineTable({
+    profileId: v.id('profiles'),
+    role: v.union(v.literal('user'), v.literal('assistant'), v.literal('system')),
+    content: v.string(),
+    gameSlug: v.optional(
+      v.union(
+        v.literal('pokemon'),
+        v.literal('yugioh'),
+        v.literal('mtg'),
+        v.literal('onepiece'),
+        v.literal('lorcana'),
+        v.literal('digimon'),
+        v.literal('dragonball')
+      )
+    ),
+    timestamp: v.number(),
+  })
+    .index('by_profile', ['profileId'])
+    .index('by_profile_and_time', ['profileId', 'timestamp']),
 });
