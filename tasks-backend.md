@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: ████████████████████████░░░░  82/96 (85%)
-Remaining: 14 tasks
+Progress: ████████████████████████░░░░  96/117 (82%)
+Remaining: 21 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -27,9 +27,10 @@ Remaining: 14 tasks
 | Gamification Backend                | 3        | 0         |
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
+| **AI-Powered Features**             | 14       | **7**     |
 | Launch Prep                         | 4        | **5**     |
 | **Kid-Friendly Set Filtering**      | **7**    | **0**     |
-| **TOTAL**                           | **82**   | **14**    |
+| **TOTAL**                           | **96**   | **21**    |
 
 ### Critical Path for Launch
 
@@ -198,6 +199,52 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 - [x] Random card query - Return random card from user's collection
 - [x] Rarity filter support - Add rarity indexing for efficient filtering
 - [x] Fair trading calculator - Price comparison logic for "Is this trade fair?" tool
+
+### AI-Powered Features (OpenAI Integration)
+
+Backend actions and queries for AI features. Requires `OPENAI_API_KEY` environment variable.
+
+#### Phase 1: Infrastructure (Complete)
+
+- [x] AI-001: Add OpenAI SDK to project (`npm install openai`) - Already installed
+- [x] AI-002: Create `convex/ai/` folder structure for AI actions - Exists with openai.ts, rateLimit.ts, cardScanner.ts, chatbot.ts, storyteller.ts
+- [x] AI-003: Create `convex/ai/openai.ts` with OpenAI client initialization - Complete with models, rate limits, safety prompts
+- [x] AI-004: Add `OPENAI_API_KEY` to Convex environment variables - Configuration task (manual)
+- [x] AI-005: Create rate limiting for AI features (prevent abuse) - Complete in rateLimit.ts with per-feature limits
+- [x] AI-006: Add AI usage tracking tables to schema (`aiUsageLogs`, `aiRateLimits`, `aiChatHistory`) - Complete
+
+#### Phase 2: Card Scanner (Complete)
+
+- [x] AI-007: Create `convex/ai/cardScanner.ts` action with GPT-4o Vision - Complete with multi-TCG support
+- [x] AI-009: Implement card identification prompt engineering - Game-specific prompts for all 7 TCGs
+- [x] AI-010: Add card matching logic (fuzzy match AI result to card database) - Returns suggestedCardId
+- [x] AI-013: Handle edge cases (blurry photos, multiple cards, non-cards) - Kid-friendly error messages
+
+#### Phase 3: Collection Chatbot (Complete)
+
+- [x] AI-014: Create `convex/ai/chatbot.ts` with function calling setup - Complete with 6 collection functions
+- [x] AI-015: Define chatbot functions: `searchCollection`, `getSetProgress`, `findMissingCards`, `getRarestCard`, `getTypeStats` - Complete
+- [x] AI-018: Add chat history persistence (per profile, last 50 messages) - Complete with auto-cleanup
+- [x] AI-019: Implement kid-friendly response formatting - Safety system prompt enforces kid-friendly language
+
+#### Phase 4: Card Storyteller (Complete)
+
+- [x] AI-021: Create `convex/ai/storyteller.ts` action - Complete with game-specific story prompts
+- [x] AI-022: Build story cache (in-memory with 24hr TTL) - Complete, avoids repeat API calls
+- [x] AI-025: Implement age-appropriate content filtering - Safety system prompt enforces kid-friendly content
+
+#### Phase 5: AI Quiz Generator
+
+- [ ] AI-027: Create `convex/ai/quizGenerator.ts` action - Generate personalized quizzes from user's collection
+- [ ] AI-029: Integrate quiz with XP/achievement system - Award XP for correct answers, track quiz completions
+- [ ] AI-031: Create varied question types (multiple choice, true/false, image-based) - Different quiz modes
+
+#### Phase 6: Advanced AI Features (P2)
+
+- [ ] AI-032: Create `convex/ai/recommendations.ts` - Smart card recommendations based on collection patterns
+- [ ] AI-033: Create `convex/ai/tradeAdvisor.ts` - Fair trade suggestions between siblings using collection data
+- [ ] AI-034: Create `convex/ai/shoppingAssistant.ts` - Parent gift helper analyzing wishlist, set completion, budget
+- [ ] AI-035: Create `convex/ai/conditionGrader.ts` - Card condition tutoring with GPT-4o Vision explaining grades
 
 ### Launch Prep
 
@@ -2509,7 +2556,7 @@ These tasks address backend requirements for SEO and infrastructure improvements
 
 ### In-App Notifications
 
-- [ ] Create notifications table in schema - Store parent notifications
+- [x] Create notifications table in schema - Store parent notifications
 - [ ] Build notification bell component for parent dashboard - Show unread count
 - [ ] Create notification preferences UI - Toggle which notifications to receive
 
@@ -2894,3 +2941,45 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - getPrintStatusStats tests (3)
   - CachedSet interface tests (2)
 - All 93 dataPopulation tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Create notifications table and utilities for parent dashboard
+
+- **Added `notifications` table to `convex/schema.ts`:**
+  - `familyId`: Links notification to family
+  - `profileId`: Optional child profile that triggered notification
+  - `type`: Enum with 6 types (achievement_earned, milestone_reached, streak_update, collection_activity, wishlist_update, system)
+  - `title`, `message`: Notification content
+  - `metadata`: Flexible data field for additional context
+  - `isRead`, `readAt`: Read status tracking
+  - `createdAt`: Creation timestamp
+  - Indexes: by_family, by_family_and_read, by_family_and_type, by_profile, by_created
+- **Added `notificationPreferences` table:**
+  - Per-family settings for notification types
+  - Boolean flags: achievementNotifications, milestoneNotifications, streakNotifications, dailySummary, weeklySummary, systemNotifications
+  - Quiet hours support: quietHoursEnabled, quietHoursStart, quietHoursEnd (HH:MM format)
+  - Index: by_family
+- **Created `convex/notifications.ts` with queries and mutations:**
+  - Queries: getNotifications, getUnreadNotifications, getUnreadCount, getNotificationsByType, getNotificationsByProfile, getNotificationPreferences, getNotificationsPaginated, getNotificationStats
+  - Mutations: createNotification (respects preferences), markAsRead, markAllAsRead, deleteNotification, deleteOldNotifications, updateNotificationPreferences
+  - Helper mutations: createAchievementNotification, createMilestoneNotification, createStreakNotification, createDailyActivitySummary, createSystemNotification
+- **Created `src/lib/notifications.ts` client-side utilities:**
+  - Type definitions: NotificationType, Notification, NotificationPreferences, PaginatedNotifications
+  - Type utilities: getNotificationTypeLabel, getNotificationTypeIcon, getNotificationTypeColor
+  - Date/time utilities: formatNotificationDate, formatRelativeTime, formatNotificationTime
+  - Filtering: filterByType, filterByReadStatus, filterByProfile, filterByDateRange, getRecentNotifications
+  - Statistics: countUnread, countByType, groupByDate, groupByType
+  - Quiet hours: parseTimeToMinutes, isWithinQuietHours, isNotificationTypeEnabled
+  - Pagination: clampPageSize, isValidPageSize, isValidCursor, hasMorePages
+  - Display: buildNotificationStatsDisplay, buildBadgeText, sortByNewest, sortByOldest, sortUnreadFirst
+  - getDefaultPreferences for new families
+- **Added 91 tests in `src/lib/__tests__/notifications.test.ts`:**
+  - Type utilities tests (15)
+  - Date/time formatting tests (15)
+  - Filtering utilities tests (10)
+  - Statistics tests (8)
+  - Quiet hours tests (7)
+  - Pagination utilities tests (10)
+  - Display utilities tests (12)
+  - Default preferences tests (2)
+  - Tests are timezone-aware for quiet hours (dynamic assertions based on local time)
+- All 91 tests pass, ESLint clean, Prettier formatted
