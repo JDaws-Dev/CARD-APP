@@ -347,6 +347,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
                       src={card.images.small}
                       alt={card.name}
                       fill
+                      loading="lazy"
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                     />
 
@@ -408,6 +409,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
                     src={card.images.small}
                     alt={card.name}
                     fill
+                    loading="lazy"
                     sizes="(max-width: 640px) 33vw, (max-width: 1024px) 16vw, 12vw"
                   />
 

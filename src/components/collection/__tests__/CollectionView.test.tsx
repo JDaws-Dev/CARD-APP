@@ -9,14 +9,23 @@ vi.mock('@/components/ui/CardImage', () => ({
     alt,
     fill,
     sizes,
+    loading,
   }: {
     src: string;
     alt: string;
     fill?: boolean;
     sizes?: string;
+    loading?: 'lazy' | 'eager';
   }) => (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} data-testid="card-image" data-fill={fill} data-sizes={sizes} />
+    <img
+      src={src}
+      alt={alt}
+      data-testid="card-image"
+      data-fill={fill}
+      data-sizes={sizes}
+      data-loading={loading}
+    />
   ),
 }));
 
@@ -127,6 +136,24 @@ describe('CollectionView', () => {
       // (appears in both "Most Valuable Cards" section and the grid)
       const badges = screen.getAllByText('x3');
       expect(badges.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('uses lazy loading for card images to improve performance', async () => {
+    const collection = [
+      { _id: '1', cardId: 'sv1-1', quantity: 1 },
+      { _id: '2', cardId: 'sv1-2', quantity: 2 },
+    ];
+
+    render(<CollectionView collection={collection} />);
+
+    await waitFor(() => {
+      const cardImages = screen.getAllByTestId('card-image');
+      expect(cardImages.length).toBeGreaterThan(0);
+      // All card images should use lazy loading for performance optimization
+      cardImages.forEach((img) => {
+        expect(img).toHaveAttribute('data-loading', 'lazy');
+      });
     });
   });
 });

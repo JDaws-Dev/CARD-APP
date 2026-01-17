@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: ████████████████████████░░░░  96/117 (82%)
-Remaining: 21 tasks
+Progress: █████████████████████████░░░░  99/117 (85%)
+Remaining: 18 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -27,10 +27,10 @@ Remaining: 21 tasks
 | Gamification Backend                | 3        | 0         |
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
-| **AI-Powered Features**             | 14       | **7**     |
+| **AI-Powered Features**             | 17       | **4**     |
 | Launch Prep                         | 4        | **5**     |
 | **Kid-Friendly Set Filtering**      | **7**    | **0**     |
-| **TOTAL**                           | **96**   | **21**    |
+| **TOTAL**                           | **99**   | **18**    |
 
 ### Critical Path for Launch
 
@@ -235,9 +235,9 @@ Backend actions and queries for AI features. Requires `OPENAI_API_KEY` environme
 
 #### Phase 5: AI Quiz Generator
 
-- [ ] AI-027: Create `convex/ai/quizGenerator.ts` action - Generate personalized quizzes from user's collection
-- [ ] AI-029: Integrate quiz with XP/achievement system - Award XP for correct answers, track quiz completions
-- [ ] AI-031: Create varied question types (multiple choice, true/false, image-based) - Different quiz modes
+- [x] AI-027: Create `convex/ai/quizGenerator.ts` action - Generate personalized quizzes from user's collection
+- [x] AI-029: Integrate quiz with XP/achievement system - Award XP for correct answers, track quiz completions
+- [x] AI-031: Create varied question types (multiple choice, true/false, image-based) - Different quiz modes
 
 #### Phase 6: Advanced AI Features (P2)
 
@@ -261,6 +261,35 @@ Backend actions and queries for AI features. Requires `OPENAI_API_KEY` environme
 ---
 
 ## Progress
+
+### 2026-01-17: Add AI Quiz Generator for personalized collection quizzes
+
+- **Created `convex/ai/quizGenerator.ts` (AI-027, AI-029, AI-031)**
+  - `generateQuiz` action: Generates personalized quizzes from user's collection
+  - `submitQuizResults` action: Submits answers and awards XP
+  - `getRemainingQuizzes` action: Returns daily quiz limit status
+  - Supports multiple question types: multiple_choice, true_false, image_based
+  - Game-specific prompts for all 7 TCGs (Pokemon, Yu-Gi-Oh!, MTG, etc.)
+  - XP rewards by difficulty: easy (5 XP), medium (10 XP), hard (15 XP)
+  - Rate limited to 5 quizzes per day per profile
+  - Fallback quiz generation when OpenAI API fails
+- **Created `convex/ai/quizHelpers.ts`**
+  - `getRandomCollectionCards` internal query: Fetches random cards for quiz questions
+  - `getQuizStats` internal query: Returns quiz completion statistics
+  - `logQuizGeneration` internal mutation: Logs AI usage for tracking
+  - `awardQuizXp` internal mutation: Awards XP and logs activity
+  - Note: Separated from quizGenerator.ts because internal mutations cannot be in 'use node' files
+- **Wrote 39 tests in `src/lib/__tests__/quizGenerator.test.ts`**
+  - QuestionType validation tests (4)
+  - Difficulty validation tests (4)
+  - Question validation tests (10)
+  - XP reward calculation tests (3)
+  - Quiz score calculation tests (8)
+  - Quiz result structure tests (3)
+  - Game-specific support tests (3)
+  - Rate limiting tests (2)
+  - Collection requirement tests (2)
+- All tests pass, ESLint clean, Prettier formatted
 
 ### 2026-01-17: Optimize wishlist queries with gameSlug index for multi-TCG support
 
