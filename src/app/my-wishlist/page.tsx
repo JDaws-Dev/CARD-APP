@@ -1,6 +1,7 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery, useMutation, useConvexAuth } from 'convex/react';
+import { useRouter } from 'next/navigation';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
@@ -26,7 +27,10 @@ import type { Id } from '../../../convex/_generated/dataModel';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ExportWishlistButton } from '@/components/wishlist/ExportWishlist';
-import { BudgetAlternatives, BudgetAlternativesBadge } from '@/components/financial/BudgetAlternatives';
+import {
+  BudgetAlternatives,
+  BudgetAlternativesBadge,
+} from '@/components/financial/BudgetAlternatives';
 import { IsItWorthItButton } from '@/components/financial/IsItWorthIt';
 import { cn } from '@/lib/utils';
 
@@ -43,9 +47,7 @@ function getCardMarketPrice(card: PokemonCard): number | null {
   const prices = card.tcgplayer?.prices;
   if (!prices) return null;
 
-  return (
-    prices.normal?.market ?? prices.holofoil?.market ?? prices.reverseHolofoil?.market ?? null
-  );
+  return prices.normal?.market ?? prices.holofoil?.market ?? prices.reverseHolofoil?.market ?? null;
 }
 
 /**
@@ -306,7 +308,8 @@ function WishlistCard({
   }
 
   // Get price for showing budget alternatives badge
-  const price = cardData.tcgplayer?.prices?.normal?.market ??
+  const price =
+    cardData.tcgplayer?.prices?.normal?.market ??
     cardData.tcgplayer?.prices?.holofoil?.market ??
     cardData.tcgplayer?.prices?.reverseHolofoil?.market ??
     null;
@@ -347,10 +350,7 @@ function WishlistCard({
       {showBudgetBadge && (
         <div className="mt-2 flex flex-wrap justify-center gap-1">
           {onShowAlternatives && (
-            <BudgetAlternativesBadge
-              card={cardData}
-              onClick={() => onShowAlternatives(cardData)}
-            />
+            <BudgetAlternativesBadge card={cardData} onClick={() => onShowAlternatives(cardData)} />
           )}
           <IsItWorthItButton cardPrice={price} cardName={cardData.name} />
         </div>
@@ -402,7 +402,16 @@ function WishlistCard({
  * Dedicated page to view all wishlisted cards, generate share link, manage priorities
  */
 export default function MyWishlistPage() {
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const router = useRouter();
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
+
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   // Fetch wishlist data
   const wishlist = useQuery(
@@ -477,6 +486,18 @@ export default function MyWishlistPage() {
     },
     [profileId, addToWishlist]
   );
+
+  // Show loading while checking auth or if redirecting
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-rose-50 to-pink-50">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-rose-400 border-t-transparent" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Loading state
   if (profileLoading || wishlist === undefined || priorityData === undefined) {
