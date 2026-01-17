@@ -103,9 +103,9 @@ These specific issues were discovered during code review and need immediate atte
 
 ### Landing Page Hero Fixes
 
-- [ ] Update `/page.tsx` line 41 - Change `text-pokemon-yellow` to `text-kid-primary` on SparklesIcon (pokemon-yellow may not exist in Tailwind config)
-- [ ] Update `/page.tsx` line 51 - Change `text-pokemon-yellow` to `text-kid-primary` on FloatingStar default color
-- [ ] Update `/page.tsx` lines 102-104 - Change hero "Track Your Pokemon Cards" to "Track Your Trading Cards"
+- [x] Update `/page.tsx` line 41 - Change `text-pokemon-yellow` to `text-kid-primary` on SparklesIcon (pokemon-yellow may not exist in Tailwind config)
+- [x] Update `/page.tsx` line 51 - Change `text-pokemon-yellow` to `text-kid-primary` on FloatingStar default color
+- [x] Update `/page.tsx` lines 102-104 - Change hero "Track Your Pokemon Cards" to "Track Your Trading Cards"
 
 ### Signup Page Polish
 
@@ -529,6 +529,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Fixed Settings button in parent dashboard - Converted the non-functional Settings button (previously a plain button element) to a Next.js Link component that navigates to /settings. The button retains its original styling with Cog6ToothIcon and now properly routes users to the settings page when clicked. Changes in src/app/parent-dashboard/page.tsx. Commit: 75780af
 
 - **2026-01-17**: Fixed Add Profile button in parent dashboard - Created AddProfileModal component (src/components/dashboard/AddProfileModal.tsx) with: real-time name validation using Convex queries (canCreateChildProfile, validateChildProfileName), profile limit checks based on subscription tier (free vs family), kid-safe content filtering for display names, loading/error/success states with appropriate icons, escape key handling and click-outside-to-close, accessible modal with proper ARIA attributes (role="dialog", aria-modal, aria-labelledby). Updated parent dashboard page to use useState for modal visibility, added onClick handler to Add Profile button, integrated AddProfileModal component. Uses Heroicons (XMarkIcon, UserPlusIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowUpCircleIcon). Commit: f5ec86d
+
+- **2026-01-17**: Updated landing page hero for multi-TCG branding - Fixed Landing Page Hero section in src/app/page.tsx to use CardDex brand colors instead of Pokemon-specific styling. Changes: FloatingCard SparklesIcon color changed from text-pokemon-yellow to text-kid-primary (line 41); FloatingStar default color prop changed from text-pokemon-yellow to text-kid-primary (line 51); "Made for young collectors" badge SparklesIcon changed from text-pokemon-yellow to text-kid-primary (line 95); Hero headline changed from "Pokemon Cards" to "Trading Cards" (lines 102-104). These changes align the landing page with CardDex's multi-TCG identity. All 26 LandingPage tests pass. Commit: cbb9b46
 
 ---
 
