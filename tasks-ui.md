@@ -92,8 +92,8 @@ These issues were identified during the January 17, 2026 site evaluation and MUS
 
 These issues relate to inconsistent behavior between logged-in and logged-out states.
 
-- [ ] **CRITICAL: `/login` should redirect to `/dashboard` if already authenticated** - Logged-in users can still access login page
-- [ ] **CRITICAL: `/signup` should redirect to `/dashboard` if already authenticated** - Logged-in users can still access signup page
+- [x] **CRITICAL: `/login` should redirect to `/dashboard` if already authenticated** - Logged-in users can still access login page
+- [x] **CRITICAL: `/signup` should redirect to `/dashboard` if already authenticated** - Logged-in users can still access signup page
 - [ ] Protect `/dashboard` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/collection` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/my-wishlist` route - Redirect to `/login` if not authenticated
@@ -536,6 +536,7 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 ## Progress
 
+- **2026-01-17**: Completed CRITICAL auth redirect fixes for login/signup pages - Updated both `/login/page.tsx` and `/signup/page.tsx` to redirect authenticated users appropriately. Both pages now check `hasCompletedOnboarding()` from onboardingFlow lib: if user has completed onboarding, redirect to `/dashboard`; if not, redirect to `/onboarding`. This ensures existing users visiting auth pages go to dashboard while new users who just signed up still go through onboarding. Commit: 3a11eec
 - **2026-01-17**: Completed Create BackLink component - Created reusable BackLink component (src/components/ui/BackLink.tsx) for consistent back navigation across all pages. Features: ArrowLeftIcon from Heroicons, consistent text styling (text-sm, font-medium, text-gray-600), hover transition to kid-primary brand color, focus-visible ring styling for keyboard navigation, dark mode support (dark:text-slate-400), withMargin prop for optional mb-4 spacing, aria-label prop for custom accessibility labels, full TypeScript types with JSDoc documentation. Added 28 unit tests covering prop validation, styling, icon properties, usage patterns, and accessibility requirements. Uses cn() utility for class merging. Commit: 3205d6c
 - **2026-01-17**: Completed Create /signup page - Created dedicated signup page at src/app/signup/page.tsx with CardDex branding, kid-primary/kid-secondary gradients, and signup-focused copy. Updated AuthForm component to accept defaultMode prop for controlling initial mode. Redirects authenticated users to /onboarding. Commit: f9b4f63
 - **2026-01-17**: Completed Add parent vs kid account selection and Fix AuthForm styling - Added two-step signup flow to AuthForm component (src/components/auth/AuthForm.tsx). First step asks users to choose between Family Account (for parents managing kidsx27 collections) or Individual Collector (for solo collectors). Features: UserGroupIcon and UserIcon for visual distinction, CardDex brand gradients throughout, account type indicator with change button on credentials step, updated placeholder text based on selection, replaced all blue-600 colors with kid-primary/kid-secondary brand colors. Commit: f3485f1
