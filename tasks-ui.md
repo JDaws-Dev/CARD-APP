@@ -5,15 +5,15 @@
 ## Current Focus: CRITICAL fixes first, then HIGH priority
 
 ```
-Progress: █████████████░░░░░░░░░░░░░░░  117/318 (37%)
-Remaining: 201 tasks (42 are LOW priority - do after launch)
+Progress: █████████████░░░░░░░░░░░░░░░  118/318 (37%)
+Remaining: 200 tasks (42 are LOW priority - do after launch)
 ```
 
 ## Status Summary (Updated 2026-01-17 - Post Comprehensive Evaluation)
 
 | Section                                   | Complete | Remaining |
 | ----------------------------------------- | -------- | --------- |
-| **HIGH - My Collection Page Card Details** | 0       | **14**    |
+| **HIGH - My Collection Page Card Details** | 1       | **13**    |
 | **HIGH - Sets Page Card Viewing & Sorting** | 0      | **20**    |
 | **CRITICAL - Site Evaluation Fixes**      | 7        | **1**     |
 | **CRITICAL - Remove Unsupported Games**   | 7        | **0**     |
@@ -89,7 +89,7 @@ These features improve the card viewing experience on the My Collection page (`/
 
 ### Card Detail Modal for Collection
 
-- [ ] **Click card to see close-up** - Clicking any card in My Collection should open a detail modal showing the enlarged card image
+- [x] **Click card to see close-up** - Clicking any card in My Collection should open a detail modal showing the enlarged card image
 - [ ] **Show owned variants in modal** - Detail modal should display which variants the user owns (Normal x2, Holo x1, etc.)
 - [ ] **High-res image in modal** - Use `imageLarge` from the API for the close-up view
 - [ ] **Variant quantity display** - Show counts for each variant owned (e.g., "Normal: 2, Reverse Holo: 1")

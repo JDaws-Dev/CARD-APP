@@ -815,7 +815,7 @@ export const getCachedCardsInSet = query({
  * Useful for games like Yu-Gi-Oh!, One Piece, and Lorcana that don't have separate set logos.
  *
  * @param gameSlug - The game to get sample cards for
- * @param setIds - Array of set IDs to get sample cards for
+ * @param setIds - Array of set IDs to get sample cards for (max 100)
  * @returns Object mapping setId -> sample card image URL
  */
 export const getSampleCardsBySet = query({
@@ -824,9 +824,10 @@ export const getSampleCardsBySet = query({
     setIds: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    // Return map of setId -> sample card image URL
     const sampleCards: Record<string, string> = {};
 
-    // Limit to prevent abuse
+    // Limit to 100 sets to prevent abuse
     const setIds = args.setIds.slice(0, 100);
 
     for (const setId of setIds) {

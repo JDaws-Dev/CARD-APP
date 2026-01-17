@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 
 export default function SetsPage() {
   const { primaryGame, isLoading: gameLoading } = useGameSelector();
+  const [sampleCards, setSampleCards] = useState<Record<string, string>>({});
 
   const gameSlug = primaryGame?.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' | undefined;
 
@@ -19,7 +20,7 @@ export default function SetsPage() {
     gameSlug ? { gameSlug } : 'skip'
   );
 
-  // Get set IDs that need sample card images (no logoUrl or Yu-Gi-Oh!)
+  // Determine which sets need sample card images
   const setIdsNeedingSampleCards = useMemo(() => {
     if (!sets || !gameSlug) return [];
     // For Yu-Gi-Oh!, One Piece, and Lorcana - get sample cards for all sets
@@ -30,13 +31,39 @@ export default function SetsPage() {
     return sets.map((s) => s.setId);
   }, [sets, gameSlug]);
 
-  // Fetch sample card images for sets without logos
-  const sampleCards = useQuery(
-    api.dataPopulation.getSampleCardsBySet,
-    gameSlug && setIdsNeedingSampleCards.length > 0
-      ? { gameSlug, setIds: setIdsNeedingSampleCards }
+  // Fetch sample cards for the first few sets that need them
+  // We use getCachedCardsInSet for the first set to get a sample card
+  const firstSetNeedingSample = setIdsNeedingSampleCards[0];
+  const firstSetCards = useQuery(
+    api.dataPopulation.getCachedCardsInSet,
+    gameSlug && firstSetNeedingSample
+      ? { gameSlug, setId: firstSetNeedingSample }
       : 'skip'
   );
+
+  // Use filterCardsByGame to get cards for multiple sets at once
+  const allCards = useQuery(
+    api.dataPopulation.filterCardsByGame,
+    gameSlug && setIdsNeedingSampleCards.length > 0
+      ? { gameSlug, limit: 500 }
+      : 'skip'
+  );
+
+  // Build sample cards map from allCards
+  useEffect(() => {
+    if (!allCards?.cards || !setIdsNeedingSampleCards.length) return;
+
+    const newSampleCards: Record<string, string> = {};
+    const neededSets = new Set(setIdsNeedingSampleCards);
+
+    for (const card of allCards.cards) {
+      if (neededSets.has(card.setId) && card.imageSmall && !newSampleCards[card.setId]) {
+        newSampleCards[card.setId] = card.imageSmall;
+      }
+    }
+
+    setSampleCards(newSampleCards);
+  }, [allCards, setIdsNeedingSampleCards]);
 
   const isLoading = gameLoading || sets === undefined;
 
@@ -102,7 +129,7 @@ export default function SetsPage() {
               // 2. Any game with sample card -> use sample card
               // 3. Fallback -> gradient with first letter
               const useLogo = set.logoUrl && primaryGame?.id === 'pokemon';
-              const sampleCardUrl = sampleCards?.[set.setId];
+              const sampleCardUrl = sampleCards[set.setId];
 
               return (
                 <Link

@@ -32,6 +32,11 @@ export default function SetDetailPage({ params }: SetDetailPageProps) {
     setId: params.setId,
   });
 
+  // Debug logging
+  console.log('[SetDetailPage] Query params:', { gameSlug, setId: params.setId });
+  console.log('[SetDetailPage] cards result:', cards?.length ?? 'undefined', 'cards');
+  console.log('[SetDetailPage] sets result:', sets?.length ?? 'undefined', 'sets');
+
   const currentSet = sets?.find((s) => s.setId === params.setId);
   const isLoading = sets === undefined || cards === undefined;
 
