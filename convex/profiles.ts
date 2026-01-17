@@ -40,6 +40,130 @@ export const getFamilyByEmail = query({
   },
 });
 
+/**
+ * Batch fetch multiple profiles by their IDs.
+ * Returns a map of profileId -> profile data for O(1) lookups.
+ *
+ * Use this for:
+ * - Enriching activity logs with profile names
+ * - Building leaderboards across profiles
+ * - Any scenario where you need multiple profiles at once
+ *
+ * @param profileIds - Array of profile IDs to fetch (max 100)
+ * @returns Object with profiles map and stats about found/missing profiles
+ */
+export const getProfilesByIds = query({
+  args: {
+    profileIds: v.array(v.id('profiles')),
+  },
+  handler: async (ctx, args) => {
+    // Limit to 100 profiles to prevent excessive memory usage
+    const MAX_BATCH_SIZE = 100;
+    const profileIds = args.profileIds.slice(0, MAX_BATCH_SIZE);
+
+    // Deduplicate profile IDs
+    const uniqueProfileIds = [...new Set(profileIds)];
+
+    // Fetch all profiles in parallel using Promise.all
+    const profilePromises = uniqueProfileIds.map((profileId) => ctx.db.get(profileId));
+
+    const profileResults = await Promise.all(profilePromises);
+
+    // Build result map and track stats
+    const profiles: Record<
+      string,
+      {
+        id: string;
+        familyId: string;
+        displayName: string;
+        avatarUrl: string | undefined;
+        profileType: 'parent' | 'child' | undefined;
+        xp: number | undefined;
+        level: number | undefined;
+      }
+    > = {};
+
+    let foundCount = 0;
+    let missingCount = 0;
+
+    for (let i = 0; i < uniqueProfileIds.length; i++) {
+      const profileId = uniqueProfileIds[i];
+      const profile = profileResults[i];
+
+      if (profile) {
+        profiles[profileId] = {
+          id: profileId,
+          familyId: profile.familyId,
+          displayName: profile.displayName,
+          avatarUrl: profile.avatarUrl,
+          profileType: profile.profileType,
+          xp: profile.xp,
+          level: profile.level,
+        };
+        foundCount++;
+      } else {
+        missingCount++;
+      }
+    }
+
+    return {
+      profiles,
+      stats: {
+        requested: args.profileIds.length,
+        unique: uniqueProfileIds.length,
+        found: foundCount,
+        missing: missingCount,
+        truncated: args.profileIds.length > MAX_BATCH_SIZE,
+      },
+    };
+  },
+});
+
+/**
+ * Helper type for profile lookup map (used internally).
+ * Maps profile ID -> profile summary data.
+ */
+export type ProfileLookupMap = Record<
+  string,
+  {
+    id: string;
+    familyId: string;
+    displayName: string;
+    avatarUrl: string | undefined;
+    profileType: 'parent' | 'child' | undefined;
+  }
+>;
+
+/**
+ * Build a profile lookup map from an array of profiles.
+ * Converts O(n) find() operations to O(1) map lookups.
+ *
+ * @param profiles - Array of profile documents
+ * @returns Map of profileId -> profile summary
+ */
+export function buildProfileLookupMap(
+  profiles: Array<{
+    _id: { toString(): string };
+    familyId: { toString(): string };
+    displayName: string;
+    avatarUrl?: string;
+    profileType?: 'parent' | 'child';
+  }>
+): ProfileLookupMap {
+  const map: ProfileLookupMap = {};
+  for (const profile of profiles) {
+    const id = profile._id.toString();
+    map[id] = {
+      id,
+      familyId: profile.familyId.toString(),
+      displayName: profile.displayName,
+      avatarUrl: profile.avatarUrl,
+      profileType: profile.profileType,
+    };
+  }
+  return map;
+}
+
 // ============================================================================
 // AUTHENTICATED USER QUERIES
 // ============================================================================
@@ -1483,16 +1607,23 @@ export const getParentDashboardData = query({
     );
     const allActivities = (await Promise.all(allActivityPromises)).flat();
 
+    // Build profile lookup map for O(1) lookups instead of O(n) find()
+    const profileLookupMap = new Map<string, string>();
+    for (const profile of profiles) {
+      profileLookupMap.set(profile._id.toString(), profile.displayName);
+    }
+
     // Sort by time and take top 20
     const recentFamilyActivity = allActivities
       .sort((a, b) => b._creationTime - a._creationTime)
       .slice(0, 20)
       .map((log) => {
-        const profile = profiles.find((p) => p._id === log.profileId);
+        // O(1) lookup instead of O(n) find()
+        const profileName = profileLookupMap.get(log.profileId.toString()) || 'Unknown';
         return {
           id: log._id,
           profileId: log.profileId,
-          profileName: profile?.displayName || 'Unknown',
+          profileName,
           action: log.action,
           metadata: log.metadata,
           timestamp: log._creationTime,
@@ -1616,8 +1747,13 @@ async function validateProfileOwnership(
     };
   }
 
-  // Get the user's email
-  const user = (await ctx.db.get(userId)) as { email?: string } | null;
+  // Batch fetch: user and profile lookups are independent, run in parallel
+  const [user, profile] = (await Promise.all([
+    ctx.db.get(userId),
+    ctx.db.get(profileId as unknown),
+  ])) as [{ email?: string } | null, { familyId?: string } | null];
+
+  // Validate user has email
   if (!user || !user.email) {
     return {
       hasAccess: false,
@@ -1626,8 +1762,7 @@ async function validateProfileOwnership(
     };
   }
 
-  // Get the profile
-  const profile = (await ctx.db.get(profileId as unknown)) as { familyId?: string } | null;
+  // Validate profile exists
   if (!profile) {
     return {
       hasAccess: false,
@@ -1636,7 +1771,7 @@ async function validateProfileOwnership(
     };
   }
 
-  // Get the family
+  // Get the family (depends on profile.familyId, so must be sequential)
   const family = (await ctx.db.get(profile.familyId as unknown)) as { email?: string } | null;
   if (!family) {
     return {
@@ -1689,8 +1824,13 @@ async function validateFamilyOwnership(
     };
   }
 
-  // Get the user's email
-  const user = (await ctx.db.get(userId)) as { email?: string } | null;
+  // Batch fetch: user and family lookups are independent, run in parallel
+  const [user, family] = (await Promise.all([
+    ctx.db.get(userId),
+    ctx.db.get(familyId as unknown),
+  ])) as [{ email?: string } | null, { email?: string } | null];
+
+  // Validate user has email
   if (!user || !user.email) {
     return {
       hasAccess: false,
@@ -1699,8 +1839,7 @@ async function validateFamilyOwnership(
     };
   }
 
-  // Get the family
-  const family = (await ctx.db.get(familyId as unknown)) as { email?: string } | null;
+  // Validate family exists
   if (!family) {
     return {
       hasAccess: false,

@@ -670,3 +670,212 @@ export function isSecureMutationOwnershipError(
   if (!result) return false;
   return result.error === 'NOT_OWNER';
 }
+
+// ============================================================================
+// PROFILE BATCH UTILITIES
+// ============================================================================
+
+/**
+ * Maximum number of profiles that can be batch fetched at once.
+ */
+export const MAX_PROFILE_BATCH_SIZE = 100;
+
+/**
+ * Type for profile lookup map - provides O(1) profile lookup by ID.
+ */
+export type ProfileLookupMap = Map<string, ProfileSummary>;
+
+/**
+ * Result type for batch profile lookup query.
+ */
+export interface BatchProfileResult {
+  profiles: Record<
+    string,
+    {
+      id: string;
+      familyId: string;
+      displayName: string;
+      avatarUrl: string | undefined;
+      profileType: ProfileType | undefined;
+      xp: number | undefined;
+      level: number | undefined;
+    }
+  >;
+  stats: {
+    requested: number;
+    unique: number;
+    found: number;
+    missing: number;
+    truncated: boolean;
+  };
+}
+
+/**
+ * Build a lookup map from batch profile result for O(1) lookups.
+ *
+ * @param result - The result from getProfilesByIds query
+ * @returns Map of profileId -> profile summary
+ */
+export function buildProfileLookupMapFromResult(
+  result: BatchProfileResult | null
+): ProfileLookupMap {
+  const map: ProfileLookupMap = new Map();
+  if (!result) return map;
+
+  for (const [id, profile] of Object.entries(result.profiles)) {
+    map.set(id, {
+      id: profile.id,
+      displayName: profile.displayName,
+      avatarUrl: profile.avatarUrl,
+      profileType: profile.profileType,
+    });
+  }
+
+  return map;
+}
+
+/**
+ * Build a lookup map from an array of profiles for O(1) lookups.
+ *
+ * @param profiles - Array of profile objects with _id field
+ * @returns Map of profileId -> profile summary
+ */
+export function buildProfileLookupMap(
+  profiles: Array<{
+    _id: string;
+    displayName: string;
+    avatarUrl?: string;
+    profileType?: ProfileType;
+  }>
+): ProfileLookupMap {
+  const map: ProfileLookupMap = new Map();
+
+  for (const profile of profiles) {
+    map.set(profile._id, {
+      id: profile._id,
+      displayName: profile.displayName,
+      avatarUrl: profile.avatarUrl,
+      profileType: profile.profileType,
+    });
+  }
+
+  return map;
+}
+
+/**
+ * Lookup a profile name by ID from a profile lookup map.
+ * Returns 'Unknown' if profile not found.
+ *
+ * @param map - Profile lookup map
+ * @param profileId - Profile ID to look up
+ * @returns Profile display name or 'Unknown'
+ */
+export function getProfileName(map: ProfileLookupMap, profileId: string): string {
+  return map.get(profileId)?.displayName || 'Unknown';
+}
+
+/**
+ * Lookup a profile by ID from a profile lookup map.
+ *
+ * @param map - Profile lookup map
+ * @param profileId - Profile ID to look up
+ * @returns Profile summary or undefined
+ */
+export function getProfileFromMap(
+  map: ProfileLookupMap,
+  profileId: string
+): ProfileSummary | undefined {
+  return map.get(profileId);
+}
+
+/**
+ * Extract unique profile IDs from an array of objects with profileId field.
+ *
+ * @param items - Array of objects with profileId field
+ * @returns Array of unique profile IDs
+ */
+export function extractUniqueProfileIds(items: Array<{ profileId: string }>): string[] {
+  return [...new Set(items.map((item) => item.profileId))];
+}
+
+/**
+ * Check if a batch result has any missing profiles.
+ *
+ * @param result - Batch profile result
+ * @returns True if any profiles were not found
+ */
+export function hasMissingProfiles(result: BatchProfileResult | null): boolean {
+  if (!result) return true;
+  return result.stats.missing > 0;
+}
+
+/**
+ * Check if a batch request was truncated due to size limits.
+ *
+ * @param result - Batch profile result
+ * @returns True if the request was truncated
+ */
+export function wasBatchTruncated(result: BatchProfileResult | null): boolean {
+  if (!result) return false;
+  return result.stats.truncated;
+}
+
+/**
+ * Enrich items with profile names using batch lookup.
+ * Adds profileName field to each item based on profileId lookup.
+ *
+ * @param items - Array of items with profileId field
+ * @param profileMap - Profile lookup map
+ * @returns New array with profileName added to each item
+ */
+export function enrichWithProfileNames<T extends { profileId: string }>(
+  items: T[],
+  profileMap: ProfileLookupMap
+): Array<T & { profileName: string }> {
+  return items.map((item) => ({
+    ...item,
+    profileName: getProfileName(profileMap, item.profileId),
+  }));
+}
+
+/**
+ * Chunk an array of profile IDs into batches for fetching.
+ *
+ * @param profileIds - Array of profile IDs
+ * @param batchSize - Maximum batch size (default: MAX_PROFILE_BATCH_SIZE)
+ * @returns Array of profile ID batches
+ */
+export function chunkProfileIds(
+  profileIds: string[],
+  batchSize: number = MAX_PROFILE_BATCH_SIZE
+): string[][] {
+  const chunks: string[][] = [];
+  for (let i = 0; i < profileIds.length; i += batchSize) {
+    chunks.push(profileIds.slice(i, i + batchSize));
+  }
+  return chunks;
+}
+
+/**
+ * Merge multiple batch profile results into a single lookup map.
+ *
+ * @param results - Array of batch profile results
+ * @returns Combined profile lookup map
+ */
+export function mergeBatchResults(results: Array<BatchProfileResult | null>): ProfileLookupMap {
+  const combined: ProfileLookupMap = new Map();
+
+  for (const result of results) {
+    if (!result) continue;
+    for (const [id, profile] of Object.entries(result.profiles)) {
+      combined.set(id, {
+        id: profile.id,
+        displayName: profile.displayName,
+        avatarUrl: profile.avatarUrl,
+        profileType: profile.profileType,
+      });
+    }
+  }
+
+  return combined;
+}

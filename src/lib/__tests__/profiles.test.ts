@@ -1610,3 +1610,418 @@ describe('Integration: Profile Access Validation Flow', () => {
     expect(getProfileAccessAction(ownershipErrorResult.error)).toBe('redirect_home');
   });
 });
+
+// ============================================================================
+// PROFILE BATCH UTILITIES TESTS
+// ============================================================================
+
+import {
+  MAX_PROFILE_BATCH_SIZE,
+  BatchProfileResult,
+  buildProfileLookupMapFromResult,
+  buildProfileLookupMap,
+  getProfileName,
+  getProfileFromMap,
+  extractUniqueProfileIds,
+  hasMissingProfiles,
+  wasBatchTruncated,
+  enrichWithProfileNames,
+  chunkProfileIds,
+  mergeBatchResults,
+} from '../profiles';
+
+describe('Profile Batch Constants', () => {
+  it('should have MAX_PROFILE_BATCH_SIZE = 100', () => {
+    expect(MAX_PROFILE_BATCH_SIZE).toBe(100);
+  });
+});
+
+describe('buildProfileLookupMapFromResult', () => {
+  it('should return empty map for null result', () => {
+    const map = buildProfileLookupMapFromResult(null);
+    expect(map.size).toBe(0);
+  });
+
+  it('should build map from batch result', () => {
+    const result: BatchProfileResult = {
+      profiles: {
+        profile_1: {
+          id: 'profile_1',
+          familyId: 'family_1',
+          displayName: 'Alice',
+          avatarUrl: undefined,
+          profileType: 'parent',
+          xp: 100,
+          level: 5,
+        },
+        profile_2: {
+          id: 'profile_2',
+          familyId: 'family_1',
+          displayName: 'Bob',
+          avatarUrl: 'https://example.com/bob.png',
+          profileType: 'child',
+          xp: 50,
+          level: 2,
+        },
+      },
+      stats: {
+        requested: 2,
+        unique: 2,
+        found: 2,
+        missing: 0,
+        truncated: false,
+      },
+    };
+
+    const map = buildProfileLookupMapFromResult(result);
+
+    expect(map.size).toBe(2);
+    expect(map.get('profile_1')).toEqual({
+      id: 'profile_1',
+      displayName: 'Alice',
+      avatarUrl: undefined,
+      profileType: 'parent',
+    });
+    expect(map.get('profile_2')).toEqual({
+      id: 'profile_2',
+      displayName: 'Bob',
+      avatarUrl: 'https://example.com/bob.png',
+      profileType: 'child',
+    });
+  });
+
+  it('should handle empty profiles object', () => {
+    const result: BatchProfileResult = {
+      profiles: {},
+      stats: {
+        requested: 0,
+        unique: 0,
+        found: 0,
+        missing: 0,
+        truncated: false,
+      },
+    };
+
+    const map = buildProfileLookupMapFromResult(result);
+    expect(map.size).toBe(0);
+  });
+});
+
+describe('buildProfileLookupMap', () => {
+  it('should build map from profile array', () => {
+    const profiles = [
+      { _id: 'p1', displayName: 'Alice', profileType: 'parent' as const },
+      { _id: 'p2', displayName: 'Bob', avatarUrl: 'url', profileType: 'child' as const },
+    ];
+
+    const map = buildProfileLookupMap(profiles);
+
+    expect(map.size).toBe(2);
+    expect(map.get('p1')).toEqual({
+      id: 'p1',
+      displayName: 'Alice',
+      avatarUrl: undefined,
+      profileType: 'parent',
+    });
+    expect(map.get('p2')).toEqual({
+      id: 'p2',
+      displayName: 'Bob',
+      avatarUrl: 'url',
+      profileType: 'child',
+    });
+  });
+
+  it('should handle empty array', () => {
+    const map = buildProfileLookupMap([]);
+    expect(map.size).toBe(0);
+  });
+});
+
+describe('getProfileName', () => {
+  const testMap = new Map([
+    [
+      'p1',
+      { id: 'p1', displayName: 'Alice', avatarUrl: undefined, profileType: 'parent' as const },
+    ],
+    ['p2', { id: 'p2', displayName: 'Bob', avatarUrl: undefined, profileType: 'child' as const }],
+  ]);
+
+  it('should return profile name for valid ID', () => {
+    expect(getProfileName(testMap, 'p1')).toBe('Alice');
+    expect(getProfileName(testMap, 'p2')).toBe('Bob');
+  });
+
+  it('should return Unknown for missing ID', () => {
+    expect(getProfileName(testMap, 'nonexistent')).toBe('Unknown');
+  });
+
+  it('should return Unknown for empty map', () => {
+    expect(getProfileName(new Map(), 'any')).toBe('Unknown');
+  });
+});
+
+describe('getProfileFromMap', () => {
+  const testMap = new Map([
+    [
+      'p1',
+      { id: 'p1', displayName: 'Alice', avatarUrl: undefined, profileType: 'parent' as const },
+    ],
+  ]);
+
+  it('should return profile for valid ID', () => {
+    const profile = getProfileFromMap(testMap, 'p1');
+    expect(profile).toEqual({
+      id: 'p1',
+      displayName: 'Alice',
+      avatarUrl: undefined,
+      profileType: 'parent',
+    });
+  });
+
+  it('should return undefined for missing ID', () => {
+    expect(getProfileFromMap(testMap, 'nonexistent')).toBeUndefined();
+  });
+});
+
+describe('extractUniqueProfileIds', () => {
+  it('should extract unique profile IDs', () => {
+    const items = [
+      { profileId: 'p1', data: 'a' },
+      { profileId: 'p2', data: 'b' },
+      { profileId: 'p1', data: 'c' },
+      { profileId: 'p3', data: 'd' },
+      { profileId: 'p2', data: 'e' },
+    ];
+
+    const ids = extractUniqueProfileIds(items);
+    expect(ids).toHaveLength(3);
+    expect(ids).toContain('p1');
+    expect(ids).toContain('p2');
+    expect(ids).toContain('p3');
+  });
+
+  it('should return empty array for empty input', () => {
+    expect(extractUniqueProfileIds([])).toEqual([]);
+  });
+
+  it('should handle single item', () => {
+    expect(extractUniqueProfileIds([{ profileId: 'p1' }])).toEqual(['p1']);
+  });
+});
+
+describe('hasMissingProfiles', () => {
+  it('should return true for null result', () => {
+    expect(hasMissingProfiles(null)).toBe(true);
+  });
+
+  it('should return false when no profiles missing', () => {
+    const result: BatchProfileResult = {
+      profiles: {},
+      stats: { requested: 2, unique: 2, found: 2, missing: 0, truncated: false },
+    };
+    expect(hasMissingProfiles(result)).toBe(false);
+  });
+
+  it('should return true when profiles are missing', () => {
+    const result: BatchProfileResult = {
+      profiles: {},
+      stats: { requested: 3, unique: 3, found: 2, missing: 1, truncated: false },
+    };
+    expect(hasMissingProfiles(result)).toBe(true);
+  });
+});
+
+describe('wasBatchTruncated', () => {
+  it('should return false for null result', () => {
+    expect(wasBatchTruncated(null)).toBe(false);
+  });
+
+  it('should return false when not truncated', () => {
+    const result: BatchProfileResult = {
+      profiles: {},
+      stats: { requested: 50, unique: 50, found: 50, missing: 0, truncated: false },
+    };
+    expect(wasBatchTruncated(result)).toBe(false);
+  });
+
+  it('should return true when truncated', () => {
+    const result: BatchProfileResult = {
+      profiles: {},
+      stats: { requested: 150, unique: 100, found: 100, missing: 0, truncated: true },
+    };
+    expect(wasBatchTruncated(result)).toBe(true);
+  });
+});
+
+describe('enrichWithProfileNames', () => {
+  const testMap = new Map([
+    [
+      'p1',
+      { id: 'p1', displayName: 'Alice', avatarUrl: undefined, profileType: 'parent' as const },
+    ],
+    ['p2', { id: 'p2', displayName: 'Bob', avatarUrl: undefined, profileType: 'child' as const }],
+  ]);
+
+  it('should add profile names to items', () => {
+    const items = [
+      { profileId: 'p1', action: 'add' },
+      { profileId: 'p2', action: 'remove' },
+    ];
+
+    const enriched = enrichWithProfileNames(items, testMap);
+
+    expect(enriched).toHaveLength(2);
+    expect(enriched[0]).toEqual({ profileId: 'p1', action: 'add', profileName: 'Alice' });
+    expect(enriched[1]).toEqual({ profileId: 'p2', action: 'remove', profileName: 'Bob' });
+  });
+
+  it('should use Unknown for missing profiles', () => {
+    const items = [{ profileId: 'nonexistent', action: 'test' }];
+
+    const enriched = enrichWithProfileNames(items, testMap);
+
+    expect(enriched[0].profileName).toBe('Unknown');
+  });
+
+  it('should handle empty items array', () => {
+    expect(enrichWithProfileNames([], testMap)).toEqual([]);
+  });
+});
+
+describe('chunkProfileIds', () => {
+  it('should chunk array into batches', () => {
+    const ids = ['p1', 'p2', 'p3', 'p4', 'p5'];
+    const chunks = chunkProfileIds(ids, 2);
+
+    expect(chunks).toEqual([['p1', 'p2'], ['p3', 'p4'], ['p5']]);
+  });
+
+  it('should return single chunk when under batch size', () => {
+    const ids = ['p1', 'p2', 'p3'];
+    const chunks = chunkProfileIds(ids, 5);
+
+    expect(chunks).toEqual([['p1', 'p2', 'p3']]);
+  });
+
+  it('should return empty array for empty input', () => {
+    expect(chunkProfileIds([])).toEqual([]);
+  });
+
+  it('should use MAX_PROFILE_BATCH_SIZE as default', () => {
+    const ids = Array.from({ length: 150 }, (_, i) => `p${i}`);
+    const chunks = chunkProfileIds(ids);
+
+    expect(chunks).toHaveLength(2);
+    expect(chunks[0]).toHaveLength(100);
+    expect(chunks[1]).toHaveLength(50);
+  });
+});
+
+describe('mergeBatchResults', () => {
+  it('should merge multiple batch results', () => {
+    const result1: BatchProfileResult = {
+      profiles: {
+        p1: {
+          id: 'p1',
+          familyId: 'f1',
+          displayName: 'Alice',
+          avatarUrl: undefined,
+          profileType: 'parent',
+          xp: 100,
+          level: 5,
+        },
+      },
+      stats: { requested: 1, unique: 1, found: 1, missing: 0, truncated: false },
+    };
+
+    const result2: BatchProfileResult = {
+      profiles: {
+        p2: {
+          id: 'p2',
+          familyId: 'f1',
+          displayName: 'Bob',
+          avatarUrl: undefined,
+          profileType: 'child',
+          xp: 50,
+          level: 2,
+        },
+      },
+      stats: { requested: 1, unique: 1, found: 1, missing: 0, truncated: false },
+    };
+
+    const merged = mergeBatchResults([result1, result2]);
+
+    expect(merged.size).toBe(2);
+    expect(merged.get('p1')?.displayName).toBe('Alice');
+    expect(merged.get('p2')?.displayName).toBe('Bob');
+  });
+
+  it('should handle null results in array', () => {
+    const result1: BatchProfileResult = {
+      profiles: {
+        p1: {
+          id: 'p1',
+          familyId: 'f1',
+          displayName: 'Alice',
+          avatarUrl: undefined,
+          profileType: 'parent',
+          xp: 100,
+          level: 5,
+        },
+      },
+      stats: { requested: 1, unique: 1, found: 1, missing: 0, truncated: false },
+    };
+
+    const merged = mergeBatchResults([result1, null, null]);
+
+    expect(merged.size).toBe(1);
+    expect(merged.get('p1')?.displayName).toBe('Alice');
+  });
+
+  it('should return empty map for all null results', () => {
+    const merged = mergeBatchResults([null, null]);
+    expect(merged.size).toBe(0);
+  });
+
+  it('should return empty map for empty array', () => {
+    const merged = mergeBatchResults([]);
+    expect(merged.size).toBe(0);
+  });
+
+  it('should overwrite duplicate IDs with later values', () => {
+    const result1: BatchProfileResult = {
+      profiles: {
+        p1: {
+          id: 'p1',
+          familyId: 'f1',
+          displayName: 'Alice v1',
+          avatarUrl: undefined,
+          profileType: 'parent',
+          xp: 100,
+          level: 5,
+        },
+      },
+      stats: { requested: 1, unique: 1, found: 1, missing: 0, truncated: false },
+    };
+
+    const result2: BatchProfileResult = {
+      profiles: {
+        p1: {
+          id: 'p1',
+          familyId: 'f1',
+          displayName: 'Alice v2',
+          avatarUrl: undefined,
+          profileType: 'parent',
+          xp: 200,
+          level: 10,
+        },
+      },
+      stats: { requested: 1, unique: 1, found: 1, missing: 0, truncated: false },
+    };
+
+    const merged = mergeBatchResults([result1, result2]);
+
+    expect(merged.size).toBe(1);
+    expect(merged.get('p1')?.displayName).toBe('Alice v2');
+  });
+});
