@@ -374,55 +374,6 @@ export const updateSubscription = mutation({
   },
 });
 
-/**
- * Get or create a demo profile for testing without authentication.
- * Uses a fixed demo email to ensure the same profile is returned.
- */
-export const getOrCreateDemoProfile = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const demoEmail = 'demo@kidcollect.app';
-
-    // Check if demo family exists
-    let family = await ctx.db
-      .query('families')
-      .withIndex('by_email', (q) => q.eq('email', demoEmail))
-      .first();
-
-    // Create demo family if it doesn't exist
-    if (!family) {
-      const familyId = await ctx.db.insert('families', {
-        email: demoEmail,
-        subscriptionTier: 'family', // Give demo user full access
-      });
-      family = await ctx.db.get(familyId);
-    }
-
-    if (!family) {
-      throw new Error('Failed to create demo family');
-    }
-
-    // Check if demo profile exists
-    let profile = await ctx.db
-      .query('profiles')
-      .withIndex('by_family', (q) => q.eq('familyId', family._id))
-      .first();
-
-    // Create demo profile if it doesn't exist
-    if (!profile) {
-      const profileId = await ctx.db.insert('profiles', {
-        familyId: family._id,
-        displayName: 'Demo Collector',
-        avatarUrl: undefined,
-        profileType: 'child', // Demo profile is a child profile
-      });
-      profile = await ctx.db.get(profileId);
-    }
-
-    return profile;
-  },
-});
-
 // ============================================================================
 // CHILD PROFILE CREATION WITH VALIDATION
 // ============================================================================

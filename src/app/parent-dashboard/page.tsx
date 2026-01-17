@@ -1,41 +1,17 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
-import { useEffect, useState } from 'react';
+import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import type { Id } from '../../../convex/_generated/dataModel';
 import Link from 'next/link';
 import { ShieldCheckIcon, ArrowLeftIcon, Cog6ToothIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { ParentDashboard, ParentDashboardSkeleton } from '@/components/dashboard/ParentDashboard';
 
-const FAMILY_ID_KEY = 'kidcollect_family_id';
-
 export default function ParentDashboardPage() {
-  const [familyId, setFamilyId] = useState<Id<'families'> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const getOrCreateDemoProfile = useMutation(api.profiles.getOrCreateDemoProfile);
+  // Use authenticated parent access check
+  const parentAccess = useQuery(api.profiles.hasParentAccess);
 
-  // Initialize family ID from stored profile
-  useEffect(() => {
-    async function initFamily() {
-      try {
-        // For demo purposes, we'll use the demo profile's family
-        const profile = await getOrCreateDemoProfile();
-        if (profile) {
-          setFamilyId(profile.familyId);
-        }
-      } catch (error) {
-        console.error('Failed to initialize family:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    initFamily();
-  }, [getOrCreateDemoProfile]);
-
-  // Loading state
-  if (isLoading || !familyId) {
+  // Loading state - still fetching access info
+  if (parentAccess === undefined) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50 px-4 py-8">
         <div className="mx-auto max-w-7xl">
@@ -51,6 +27,54 @@ export default function ParentDashboardPage() {
       </main>
     );
   }
+
+  // Access denied - show appropriate message
+  if (!parentAccess.hasAccess) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50 px-4 py-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="mb-8">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+              <ShieldCheckIcon className="h-8 w-8 text-red-500" />
+            </div>
+            <h1 className="mb-2 text-2xl font-bold text-gray-800">Access Denied</h1>
+            <p className="text-gray-600">{parentAccess.message}</p>
+          </div>
+
+          {parentAccess.reason === 'NOT_AUTHENTICATED' && (
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-kid-primary to-purple-500 px-6 py-3 text-sm font-medium text-white shadow-md transition hover:shadow-lg"
+            >
+              Sign In
+            </Link>
+          )}
+
+          {parentAccess.reason === 'NO_FAMILY' && (
+            <Link
+              href="/onboarding"
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-kid-primary to-purple-500 px-6 py-3 text-sm font-medium text-white shadow-md transition hover:shadow-lg"
+            >
+              Create Family Account
+            </Link>
+          )}
+
+          <div className="mt-4">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-gray-700"
+            >
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Extract family ID from the access check result
+  const familyId = parentAccess.family!.id;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50 px-4 py-8">
