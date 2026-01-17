@@ -18,7 +18,13 @@
  * because Convex actions run in Convex's runtime, not the browser/Next.js environment.
  */
 import { v } from 'convex/values';
-import { action, internalAction, internalMutation, internalQuery, query } from './_generated/server';
+import {
+  action,
+  internalAction,
+  internalMutation,
+  internalQuery,
+  query,
+} from './_generated/server';
 import { internal } from './_generated/api';
 
 // =============================================================================
@@ -447,6 +453,100 @@ export const searchCardsByGame = query({
     const matchingCards = allCards.filter((card) => card.name.toLowerCase().includes(searchLower));
 
     return matchingCards.slice(0, limit);
+  },
+});
+
+/**
+ * Batch fetch multiple cards by their IDs in a single query.
+ * Optimized for wishlist enrichment and collection display.
+ *
+ * Returns a map of cardId -> card data for efficient lookups.
+ * Cards not found in cache are omitted from the result.
+ *
+ * @param cardIds - Array of card IDs to fetch (max 200 to prevent memory issues)
+ * @returns Object with cards map and stats about found/missing cards
+ */
+export const getCardsByIds = query({
+  args: {
+    cardIds: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Limit to 200 cards to prevent excessive memory usage
+    const MAX_BATCH_SIZE = 200;
+    const cardIds = args.cardIds.slice(0, MAX_BATCH_SIZE);
+
+    // Deduplicate card IDs
+    const uniqueCardIds = [...new Set(cardIds)];
+
+    // Fetch all cards in parallel using Promise.all
+    const cardPromises = uniqueCardIds.map((cardId) =>
+      ctx.db
+        .query('cachedCards')
+        .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+        .first()
+    );
+
+    const cardResults = await Promise.all(cardPromises);
+
+    // Build result map and track stats
+    const cards: Record<
+      string,
+      {
+        cardId: string;
+        gameSlug: string;
+        setId: string;
+        name: string;
+        number: string;
+        supertype: string;
+        subtypes: string[];
+        types: string[];
+        rarity: string | undefined;
+        imageSmall: string;
+        imageLarge: string;
+        tcgPlayerUrl: string | undefined;
+        priceMarket: number | undefined;
+      }
+    > = {};
+
+    let foundCount = 0;
+    let missingCount = 0;
+
+    for (let i = 0; i < uniqueCardIds.length; i++) {
+      const cardId = uniqueCardIds[i];
+      const card = cardResults[i];
+
+      if (card) {
+        cards[cardId] = {
+          cardId: card.cardId,
+          gameSlug: card.gameSlug,
+          setId: card.setId,
+          name: card.name,
+          number: card.number,
+          supertype: card.supertype,
+          subtypes: card.subtypes,
+          types: card.types,
+          rarity: card.rarity,
+          imageSmall: card.imageSmall,
+          imageLarge: card.imageLarge,
+          tcgPlayerUrl: card.tcgPlayerUrl,
+          priceMarket: card.priceMarket,
+        };
+        foundCount++;
+      } else {
+        missingCount++;
+      }
+    }
+
+    return {
+      cards,
+      stats: {
+        requested: cardIds.length,
+        unique: uniqueCardIds.length,
+        found: foundCount,
+        missing: missingCount,
+        truncated: args.cardIds.length > MAX_BATCH_SIZE,
+      },
+    };
   },
 });
 
