@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: █████████████████████░░░░░░░  62/89 (70%)
-Remaining: 27 tasks
+Progress: █████████████████████░░░░░░░  63/89 (71%)
+Remaining: 26 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -15,7 +15,7 @@ Remaining: 27 tasks
 | ----------------------------------- | -------- | --------- |
 | **CRITICAL - Multi-TCG API**        | 0        | **5**     |
 | **CRITICAL - Auth Fixes**           | 0        | **4**     |
-| **HIGH - Performance Optimization** | 4        | **3**     |
+| **HIGH - Performance Optimization** | 5        | **2**     |
 | HIGH PRIORITY - Auth & Pricing      | 9        | **1**     |
 | Card Variants                       | 3        | 0         |
 | Achievement System                  | 6        | 0         |
@@ -28,7 +28,7 @@ Remaining: 27 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | Launch Prep                         | 4        | **5**     |
-| **TOTAL**                           | **62**   | **27**    |
+| **TOTAL**                           | **63**   | **26**    |
 
 ### Critical Path for Launch
 
@@ -94,7 +94,7 @@ My Collection page is slow due to redundant/inefficient Convex queries. These ba
 - [x] Optimize `getNewlyAddedCards` query - Add database-level filtering with composite index `by_profile_and_action_time` instead of collecting all logs and filtering in JS
 - [x] Add composite index to activityLogs - Create index `by_profile_action_time` for (profileId, action, \_creationTime) in schema
 - [ ] Optimize wishlist queries - Add index for profile+game queries if missing
-- [ ] Add pagination to activity feed queries - Use `.take()` with cursor for large activity histories instead of `.collect()`
+- [x] Add pagination to activity feed queries - Use `.take()` with cursor for large activity histories instead of `.collect()`
 - [ ] Profile query batching - Consolidate multiple profile lookups into batch queries where used
 
 ### HIGH PRIORITY - Authentication & Pricing
@@ -213,6 +213,26 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-17: Add pagination to activity feed queries
+
+- Added 5 new paginated Convex queries to `convex/activityLogs.ts`:
+  - `getRecentActivityPaginated`: Basic pagination for profile activity logs
+  - `getRecentActivityWithNamesPaginated`: Pagination with card name enrichment
+  - `getFamilyActivityPaginated`: Family-wide activity with pagination support
+  - `getActivityByTypePaginated`: Filter by action type with pagination
+  - `getActivityByDateRangePaginated`: Date-bounded pagination for dashboards
+- All queries use cursor-based pagination (timestamp cursors) for efficient large data sets
+- Page size clamped between 1-100 (default 50) to prevent memory issues
+- Returns metadata: nextCursor, hasMore, pageSize, totalFetched
+- Added client-side pagination utilities to `src/lib/activityLogs.ts`:
+  - Constants: DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE_SIZE
+  - Validation helpers: clampPageSize, isValidPageSize, isValidCursor
+  - Pagination helpers: filterByCursor, getNextCursor, buildPaginatedResult
+  - Display helpers: hasMorePages, getPageInfoString, estimateTotalPages
+  - Client caching: mergePaginatedResults for merging fetched pages
+  - Types: PaginatedResult, FamilyPaginatedResult, ActionTypePaginatedResult, DateRangePaginatedResult
+- Added 45 new tests in `src/lib/__tests__/activityLogs.test.ts` (125 total pass)
 
 ### 2026-01-17: Add batch getCardsByIds query for efficient card lookups
 
