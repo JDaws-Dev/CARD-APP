@@ -5,15 +5,15 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: ██████████████████████░░░░░░  69/89 (78%)
-Remaining: 20 tasks
+Progress: ██████████████████████░░░░░░  70/89 (79%)
+Remaining: 19 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
 
 | Section                             | Complete | Remaining |
 | ----------------------------------- | -------- | --------- |
-| **CRITICAL - Multi-TCG API**        | 1        | **4**     |
+| **CRITICAL - Multi-TCG API**        | 2        | **3**     |
 | **CRITICAL - Auth Fixes**           | 5        | **0**     |
 | **HIGH - Performance Optimization** | 5        | **2**     |
 | HIGH PRIORITY - Auth & Pricing      | 9        | **1**     |
@@ -28,7 +28,7 @@ Remaining: 20 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | Launch Prep                         | 4        | **5**     |
-| **TOTAL**                           | **69**   | **20**    |
+| **TOTAL**                           | **70**   | **19**    |
 
 ### Critical Path for Launch
 
@@ -67,7 +67,7 @@ Remaining: 20 tasks
 These API routes are currently hardcoded to Pokemon and must be updated to support game selection via query parameter.
 
 - [x] `/api/sets/route.ts` - Update to accept `?game=pokemon|yugioh|etc` parameter, fetch from Convex cachedSets instead of pokemon-tcg.ts
-- [ ] `/api/cards/route.ts` - Update to accept game parameter, fetch from Convex cachedCards by game
+- [x] `/api/cards/route.ts` - Update to accept game parameter, fetch from Convex cachedCards by game
 - [ ] `/api/search/route.ts` - Update to search within selected game's cached cards
 - [ ] `/api/filter/route.ts` - Update to filter within selected game's cached cards
 - [x] Add Convex public query for cards by game - Create `getCardsByGame` and `searchCardsByGame` queries in dataPopulation.ts
@@ -213,6 +213,39 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-17: Update /api/cards route to support multi-TCG game selection
+
+- **Updated `src/app/api/cards/route.ts` to support multi-TCG games**
+  - Migrated from Pokemon TCG API to Convex `cachedCards` for all TCGs
+  - Supports all 7 TCGs: pokemon, yugioh, mtg, onepiece, lorcana, digimon, dragonball
+- **POST endpoint enhancements:**
+  - Accept optional `game` parameter in request body for validation
+  - Validate cardIds are non-empty strings
+  - Batch requests to handle Convex 200-card limit (supports up to 500)
+  - Return both `data` (array) and `cards` (map) formats for flexibility
+  - Include stats: `found`, `missing`, `requested`, `count`
+  - Maintains backward compatibility (game param is optional)
+- **Added GET endpoint for fetching cards by game:**
+  - Require `game` query parameter
+  - Optional `setId` filter to get cards in a specific set
+  - Pagination support with `limit` (default 50, max 500) and `offset`
+  - `hasMore` flag for infinite scroll UIs
+- **Card data transformation:**
+  - Transform Convex cached card format to standard response format
+  - Include `images`, `tcgplayer` (url + prices), `set`, `gameSlug` fields
+- **Comprehensive error handling:**
+  - 400 for invalid game, invalid limit/offset, too many cardIds, invalid cardIds
+  - 500 for server config errors and Convex query failures
+- **Wrote 42 test cases covering:**
+  - cardIds validation (array, strings, max limit)
+  - Game parameter validation (all 7 slugs, invalid)
+  - Pagination parameters (limit, offset, caps, errors)
+  - Card fetching and transformation
+  - Batching for requests > 200 cards
+  - Error handling (env vars, Convex errors)
+  - Response structure validation
+- All 42 tests pass, ESLint clean, Prettier formatted
 
 ### 2026-01-17: Update /api/sets route to support multi-TCG game selection
 
