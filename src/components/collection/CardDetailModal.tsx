@@ -8,11 +8,67 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/solid';
+import { SparklesIcon } from '@heroicons/react/24/solid';
 import Link from 'next/link';
+
+// Variant type definition (matches CardGrid.tsx)
+type CardVariant =
+  | 'normal'
+  | 'holofoil'
+  | 'reverseHolofoil'
+  | '1stEditionHolofoil'
+  | '1stEditionNormal';
+
+// Variant display configuration
+const VARIANT_CONFIG: Record<
+  CardVariant,
+  {
+    label: string;
+    shortLabel: string;
+    gradient: string;
+    textColor: string;
+    icon?: React.ComponentType<{ className?: string }>;
+  }
+> = {
+  normal: {
+    label: 'Normal',
+    shortLabel: 'N',
+    gradient: 'from-gray-400 to-gray-500',
+    textColor: 'text-gray-300',
+  },
+  holofoil: {
+    label: 'Holofoil',
+    shortLabel: 'H',
+    gradient: 'from-purple-400 to-indigo-500',
+    textColor: 'text-purple-300',
+    icon: SparklesIcon,
+  },
+  reverseHolofoil: {
+    label: 'Reverse Holo',
+    shortLabel: 'R',
+    gradient: 'from-cyan-400 to-blue-500',
+    textColor: 'text-cyan-300',
+    icon: SparklesIcon,
+  },
+  '1stEditionHolofoil': {
+    label: '1st Ed. Holo',
+    shortLabel: '1H',
+    gradient: 'from-amber-400 to-yellow-500',
+    textColor: 'text-amber-300',
+    icon: SparklesIcon,
+  },
+  '1stEditionNormal': {
+    label: '1st Edition',
+    shortLabel: '1N',
+    gradient: 'from-amber-400 to-orange-500',
+    textColor: 'text-orange-300',
+  },
+};
 
 interface CardWithQuantity extends PokemonCard {
   quantity: number;
   collectionId: string;
+  ownedVariants?: Record<string, number>; // variant -> quantity
 }
 
 interface CardDetailModalProps {
@@ -170,6 +226,32 @@ export function CardDetailModal({
             <span>{card.set.name}</span>
             <span className="text-white/50">#{card.number}</span>
           </Link>
+
+          {/* Owned variants section */}
+          {card.ownedVariants && Object.keys(card.ownedVariants).length > 0 && (
+            <div className="mb-4 rounded-lg bg-white/10 p-3">
+              <span className="text-sm text-white/50">You Own:</span>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {Object.entries(card.ownedVariants).map(([variant, qty]) => {
+                  const config = VARIANT_CONFIG[variant as CardVariant];
+                  if (!config || qty <= 0) return null;
+                  const Icon = config.icon;
+                  return (
+                    <span
+                      key={variant}
+                      className={`inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r ${config.gradient} px-3 py-1.5 text-sm font-medium text-white shadow-sm`}
+                    >
+                      {Icon && <Icon className="h-4 w-4" />}
+                      <span>{config.label}</span>
+                      <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-xs font-bold">
+                        x{qty}
+                      </span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Card metadata */}
           <div className="space-y-3">

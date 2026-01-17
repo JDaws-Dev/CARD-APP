@@ -45,6 +45,7 @@ interface CollectionCard {
   _id: string;
   cardId: string;
   quantity: number;
+  variant?: string;
 }
 
 interface CollectionViewProps {
@@ -54,6 +55,7 @@ interface CollectionViewProps {
 interface CardWithQuantity extends PokemonCard {
   quantity: number;
   collectionId: string; // Unique ID from the collection entry
+  ownedVariants?: Record<string, number>; // variant -> quantity
 }
 
 interface SetGroup {
@@ -124,12 +126,36 @@ export function CollectionView({ collection }: CollectionViewProps) {
   }, []);
 
   // Group cards by set - memoized to cache expensive grouping computation
+  // First aggregate variants by cardId, then group by set
   const setGroups = useMemo(() => {
     const groups: SetGroup[] = [];
     const setMap = new Map<string, SetGroup>();
 
+    // First pass: aggregate quantities and variants by cardId
+    const cardAggregates = new Map<
+      string,
+      { totalQuantity: number; variants: Record<string, number>; firstId: string }
+    >();
+
     collection.forEach((item) => {
-      const card = cardData.get(item.cardId);
+      const existing = cardAggregates.get(item.cardId);
+      const variant = item.variant ?? 'normal';
+
+      if (existing) {
+        existing.totalQuantity += item.quantity;
+        existing.variants[variant] = (existing.variants[variant] ?? 0) + item.quantity;
+      } else {
+        cardAggregates.set(item.cardId, {
+          totalQuantity: item.quantity,
+          variants: { [variant]: item.quantity },
+          firstId: item._id,
+        });
+      }
+    });
+
+    // Second pass: create cards with aggregated data and group by set
+    cardAggregates.forEach((aggregate, cardId) => {
+      const card = cardData.get(cardId);
       if (card) {
         const setId = card.set.id;
         const setName = card.set.name;
@@ -144,8 +170,9 @@ export function CollectionView({ collection }: CollectionViewProps) {
 
         setMap.get(setId)!.cards.push({
           ...card,
-          quantity: item.quantity,
-          collectionId: item._id,
+          quantity: aggregate.totalQuantity,
+          collectionId: aggregate.firstId,
+          ownedVariants: aggregate.variants,
         });
       }
     });
@@ -212,13 +239,41 @@ export function CollectionView({ collection }: CollectionViewProps) {
     return cardsWithPrices.sort((a, b) => b.price - a.price).slice(0, 5);
   }, [collection, cardData]);
 
-  // All cards for binder view
+  // All cards for binder view - aggregated by cardId with variant info
   const allCardsForBinder = useMemo(() => {
-    const cards: CardWithQuantity[] = [];
+    // First aggregate variants by cardId
+    const cardAggregates = new Map<
+      string,
+      { totalQuantity: number; variants: Record<string, number>; firstId: string }
+    >();
+
     collection.forEach((item) => {
-      const card = cardData.get(item.cardId);
+      const existing = cardAggregates.get(item.cardId);
+      const variant = item.variant ?? 'normal';
+
+      if (existing) {
+        existing.totalQuantity += item.quantity;
+        existing.variants[variant] = (existing.variants[variant] ?? 0) + item.quantity;
+      } else {
+        cardAggregates.set(item.cardId, {
+          totalQuantity: item.quantity,
+          variants: { [variant]: item.quantity },
+          firstId: item._id,
+        });
+      }
+    });
+
+    // Build card array with aggregated data
+    const cards: CardWithQuantity[] = [];
+    cardAggregates.forEach((aggregate, cardId) => {
+      const card = cardData.get(cardId);
       if (card) {
-        cards.push({ ...card, quantity: item.quantity, collectionId: item._id });
+        cards.push({
+          ...card,
+          quantity: aggregate.totalQuantity,
+          collectionId: aggregate.firstId,
+          ownedVariants: aggregate.variants,
+        });
       }
     });
     return cards;
