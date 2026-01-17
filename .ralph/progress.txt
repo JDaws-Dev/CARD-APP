@@ -70,3 +70,9 @@
 - convex/pinProtection.ts - Secure PIN backend
 **Verification:** Game selection is fully protected by parent PIN in Family Controls
 ---
+## CD-pt9 - Update landing page for multi-TCG support
+**Status:** Completed
+**Changes:** Updated all Pokemon-specific text on the landing page to be TCG-agnostic, including changing "Pokemon cards" to "trading cards", replacing Pokemon card examples with generic names, updating stats from "500+ Pokemon Sets" to "4 TCGs Supported", updating pricing features to "All 4 TCGs with full set coverage", and expanding the footer disclaimer to include all 4 TCG companies.
+**Files:** src/app/page.tsx
+**Commit:** b9a1ecf
+---
