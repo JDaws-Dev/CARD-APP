@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: █████████████████████░░░░░░░  65/89 (73%)
-Remaining: 24 tasks
+Progress: ██████████████████████░░░░░░  68/89 (76%)
+Remaining: 21 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -14,7 +14,7 @@ Remaining: 24 tasks
 | Section                             | Complete | Remaining |
 | ----------------------------------- | -------- | --------- |
 | **CRITICAL - Multi-TCG API**        | 0        | **5**     |
-| **CRITICAL - Auth Fixes**           | 2        | **2**     |
+| **CRITICAL - Auth Fixes**           | 5        | **0**     |
 | **HIGH - Performance Optimization** | 5        | **2**     |
 | HIGH PRIORITY - Auth & Pricing      | 9        | **1**     |
 | Card Variants                       | 3        | 0         |
@@ -28,7 +28,7 @@ Remaining: 24 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | Launch Prep                         | 4        | **5**     |
-| **TOTAL**                           | **65**   | **24**    |
+| **TOTAL**                           | **68**   | **21**    |
 
 ### Critical Path for Launch
 
@@ -74,14 +74,14 @@ These API routes are currently hardcoded to Pokemon and must be updated to suppo
 
 ### CRITICAL - Auth & Security Fixes (January 2026 Evaluation)
 
-- [ ] Fix parent dashboard to use authenticated user - Remove `getOrCreateDemoProfile()` call in `src/app/parent-dashboard/page.tsx:23`, use `getCurrentUserProfile()` from `convex/profiles.ts` instead
-- [ ] Add role-based access control to parent dashboard - Check `hasParentAccess()` before allowing access to `/parent-dashboard`
+- [x] Fix parent dashboard to use authenticated user - Remove `getOrCreateDemoProfile()` call in `src/app/parent-dashboard/page.tsx:23`, use `getCurrentUserProfile()` from `convex/profiles.ts` instead
+- [x] Add role-based access control to parent dashboard - Check `hasParentAccess()` before allowing access to `/parent-dashboard`
 - [ ] Add proper profile validation - Ensure users can only access their own profiles and family data
 - [x] Create /signup route - Either create dedicated page or redirect to /login?mode=signup (DONE - signup page exists)
 
 ### NEW - Code Review Backend Fixes (January 17, 2026)
 
-- [ ] Delete `getOrCreateDemoProfile` mutation from `convex/profiles.ts` - This demo function should not exist in production, it creates fake data
+- [x] Delete `getOrCreateDemoProfile` mutation from `convex/profiles.ts` - This demo function should not exist in production, it creates fake data
 - [x] Add `hasParentAccess` helper function to `convex/profiles.ts` - Check if authenticated user has parent role in their family
 - [x] Create `getParentDashboardData` query in `convex/profiles.ts` - Secure query that returns family data only for authenticated parent users
 
@@ -213,6 +213,24 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-17: Remove getOrCreateDemoProfile and secure parent dashboard
+
+- **Deleted `getOrCreateDemoProfile` mutation from `convex/profiles.ts`**
+  - This insecure demo function created fake data bypassing authentication
+  - Production apps should never have endpoints that create data without auth
+- **Updated `src/app/parent-dashboard/page.tsx` to use authenticated queries**
+  - Replaced `getOrCreateDemoProfile()` mutation with `hasParentAccess` query
+  - Added proper access denied UI with appropriate error messages
+  - Shows "Sign In" button for NOT_AUTHENTICATED users
+  - Shows "Create Family Account" button for NO_FAMILY users
+  - Redirects appropriately based on error reason
+- **Updated `src/hooks/useCurrentProfile.ts` to use authenticated queries**
+  - Replaced `getOrCreateDemoProfile()` with `getCurrentUserProfile` query
+  - Hook now returns additional useful data: profile, family, availableProfiles, user, isAuthenticated
+  - This hook is used by 30+ components throughout the app
+- All tests pass (5212/5218 - 6 pre-existing failures unrelated to this change)
+- TypeScript compiles cleanly, ESLint passes, Prettier formatted
 
 ### 2026-01-17: Add hasParentAccess query and getParentDashboardData query
 
