@@ -27,8 +27,8 @@ import {
 
 describe('TCG API Constants', () => {
   describe('GAME_CONFIGS', () => {
-    it('should have configuration for all 7 supported games', () => {
-      expect(Object.keys(GAME_CONFIGS)).toHaveLength(7);
+    it('should have configuration for all 4 supported games', () => {
+      expect(Object.keys(GAME_CONFIGS)).toHaveLength(4);
     });
 
     it('should have valid config structure for each game', () => {
@@ -59,27 +59,21 @@ describe('TCG API Constants', () => {
     it('should include all expected games', () => {
       expect(GAME_CONFIGS.pokemon).toBeDefined();
       expect(GAME_CONFIGS.yugioh).toBeDefined();
-      expect(GAME_CONFIGS.mtg).toBeDefined();
       expect(GAME_CONFIGS.onepiece).toBeDefined();
       expect(GAME_CONFIGS.lorcana).toBeDefined();
-      expect(GAME_CONFIGS.digimon).toBeDefined();
-      expect(GAME_CONFIGS.dragonball).toBeDefined();
     });
   });
 
   describe('GAME_SLUGS', () => {
-    it('should contain all 7 game slugs', () => {
-      expect(GAME_SLUGS).toHaveLength(7);
+    it('should contain all 4 game slugs', () => {
+      expect(GAME_SLUGS).toHaveLength(4);
     });
 
     it('should contain expected slugs', () => {
       expect(GAME_SLUGS).toContain('pokemon');
       expect(GAME_SLUGS).toContain('yugioh');
-      expect(GAME_SLUGS).toContain('mtg');
       expect(GAME_SLUGS).toContain('onepiece');
       expect(GAME_SLUGS).toContain('lorcana');
-      expect(GAME_SLUGS).toContain('digimon');
-      expect(GAME_SLUGS).toContain('dragonball');
     });
   });
 
@@ -108,11 +102,8 @@ describe('Validation Helpers', () => {
     it('should return true for valid game slugs', () => {
       expect(isValidGameSlug('pokemon')).toBe(true);
       expect(isValidGameSlug('yugioh')).toBe(true);
-      expect(isValidGameSlug('mtg')).toBe(true);
       expect(isValidGameSlug('onepiece')).toBe(true);
       expect(isValidGameSlug('lorcana')).toBe(true);
-      expect(isValidGameSlug('digimon')).toBe(true);
-      expect(isValidGameSlug('dragonball')).toBe(true);
     });
 
     it('should return false for invalid game slugs', () => {
@@ -122,6 +113,9 @@ describe('Validation Helpers', () => {
       expect(isValidGameSlug('Pokemon')).toBe(false);
       expect(isValidGameSlug('magic')).toBe(false);
       expect(isValidGameSlug('ygo')).toBe(false);
+      expect(isValidGameSlug('mtg')).toBe(false);
+      expect(isValidGameSlug('digimon')).toBe(false);
+      expect(isValidGameSlug('dragonball')).toBe(false);
     });
   });
 
@@ -167,11 +161,6 @@ describe('DexId Utilities', () => {
       expect(result).toEqual({ game: 'yugioh', cardId: '46986414' });
     });
 
-    it('should parse valid MTG dexId', () => {
-      const result = parseDexId('mtg-neo-1');
-      expect(result).toEqual({ game: 'mtg', cardId: 'neo-1' });
-    });
-
     it('should parse valid One Piece dexId', () => {
       const result = parseDexId('onepiece-OP01-001');
       expect(result).toEqual({ game: 'onepiece', cardId: 'OP01-001' });
@@ -180,16 +169,6 @@ describe('DexId Utilities', () => {
     it('should parse valid Lorcana dexId', () => {
       const result = parseDexId('lorcana-1-42');
       expect(result).toEqual({ game: 'lorcana', cardId: '1-42' });
-    });
-
-    it('should parse valid Digimon dexId', () => {
-      const result = parseDexId('digimon-BT1-001');
-      expect(result).toEqual({ game: 'digimon', cardId: 'BT1-001' });
-    });
-
-    it('should parse valid Dragon Ball dexId', () => {
-      const result = parseDexId('dragonball-FB01-001');
-      expect(result).toEqual({ game: 'dragonball', cardId: 'FB01-001' });
     });
 
     it('should return null for invalid dexId without hyphen', () => {
@@ -219,24 +198,12 @@ describe('DexId Utilities', () => {
       expect(createDexId('yugioh', '46986414')).toBe('yugioh-46986414');
     });
 
-    it('should create valid dexId for MTG', () => {
-      expect(createDexId('mtg', 'neo-1')).toBe('mtg-neo-1');
-    });
-
     it('should create valid dexId for One Piece', () => {
       expect(createDexId('onepiece', 'OP01-001')).toBe('onepiece-OP01-001');
     });
 
     it('should create valid dexId for Lorcana', () => {
       expect(createDexId('lorcana', '1-42')).toBe('lorcana-1-42');
-    });
-
-    it('should create valid dexId for Digimon', () => {
-      expect(createDexId('digimon', 'BT1-001')).toBe('digimon-BT1-001');
-    });
-
-    it('should create valid dexId for Dragon Ball', () => {
-      expect(createDexId('dragonball', 'FB01-001')).toBe('dragonball-FB01-001');
     });
   });
 
@@ -245,11 +212,8 @@ describe('DexId Utilities', () => {
       const testCases: Array<{ game: GameSlug; cardId: string }> = [
         { game: 'pokemon', cardId: 'sv1-1' },
         { game: 'yugioh', cardId: '46986414' },
-        { game: 'mtg', cardId: 'neo-1' },
         { game: 'onepiece', cardId: 'OP01-001' },
         { game: 'lorcana', cardId: '1-42' },
-        { game: 'digimon', cardId: 'BT1-001' },
-        { game: 'dragonball', cardId: 'FB01-001' },
       ];
 
       for (const { game, cardId } of testCases) {
@@ -270,11 +234,8 @@ describe('Display Helpers', () => {
     it('should return display names for all games', () => {
       expect(getGameDisplayName('pokemon')).toBe('Pokémon TCG');
       expect(getGameDisplayName('yugioh')).toBe('Yu-Gi-Oh!');
-      expect(getGameDisplayName('mtg')).toBe('Magic: The Gathering');
       expect(getGameDisplayName('onepiece')).toBe('One Piece TCG');
       expect(getGameDisplayName('lorcana')).toBe('Disney Lorcana');
-      expect(getGameDisplayName('digimon')).toBe('Digimon TCG');
-      expect(getGameDisplayName('dragonball')).toBe('Dragon Ball Fusion World');
     });
 
     it('should return slug for invalid game (fallback)', () => {
@@ -286,11 +247,8 @@ describe('Display Helpers', () => {
     it('should return hex color for all games', () => {
       expect(getGamePrimaryColor('pokemon')).toMatch(/^#[0-9A-Fa-f]{6}$/);
       expect(getGamePrimaryColor('yugioh')).toMatch(/^#[0-9A-Fa-f]{6}$/);
-      expect(getGamePrimaryColor('mtg')).toMatch(/^#[0-9A-Fa-f]{6}$/);
       expect(getGamePrimaryColor('onepiece')).toMatch(/^#[0-9A-Fa-f]{6}$/);
       expect(getGamePrimaryColor('lorcana')).toMatch(/^#[0-9A-Fa-f]{6}$/);
-      expect(getGamePrimaryColor('digimon')).toMatch(/^#[0-9A-Fa-f]{6}$/);
-      expect(getGamePrimaryColor('dragonball')).toMatch(/^#[0-9A-Fa-f]{6}$/);
     });
 
     it('should return Pokemon yellow', () => {
@@ -436,55 +394,43 @@ describe('Integration Scenarios', () => {
       const cards = [
         { game: 'pokemon' as GameSlug, cardId: 'sv1-25' }, // Pikachu
         { game: 'yugioh' as GameSlug, cardId: '46986414' }, // Dark Magician
-        { game: 'mtg' as GameSlug, cardId: 'lea-232' }, // Black Lotus
         { game: 'onepiece' as GameSlug, cardId: 'OP01-001' }, // Luffy
         { game: 'lorcana' as GameSlug, cardId: '1-42' }, // Elsa
-        { game: 'digimon' as GameSlug, cardId: 'BT1-001' }, // Agumon
-        { game: 'dragonball' as GameSlug, cardId: 'FB01-001' }, // Goku
       ];
 
       const dexIds = cards.map((c) => createDexId(c.game, c.cardId));
 
-      expect(dexIds).toHaveLength(7);
+      expect(dexIds).toHaveLength(4);
       expect(dexIds).toContain('pokemon-sv1-25');
       expect(dexIds).toContain('yugioh-46986414');
-      expect(dexIds).toContain('mtg-lea-232');
       expect(dexIds).toContain('onepiece-OP01-001');
       expect(dexIds).toContain('lorcana-1-42');
-      expect(dexIds).toContain('digimon-BT1-001');
-      expect(dexIds).toContain('dragonball-FB01-001');
     });
 
     it('should parse mixed collection dexIds back to game/cardId pairs', () => {
       const dexIds = [
         'pokemon-sv1-25',
         'yugioh-46986414',
-        'mtg-lea-232',
         'onepiece-OP01-001',
         'lorcana-1-42',
-        'digimon-BT1-001',
-        'dragonball-FB01-001',
       ];
 
       const parsed = dexIds.map(parseDexId);
 
-      expect(parsed).toHaveLength(7);
+      expect(parsed).toHaveLength(4);
       expect(parsed.every((p) => p !== null)).toBe(true);
       expect(parsed.map((p) => p?.game)).toEqual([
         'pokemon',
         'yugioh',
-        'mtg',
         'onepiece',
         'lorcana',
-        'digimon',
-        'dragonball',
       ]);
     });
   });
 
   describe('Game filtering', () => {
     it('should filter dexIds by game', () => {
-      const dexIds = ['pokemon-sv1-1', 'pokemon-sv1-2', 'yugioh-123', 'mtg-neo-1', 'pokemon-sv2-1'];
+      const dexIds = ['pokemon-sv1-1', 'pokemon-sv1-2', 'yugioh-123', 'lorcana-1-42', 'pokemon-sv2-1'];
 
       const pokemonCards = dexIds.filter((id) => {
         const parsed = parseDexId(id);
@@ -552,15 +498,6 @@ describe('Game Configuration Details', () => {
     });
   });
 
-  describe('MTG config', () => {
-    it('should have correct MTG config', () => {
-      const config = GAME_CONFIGS.mtg;
-      expect(config.displayName).toBe('Magic: The Gathering');
-      expect(config.apiSource).toBe('scryfall.com');
-      expect(config.isActive).toBe(true);
-    });
-  });
-
   describe('One Piece config', () => {
     it('should have correct One Piece config', () => {
       const config = GAME_CONFIGS.onepiece;
@@ -575,24 +512,6 @@ describe('Game Configuration Details', () => {
       const config = GAME_CONFIGS.lorcana;
       expect(config.displayName).toBe('Disney Lorcana');
       expect(config.apiSource).toBe('lorcast.com');
-      expect(config.isActive).toBe(true);
-    });
-  });
-
-  describe('Digimon config', () => {
-    it('should have correct Digimon config', () => {
-      const config = GAME_CONFIGS.digimon;
-      expect(config.displayName).toBe('Digimon TCG');
-      expect(config.apiSource).toBe('digimoncard.io');
-      expect(config.isActive).toBe(true);
-    });
-  });
-
-  describe('Dragon Ball config', () => {
-    it('should have correct Dragon Ball config', () => {
-      const config = GAME_CONFIGS.dragonball;
-      expect(config.displayName).toBe('Dragon Ball Fusion World');
-      expect(config.apiSource).toBe('apitcg.com');
       expect(config.isActive).toBe(true);
     });
   });

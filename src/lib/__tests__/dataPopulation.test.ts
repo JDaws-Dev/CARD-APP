@@ -65,15 +65,12 @@ import {
 // =============================================================================
 
 describe('Data Population Constants', () => {
-  it('should have all 7 game slugs defined', () => {
-    expect(GAME_SLUGS).toHaveLength(7);
+  it('should have all 4 game slugs defined', () => {
+    expect(GAME_SLUGS).toHaveLength(4);
     expect(GAME_SLUGS).toContain('pokemon');
     expect(GAME_SLUGS).toContain('yugioh');
-    expect(GAME_SLUGS).toContain('mtg');
     expect(GAME_SLUGS).toContain('onepiece');
     expect(GAME_SLUGS).toContain('lorcana');
-    expect(GAME_SLUGS).toContain('digimon');
-    expect(GAME_SLUGS).toContain('dragonball');
   });
 
   it('should have rate limits for all games', () => {
@@ -83,10 +80,11 @@ describe('Data Population Constants', () => {
     }
   });
 
-  it('should have digimon with the longest rate limit due to strict API', () => {
-    expect(RATE_LIMITS.digimon).toBeGreaterThan(RATE_LIMITS.pokemon);
-    expect(RATE_LIMITS.digimon).toBeGreaterThan(RATE_LIMITS.yugioh);
-    expect(RATE_LIMITS.digimon).toBeGreaterThan(RATE_LIMITS.mtg);
+  it('should have yugioh with the shortest rate limit', () => {
+    // Yu-Gi-Oh! API allows faster requests (50ms)
+    expect(RATE_LIMITS.yugioh).toBeLessThan(RATE_LIMITS.pokemon);
+    expect(RATE_LIMITS.yugioh).toBeLessThan(RATE_LIMITS.onepiece);
+    expect(RATE_LIMITS.yugioh).toBeLessThan(RATE_LIMITS.lorcana);
   });
 
   it('should have API configs for all games', () => {
@@ -107,11 +105,8 @@ describe('isValidGameSlug', () => {
   it('should return true for valid game slugs', () => {
     expect(isValidGameSlug('pokemon')).toBe(true);
     expect(isValidGameSlug('yugioh')).toBe(true);
-    expect(isValidGameSlug('mtg')).toBe(true);
     expect(isValidGameSlug('onepiece')).toBe(true);
     expect(isValidGameSlug('lorcana')).toBe(true);
-    expect(isValidGameSlug('digimon')).toBe(true);
-    expect(isValidGameSlug('dragonball')).toBe(true);
   });
 
   it('should return false for invalid game slugs', () => {
@@ -121,6 +116,9 @@ describe('isValidGameSlug', () => {
     expect(isValidGameSlug('magic')).toBe(false);
     expect(isValidGameSlug('yu-gi-oh')).toBe(false);
     expect(isValidGameSlug('invalid')).toBe(false);
+    expect(isValidGameSlug('mtg')).toBe(false);
+    expect(isValidGameSlug('digimon')).toBe(false);
+    expect(isValidGameSlug('dragonball')).toBe(false);
   });
 });
 
@@ -307,7 +305,7 @@ describe('normalizeSet', () => {
   });
 
   it('should handle negative totalCards', () => {
-    const normalized = normalizeSet({ totalCards: -5 }, 'mtg');
+    const normalized = normalizeSet({ totalCards: -5 }, 'onepiece');
     expect(normalized.totalCards).toBe(0);
   });
 });
@@ -370,7 +368,8 @@ describe('getRateLimitDelay', () => {
   it('should return correct delay for each game', () => {
     expect(getRateLimitDelay('pokemon')).toBe(100);
     expect(getRateLimitDelay('yugioh')).toBe(50);
-    expect(getRateLimitDelay('digimon')).toBe(700);
+    expect(getRateLimitDelay('onepiece')).toBe(100);
+    expect(getRateLimitDelay('lorcana')).toBe(100);
   });
 });
 
@@ -378,7 +377,7 @@ describe('getApiBaseUrl', () => {
   it('should return correct base URL for each game', () => {
     expect(getApiBaseUrl('pokemon')).toBe('https://api.pokemontcg.io/v2');
     expect(getApiBaseUrl('yugioh')).toBe('https://db.ygoprodeck.com/api/v7');
-    expect(getApiBaseUrl('mtg')).toBe('https://api.scryfall.com');
+    expect(getApiBaseUrl('lorcana')).toBe('https://api.lorcast.com/v0');
   });
 });
 
@@ -386,7 +385,7 @@ describe('getSetsEndpoint', () => {
   it('should return full sets endpoint URL', () => {
     expect(getSetsEndpoint('pokemon')).toBe('https://api.pokemontcg.io/v2/sets');
     expect(getSetsEndpoint('yugioh')).toBe('https://db.ygoprodeck.com/api/v7/cardsets.php');
-    expect(getSetsEndpoint('mtg')).toBe('https://api.scryfall.com/sets');
+    expect(getSetsEndpoint('lorcana')).toBe('https://api.lorcast.com/v0/sets');
   });
 });
 
@@ -394,11 +393,8 @@ describe('formatGameName', () => {
   it('should return friendly display names', () => {
     expect(formatGameName('pokemon')).toBe('Pokémon TCG');
     expect(formatGameName('yugioh')).toBe('Yu-Gi-Oh!');
-    expect(formatGameName('mtg')).toBe('Magic: The Gathering');
     expect(formatGameName('onepiece')).toBe('One Piece TCG');
     expect(formatGameName('lorcana')).toBe('Disney Lorcana');
-    expect(formatGameName('digimon')).toBe('Digimon TCG');
-    expect(formatGameName('dragonball')).toBe('Dragon Ball Fusion World');
   });
 });
 
@@ -406,14 +402,8 @@ describe('hasPopulationSupport', () => {
   it('should return true for supported games', () => {
     expect(hasPopulationSupport('pokemon')).toBe(true);
     expect(hasPopulationSupport('yugioh')).toBe(true);
-    expect(hasPopulationSupport('mtg')).toBe(true);
+    expect(hasPopulationSupport('onepiece')).toBe(true);
     expect(hasPopulationSupport('lorcana')).toBe(true);
-  });
-
-  it('should return false for unsupported games', () => {
-    expect(hasPopulationSupport('onepiece')).toBe(false);
-    expect(hasPopulationSupport('digimon')).toBe(false);
-    expect(hasPopulationSupport('dragonball')).toBe(false);
   });
 });
 
@@ -422,11 +412,8 @@ describe('getSupportedGames', () => {
     const supported = getSupportedGames();
     expect(supported).toContain('pokemon');
     expect(supported).toContain('yugioh');
-    expect(supported).toContain('mtg');
+    expect(supported).toContain('onepiece');
     expect(supported).toContain('lorcana');
-    expect(supported).not.toContain('onepiece');
-    expect(supported).not.toContain('digimon');
-    expect(supported).not.toContain('dragonball');
   });
 });
 
@@ -444,9 +431,10 @@ describe('estimatePopulationTime', () => {
   });
 
   it('should scale with rate limit', () => {
+    // Yu-Gi-Oh! has a faster rate limit (50ms) than Pokemon (100ms)
     const pokemonEstimate = estimatePopulationTime(10, 100, 'pokemon');
-    const digimonEstimate = estimatePopulationTime(10, 100, 'digimon');
-    expect(digimonEstimate).toBeGreaterThan(pokemonEstimate);
+    const yugiohEstimate = estimatePopulationTime(10, 100, 'yugioh');
+    expect(pokemonEstimate).toBeGreaterThan(yugiohEstimate);
   });
 });
 

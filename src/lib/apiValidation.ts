@@ -9,15 +9,9 @@ import { NextResponse } from 'next/server';
 
 /**
  * Valid game slugs for the TCG API
+ * Note: Only 4 games are currently supported: Pokemon, Yu-Gi-Oh!, One Piece, and Disney Lorcana
  */
-export const VALID_GAMES = [
-  'pokemon',
-  'yugioh',
-  'onepiece',
-  'lorcana',
-  'digimon',
-  'dragonball',
-] as const;
+export const VALID_GAMES = ['pokemon', 'yugioh', 'onepiece', 'lorcana'] as const;
 
 /**
  * Game slug type derived from the valid games array
@@ -44,8 +38,6 @@ export const COMMON_TYPES_BY_GAME: Record<GameSlug, readonly string[]> = {
   yugioh: ['DARK', 'LIGHT', 'EARTH', 'WATER', 'FIRE', 'WIND', 'DIVINE'] as const,
   onepiece: ['Red', 'Green', 'Blue', 'Purple', 'Black', 'Yellow'] as const,
   lorcana: ['Amber', 'Amethyst', 'Emerald', 'Ruby', 'Sapphire', 'Steel'] as const,
-  digimon: ['Red', 'Blue', 'Yellow', 'Green', 'Black', 'Purple', 'White'] as const,
-  dragonball: ['Red', 'Blue', 'Green', 'Yellow'] as const,
 } as const;
 
 /**

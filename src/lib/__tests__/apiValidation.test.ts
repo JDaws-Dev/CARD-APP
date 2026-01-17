@@ -20,18 +20,16 @@ import {
 
 describe('API Validation Middleware', () => {
   describe('VALID_GAMES constant', () => {
-    it('contains exactly 7 valid game slugs', () => {
-      expect(VALID_GAMES).toHaveLength(7);
+    it('contains exactly 4 valid game slugs', () => {
+      // Only 4 games are supported: Pokemon, Yu-Gi-Oh!, One Piece, and Disney Lorcana
+      expect(VALID_GAMES).toHaveLength(4);
     });
 
     it('includes all expected game slugs', () => {
       expect(VALID_GAMES).toContain('pokemon');
       expect(VALID_GAMES).toContain('yugioh');
-      expect(VALID_GAMES).toContain('mtg');
       expect(VALID_GAMES).toContain('onepiece');
       expect(VALID_GAMES).toContain('lorcana');
-      expect(VALID_GAMES).toContain('digimon');
-      expect(VALID_GAMES).toContain('dragonball');
     });
 
     it('is a readonly array', () => {
@@ -66,9 +64,10 @@ describe('API Validation Middleware', () => {
       expect(yugiohTypes).toContain('DIVINE');
     });
 
-    it('has correct MTG colors', () => {
-      const mtgTypes = COMMON_TYPES_BY_GAME.mtg;
-      expect(mtgTypes).toEqual(['W', 'U', 'B', 'R', 'G']);
+    it('has correct One Piece colors', () => {
+      const onepieceTypes = COMMON_TYPES_BY_GAME.onepiece;
+      expect(onepieceTypes).toBeDefined();
+      expect(Array.isArray(onepieceTypes)).toBe(true);
     });
 
     it('has correct Lorcana inks', () => {
@@ -83,11 +82,8 @@ describe('API Validation Middleware', () => {
     it('returns true for valid game slugs', () => {
       expect(isValidGameSlug('pokemon')).toBe(true);
       expect(isValidGameSlug('yugioh')).toBe(true);
-      expect(isValidGameSlug('mtg')).toBe(true);
       expect(isValidGameSlug('onepiece')).toBe(true);
       expect(isValidGameSlug('lorcana')).toBe(true);
-      expect(isValidGameSlug('digimon')).toBe(true);
-      expect(isValidGameSlug('dragonball')).toBe(true);
     });
 
     it('returns false for invalid game slugs', () => {
@@ -97,6 +93,10 @@ describe('API Validation Middleware', () => {
       expect(isValidGameSlug('')).toBe(false);
       expect(isValidGameSlug('magic')).toBe(false);
       expect(isValidGameSlug('yu-gi-oh')).toBe(false);
+      // Unsupported games should return false
+      expect(isValidGameSlug('mtg')).toBe(false);
+      expect(isValidGameSlug('digimon')).toBe(false);
+      expect(isValidGameSlug('dragonball')).toBe(false);
     });
 
     it('acts as a type guard', () => {
@@ -125,7 +125,7 @@ describe('API Validation Middleware', () => {
     it('returned array can be modified without affecting original', () => {
       const games = getValidGames();
       games.push('test' as GameSlug);
-      expect(VALID_GAMES).toHaveLength(7);
+      expect(VALID_GAMES).toHaveLength(4);
     });
   });
 
