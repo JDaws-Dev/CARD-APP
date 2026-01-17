@@ -21,6 +21,7 @@ import {
   CameraIcon,
 } from '@heroicons/react/24/outline';
 import { ScannerButton } from '@/components/ai/ScannerButton';
+import { ChatButton } from '@/components/ai/ChatButton';
 import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
 import { TrophyRoomSkeleton } from '@/components/virtual/VirtualTrophyRoom';
@@ -237,6 +238,9 @@ export default function MyCollectionPage() {
           </div>
         </div>
       </div>
+
+      {/* Floating Chat Button */}
+      <ChatButton gameSlug="pokemon" />
     </main>
   );
 }

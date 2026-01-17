@@ -8,6 +8,7 @@ import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { KidDashboardSkeleton } from '@/components/dashboard/KidDashboard';
+import { ChatButton } from '@/components/ai/ChatButton';
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
@@ -65,6 +66,9 @@ export default function DashboardPage() {
         {/* Dashboard */}
         <KidDashboard />
       </div>
+
+      {/* Floating Chat Button */}
+      <ChatButton gameSlug="pokemon" />
     </main>
   );
 }
