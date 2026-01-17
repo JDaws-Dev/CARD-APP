@@ -10,7 +10,31 @@
 // TYPES
 // ============================================================================
 
-export type ActivityAction = 'card_added' | 'card_removed' | 'achievement_earned';
+export type ActivityAction =
+  | 'card_added'
+  | 'card_removed'
+  | 'achievement_earned'
+  | 'trade_completed'
+  | 'trade_logged';
+
+// Trade card entry structure (used in trade_logged metadata)
+export interface TradeCardEntry {
+  cardId: string;
+  cardName: string;
+  quantity: number;
+  variant: string;
+  setName?: string;
+}
+
+// Metadata structure for trade_logged events
+export interface TradeLoggedMetadata {
+  cardsGiven: TradeCardEntry[];
+  cardsReceived: TradeCardEntry[];
+  tradingPartner?: string | null;
+  totalCardsGiven: number;
+  totalCardsReceived: number;
+  tradeSummary?: string; // Pre-formatted summary from backend
+}
 
 export interface ActivityLog {
   profileId: string;
@@ -244,10 +268,14 @@ export function countActionsByType(logs: ActivityLog[]): Record<ActivityAction, 
     card_added: 0,
     card_removed: 0,
     achievement_earned: 0,
+    trade_completed: 0,
+    trade_logged: 0,
   };
 
   for (const log of logs) {
-    counts[log.action]++;
+    if (log.action in counts) {
+      counts[log.action]++;
+    }
   }
 
   return counts;
@@ -386,9 +414,90 @@ export function formatActivityLogForDisplay(log: ActivityLog): string {
       const achievementKey = metadata?.achievementKey as string | undefined;
       return `${action}: ${achievementKey ?? 'Unknown achievement'}`;
     }
+    case 'trade_logged': {
+      // Use pre-formatted tradeSummary from backend if available
+      const tradeSummary = metadata?.tradeSummary as string | undefined;
+      if (tradeSummary) {
+        return tradeSummary;
+      }
+      // Fallback: build summary from metadata
+      return formatTradeLoggedForDisplay(metadata as TradeLoggedMetadata | undefined);
+    }
+    case 'trade_completed': {
+      return `${action}`;
+    }
     default:
       return action;
   }
+}
+
+/**
+ * Format a trade_logged event for display.
+ * Creates a human-readable summary of the trade.
+ */
+export function formatTradeLoggedForDisplay(metadata: TradeLoggedMetadata | undefined): string {
+  if (!metadata) {
+    return 'Logged trade';
+  }
+
+  const cardsGiven = metadata.cardsGiven ?? [];
+  const cardsReceived = metadata.cardsReceived ?? [];
+
+  // Build given summary
+  const givenSummary =
+    cardsGiven.length > 0
+      ? cardsGiven
+          .map((c) => (c.quantity > 1 ? `${c.quantity}x ${c.cardName}` : c.cardName))
+          .join(', ')
+      : null;
+
+  // Build received summary
+  const receivedSummary =
+    cardsReceived.length > 0
+      ? cardsReceived
+          .map((c) => (c.quantity > 1 ? `${c.quantity}x ${c.cardName}` : c.cardName))
+          .join(', ')
+      : null;
+
+  // Build formatted summary based on trade direction
+  let tradeSummary = '';
+  if (givenSummary && receivedSummary) {
+    tradeSummary = `Traded ${givenSummary} for ${receivedSummary}`;
+  } else if (givenSummary) {
+    tradeSummary = `Gave away ${givenSummary}`;
+  } else if (receivedSummary) {
+    tradeSummary = `Received ${receivedSummary}`;
+  } else {
+    return 'Logged trade';
+  }
+
+  if (metadata.tradingPartner) {
+    tradeSummary += ` with ${metadata.tradingPartner}`;
+  }
+
+  return tradeSummary;
+}
+
+/**
+ * Get trade summary from trade_logged metadata.
+ * Returns the tradeSummary or builds one from the cards.
+ */
+export function getTradeSummaryFromMetadata(
+  metadata: Record<string, unknown> | undefined
+): string | null {
+  if (!metadata) return null;
+
+  // Check for pre-formatted summary
+  const tradeSummary = metadata.tradeSummary as string | undefined;
+  if (tradeSummary) return tradeSummary;
+
+  // Build summary from cards
+  const tradeMetadata = metadata as TradeLoggedMetadata;
+  if (!tradeMetadata.cardsGiven && !tradeMetadata.cardsReceived) {
+    return null;
+  }
+
+  return formatTradeLoggedForDisplay(tradeMetadata);
 }
 
 // ============================================================================
@@ -406,6 +515,10 @@ export function formatActionForDisplay(action: ActivityAction): string {
       return 'Removed card';
     case 'achievement_earned':
       return 'Earned achievement';
+    case 'trade_completed':
+      return 'Completed trade';
+    case 'trade_logged':
+      return 'Logged trade';
     default:
       return 'Unknown action';
   }

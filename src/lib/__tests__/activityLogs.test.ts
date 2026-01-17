@@ -20,6 +20,8 @@ import {
   buildCardDisplayLabel,
   formatVariantForDisplay,
   formatActivityLogForDisplay,
+  formatTradeLoggedForDisplay,
+  getTradeSummaryFromMetadata,
   // Pagination utilities
   DEFAULT_PAGE_SIZE,
   MAX_PAGE_SIZE,
@@ -36,6 +38,7 @@ import {
   mergePaginatedResults,
   type ActivityLog,
   type PaginatedResult,
+  type TradeLoggedMetadata,
 } from '../activityLogs';
 
 // ============================================================================
@@ -417,6 +420,8 @@ describe('countActionsByType', () => {
       card_added: 0,
       card_removed: 0,
       achievement_earned: 0,
+      trade_completed: 0,
+      trade_logged: 0,
     });
   });
 
@@ -434,6 +439,8 @@ describe('countActionsByType', () => {
       card_added: 3,
       card_removed: 1,
       achievement_earned: 2,
+      trade_completed: 0,
+      trade_logged: 0,
     });
   });
 });
@@ -1139,5 +1146,201 @@ describe('Pagination Integration', () => {
     const result = buildPaginatedResult(logs, 3000, 10);
     expect(result.logs.length).toBe(0);
     expect(result.hasMore).toBe(false);
+  });
+});
+
+// ============================================================================
+// TRADE LOGGED FORMATTING TESTS (TRADE-004)
+// ============================================================================
+
+describe('formatActionForDisplay - trade actions', () => {
+  it('should format trade_logged action', () => {
+    expect(formatActionForDisplay('trade_logged')).toBe('Logged trade');
+  });
+
+  it('should format trade_completed action', () => {
+    expect(formatActionForDisplay('trade_completed')).toBe('Completed trade');
+  });
+});
+
+describe('countActionsByType - trade actions', () => {
+  it('should count trade_logged and trade_completed actions', () => {
+    const logs: ActivityLog[] = [
+      { profileId: 'p1', action: 'card_added', _creationTime: 1000 },
+      { profileId: 'p1', action: 'trade_logged', _creationTime: 2000 },
+      { profileId: 'p1', action: 'trade_logged', _creationTime: 3000 },
+      { profileId: 'p1', action: 'trade_completed', _creationTime: 4000 },
+    ];
+
+    const counts = countActionsByType(logs);
+    expect(counts.card_added).toBe(1);
+    expect(counts.trade_logged).toBe(2);
+    expect(counts.trade_completed).toBe(1);
+  });
+});
+
+describe('formatTradeLoggedForDisplay', () => {
+  it('should return default text for undefined metadata', () => {
+    expect(formatTradeLoggedForDisplay(undefined)).toBe('Logged trade');
+  });
+
+  it('should return default text for empty metadata', () => {
+    const metadata: TradeLoggedMetadata = {
+      cardsGiven: [],
+      cardsReceived: [],
+      totalCardsGiven: 0,
+      totalCardsReceived: 0,
+    };
+    expect(formatTradeLoggedForDisplay(metadata)).toBe('Logged trade');
+  });
+
+  it('should format trade with cards given and received', () => {
+    const metadata: TradeLoggedMetadata = {
+      cardsGiven: [{ cardId: 'card1', cardName: 'Pikachu', quantity: 1, variant: 'normal' }],
+      cardsReceived: [{ cardId: 'card2', cardName: 'Charizard', quantity: 1, variant: 'holofoil' }],
+      totalCardsGiven: 1,
+      totalCardsReceived: 1,
+    };
+    expect(formatTradeLoggedForDisplay(metadata)).toBe('Traded Pikachu for Charizard');
+  });
+
+  it('should format trade with multiple cards given and received', () => {
+    const metadata: TradeLoggedMetadata = {
+      cardsGiven: [
+        { cardId: 'card1', cardName: 'Pikachu', quantity: 2, variant: 'normal' },
+        { cardId: 'card2', cardName: 'Bulbasaur', quantity: 1, variant: 'normal' },
+      ],
+      cardsReceived: [{ cardId: 'card3', cardName: 'Charizard', quantity: 1, variant: 'holofoil' }],
+      totalCardsGiven: 3,
+      totalCardsReceived: 1,
+    };
+    expect(formatTradeLoggedForDisplay(metadata)).toBe(
+      'Traded 2x Pikachu, Bulbasaur for Charizard'
+    );
+  });
+
+  it('should format trade with only cards given', () => {
+    const metadata: TradeLoggedMetadata = {
+      cardsGiven: [{ cardId: 'card1', cardName: 'Pikachu', quantity: 1, variant: 'normal' }],
+      cardsReceived: [],
+      totalCardsGiven: 1,
+      totalCardsReceived: 0,
+    };
+    expect(formatTradeLoggedForDisplay(metadata)).toBe('Gave away Pikachu');
+  });
+
+  it('should format trade with only cards received', () => {
+    const metadata: TradeLoggedMetadata = {
+      cardsGiven: [],
+      cardsReceived: [{ cardId: 'card1', cardName: 'Mewtwo', quantity: 1, variant: 'holofoil' }],
+      totalCardsGiven: 0,
+      totalCardsReceived: 1,
+    };
+    expect(formatTradeLoggedForDisplay(metadata)).toBe('Received Mewtwo');
+  });
+
+  it('should include trading partner if specified', () => {
+    const metadata: TradeLoggedMetadata = {
+      cardsGiven: [{ cardId: 'card1', cardName: 'Pikachu', quantity: 1, variant: 'normal' }],
+      cardsReceived: [{ cardId: 'card2', cardName: 'Charizard', quantity: 1, variant: 'holofoil' }],
+      tradingPartner: 'my brother',
+      totalCardsGiven: 1,
+      totalCardsReceived: 1,
+    };
+    expect(formatTradeLoggedForDisplay(metadata)).toBe(
+      'Traded Pikachu for Charizard with my brother'
+    );
+  });
+
+  it('should format quantities greater than 1', () => {
+    const metadata: TradeLoggedMetadata = {
+      cardsGiven: [{ cardId: 'card1', cardName: 'Pikachu', quantity: 3, variant: 'normal' }],
+      cardsReceived: [{ cardId: 'card2', cardName: 'Charizard', quantity: 2, variant: 'holofoil' }],
+      totalCardsGiven: 3,
+      totalCardsReceived: 2,
+    };
+    expect(formatTradeLoggedForDisplay(metadata)).toBe('Traded 3x Pikachu for 2x Charizard');
+  });
+});
+
+describe('getTradeSummaryFromMetadata', () => {
+  it('should return null for undefined metadata', () => {
+    expect(getTradeSummaryFromMetadata(undefined)).toBeNull();
+  });
+
+  it('should return pre-formatted tradeSummary if present', () => {
+    const metadata = {
+      tradeSummary: 'Custom trade summary',
+      cardsGiven: [],
+      cardsReceived: [],
+    };
+    expect(getTradeSummaryFromMetadata(metadata)).toBe('Custom trade summary');
+  });
+
+  it('should return null for metadata without trade data', () => {
+    const metadata = { cardName: 'Pikachu' };
+    expect(getTradeSummaryFromMetadata(metadata)).toBeNull();
+  });
+
+  it('should build summary from cards if tradeSummary is missing', () => {
+    const metadata: TradeLoggedMetadata = {
+      cardsGiven: [{ cardId: 'card1', cardName: 'Pikachu', quantity: 1, variant: 'normal' }],
+      cardsReceived: [{ cardId: 'card2', cardName: 'Charizard', quantity: 1, variant: 'holofoil' }],
+      totalCardsGiven: 1,
+      totalCardsReceived: 1,
+    };
+    expect(getTradeSummaryFromMetadata(metadata as unknown as Record<string, unknown>)).toBe(
+      'Traded Pikachu for Charizard'
+    );
+  });
+});
+
+describe('formatActivityLogForDisplay - trade_logged action', () => {
+  const createTradeLog = (metadata?: TradeLoggedMetadata): ActivityLog => ({
+    profileId: 'profile1',
+    action: 'trade_logged',
+    metadata: metadata as unknown as Record<string, unknown>,
+    _creationTime: Date.now(),
+  });
+
+  it('should use tradeSummary from metadata if present', () => {
+    const log = createTradeLog({
+      cardsGiven: [{ cardId: 'c1', cardName: 'Pikachu', quantity: 1, variant: 'normal' }],
+      cardsReceived: [{ cardId: 'c2', cardName: 'Charizard', quantity: 1, variant: 'holofoil' }],
+      tradeSummary: 'Traded Pikachu for Charizard with my friend',
+      totalCardsGiven: 1,
+      totalCardsReceived: 1,
+    });
+    expect(formatActivityLogForDisplay(log)).toBe('Traded Pikachu for Charizard with my friend');
+  });
+
+  it('should build summary from cards if tradeSummary is missing', () => {
+    const log = createTradeLog({
+      cardsGiven: [{ cardId: 'c1', cardName: 'Pikachu', quantity: 1, variant: 'normal' }],
+      cardsReceived: [{ cardId: 'c2', cardName: 'Charizard', quantity: 1, variant: 'holofoil' }],
+      totalCardsGiven: 1,
+      totalCardsReceived: 1,
+    });
+    expect(formatActivityLogForDisplay(log)).toBe('Traded Pikachu for Charizard');
+  });
+
+  it('should handle trade_logged with undefined metadata', () => {
+    const log: ActivityLog = {
+      profileId: 'profile1',
+      action: 'trade_logged',
+      _creationTime: Date.now(),
+    };
+    expect(formatActivityLogForDisplay(log)).toBe('Logged trade');
+  });
+});
+
+describe('formatActivityLogForDisplay - trade_completed action', () => {
+  it('should format trade_completed action', () => {
+    const log: ActivityLog = {
+      profileId: 'profile1',
+      action: 'trade_completed',
+      _creationTime: Date.now(),
+    };
+    expect(formatActivityLogForDisplay(log)).toBe('Completed trade');
   });
 });

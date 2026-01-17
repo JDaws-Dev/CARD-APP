@@ -1,12 +1,116 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 
-// Action type for consistent typing
+// Action type for consistent typing (matches schema.ts activityLogs.action)
 const actionType = v.union(
   v.literal('card_added'),
   v.literal('card_removed'),
-  v.literal('achievement_earned')
+  v.literal('achievement_earned'),
+  v.literal('trade_completed'),
+  v.literal('trade_logged')
 );
+
+// Type for trade card entries in trade_logged metadata
+interface TradeCardEntry {
+  cardId: string;
+  cardName: string;
+  quantity: number;
+  variant: string;
+  setName?: string;
+}
+
+// Type for trade_logged metadata
+interface TradeLoggedMetadata {
+  cardsGiven: TradeCardEntry[];
+  cardsReceived: TradeCardEntry[];
+  tradingPartner?: string | null;
+  totalCardsGiven: number;
+  totalCardsReceived: number;
+}
+
+// Type for enriched trade_logged metadata with summary
+interface EnrichedTradeLoggedMetadata extends TradeLoggedMetadata {
+  tradeSummary: string;
+}
+
+/**
+ * Helper function to enrich a trade_logged event with card names and create a summary.
+ * Used by all activity queries that need to display trade events.
+ */
+function enrichTradeLogMetadata(
+  metadata: TradeLoggedMetadata | undefined,
+  cardNameMap: Map<string, string>
+): EnrichedTradeLoggedMetadata | undefined {
+  if (!metadata) return undefined;
+
+  const enrichedCardsGiven = (metadata.cardsGiven ?? []).map((card) => ({
+    ...card,
+    cardName: card.cardName || cardNameMap.get(card.cardId) || card.cardId,
+  }));
+  const enrichedCardsReceived = (metadata.cardsReceived ?? []).map((card) => ({
+    ...card,
+    cardName: card.cardName || cardNameMap.get(card.cardId) || card.cardId,
+  }));
+
+  // Create a human-readable summary for timeline display
+  const givenSummary =
+    enrichedCardsGiven.length > 0
+      ? enrichedCardsGiven
+          .map((c) => (c.quantity > 1 ? `${c.quantity}x ${c.cardName}` : c.cardName))
+          .join(', ')
+      : null;
+  const receivedSummary =
+    enrichedCardsReceived.length > 0
+      ? enrichedCardsReceived
+          .map((c) => (c.quantity > 1 ? `${c.quantity}x ${c.cardName}` : c.cardName))
+          .join(', ')
+      : null;
+
+  // Build formatted summary based on trade direction
+  let tradeSummary = '';
+  if (givenSummary && receivedSummary) {
+    tradeSummary = `Traded ${givenSummary} for ${receivedSummary}`;
+  } else if (givenSummary) {
+    tradeSummary = `Gave away ${givenSummary}`;
+  } else if (receivedSummary) {
+    tradeSummary = `Received ${receivedSummary}`;
+  }
+
+  if (metadata.tradingPartner) {
+    tradeSummary += ` with ${metadata.tradingPartner}`;
+  }
+
+  return {
+    ...metadata,
+    cardsGiven: enrichedCardsGiven,
+    cardsReceived: enrichedCardsReceived,
+    tradeSummary,
+    totalCardsGiven:
+      metadata.totalCardsGiven ?? enrichedCardsGiven.reduce((sum, c) => sum + c.quantity, 0),
+    totalCardsReceived:
+      metadata.totalCardsReceived ?? enrichedCardsReceived.reduce((sum, c) => sum + c.quantity, 0),
+  };
+}
+
+/**
+ * Helper to collect card IDs from trade logs that need name lookup.
+ */
+function collectTradeCardIds(
+  metadata: TradeLoggedMetadata | undefined,
+  cardIdsToLookup: Set<string>
+): void {
+  if (!metadata) return;
+  for (const card of metadata.cardsGiven ?? []) {
+    if (card.cardId && !card.cardName) {
+      cardIdsToLookup.add(card.cardId);
+    }
+  }
+  for (const card of metadata.cardsReceived ?? []) {
+    if (card.cardId && !card.cardName) {
+      cardIdsToLookup.add(card.cardId);
+    }
+  }
+}
 
 // ============================================================================
 // QUERIES
@@ -38,6 +142,12 @@ export const getRecentActivity = query({
  * Get recent activity logs with card names enriched from cachedCards.
  * This ensures that even legacy logs without cardName in metadata
  * will display proper card names instead of IDs.
+ *
+ * Handles all action types including:
+ * - card_added/card_removed: Single card operations with cardId/cardName
+ * - trade_logged: Trade events with cardsGiven/cardsReceived arrays
+ * - achievement_earned: Achievement events with achievementKey
+ * - trade_completed: Legacy trade completion events
  */
 export const getRecentActivityWithNames = query({
   args: {
@@ -62,6 +172,9 @@ export const getRecentActivityWithNames = query({
         if (metadata?.cardId && !metadata?.cardName) {
           cardIdsToLookup.add(metadata.cardId);
         }
+      } else if (log.action === 'trade_logged') {
+        // For trade_logged events, check if any cards are missing names
+        collectTradeCardIds(log.metadata as TradeLoggedMetadata | undefined, cardIdsToLookup);
       }
     }
 
@@ -99,6 +212,18 @@ export const getRecentActivityWithNames = query({
               ...metadata,
               cardName,
             },
+          };
+        }
+      } else if (log.action === 'trade_logged') {
+        // Enrich trade_logged events with card names and formatted summary
+        const enrichedMetadata = enrichTradeLogMetadata(
+          log.metadata as TradeLoggedMetadata | undefined,
+          cardNameMap
+        );
+        if (enrichedMetadata) {
+          return {
+            ...log,
+            metadata: enrichedMetadata,
           };
         }
       }
@@ -207,6 +332,8 @@ export const getFamilyActivityWithNames = query({
         if (metadata?.cardId && !metadata?.cardName) {
           cardIdsToLookup.add(metadata.cardId);
         }
+      } else if (log.action === 'trade_logged') {
+        collectTradeCardIds(log.metadata as TradeLoggedMetadata | undefined, cardIdsToLookup);
       }
     }
 
@@ -244,6 +371,14 @@ export const getFamilyActivityWithNames = query({
             ...metadata,
             cardName,
           };
+        }
+      } else if (log.action === 'trade_logged') {
+        const tradeMetadata = enrichTradeLogMetadata(
+          log.metadata as TradeLoggedMetadata | undefined,
+          cardNameMap
+        );
+        if (tradeMetadata) {
+          enrichedMetadata = tradeMetadata;
         }
       }
 
@@ -565,6 +700,8 @@ export const getRecentActivityWithNamesPaginated = query({
         if (metadata?.cardId && !metadata?.cardName) {
           cardIdsToLookup.add(metadata.cardId);
         }
+      } else if (log.action === 'trade_logged') {
+        collectTradeCardIds(log.metadata as TradeLoggedMetadata | undefined, cardIdsToLookup);
       }
     }
 
@@ -601,6 +738,17 @@ export const getRecentActivityWithNamesPaginated = query({
               ...metadata,
               cardName,
             },
+          };
+        }
+      } else if (log.action === 'trade_logged') {
+        const enrichedMetadata = enrichTradeLogMetadata(
+          log.metadata as TradeLoggedMetadata | undefined,
+          cardNameMap
+        );
+        if (enrichedMetadata) {
+          return {
+            ...log,
+            metadata: enrichedMetadata,
           };
         }
       }
@@ -665,6 +813,8 @@ export const getFamilyActivityPaginated = query({
         if (metadata?.cardId && !metadata?.cardName) {
           cardIdsToLookup.add(metadata.cardId);
         }
+      } else if (log.action === 'trade_logged') {
+        collectTradeCardIds(log.metadata as TradeLoggedMetadata | undefined, cardIdsToLookup);
       }
     }
 
@@ -702,6 +852,14 @@ export const getFamilyActivityPaginated = query({
             ...metadata,
             cardName,
           };
+        }
+      } else if (log.action === 'trade_logged') {
+        const tradeMetadata = enrichTradeLogMetadata(
+          log.metadata as TradeLoggedMetadata | undefined,
+          cardNameMap
+        );
+        if (tradeMetadata) {
+          enrichedMetadata = tradeMetadata;
         }
       }
 
