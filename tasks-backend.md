@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: █████████████████████████░░░░  99/117 (85%)
-Remaining: 18 tasks
+Progress: █████████████████████████░░░░  100/117 (85%)
+Remaining: 17 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -27,10 +27,10 @@ Remaining: 18 tasks
 | Gamification Backend                | 3        | 0         |
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
-| **AI-Powered Features**             | 17       | **4**     |
+| **AI-Powered Features**             | 18       | **3**     |
 | Launch Prep                         | 4        | **5**     |
 | **Kid-Friendly Set Filtering**      | **7**    | **0**     |
-| **TOTAL**                           | **99**   | **18**    |
+| **TOTAL**                           | **100**  | **17**    |
 
 ### Critical Path for Launch
 
@@ -242,7 +242,7 @@ Backend actions and queries for AI features. Requires `OPENAI_API_KEY` environme
 #### Phase 6: Advanced AI Features (P2)
 
 - [x] AI-032: Create `convex/ai/recommendations.ts` - Smart card recommendations based on collection patterns
-- [ ] AI-033: Create `convex/ai/tradeAdvisor.ts` - Fair trade suggestions between siblings using collection data
+- [x] AI-033: Create `convex/ai/tradeAdvisor.ts` - Fair trade suggestions between siblings using collection data
 - [ ] AI-034: Create `convex/ai/shoppingAssistant.ts` - Parent gift helper analyzing wishlist, set completion, budget
 - [ ] AI-035: Create `convex/ai/conditionGrader.ts` - Card condition tutoring with GPT-4o Vision explaining grades
 
@@ -3044,3 +3044,36 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - Type-based recommendation tests (2)
   - Fallback recommendation tests (2)
 - All 40 tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Add AI-powered trade advisor for sibling trading (AI-033)
+
+- **Created `convex/ai/tradeAdvisor.ts`:**
+  - `getTradeSuggestions` action: AI-powered fair trade suggestions between siblings
+  - `hasTradeOpportunities` action: Quick check if two profiles have potential trades
+  - `getRemainingTradeAdvice` action: Check daily rate limit status
+  - Game-specific prompts for all 7 TCGs (Pokemon, Yu-Gi-Oh!, MTG, One Piece, Lorcana, Digimon, Dragon Ball)
+  - 4 trade types: duplicate_swap, wishlist_match, set_completion, type_match
+  - 4 fairness ratings: very_fair, fair, slightly_uneven, uneven
+  - Analyzes both profiles' collections, duplicates, wishlists, and favorite types
+  - Fallback rule-based suggestions when OpenAI API fails
+  - Rate limited to 10 suggestions per day per profile
+- **Created `convex/ai/tradeAdvisorHelpers.ts`:**
+  - `verifyFamilyProfiles` internal query: Ensures both profiles are in same family
+  - `analyzeTradeOpportunities` internal query: Finds duplicates, wishlist matches, favorite types
+  - `logTradeAdvisorUsage` internal mutation: Tracks usage and rate limits
+  - Builds sorted list of tradeable cards prioritizing wishlist matches then price
+  - Note: Separated from tradeAdvisor.ts because internal mutations cannot be in 'use node' files
+- **Created 50 tests in `src/lib/__tests__/tradeAdvisor.test.ts`:**
+  - GameSlug validation tests (5)
+  - FairnessRating validation tests (4)
+  - TradeType validation tests (4)
+  - TradeCard validation tests (7)
+  - TradeSuggestion validation tests (4)
+  - Fairness calculation tests (7)
+  - Trade value calculation tests (8)
+  - Trade type label tests (1)
+  - Result validation tests (4)
+  - Multi-TCG support tests (3)
+  - Rate limiting tests (2)
+  - Family verification tests (2)
+- All 50 tests pass, ESLint clean, Prettier formatted
