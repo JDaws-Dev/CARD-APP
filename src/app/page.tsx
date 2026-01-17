@@ -739,6 +739,14 @@ export default function Home() {
                   <span className="text-gray-700">Shareable wishlist</span>
                 </li>
                 <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/10">
+                    <SparklesIcon className="h-4 w-4 text-violet-500" />
+                  </div>
+                  <span className="text-gray-700">
+                    <strong>AI Magic:</strong> Snap to Add, Card Stories
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100">
                     <XMarkIcon className="h-4 w-4 text-gray-400" />
                   </div>
@@ -812,6 +820,14 @@ export default function Home() {
                     <CheckIcon className="h-4 w-4 text-kid-secondary" />
                   </div>
                   <span className="text-gray-700">Shareable wishlist per profile</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/10">
+                    <SparklesIcon className="h-4 w-4 text-violet-500" />
+                  </div>
+                  <span className="text-gray-700">
+                    <strong>AI Magic:</strong> Snap to Add, Ask Your Collection, Card Stories
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-secondary/10">

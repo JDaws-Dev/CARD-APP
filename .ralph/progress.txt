@@ -92,3 +92,9 @@
 **Files:** src/app/page.tsx
 **Commit:** (pending)
 ---
+## CD-c53 - Landing Page - AI features in pricing tiers
+**Status:** Completed
+**Changes:** Added AI Magic feature listings to both Free and Family pricing tiers. Free tier shows Snap to Add and Card Stories; Family tier shows all three AI features (Snap to Add, Ask Your Collection, Card Stories).
+**Files:** src/app/page.tsx
+**Commit:** (pending)
+---
