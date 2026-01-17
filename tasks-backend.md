@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: ██████████████████████░░░░░░  73/89 (82%)
-Remaining: 16 tasks
+Progress: ██████████████████████░░░░░░  75/89 (84%)
+Remaining: 14 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -15,7 +15,7 @@ Remaining: 16 tasks
 | ----------------------------------- | -------- | --------- |
 | **CRITICAL - Multi-TCG API**        | 4        | **1**     |
 | **CRITICAL - Auth Fixes**           | 5        | **0**     |
-| **HIGH - Performance Optimization** | 6        | **1**     |
+| **HIGH - Performance Optimization** | 7        | **0**     |
 | HIGH PRIORITY - Auth & Pricing      | 9        | **1**     |
 | Card Variants                       | 3        | 0         |
 | Achievement System                  | 6        | 0         |
@@ -28,7 +28,7 @@ Remaining: 16 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | Launch Prep                         | 4        | **5**     |
-| **TOTAL**                           | **73**   | **16**    |
+| **TOTAL**                           | **75**   | **14**    |
 
 ### Critical Path for Launch
 
@@ -76,7 +76,7 @@ These API routes are currently hardcoded to Pokemon and must be updated to suppo
 
 - [x] Fix parent dashboard to use authenticated user - Remove `getOrCreateDemoProfile()` call in `src/app/parent-dashboard/page.tsx:23`, use `getCurrentUserProfile()` from `convex/profiles.ts` instead
 - [x] Add role-based access control to parent dashboard - Check `hasParentAccess()` before allowing access to `/parent-dashboard`
-- [ ] Add proper profile validation - Ensure users can only access their own profiles and family data
+- [x] Add proper profile validation - Ensure users can only access their own profiles and family data
 - [x] Create /signup route - Either create dedicated page or redirect to /login?mode=signup (DONE - signup page exists)
 
 ### NEW - Code Review Backend Fixes (January 17, 2026)
@@ -95,7 +95,7 @@ My Collection page is slow due to redundant/inefficient Convex queries. These ba
 - [x] Add composite index to activityLogs - Create index `by_profile_action_time` for (profileId, action, \_creationTime) in schema
 - [x] Optimize wishlist queries - Add index for profile+game queries if missing
 - [x] Add pagination to activity feed queries - Use `.take()` with cursor for large activity histories instead of `.collect()`
-- [ ] Profile query batching - Consolidate multiple profile lookups into batch queries where used
+- [x] Profile query batching - Consolidate multiple profile lookups into batch queries where used
 
 ### HIGH PRIORITY - Authentication & Pricing
 
@@ -2546,3 +2546,88 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
 - [ ] Update One Piece API adapter - Only fetch OP-10 through latest
 - [ ] Update Digimon API adapter - Only fetch sets from 2024 onwards
 - [ ] Add `maxAgeMonths` parameter to all `populateGameSets` actions
+
+### 2026-01-17: Add proper profile validation for secure ownership checks
+
+- **Added comprehensive profile and family access validation to `convex/profiles.ts`:**
+  - `validateProfileOwnership()` helper - verifies user owns profile via family email
+  - `validateFamilyOwnership()` helper - verifies user owns family via email
+  - Exported `ProfileAccessResult` and `FamilyAccessResult` types
+- **Added 6 secure queries with ownership validation:**
+  - `getProfileSecure` - returns profile only if user owns it
+  - `getProfilesByFamilySecure` - returns profiles only for owned family
+  - `getFamilySecure` - returns family only if user owns it
+  - `getKidDashboardStatsSecure` - returns stats only for owned profile
+  - `validateProfileAccess` - lightweight permission check
+  - `validateFamilyAccess` - lightweight permission check
+- **Added 3 secure mutations with ownership validation:**
+  - `updateProfileSecure` - updates only owned profiles with full validation
+  - `deleteProfileSecure` - deletes only owned profiles with cascade delete
+  - `createProfileSecure` - creates profiles only in owned families
+- **Added client-side utilities to `src/lib/profiles.ts`:**
+  - `ProfileAccessErrorReason`, `FamilyAccessErrorReason` types
+  - `SecureProfileResult`, `SecureFamilyResult`, `SecureProfilesListResult` types
+  - `isNotAuthenticated()`, `isUnauthorizedAccess()` helpers
+  - `isProfileNotFound()`, `isFamilyNotFound()` helpers
+  - `getProfileAccessErrorMessage()`, `getFamilyAccessErrorMessage()` helpers
+  - `getProfileAccessAction()` for routing decisions
+  - `isSecureMutationSuccess()`, `getSecureMutationErrors()` helpers
+  - `isSecureMutationAuthError()`, `isSecureMutationOwnershipError()` helpers
+- **Added 77 new tests to `src/lib/__tests__/profiles.test.ts`:**
+  - isNotAuthenticated tests (4)
+  - isUnauthorizedAccess tests (6)
+  - isProfileNotFound, isFamilyNotFound tests (6)
+  - getProfileAccessErrorMessage tests (6)
+  - getFamilyAccessErrorMessage tests (5)
+  - getProfileAccessAction tests (6)
+  - isSecureMutationSuccess tests (5)
+  - getSecureMutationErrors, getSecureMutationErrorMessages tests (6)
+  - isSecureMutationAuthError, isSecureMutationOwnershipError tests (8)
+  - Integration flow tests (7)
+- All 185 profile tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Add profile query batching for efficient multi-profile lookups
+
+- **Added `getProfilesByIds` batch query to `convex/profiles.ts`:**
+  - Fetches multiple profiles in parallel using `Promise.all`
+  - Returns map structure for O(1) lookups by profile ID
+  - Includes stats: requested, unique, found, missing, truncated
+  - Limits batch size to 100 to prevent memory issues
+  - Deduplicates profile IDs automatically
+- **Optimized `getParentDashboardData` activity enrichment:**
+  - Replace O(n) `find()` lookups with O(1) `Map` lookups
+  - Build profile lookup map once, use for all 20 activity items
+  - Reduces algorithmic complexity from O(n*m) to O(n+m)
+- **Optimized `validateFamilyOwnership` validation function:**
+  - Batch user and family lookups in parallel with `Promise.all`
+  - Reduces 2 sequential database round-trips to 1 parallel call
+- **Optimized `validateProfileOwnership` validation function:**
+  - Batch user and profile lookups in parallel with `Promise.all`
+  - Family lookup remains sequential (depends on profile.familyId)
+  - Reduces 3 sequential lookups to 2 parallel + 1 sequential
+- **Added client-side profile batch utilities to `src/lib/profiles.ts`:**
+  - `MAX_PROFILE_BATCH_SIZE` constant (100)
+  - `BatchProfileResult` type for query results
+  - `buildProfileLookupMapFromResult()` - convert query result to Map
+  - `buildProfileLookupMap()` - convert profile array to Map
+  - `getProfileName()` - O(1) name lookup with 'Unknown' fallback
+  - `getProfileFromMap()` - O(1) profile lookup
+  - `extractUniqueProfileIds()` - deduplicate profile IDs from items
+  - `hasMissingProfiles()` - check if any profiles missing
+  - `wasBatchTruncated()` - check if batch was size-limited
+  - `enrichWithProfileNames()` - add profileName field to items
+  - `chunkProfileIds()` - split large arrays into batches
+  - `mergeBatchResults()` - combine multiple batch results
+- **Added 32 new tests to `src/lib/__tests__/profiles.test.ts`:**
+  - Profile Batch Constants tests (1)
+  - buildProfileLookupMapFromResult tests (3)
+  - buildProfileLookupMap tests (2)
+  - getProfileName tests (3)
+  - getProfileFromMap tests (2)
+  - extractUniqueProfileIds tests (3)
+  - hasMissingProfiles tests (3)
+  - wasBatchTruncated tests (3)
+  - enrichWithProfileNames tests (3)
+  - chunkProfileIds tests (4)
+  - mergeBatchResults tests (5)
+- All 217 profile tests pass, ESLint clean, Prettier formatted
