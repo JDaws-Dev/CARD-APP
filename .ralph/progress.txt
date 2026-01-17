@@ -128,3 +128,9 @@
 **Files:** src/components/ai/CollectionChat.tsx
 **Commit:** 354b728
 ---
+## CD-10m - AI-020: Add chat button to dashboard/collection pages
+**Status:** Completed
+**Changes:** Created ChatButton component for floating chat bubble, integrated with dashboard and collection pages
+**Files:** src/components/ai/ChatButton.tsx, src/app/dashboard/page.tsx, src/app/collection/page.tsx
+**Commit:** 3cd6c8d
+---
