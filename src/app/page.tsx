@@ -1,4 +1,9 @@
+'use client';
+
 import Link from 'next/link';
+import { useConvexAuth } from 'convex/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import {
   ChartBarIcon,
   TrophyIcon,
@@ -67,6 +72,32 @@ function FloatingStar({
 }
 
 export default function Home() {
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-kid-primary/10 to-kid-secondary/10">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-kid-primary border-t-transparent" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect authenticated users - show nothing while redirecting
+  if (isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-65px)] flex-col overflow-hidden">
       {/* Hero Section */}

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Home from '../page';
 
@@ -18,6 +18,29 @@ vi.mock('next/link', () => ({
     </a>
   ),
 }));
+
+// Mock next/navigation
+const mockPush = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+  }),
+}));
+
+// Mock convex/react auth hooks - default to unauthenticated
+let mockAuthState = { isAuthenticated: false, isLoading: false };
+vi.mock('convex/react', () => ({
+  useConvexAuth: () => mockAuthState,
+}));
+
+beforeEach(() => {
+  mockPush.mockClear();
+  // Reset to default state before each test
+  mockAuthState = { isAuthenticated: false, isLoading: false };
+});
 
 describe('Landing Page', () => {
   describe('CTA Links - Auth Flow', () => {
@@ -281,6 +304,33 @@ describe('Landing Page', () => {
       render(<Home />);
 
       expect(screen.getByRole('contentinfo')).toBeInTheDocument();
+    });
+  });
+
+  describe('Auth Redirect Behavior', () => {
+    it('shows loading spinner when auth is loading', () => {
+      // Set auth state to loading
+      mockAuthState = { isAuthenticated: false, isLoading: true };
+
+      render(<Home />);
+
+      expect(screen.getByText('Loading...')).toBeInTheDocument();
+    });
+
+    it('redirects to dashboard when authenticated', () => {
+      // Set auth state to authenticated
+      mockAuthState = { isAuthenticated: true, isLoading: false };
+
+      render(<Home />);
+
+      expect(mockPush).toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('shows landing page content when not authenticated', () => {
+      render(<Home />);
+
+      expect(screen.getByText(/All your cards\. One app\./i)).toBeInTheDocument();
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
   });
 });
