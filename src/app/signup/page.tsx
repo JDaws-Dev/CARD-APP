@@ -4,6 +4,7 @@ import { useConvexAuth } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { AuthForm } from '@/components/auth';
+import { hasCompletedOnboarding } from '@/lib/onboardingFlow';
 
 export default function SignupPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -11,7 +12,12 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/onboarding');
+      // Redirect authenticated users: to dashboard if already onboarded, otherwise to onboarding
+      if (hasCompletedOnboarding()) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding');
+      }
     }
   }, [isAuthenticated, router]);
 
