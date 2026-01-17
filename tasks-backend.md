@@ -2483,7 +2483,7 @@ These tasks address backend requirements for SEO and infrastructure improvements
 
 ### Collection Query Optimization
 
-- [ ] Create paginated getCollection query - Return 50 cards at a time with cursor
+- [x] Create paginated getCollection query - Return 50 cards at a time with cursor
 - [ ] Merge getCollection and getCollectionStats into single query - Reduce round trips
 - [ ] Add database-level filtering to getNewlyAddedCards - Filter by timestamp in query, not JS
 - [x] Create batch getCards query - Fetch multiple cards in single query for wishlist/collection
@@ -2794,3 +2794,24 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - Event details tests (1)
   - Query params tracking tests (2)
 - All 32 tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Add paginated getCollectionPaginated query with cursor-based pagination
+
+- **Created `getCollectionPaginated` query in `convex/collections.ts`:**
+  - Uses Convex's built-in `.paginate()` API with `paginationOptsValidator`
+  - Returns page of collection cards with `continueCursor` and `isDone` flags
+  - Supports cursor-based pagination for stable results during data changes
+  - Default page size configurable via `numItems` parameter (recommended: 50)
+- **Optional card enrichment:**
+  - `enrichWithDetails` parameter enables fetching card names, images, and rarity from `cachedCards`
+  - Batched enrichment in chunks of 50 cards for optimal performance
+  - Returns enriched card objects with `name`, `imageSmall`, `imageLarge`, `setId`, `rarity`, `types`
+- **Benefits:**
+  - Efficient for large collections (1000+ cards)
+  - No skipped or duplicated items when collection changes during pagination
+  - Compatible with `usePaginatedQuery` React hook for infinite scroll UIs
+  - Reduces memory usage by loading cards incrementally
+- **Integration:**
+  - Import: `import { paginationOptsValidator } from 'convex/server';`
+  - Call: `api.collections.getCollectionPaginated` with `{ profileId, paginationOpts: { numItems: 50, cursor: null } }`
+- ESLint clean, Prettier formatted, tests pass
