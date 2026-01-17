@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+// Last updated: 2026-01-17 - Added One Piece and Lorcana image domains
 const nextConfig = {
   typescript: {
     // Convex files have their own compilation process
