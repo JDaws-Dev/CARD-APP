@@ -810,6 +810,42 @@ export const getCachedCardsInSet = query({
 });
 
 /**
+ * Get sample card images for multiple sets (for set thumbnails)
+ * Returns one card image per set for display purposes.
+ * Useful for games like Yu-Gi-Oh!, One Piece, and Lorcana that don't have separate set logos.
+ *
+ * @param gameSlug - The game to get sample cards for
+ * @param setIds - Array of set IDs to get sample cards for
+ * @returns Object mapping setId -> sample card image URL
+ */
+export const getSampleCardsBySet = query({
+  args: {
+    gameSlug: gameSlugValidator,
+    setIds: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const sampleCards: Record<string, string> = {};
+
+    // Limit to prevent abuse
+    const setIds = args.setIds.slice(0, 100);
+
+    for (const setId of setIds) {
+      // Get just one card from this set
+      const card = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_game_and_set', (q) => q.eq('gameSlug', args.gameSlug).eq('setId', setId))
+        .first();
+
+      if (card && card.imageSmall) {
+        sampleCards[setId] = card.imageSmall;
+      }
+    }
+
+    return sampleCards;
+  },
+});
+
+/**
  * Get all cached cards for a game (public query)
  * Supports optional pagination via limit/offset
  */
