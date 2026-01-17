@@ -1,12 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import Link from 'next/link';
 import { ShieldCheckIcon, ArrowLeftIcon, Cog6ToothIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { ParentDashboard, ParentDashboardSkeleton } from '@/components/dashboard/ParentDashboard';
+import { AddProfileModal } from '@/components/dashboard/AddProfileModal';
 
 export default function ParentDashboardPage() {
+  const [isAddProfileModalOpen, setIsAddProfileModalOpen] = useState(false);
   // Use authenticated parent access check
   const parentAccess = useQuery(api.profiles.hasParentAccess);
 
@@ -108,7 +111,10 @@ export default function ParentDashboardPage() {
                 <Cog6ToothIcon className="h-5 w-5" />
                 Settings
               </Link>
-              <button className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-kid-primary to-purple-500 px-4 py-2.5 text-sm font-medium text-white shadow-md transition hover:shadow-lg">
+              <button
+                onClick={() => setIsAddProfileModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-kid-primary to-purple-500 px-4 py-2.5 text-sm font-medium text-white shadow-md transition hover:shadow-lg"
+              >
                 <PlusIcon className="h-5 w-5" />
                 Add Profile
               </button>
@@ -118,6 +124,13 @@ export default function ParentDashboardPage() {
 
         {/* Dashboard content */}
         <ParentDashboard familyId={familyId} />
+
+        {/* Add Profile Modal */}
+        <AddProfileModal
+          familyId={familyId}
+          isOpen={isAddProfileModalOpen}
+          onClose={() => setIsAddProfileModalOpen(false)}
+        />
       </div>
     </main>
   );
