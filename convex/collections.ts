@@ -59,6 +59,46 @@ export const getCollectionStats = query({
   },
 });
 
+/**
+ * Combined query that returns both collection data and calculated stats in a single call.
+ * This eliminates the need to call getCollection and getCollectionStats separately,
+ * reducing redundant database queries and improving page load performance.
+ */
+export const getCollectionWithStats = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+    const cards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Calculate stats in a single pass over the data
+    let totalCards = 0;
+    const sets = new Set<string>();
+    const variantCounts: Record<string, number> = {};
+
+    for (const card of cards) {
+      totalCards += card.quantity;
+      // Extract setId from cardId (format is "setId-number")
+      const setId = card.cardId.split('-')[0];
+      sets.add(setId);
+      // Track variant distribution
+      const variant = card.variant ?? 'normal';
+      variantCounts[variant] = (variantCounts[variant] ?? 0) + 1;
+    }
+
+    return {
+      cards,
+      stats: {
+        totalCards,
+        uniqueCards: cards.length,
+        setsStarted: sets.size,
+        variantBreakdown: variantCounts,
+      },
+    };
+  },
+});
+
 export const isCardOwned = query({
   args: { profileId: v.id('profiles'), cardId: v.string() },
   handler: async (ctx, args) => {
