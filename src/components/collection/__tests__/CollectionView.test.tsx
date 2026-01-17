@@ -156,4 +156,83 @@ describe('CollectionView', () => {
       });
     });
   });
+
+  describe('cardData Map memoization', () => {
+    it('renders collection value based on card data', async () => {
+      const collection = [
+        { _id: '1', cardId: 'sv1-1', quantity: 1 },
+        { _id: '2', cardId: 'sv1-2', quantity: 2 },
+      ];
+
+      render(<CollectionView collection={collection} />);
+
+      // Wait for the data to load and calculate collection value
+      await waitFor(() => {
+        // Pikachu ($1.50 x 1) + Charmander ($2.00 x 2) = $5.50
+        expect(screen.getByText('$5.50')).toBeInTheDocument();
+      });
+    });
+
+    it('correctly groups cards by set using memoized data', async () => {
+      const collection = [
+        { _id: '1', cardId: 'sv1-1', quantity: 1 },
+        { _id: '2', cardId: 'sv1-2', quantity: 2 },
+      ];
+
+      render(<CollectionView collection={collection} />);
+
+      await waitFor(() => {
+        // Should show set name with card count
+        expect(screen.getByText('Scarlet & Violet')).toBeInTheDocument();
+        // Should show the count of unique cards and total
+        expect(screen.getByText('2 unique cards (3 total)')).toBeInTheDocument();
+      });
+    });
+
+    it('displays most valuable cards derived from cardData Map', async () => {
+      const collection = [
+        { _id: '1', cardId: 'sv1-1', quantity: 1 },
+        { _id: '2', cardId: 'sv1-2', quantity: 2 },
+      ];
+
+      render(<CollectionView collection={collection} />);
+
+      await waitFor(() => {
+        // Should show "Most Valuable Cards" section header
+        expect(screen.getByText('Most Valuable Cards')).toBeInTheDocument();
+        // Charmander at $2.00 should be listed (most valuable)
+        expect(screen.getByText('$2.00')).toBeInTheDocument();
+        // Pikachu at $1.50 should also be listed
+        expect(screen.getByText('$1.50')).toBeInTheDocument();
+      });
+    });
+
+    it('does not fetch when collection is empty', async () => {
+      const fetchSpy = vi.spyOn(global, 'fetch');
+
+      render(<CollectionView collection={[]} />);
+
+      await waitFor(() => {
+        expect(fetchSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    it('fetches card data only once for a given collection', async () => {
+      const fetchSpy = vi.spyOn(global, 'fetch');
+
+      const collection = [
+        { _id: '1', cardId: 'sv1-1', quantity: 1 },
+        { _id: '2', cardId: 'sv1-2', quantity: 2 },
+      ];
+
+      render(<CollectionView collection={collection} />);
+
+      await waitFor(() => {
+        expect(screen.getAllByTestId('card-image').length).toBeGreaterThan(0);
+      });
+
+      // Fetch should have been called exactly once
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+  });
 });

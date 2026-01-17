@@ -61,11 +61,19 @@ interface SetGroup {
 }
 
 export function CollectionView({ collection }: CollectionViewProps) {
-  const [cardData, setCardData] = useState<Map<string, PokemonCard>>(new Map());
+  const [fetchedCards, setFetchedCards] = useState<PokemonCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isBinderOpen, setIsBinderOpen] = useState(false);
+
+  // Memoize cardData Map to prevent recreation on every render
+  // Only rebuilds when fetchedCards array reference changes
+  const cardData = useMemo(() => {
+    const cardMap = new Map<string, PokemonCard>();
+    fetchedCards.forEach((card) => cardMap.set(card.id, card));
+    return cardMap;
+  }, [fetchedCards]);
 
   // Fetch card data from Pokemon TCG API
   const fetchCards = useCallback(async () => {
@@ -93,10 +101,8 @@ export function CollectionView({ collection }: CollectionViewProps) {
       const json = await response.json();
       const cards: PokemonCard[] = json.data || [];
 
-      // Build a map for quick lookup
-      const cardMap = new Map<string, PokemonCard>();
-      cards.forEach((card) => cardMap.set(card.id, card));
-      setCardData(cardMap);
+      // Store raw cards array - the Map is derived via useMemo
+      setFetchedCards(cards);
     } catch (err) {
       console.error('Error fetching cards:', err);
       setError("We couldn't load your card images. This might be a network issue.");
