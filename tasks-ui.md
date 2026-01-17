@@ -1,9 +1,12 @@
 # CardDex UI Tasks
 
-## Status Summary (Updated 2026-01-16)
+## Status Summary (Updated 2026-01-17)
 
 | Section                              | Complete | Remaining |
 | ------------------------------------ | -------- | --------- |
+| **CRITICAL - Site Evaluation Fixes** | 0        | **8**     |
+| **Multi-TCG Pages Update**           | 1        | **6**     |
+| **Landing Page Multi-TCG**           | 0        | **5**     |
 | HIGH PRIORITY - Landing Page         | 9        | 0         |
 | UI Tasks                             | 20       | 0         |
 | Core Features                        | 6        | 0         |
@@ -12,20 +15,60 @@
 | Navigation & Dashboard               | 7        | 0         |
 | Multi-TCG Game Selector              | 6        | 0         |
 | Polish & UX                          | 7        | 0         |
-| **UI Cleanup & Settings (PRIORITY)** | 6        | **0**     |
-| **Forgiving Streak System**          | 5        | **0**     |
-| **Virtual Experience Features**      | 6        | **0**     |
-| **Collection Timeline & Story**      | 5        | **0**     |
-| **Family & Social Features**         | 5        | **0**     |
-| **Financial Literacy**               | 4        | **0**     |
-| **Educational Mini-Games**           | 3        | **2**     |
-| **Enhanced Accessibility**           | 6        | **0**     |
-| **Engagement & Retention**           | 4        | **0**     |
-| **TOTAL**                            | **103**  | **3**     |
+| UI Cleanup & Settings                | 6        | 0         |
+| Forgiving Streak System              | 5        | 0         |
+| Virtual Experience Features          | 6        | 0         |
+| Collection Timeline & Story          | 5        | 0         |
+| Family & Social Features             | 5        | 0         |
+| Financial Literacy                   | 4        | 0         |
+| Educational Mini-Games               | 3        | 2         |
+| Enhanced Accessibility               | 6        | 0         |
+| Engagement & Retention               | 4        | 0         |
+| **TOTAL**                            | **108**  | **21**    |
 
 ### Priority Order for Remaining Tasks
 
-1. **Educational Mini-Games** (3 tasks) - Set symbols, type quiz, price estimation - Learning through play
+1. **CRITICAL - Site Evaluation Fixes** (8 tasks) - Signup page, login copy, auth flow fixes
+2. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
+3. **Landing Page Multi-TCG** (5 tasks) - Update landing page to feature all supported games
+4. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
+
+---
+
+## CRITICAL - Site Evaluation Fixes (January 2026)
+
+These issues were identified during the January 17, 2026 site evaluation and MUST be fixed before launch.
+
+- [ ] Create `/signup` page - Either redirect to `/login?mode=signup` or create dedicated signup page with proper flow
+- [ ] Update `/login` page copy - Change "Track your Pokemon card collection" to "Track your trading card collection"
+- [ ] Update `/login` page styling - Match CardDex brand colors (use kid-primary/kid-secondary gradients instead of generic blue)
+- [ ] Add email verification UI - Show verification pending state and resend button after signup
+- [ ] Add parent vs kid account selection - During signup, ask if creating parent account (for family) or individual collector
+- [ ] Fix AuthForm styling - Replace blue-600 colors with CardDex brand gradients
+- [ ] Add password strength indicator - Visual indicator showing password requirements during signup
+- [ ] Add profile switcher to header - Allow switching between child profiles for families (parent accounts)
+
+## Multi-TCG Pages Update
+
+These pages are currently hardcoded to Pokemon and need to use the game picker (`useGameSelector`).
+
+- [x] `/sets/page.tsx` - Sets listing (DONE - uses getSetsByGame from Convex)
+- [ ] `/sets/[setId]/page.tsx` - Individual set view - Must use selected game to fetch correct set/cards
+- [ ] `/browse/page.tsx` - Card browsing - Must filter by selected game
+- [ ] `/search/page.tsx` - Card search - Must search within selected game
+- [ ] `/my-wishlist/page.tsx` - Wishlist view - Must show cards from selected game
+- [ ] `/wishlist/[token]/page.tsx` - Public wishlist - Must display correct game context
+- [ ] `/collection/page.tsx` - Collection view - Must filter collection by selected game
+
+## Landing Page Multi-TCG Updates
+
+The landing page currently only mentions Pokemon. Update to feature all supported TCGs.
+
+- [ ] Update hero section - Change "Track Your Pokemon Cards" to "Track Your Trading Card Collection" and mention multiple games
+- [ ] Add "Supported Games" section - Feature grid showing Pokemon, Yu-Gi-Oh!, Lorcana, One Piece, Digimon, Dragon Ball logos with brief taglines
+- [ ] Update "How It Works" section - Remove Pokemon-specific language, make game-agnostic
+- [ ] Update pricing section - Change "500+ Pokemon sets" to "1,000+ sets across 6 popular games"
+- [ ] Update features section - Add "Multiple Games" as a key feature with game icons
 
 ---
 

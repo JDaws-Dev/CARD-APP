@@ -1,34 +1,36 @@
 # CardDex Backend Tasks
 
-## Status Summary (Updated 2026-01-16)
+## Status Summary (Updated 2026-01-17)
 
-| Section                        | Complete | Remaining |
-| ------------------------------ | -------- | --------- |
-| HIGH PRIORITY - Auth & Pricing | 9        | **1**     |
-| Card Variants                  | 3        | 0         |
-| Achievement System             | 6        | 0         |
-| Wishlist & Sharing             | 4        | 0         |
-| Family Features                | 2        | **1**     |
-| Testing & Performance          | 4        | 0         |
-| Data Persistence & Sync        | 2        | **1**     |
-| Multi-TCG Architecture         | 12       | **7**     |
-| Gamification Backend           | 3        | 0         |
-| Educational Content            | 3        | 0         |
-| Additional Features            | 5        | 0         |
-| Launch Prep                    | 4        | **5**     |
-| **TOTAL**                      | **58**   | **14**    |
+| Section                          | Complete | Remaining |
+| -------------------------------- | -------- | --------- |
+| **CRITICAL - Multi-TCG API**     | 0        | **5**     |
+| **CRITICAL - Auth Fixes**        | 0        | **3**     |
+| HIGH PRIORITY - Auth & Pricing   | 9        | **1**     |
+| Card Variants                    | 3        | 0         |
+| Achievement System               | 6        | 0         |
+| Wishlist & Sharing               | 4        | 0         |
+| Family Features                  | 2        | **1**     |
+| Testing & Performance            | 4        | 0         |
+| Data Persistence & Sync          | 2        | **1**     |
+| Multi-TCG Architecture           | 12       | **7**     |
+| Gamification Backend             | 3        | 0         |
+| Educational Content              | 3        | 0         |
+| Additional Features              | 5        | 0         |
+| Launch Prep                      | 4        | **5**     |
+| **TOTAL**                        | **58**   | **22**    |
 
 ### Critical Path for Launch
 
-1. ~~**Authentication (1 task)** - Parent registration with email verification~~ COMPLETE
-2. **Launch Prep (5 tasks)** - Stripe integration, production deploy, monitoring (E2E tests complete)
-3. **Data Persistence (1 task)** - Data persistence guarantee, conflict resolution (cloud backup complete)
+1. **CRITICAL - Multi-TCG API (5 tasks)** - API routes hardcoded to Pokemon, must support game selection
+2. **CRITICAL - Auth Fixes (3 tasks)** - Parent dashboard security, role-based access
+3. **Launch Prep (5 tasks)** - Stripe integration, production deploy, monitoring
 4. **TCGPlayer Pricing (1 task)** - Fetch real pricing data from TCGPlayer API
 
 ### Blocked Tasks
 
 - Stripe subscription integration - Requires business account setup
-- Production deployment - Waiting on auth completion
+- Production deployment - Waiting on critical fixes
 - TCGPlayer API - Need affiliate account for pricing data
 
 ---
@@ -48,6 +50,22 @@
 ---
 
 ## Backend Tasks
+
+### CRITICAL - Multi-TCG API Routes (January 2026 Evaluation)
+
+These API routes are currently hardcoded to Pokemon and must be updated to support game selection via query parameter.
+
+- [ ] `/api/sets/route.ts` - Update to accept `?game=pokemon|yugioh|etc` parameter, fetch from Convex cachedSets instead of pokemon-tcg.ts
+- [ ] `/api/cards/route.ts` - Update to accept game parameter, fetch from Convex cachedCards by game
+- [ ] `/api/search/route.ts` - Update to search within selected game's cached cards
+- [ ] `/api/filter/route.ts` - Update to filter within selected game's cached cards
+- [ ] Add Convex public query for cards by game - Create `getCardsByGame` and `searchCardsByGame` queries in dataPopulation.ts
+
+### CRITICAL - Auth & Security Fixes (January 2026 Evaluation)
+
+- [ ] Fix parent dashboard to use authenticated user - Remove `getOrCreateDemoProfile()` call, use actual authenticated user's family data
+- [ ] Add role-based access control to parent dashboard - Check `hasParentAccess()` before allowing access to `/parent-dashboard`
+- [ ] Add proper profile validation - Ensure users can only access their own profiles and family data
 
 ### HIGH PRIORITY - Authentication & Pricing
 

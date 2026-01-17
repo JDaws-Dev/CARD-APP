@@ -625,9 +625,95 @@ CREATE TABLE wishlist_shares (
 
 ---
 
+## January 2026 Site Evaluation & Multi-TCG Pivot
+
+### Product Evolution: KidCollect → CardDex
+
+The product has evolved from Pokemon-only to **multi-TCG support** covering 7 trading card games. The app is now branded as **CardDex** internally.
+
+### Supported TCGs
+
+| Game | Kid-Friendly | Audience Fit | API Status | Priority |
+|------|--------------|--------------|------------|----------|
+| **Pokemon TCG** | ✅ Yes | Ages 6-14, perfect fit | ✅ Working | HIGH |
+| **Yu-Gi-Oh!** | ✅ Yes | Ages 8-16, anime fans | ✅ Working | HIGH |
+| **Disney Lorcana** | ✅ Yes | Ages 6-12, Disney fans | ✅ Working | HIGH |
+| **One Piece** | ✅ Yes | Ages 10-16, anime fans | ✅ Working | MEDIUM |
+| **Digimon** | ✅ Yes | Ages 8-14, nostalgia + new fans | ✅ Working | MEDIUM |
+| **Dragon Ball Fusion World** | ✅ Yes | Ages 8-16, anime fans | ⚠️ API Limit | MEDIUM |
+| **Magic: The Gathering** | ❌ No | Ages 13+, complex rules | ✅ Working | LOW (consider removing) |
+
+**Recommendation:** Consider removing or hiding MTG for the kid-focused product. Its complexity and older target audience don't align with the 6-14 age range.
+
+### Site Evaluation Findings (January 17, 2026)
+
+#### CRITICAL ISSUES (Must Fix Before Launch)
+
+| Issue | Impact | Fix Required |
+|-------|--------|--------------|
+| **No /signup page exists** | Users clicking "Sign Up" get 404 | Create /signup page or redirect to /login |
+| **Game picker not working site-wide** | Only /sets uses game picker; rest is Pokemon-only | Update all pages to use selected game |
+| **Landing page says "Pokemon" only** | Misrepresents multi-TCG product | Update copy to feature all supported games |
+| **Parent dashboard uses demo data** | Security risk, creates test data | Use authenticated user data only |
+
+#### HIGH PRIORITY ISSUES
+
+| Issue | Impact | Fix Required |
+|-------|--------|--------------|
+| Login page copy says "Pokemon" | Inconsistent with multi-TCG | Update to "trading card collection" |
+| Individual set page (/sets/[setId]) hardcoded | Can only view Pokemon sets | Make game-aware |
+| Search page hardcoded to Pokemon | Search only finds Pokemon cards | Make game-aware |
+| Browse page hardcoded to Pokemon | Browse only shows Pokemon | Make game-aware |
+| Collection page hardcoded to Pokemon | Collection only tracks Pokemon | Make game-aware |
+| All API routes hardcoded | Backend only serves Pokemon data | Make game-aware |
+| No role-based access control | Anyone can access parent dashboard | Add proper auth checks |
+
+#### MEDIUM PRIORITY ISSUES
+
+| Issue | Impact | Fix Required |
+|-------|--------|--------------|
+| Missing /about page | No product info for parents | Create informational page |
+| Missing /help or FAQ page | No self-service support | Create help content |
+| Missing legal pages | Compliance gaps | Add Terms, Privacy, Contact |
+| Dashboard vs Collection confusion | Unclear page purposes | Consolidate or clarify naming |
+| No profile switching UI | Multi-child feature incomplete | Add profile switcher |
+
+### Pages Requiring Multi-TCG Updates
+
+These pages currently import from `pokemon-tcg.ts` and need to be updated to use the game picker:
+
+1. `/sets/[setId]/page.tsx` - Individual set view
+2. `/browse/page.tsx` - Card browsing
+3. `/search/page.tsx` - Card search
+4. `/my-wishlist/page.tsx` - Wishlist
+5. `/wishlist/[token]/page.tsx` - Public wishlist
+6. `/collection/page.tsx` - Collection view (verify)
+7. `/api/sets/route.ts` - Sets API
+8. `/api/search/route.ts` - Search API
+9. `/api/cards/route.ts` - Cards API
+10. `/api/filter/route.ts` - Filter API
+
+### Landing Page Updates Required
+
+1. **Hero section**: Change "Track Your Pokemon Cards" → "Track Your Trading Card Collection"
+2. **Add Games section**: Feature all 6-7 supported TCGs with logos
+3. **Features section**: Update to mention multi-game support
+4. **Pricing section**: Change "500+ Pokemon sets" → "500+ sets across 7 games"
+5. **How it Works**: Remove Pokemon-specific language
+
+### Authentication Flow Fixes
+
+1. Create `/signup` page that redirects to `/login?mode=signup` OR
+2. Create dedicated signup page with family-first registration flow
+3. Update `/login` page copy to be game-agnostic
+4. Add email verification for COPPA compliance
+5. Add parental consent step
+
+---
+
 ## Conclusion
 
-KidCollect addresses a clear market gap with a focused, achievable product. The combination of an underserved audience (kids and families), free data infrastructure (Pokemon TCG API), and proven monetization model (freemium family subscriptions) creates a compelling opportunity.
+CardDex (formerly KidCollect) addresses a clear market gap with a focused, achievable product. The combination of an underserved audience (kids and families), free data infrastructure (Pokemon TCG API), and proven monetization model (freemium family subscriptions) creates a compelling opportunity.
 
 **Key Success Factors:**
 1. **Simple, delightful UX** that a 7-year-old can navigate without help
