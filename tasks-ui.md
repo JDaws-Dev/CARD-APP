@@ -235,7 +235,7 @@ The My Collection page is slow to load. These UI-side optimizations will help.
 
 Improve site organization, navigation, and user flow clarity.
 
-- [ ] Create BackLink component - Reusable consistent back navigation (src/components/ui/BackLink.tsx)
+- [x] Create BackLink component - Reusable consistent back navigation (src/components/ui/BackLink.tsx)
 - [ ] Create PageHeader component - Reusable page header with title, description, optional icon (src/components/ui/PageHeader.tsx)
 - [ ] Add back navigation to /learn page - Users can get stuck without way to return
 - [ ] Add breadcrumb to /condition-guide - Show "Home > Learn > Condition Guide"
@@ -536,6 +536,7 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 ## Progress
 
+- **2026-01-17**: Completed Create BackLink component - Created reusable BackLink component (src/components/ui/BackLink.tsx) for consistent back navigation across all pages. Features: ArrowLeftIcon from Heroicons, consistent text styling (text-sm, font-medium, text-gray-600), hover transition to kid-primary brand color, focus-visible ring styling for keyboard navigation, dark mode support (dark:text-slate-400), withMargin prop for optional mb-4 spacing, aria-label prop for custom accessibility labels, full TypeScript types with JSDoc documentation. Added 28 unit tests covering prop validation, styling, icon properties, usage patterns, and accessibility requirements. Uses cn() utility for class merging. Commit: 3205d6c
 - **2026-01-17**: Completed Create /signup page - Created dedicated signup page at src/app/signup/page.tsx with CardDex branding, kid-primary/kid-secondary gradients, and signup-focused copy. Updated AuthForm component to accept defaultMode prop for controlling initial mode. Redirects authenticated users to /onboarding. Commit: f9b4f63
 - **2026-01-17**: Completed Add parent vs kid account selection and Fix AuthForm styling - Added two-step signup flow to AuthForm component (src/components/auth/AuthForm.tsx). First step asks users to choose between Family Account (for parents managing kidsx27 collections) or Individual Collector (for solo collectors). Features: UserGroupIcon and UserIcon for visual distinction, CardDex brand gradients throughout, account type indicator with change button on credentials step, updated placeholder text based on selection, replaced all blue-600 colors with kid-primary/kid-secondary brand colors. Commit: f3485f1
 - **2026-01-16**: Completed Price Estimation Game - Created PriceEstimationGame component (src/components/games/PriceEstimationGame.tsx) that teaches card value awareness. Features: 12 cards with varied prices from $0.25 to $280 (including Charizard, Umbreon alt art, commons), 5-round gameplay where players guess if card is worth more or less than a given price, hint system explaining value factors, XP rewards (20 per correct, 50 bonus for perfect), results screen with round summary showing actual prices. Added game banner to Learn page with CurrencyDollarIcon in emerald/teal gradient theme. Uses Heroicons (CurrencyDollarIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, StarIcon, LightBulbIcon, TrophyIcon, SparklesIcon, CheckIcon, XMarkIcon, ArrowPathIcon, PlayIcon, ChevronRightIcon, BoltIcon). Commit: 20d1fcf
