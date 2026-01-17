@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: █████████████████████████░░░░  100/117 (85%)
-Remaining: 17 tasks
+Progress: █████████████████████████░░░░  100/137 (73%)
+Remaining: 37 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -28,9 +28,10 @@ Remaining: 17 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | **AI-Powered Features**             | 18       | **3**     |
+| **Sibling Trade Tracking**          | 0        | **20**    |
 | Launch Prep                         | 4        | **5**     |
 | **Kid-Friendly Set Filtering**      | **7**    | **0**     |
-| **TOTAL**                           | **100**  | **17**    |
+| **TOTAL**                           | **100**  | **37**    |
 
 ### Critical Path for Launch
 
@@ -243,8 +244,47 @@ Backend actions and queries for AI features. Requires `OPENAI_API_KEY` environme
 
 - [x] AI-032: Create `convex/ai/recommendations.ts` - Smart card recommendations based on collection patterns
 - [x] AI-033: Create `convex/ai/tradeAdvisor.ts` - Fair trade suggestions between siblings using collection data
-- [ ] AI-034: Create `convex/ai/shoppingAssistant.ts` - Parent gift helper analyzing wishlist, set completion, budget
+- [x] AI-034: Create `convex/ai/shoppingAssistant.ts` - Parent gift helper analyzing wishlist, set completion, budget
 - [ ] AI-035: Create `convex/ai/conditionGrader.ts` - Card condition tutoring with GPT-4o Vision explaining grades
+
+### Sibling Trade Tracking System
+
+Full trade proposal, acceptance, and tracking between siblings within a family. See PRD "Sibling Trade Tracking System" section for complete specification.
+
+#### Phase 1: Schema & Core Infrastructure
+
+- [ ] TRADE-001: Add `trades` table to `convex/schema.ts` - Full trade schema with status, offered/requested cards, timestamps, parent approval fields
+- [ ] TRADE-002: Add `trade_completed` action type to `activityLogs` schema - New action type for trade events in timeline
+- [ ] TRADE-003: Add trade settings to `families` table - `tradeApprovalRequired` and `tradeNotificationsEnabled` optional boolean fields
+- [ ] TRADE-004: Create `convex/trades.ts` with core mutations - `proposeTrade`, `acceptTrade`, `declineTrade`, `cancelTrade` mutations
+
+#### Phase 2: Trade Queries & Validation
+
+- [ ] TRADE-005: Create trade queries in `convex/trades.ts` - `getTradeById`, `getPendingTradesForProfile`, `getTradeHistory`, `getFamilyTrades`
+- [ ] TRADE-006: Add trade validation helpers - `validateTradeCards` (check cards exist and available), `validateTradeParticipants` (same family, not self)
+- [ ] TRADE-007: Create `getTradeableCardsForTrade` query - Return cards a profile can offer (quantity > 1 or not on their wishlist)
+- [ ] TRADE-008: Create fair trade calculation query - `calculateTradeFairness` using market prices, return fairness indicator
+
+#### Phase 3: Trade Execution & Activity Logging
+
+- [ ] TRADE-009: Create `executeTrade` internal mutation - Atomic transfer of cards between profiles (remove from giver, add to receiver)
+- [ ] TRADE-010: Create trade activity logging - Log `trade_completed` event for both participants with trade metadata
+- [ ] TRADE-011: Add trade expiration logic - `expireOldTrades` scheduled function to expire trades older than 7 days
+- [ ] TRADE-012: Handle concurrent trade conflicts - Validate card availability before execution, cancel conflicting trades
+
+#### Phase 4: Parent Oversight & Notifications
+
+- [ ] TRADE-013: Create parent approval flow - `approveTrade` mutation for parent profiles, blocks completion until approved if setting enabled
+- [ ] TRADE-014: Add trade notifications - Create notifications for trade proposed, accepted, declined, completed, needs approval, expired
+- [ ] TRADE-015: Create `getFamilyTradeStats` query - Trade statistics for parent dashboard (total trades, pending, completion rate)
+- [ ] TRADE-016: Add trade settings mutations - `updateFamilyTradeSettings` for parent to toggle approval requirement
+
+#### Phase 5: Testing & Integration
+
+- [ ] TRADE-017: Write unit tests for trade mutations - Test propose, accept, decline, cancel, execute flows
+- [ ] TRADE-018: Write unit tests for trade validation - Test card availability, same-family, self-trade prevention
+- [ ] TRADE-019: Write integration tests for trade lifecycle - Full trade flow from proposal to completion
+- [ ] TRADE-020: Add trade data to `getRecentActivityWithNames` query - Include trade events in timeline data
 
 ### Launch Prep
 
@@ -3077,3 +3117,42 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - Rate limiting tests (2)
   - Family verification tests (2)
 - All 50 tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Add AI-powered shopping assistant for parents (AI-034)
+
+- **Created `convex/ai/shoppingAssistant.ts`:**
+  - `getGiftSuggestions` action: AI-powered gift recommendations for parents
+  - `getWishlistSummary` action: Quick wishlist overview without AI
+  - `getRemainingShoppingAssistantUses` action: Check daily rate limit status
+  - Game-specific prompts for all 7 TCGs (Pokemon, Yu-Gi-Oh!, MTG, One Piece, Lorcana, Digimon, Dragon Ball)
+  - Budget-aware filtering: budget (<$5), moderate ($5-$20), premium (>$20)
+  - 5 gift categories: wishlist_priority, wishlist, set_completion, type_match, popular
+  - Gift bundles for set completion and themed collections
+  - 4 gift occasions: birthday, holiday, reward, just_because
+  - Set completion progress tracking with cardsOwned/totalCards/percentComplete
+  - Fallback rule-based suggestions when OpenAI API fails
+  - Rate limited to 15 suggestions per day per profile
+- **Created `convex/ai/shoppingAssistantHelpers.ts`:**
+  - `verifyParentAccess` internal query: Ensures parent can view child's profile
+  - `analyzeForGifts` internal query: Analyzes collection and wishlist patterns
+  - `getGiftCandidates` internal query: Gets potential gift cards with budget filtering
+  - `getWishlistDetails` internal query: Gets full wishlist with pricing info
+  - `logShoppingAssistantUsage` internal mutation: Tracks usage and rate limits
+  - Note: Separated from shoppingAssistant.ts because internal mutations cannot be in 'use node' files
+- **Created 60 tests in `src/lib/__tests__/shoppingAssistant.test.ts`:**
+  - GiftOccasion validation tests (5)
+  - PriceRange validation tests (4)
+  - GiftCategory validation tests (6)
+  - BundleType validation tests (4)
+  - GiftSuggestion validation tests (5)
+  - GiftBundle validation tests (4)
+  - Occasion description tests (4)
+  - Bundle type determination tests (3)
+  - Budget analysis calculation tests (4)
+  - Price category tests (3)
+  - Budget filtering tests (4)
+  - Priority sorting tests (2)
+  - Result structure tests (2)
+  - Set completion info tests (2)
+  - Game slug support tests (2)
+- All 60 tests pass, ESLint clean, Prettier formatted
