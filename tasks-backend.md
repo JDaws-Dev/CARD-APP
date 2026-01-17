@@ -3391,3 +3391,48 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - exportMetrics tests (5)
   - Integration tests (3)
 - All 45 tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Backend Tasks Analysis - All Remaining Tasks Blocked
+
+- **Comprehensive review of all incomplete tasks in tasks-backend.md**
+- **Finding: All 16 remaining incomplete tasks are blocked by external dependencies or require breaking changes**
+
+#### Blocked by External Services/Configuration (5 tasks):
+
+- Stripe subscription integration - Requires business account setup
+- Set up production environment - Requires Vercel deployment configuration
+- Configure environment variables - Requires production secrets and API keys
+- Set up error monitoring (Sentry) - Requires external service integration
+- Set up analytics (Plausible or PostHog) - Requires external service integration
+
+#### Blocked by API Access (1 task):
+
+- Add pricing data fetching from TCGPlayer API - Requires TCGPlayer affiliate account
+
+#### Breaking Changes Requiring Migration (5 tasks - MTG Removal):
+
+- Remove 'mtg' from gameSlug union type in schema
+- Delete MTG entries from games table via migration
+- Delete MTG entries from cachedSets and cachedCards tables
+- Remove populateMtgSets and populateMtgSetCards from dataPopulation.ts
+- Update GAME_SLUGS to exclude 'mtg'
+
+#### May Be Redundant (4 tasks - API Adapter Updates):
+
+- These tasks may be redundant now that `maxAgeMonths` parameter was added to all populateGameSets actions
+
+#### Duplicate Tasks Identified in Backlog Section:
+
+- API route updates (lines 2609-2612) - Already completed per main section
+- Merge getCollection queries (line 2635) - Already completed (getCollectionWithStats exists)
+- Create unified API adapter pattern - Already completed (src/lib/tcg-api.ts exists)
+
+#### Recommendations:
+
+1. Update status table counts to match actual task statuses
+2. Remove duplicate tasks from backlog section
+3. Proceed with external service setup for remaining tasks
+4. Plan MTG removal as coordinated migration
+
+- **Created `ralph_backend_complete` file documenting analysis**
+- No code changes required - analysis and documentation task only
