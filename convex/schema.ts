@@ -194,7 +194,8 @@ export default defineSchema({
       v.literal('card_added'),
       v.literal('card_removed'),
       v.literal('achievement_earned'),
-      v.literal('trade_completed') // TRADE-002: New action type for trade events
+      v.literal('trade_completed'), // Sibling Trade Tracking: trade completed event
+      v.literal('trade_logged') // TRADE-001: Simple trade logging for real-life trades
     ),
     metadata: v.optional(v.any()), // Additional data about the action
     timestamp: v.optional(v.number()), // Unix timestamp for database-level time filtering
