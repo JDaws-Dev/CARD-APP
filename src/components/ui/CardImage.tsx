@@ -39,8 +39,10 @@ interface CardImageProps {
   sizes?: string;
   /** Additional CSS classes */
   className?: string;
-  /** Whether to load the image with priority */
+  /** Whether to load the image with priority (overrides loading prop) */
   priority?: boolean;
+  /** Loading strategy - "lazy" defers offscreen image loading for better performance */
+  loading?: 'lazy' | 'eager';
   /** Custom fallback image URL (defaults to built-in placeholder) */
   fallbackSrc?: string;
   /** Callback when image fails to load */
@@ -78,6 +80,7 @@ export function CardImage({
   sizes = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw',
   className,
   priority = false,
+  loading = 'lazy',
   fallbackSrc = PLACEHOLDER_DATA_URL,
   onError,
   onLoad,
@@ -143,6 +146,7 @@ export function CardImage({
           onLoadingComplete={imageProps.onLoadingComplete}
           draggable={imageProps.draggable}
           priority={imageProps.priority}
+          loading={priority ? undefined : loading}
           fill
           sizes={sizes}
         />
@@ -155,6 +159,7 @@ export function CardImage({
           onLoadingComplete={imageProps.onLoadingComplete}
           draggable={imageProps.draggable}
           priority={imageProps.priority}
+          loading={priority ? undefined : loading}
           width={width ?? 250}
           height={height ?? 350}
           sizes={sizes}
