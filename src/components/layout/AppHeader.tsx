@@ -15,7 +15,7 @@ import {
   Cog6ToothIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
@@ -73,6 +73,22 @@ export function AppHeader() {
     signOut();
   };
 
+  // Close mobile menu, profile menu, and quick settings on Escape key press
+  const handleEscapeKey = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      setMobileMenuOpen(false);
+      setProfileMenuOpen(false);
+      setQuickSettingsOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [handleEscapeKey]);
+
   return (
     <header
       className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95"
@@ -129,7 +145,9 @@ export function AppHeader() {
               type="button"
               onClick={() => setQuickSettingsOpen(!quickSettingsOpen)}
               className={`flex items-center justify-center rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800 ${
-                pathname === '/settings' || quickSettingsOpen ? 'bg-kid-primary/10 text-kid-primary' : ''
+                pathname === '/settings' || quickSettingsOpen
+                  ? 'bg-kid-primary/10 text-kid-primary'
+                  : ''
               }`}
               aria-label="Quick settings"
               aria-expanded={quickSettingsOpen}

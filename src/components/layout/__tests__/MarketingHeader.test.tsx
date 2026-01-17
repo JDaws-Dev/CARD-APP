@@ -235,6 +235,27 @@ describe('MarketingHeader', () => {
       expect(menuButton).toHaveAttribute('aria-controls', 'marketing-mobile-menu');
     });
 
+    it('closes mobile menu when Escape key is pressed', () => {
+      render(<MarketingHeader />);
+
+      // Open mobile menu
+      const menuButton = screen.getByRole('button', { name: /Open navigation menu/i });
+      fireEvent.click(menuButton);
+
+      // Verify menu is open
+      expect(
+        screen.getByRole('menu', { name: /Mobile marketing navigation/i })
+      ).toBeInTheDocument();
+
+      // Press Escape key
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      // Menu should be closed
+      expect(
+        screen.queryByRole('menu', { name: /Mobile marketing navigation/i })
+      ).not.toBeInTheDocument();
+    });
+
     it('Heroicon icons are hidden from screen readers', () => {
       render(<MarketingHeader />);
 

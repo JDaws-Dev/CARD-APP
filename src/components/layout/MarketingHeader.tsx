@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ArrowRightOnRectangleIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { UserPlusIcon } from '@heroicons/react/24/solid';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { DarkModeToggle } from '@/components/layout/DarkModeToggle';
 
 // Custom card stack icon for logo (shared with Header)
@@ -50,6 +50,20 @@ export function MarketingHeader() {
       setMobileMenuOpen(false);
     }
   }, []);
+
+  // Close mobile menu on Escape key press
+  const handleEscapeKey = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      setMobileMenuOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [handleEscapeKey]);
 
   return (
     <header

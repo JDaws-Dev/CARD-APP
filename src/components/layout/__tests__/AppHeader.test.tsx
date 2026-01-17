@@ -480,6 +480,59 @@ describe('AppHeader', () => {
       expect(menuButton).toHaveAttribute('aria-controls', 'app-mobile-menu');
     });
 
+    it('closes mobile menu when Escape key is pressed', () => {
+      render(<AppHeader />);
+
+      // Open mobile menu
+      const menuButton = screen.getByRole('button', { name: /Open navigation menu/i });
+      fireEvent.click(menuButton);
+
+      // Verify menu is open
+      expect(screen.getByRole('menu', { name: /Mobile app navigation/i })).toBeInTheDocument();
+
+      // Press Escape key
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      // Menu should be closed
+      expect(
+        screen.queryByRole('menu', { name: /Mobile app navigation/i })
+      ).not.toBeInTheDocument();
+    });
+
+    it('closes profile menu when Escape key is pressed', () => {
+      render(<AppHeader />);
+
+      // Open profile menu
+      const profileButton = screen.getByRole('button', { name: /Profile menu/i });
+      fireEvent.click(profileButton);
+
+      // Verify menu is open
+      expect(screen.getByRole('menu', { name: /Profile options/i })).toBeInTheDocument();
+
+      // Press Escape key
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      // Menu should be closed
+      expect(screen.queryByRole('menu', { name: /Profile options/i })).not.toBeInTheDocument();
+    });
+
+    it('closes quick settings when Escape key is pressed', () => {
+      render(<AppHeader />);
+
+      // Open quick settings
+      const settingsButton = screen.getByRole('button', { name: /Quick settings/i });
+      fireEvent.click(settingsButton);
+
+      // Verify quick settings is open
+      expect(screen.getByRole('dialog', { name: /Quick settings/i })).toBeInTheDocument();
+
+      // Press Escape key
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      // Quick settings should be closed
+      expect(screen.queryByRole('dialog', { name: /Quick settings/i })).not.toBeInTheDocument();
+    });
+
     it('Heroicon icons are hidden from screen readers', () => {
       render(<AppHeader />);
 
