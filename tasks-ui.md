@@ -123,7 +123,7 @@ These specific issues were discovered during code review and need immediate atte
 - [x] Create `src/components/ui/CardImage.tsx` - Reusable card image component with built-in onError handler and fallback
 - [x] Create `/public/images/card-placeholder.svg` - Simple placeholder SVG for failed card images
 - [x] Update CardGrid to use CardImage component - Replace raw img/Image with error-handled version
-- [ ] Update VirtualCardGrid to use CardImage component - Replace raw img/Image with error-handled version
+- [x] Update VirtualCardGrid to use CardImage component - Replace raw img/Image with error-handled version
 
 ---
 
@@ -536,6 +536,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Updated landing page hero for multi-TCG branding - Fixed Landing Page Hero section in src/app/page.tsx to use CardDex brand colors instead of Pokemon-specific styling. Changes: FloatingCard SparklesIcon color changed from text-pokemon-yellow to text-kid-primary (line 41); FloatingStar default color prop changed from text-pokemon-yellow to text-kid-primary (line 51); "Made for young collectors" badge SparklesIcon changed from text-pokemon-yellow to text-kid-primary (line 95); Hero headline changed from "Pokemon Cards" to "Trading Cards" (lines 102-104). These changes align the landing page with CardDex's multi-TCG identity. All 26 LandingPage tests pass. Commit: cbb9b46
 
 - **2026-01-17**: Added onError handler to FlippableCard card back images - Updated FlippableCard component (src/components/collection/FlippableCard.tsx) to use the CardBack component from CardImage.tsx instead of raw Next.js Image components. This provides automatic error handling with fallback to placeholder when the Pokemon card back URL (https://images.pokemontcg.io/cardback.png) fails to load. Changes: imported CardBack from @/components/ui/CardImage, replaced Image components with CardBack in both FlippableCard and ZoomableCardModal. Added comprehensive test suite (25 tests) covering FlippableCard, CardFlipModal, and ZoomableCardModal components including: flip functionality, keyboard navigation (F key), accessibility (ARIA labels), controlled/uncontrolled modes, CardBack integration verification, zoom controls, and modal interactions. All FlippableCard tests pass. Commit: edb71fe
+
+- **2026-01-17**: Updated VirtualCardGrid to use CardImage component - Replaced raw Next.js Image component with CardImage component in VirtualCardGrid (src/components/collection/VirtualCardGrid.tsx) for card image display. This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling across the virtual card grid. Prevents broken image icons from appearing when browsing large card sets with virtual scrolling. All tests pass (5730 tests), ESLint and Prettier clean. Commit: 53ff0a0
 
 ---
 
