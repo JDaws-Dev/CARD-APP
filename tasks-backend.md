@@ -1,5 +1,14 @@
 # CardDex Backend Tasks
 
+> **See STATUS.md for overall project status**
+
+## Current Focus: CRITICAL API & Auth fixes, then Performance
+
+```
+Progress: ████████████████████░░░░░░░░  59/89 (66%)
+Remaining: 30 tasks
+```
+
 ## Status Summary (Updated 2026-01-17)
 
 | Section                              | Complete | Remaining |
@@ -61,7 +70,7 @@ These API routes are currently hardcoded to Pokemon and must be updated to suppo
 - [ ] `/api/cards/route.ts` - Update to accept game parameter, fetch from Convex cachedCards by game
 - [ ] `/api/search/route.ts` - Update to search within selected game's cached cards
 - [ ] `/api/filter/route.ts` - Update to filter within selected game's cached cards
-- [ ] Add Convex public query for cards by game - Create `getCardsByGame` and `searchCardsByGame` queries in dataPopulation.ts
+- [x] Add Convex public query for cards by game - Create `getCardsByGame` and `searchCardsByGame` queries in dataPopulation.ts
 
 ### CRITICAL - Auth & Security Fixes (January 2026 Evaluation)
 
@@ -198,6 +207,14 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-17: Add getCardsByGame and searchCardsByGame queries
+
+- Added `getCardsByGame` public query to `convex/dataPopulation.ts`
+  - Fetches all cached cards for a game with optional limit/offset pagination
+- Added `searchCardsByGame` public query for case-insensitive name search within a game
+  - Returns matching cards up to optional limit (default 50)
+- Both queries use the existing `by_game` index on cachedCards table
 
 ### 2026-01-17: Add composite index to activityLogs
 
