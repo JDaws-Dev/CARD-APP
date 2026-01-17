@@ -40,3 +40,9 @@
 **Files:** src/app/settings/page.tsx
 **Commit:** 8aa6031
 ---
+## CD-lur - Handle no-PIN-set state for Family Controls
+**Status:** Completed
+**Changes:** Added PIN setup prompt in PinProtectionWrapper when no PIN is configured. Parents must now create a PIN before accessing Family Controls settings.
+**Files:** src/components/settings/PinProtectionWrapper.tsx
+**Commit:** 7f05581
+---
