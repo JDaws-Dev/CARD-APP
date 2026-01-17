@@ -13,6 +13,7 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 
 | Section                                   | Complete | Remaining |
 | ----------------------------------------- | -------- | --------- |
+| **HIGH - Sets Page Card Viewing & Sorting** | 0      | **12**    |
 | **CRITICAL - Site Evaluation Fixes**      | 7        | **1**     |
 | **CRITICAL - Remove Unsupported Games**   | 0        | **7**     |
 | **CRITICAL - Settings Permissions**       | 0        | **7**     |
@@ -50,30 +51,58 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **208**   |
+| **TOTAL**                                 | **110**  | **220**   |
 
 ### Priority Order for Remaining Tasks
 
-1. **CRITICAL - Site Evaluation Fixes** (1 task) - Profile switcher for families
-2. **CRITICAL - Remove Unsupported Games** (7 tasks) - Remove Digimon, Dragon Ball, MTG from UI (only support Pokemon, One Piece, Lorcana, Yu-Gi-Oh!)
-3. **CRITICAL - Settings Permissions** (7 tasks) - Parent vs kid settings access control
-4. **CRITICAL - Landing Page Content** (10 tasks) - Specific text changes for multi-TCG (4 games only)
-5. **CRITICAL - Kid-Friendly Set Display** (15 tasks) - Only show sets kids can actually buy
-6. **HIGH - Security Hardening** (6 tasks) - CSP headers, external resource integrity
-7. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
-8. **HIGH - Performance Optimization UI** (8 tasks) - Memoization, lazy loading, faster collection page
-9. **HIGH - UX & Navigation Improvements** (12 tasks) - Back links, breadcrumbs, footer, user flow
-10. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
-11. **MEDIUM - Architecture Improvements** (13 tasks) - Provider optimization, error boundaries, code splitting
-12. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
-13. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section for 4 supported games
-14. **Landing Page AI Features** (13 tasks) - AI Magic section, pricing updates, trust badges
-15. **AI-Powered Features UI** (14 tasks) - Card scanner, chatbot, story modal, quiz components
-16. **Trade Logging UI** (12 tasks) - Log trade modal, timeline display, entry points
-17. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
-18. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
-19. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
-20. **MEDIUM - Master Set Mode & Variant Tracking** (16 tasks) - For completionist collectors who want to track all variants
+1. **HIGH - Sets Page Card Viewing & Sorting** (12 tasks) - Fix card overlap, enlarged cards, high-res images, magnifying glass, sorting by type/owned/price/number
+2. **CRITICAL - Site Evaluation Fixes** (1 task) - Profile switcher for families
+3. **CRITICAL - Remove Unsupported Games** (7 tasks) - Remove Digimon, Dragon Ball, MTG from UI (only support Pokemon, One Piece, Lorcana, Yu-Gi-Oh!)
+4. **CRITICAL - Settings Permissions** (7 tasks) - Parent vs kid settings access control
+5. **CRITICAL - Landing Page Content** (10 tasks) - Specific text changes for multi-TCG (4 games only)
+6. **CRITICAL - Kid-Friendly Set Display** (15 tasks) - Only show sets kids can actually buy
+7. **HIGH - Security Hardening** (6 tasks) - CSP headers, external resource integrity
+8. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
+9. **HIGH - Performance Optimization UI** (8 tasks) - Memoization, lazy loading, faster collection page
+10. **HIGH - UX & Navigation Improvements** (12 tasks) - Back links, breadcrumbs, footer, user flow
+11. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
+12. **MEDIUM - Architecture Improvements** (13 tasks) - Provider optimization, error boundaries, code splitting
+13. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
+14. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section for 4 supported games
+15. **Landing Page AI Features** (13 tasks) - AI Magic section, pricing updates, trust badges
+16. **AI-Powered Features UI** (14 tasks) - Card scanner, chatbot, story modal, quiz components
+17. **Trade Logging UI** (12 tasks) - Log trade modal, timeline display, entry points
+18. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
+19. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
+20. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
+21. **MEDIUM - Master Set Mode & Variant Tracking** (16 tasks) - For completionist collectors who want to track all variants
+
+---
+
+## HIGH - Sets Page Card Viewing & Sorting (January 2026)
+
+These features improve the card viewing experience on the sets page (`/sets/[setId]`).
+
+### Card Layout Fixes
+
+- [ ] **Fix card spacing/overlap** - Cards are overlapping each other on the sets page; fix grid gap and card sizing
+
+### Card Detail View Improvements
+
+- [ ] **Enlarged card on add** - When adding a card, show enlarged card image that stays visible until user clicks away (not auto-dismiss)
+- [ ] **Use high-res images** - Use `imageLarge` from the API instead of `imageSmall` for the enlarged card view
+- [ ] **Magnifying glass icon** - Add magnifying glass icon in bottom-left corner of card thumbnails for quick close-up view
+- [ ] **Card detail modal** - Create modal component that shows full card details with high-res image when magnifying glass is clicked
+
+### Sorting Options for Sets Page
+
+- [ ] **Sort by card type** - Add filter/sort for Pokemon card types: Pokemon, Trainer, Energy (for Pokemon TCG)
+- [ ] **Sort by owned/wanted** - Filter to show only owned cards, only unowned cards, or all cards
+- [ ] **Sort by recently added** - Sort cards by when they were added to collection (most recent first)
+- [ ] **Sort by card number** - Sort cards by their collector number (default sort)
+- [ ] **Sort by price** - Sort cards by market price (highest to lowest or vice versa)
+- [ ] **Sort dropdown UI** - Add sort dropdown to sets page header with all sorting options
+- [ ] **Remember sort preference** - Save user's sort preference in localStorage
 
 ---
 
@@ -113,7 +142,7 @@ We are focusing on **only 4 kid-friendly TCGs** based on Q4 2025 market data. Re
 **Supported games (KEEP):** Pokemon, One Piece, Disney Lorcana, Yu-Gi-Oh!
 **Unsupported games (REMOVE):** Digimon, Dragon Ball, Magic: The Gathering
 
-- [ ] Update `GameFilter.tsx` - Remove `digimon`, `dragonball`, `mtg` from GAMES array and GAME_COLORS
+- [x] Update `GameFilter.tsx` - Remove `digimon`, `dragonball`, `mtg` from GAMES array and GAME_COLORS
 - [ ] Update `GameSwitcher.tsx` - Remove unsupported games from game selector dropdown
 - [ ] Update onboarding game selector - Only show 4 supported games in "What do you collect?" screen
 - [ ] Update settings game toggle - Remove unsupported games from game selection options
@@ -1016,3 +1045,5 @@ Critical evaluation of ALL gamification features to ensure they make sense for R
 - [ ] Ensure gamification enhances, not replaces, the collecting experience
 
 - **2026-01-17**: Completed Line 185 landing page multi-TCG update - Changed "Pick Your Sets" Step 1 description from "Browse through all Pokemon card sets and choose which ones you want to track" to "Browse sets from Pokemon, Yu-Gi-Oh!, Lorcana, and more to track your favorites" in `src/app/page.tsx`. This makes the landing page more inclusive of all supported TCGs instead of only mentioning Pokemon. Landing page tests pass (29 tests). ESLint and Prettier clean. Commit: 8b64aa8
+
+- **2026-01-17**: Completed Line 141 Update GameFilter.tsx task - Removed unsupported games (digimon, dragonball, mtg) from `gameSelector.ts`. Updated GameId type from 7 games to 4 games (pokemon, yugioh, onepiece, lorcana). Removed game configurations from GAMES array and CSS variables from GAME_CSS_VARIABLES. Updated 5 test files to reflect the 4-game configuration: gameSelector.test.ts, games.test.ts, GameFilter.test.tsx, GameThemeProvider.test.tsx. All 160 game-related tests pass. ESLint and Prettier clean. Commit: ac8adcb
