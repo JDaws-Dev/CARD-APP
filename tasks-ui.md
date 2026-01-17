@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL fixes first, then HIGH priority
 
 ```
-Progress: ████████████░░░░░░░░░░░░░░░░  110/260 (42%)
-Remaining: 150 tasks (42 are LOW priority - do after launch)
+Progress: ████████████░░░░░░░░░░░░░░░░  110/287 (38%)
+Remaining: 177 tasks (42 are LOW priority - do after launch)
 ```
 
 ## Status Summary (Updated 2026-01-17 - Post Comprehensive Evaluation)
@@ -25,6 +25,8 @@ Remaining: 150 tasks (42 are LOW priority - do after launch)
 | **NEW - Architecture Improvements**       | 0        | **13**    |
 | **NEW - Security Hardening**              | 0        | **6**     |
 | **NEW - Kid-Friendly Set Display**        | 0        | **15**    |
+| **NEW - AI-Powered Features UI**          | 0        | **14**    |
+| **NEW - Landing Page AI Features**        | 0        | **13**    |
 | **LOW - Mobile UX Evaluation**            | 0        | **20**    |
 | **LOW - Gamification Evaluation**         | 0        | **22**    |
 | HIGH PRIORITY - Landing Page              | 9        | 0         |
@@ -44,7 +46,7 @@ Remaining: 150 tasks (42 are LOW priority - do after launch)
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **150**   |
+| **TOTAL**                                 | **110**  | **177**   |
 
 ### Priority Order for Remaining Tasks
 
@@ -60,9 +62,11 @@ Remaining: 150 tasks (42 are LOW priority - do after launch)
 10. **MEDIUM - Architecture Improvements** (13 tasks) - Provider optimization, error boundaries, code splitting
 11. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
 12. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section, update features
-13. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
-14. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
-15. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
+13. **Landing Page AI Features** (13 tasks) - AI Magic section, pricing updates, trust badges
+14. **AI-Powered Features UI** (14 tasks) - Card scanner, chatbot, story modal, quiz components
+15. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
+16. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
+17. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
 
 ---
 
@@ -153,6 +157,36 @@ The landing page currently only mentions Pokemon. Update to feature all supporte
 - [ ] Update pricing section - Change "500+ Pokemon sets" to "1,000+ sets across 6 popular games"
 - [ ] Update features section - Add "Multiple Games" as a key feature with game icons
 
+## NEW - Landing Page AI Features Section
+
+Add dedicated AI features section to landing page to highlight the "Snap to Add", "Ask Your Collection", and "Card Stories" features. This is a key competitive differentiator.
+
+### AI Magic Section (New section after "How It Works")
+
+- [ ] Create "Powered by AI Magic" section header - SparklesIcon with gradient, headline "Powered by AI Magic ✨", subhead "CardDex uses smart technology to make collecting easier and more fun"
+- [ ] Create "Snap to Add" feature card - CameraIcon, "Take a photo of any card and watch it get added to your collection instantly!", gradient from cyan to blue
+- [ ] Create "Ask Your Collection" feature card - ChatBubbleLeftIcon, "Ask questions like 'How many fire types do I have?' or 'What's my rarest card?'", gradient from purple to indigo
+- [ ] Create "Card Stories" feature card - BookOpenIcon, "Tap any card to hear cool facts and stories about your favorite characters!", gradient from amber to orange
+- [ ] Add AI demo animation/visual - Animated mockup showing photo → card appearing, or chat conversation example
+
+### Update Existing Sections for AI
+
+- [ ] Update "How It Works" Step 2 - Add "or snap a photo" alternative to tap-to-add description
+- [ ] Update social proof indicators - Add "AI-powered" or "Smart scanning" badge in hero section
+- [ ] Add AI testimonial - Parent quote about photo scanning or collection chat feature
+
+### Pricing Section AI Features
+
+- [ ] Add AI features to Free tier - "5 card scans/day", "10 collection questions/day"
+- [ ] Add AI features to Family tier - "20 card scans/day", "Unlimited questions", "Quiz Me!", "Fair Trade Helper"
+- [ ] Add "AI Features" row to pricing comparison table
+
+### Trust & Safety Section
+
+- [ ] Add "Kid-Safe AI" trust badge - ShieldCheckIcon, "All AI responses are filtered for age-appropriate content"
+- [ ] Add "No Personal Data" indicator - LockClosedIcon, "We never send your child's name or info to AI"
+- [ ] Update trust signals section - Include AI safety messaging alongside COPPA, No Ads, Cloud Backup
+
 ## CRITICAL - Settings Permissions (January 2026)
 
 The settings page currently allows ALL settings to be changed by anyone, including kids. This is a safety issue - kids can disable Sleep Mode, remove Parent PIN, etc. These tasks implement proper parent vs kid access control.
@@ -186,7 +220,7 @@ The My Collection page is slow to load. These UI-side optimizations will help.
 
 - [x] Add React.memo() to ActivityFeed component - Prevent unnecessary re-renders
 - [ ] Add useMemo to CollectionView set grouping logic (lines 115-151) - Cache expensive grouping computation
-- [ ] Add loading="lazy" to CardGrid card images - Defer offscreen image loading
+- [x] Add loading="lazy" to CardGrid card images - Defer offscreen image loading
 - [ ] Add loading="lazy" to CollectionView card images - Defer offscreen image loading
 - [ ] Add loading="lazy" to VirtualCardGrid card images - Defer offscreen image loading
 - [x] Lazy load VirtualTrophyRoom with React.lazy() - Don't load trophy room until needed
@@ -601,6 +635,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Added React.memo() to ActivityFeed component - Wrapped ActivityFeed, ActivityItem, and ActivityFeedSkeleton components with React.memo to prevent unnecessary re-renders when parent components update but props haven't changed. This optimization improves performance on the dashboard and collection pages where the activity feed is displayed. Added test suite verifying memo wrapping. ESLint and Prettier clean. Commit: 49a586a
 
 - **2026-01-17**: Lazy loaded GradeLikeAProGame with React.lazy() - Updated src/app/learn/page.tsx to use dynamic import for GradeLikeAProGame component. Wrapped in Suspense boundary with GradeLikeAProGameSkeleton as fallback for smooth loading experience. Added GradeLikeAProGameSkeleton component to GradeLikeAProGame.tsx that mimics the intro screen layout with shimmer placeholders. This improves initial page load by deferring game bundle until user clicks to open the game. Commit: e49178d
+
+- **2026-01-17**: Added loading="lazy" to CardGrid card images - Added `loading` prop to CardImage component (src/components/ui/CardImage.tsx) with "lazy" as default value. Updated CardImage to pass loading prop to Next.js Image component (set to undefined when priority is true to let Next.js handle it). Explicitly passed `loading="lazy"` to CardImage in CardGrid (src/components/collection/CardGrid.tsx) to defer offscreen image loading for better initial page performance. This optimization reduces bandwidth and improves Time to Interactive by only loading card images when they enter the viewport. Commit: 9da4809
 
 ---
 
