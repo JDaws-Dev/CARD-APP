@@ -2,8 +2,12 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { CardImage } from '@/components/ui/CardImage';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
+import type { Id } from '../../../convex/_generated/dataModel';
 import { CollectionGroupSkeleton, Skeleton } from '@/components/ui/Skeleton';
 import { ErrorFallback } from '@/components/ui/ErrorBoundary';
 import {
@@ -72,6 +76,24 @@ export function CollectionView({ collection }: CollectionViewProps) {
   const [isBinderOpen, setIsBinderOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<CardWithQuantity | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+
+  // Get current profile for mutations
+  const { profileId } = useCurrentProfile();
+
+  // Mutations for quick actions
+  const removeCardMutation = useMutation(api.collections.removeCard);
+  const addToWishlistMutation = useMutation(api.wishlist.addToWishlist);
+  const updateQuantityMutation = useMutation(api.collections.updateQuantity);
+
+  // Check if selected card is on wishlist
+  const wishlistStatus = useQuery(
+    api.wishlist.isOnWishlist,
+    selectedCard && profileId
+      ? { profileId: profileId as Id<'profiles'>, cardId: selectedCard.id }
+      : 'skip'
+  );
 
   // Memoize cardData Map to prevent recreation on every render
   // Only rebuilds when fetchedCards array reference changes
@@ -312,6 +334,63 @@ export function CollectionView({ collection }: CollectionViewProps) {
     : -1;
   const hasPreviousCard = selectedCardIndex > 0;
   const hasNextCard = selectedCardIndex >= 0 && selectedCardIndex < allCardsForBinder.length - 1;
+
+  // Quick action handlers
+  const handleRemoveCard = useCallback(
+    async (cardId: string) => {
+      if (!profileId || !selectedCard) return;
+      setIsRemoving(true);
+      try {
+        await removeCardMutation({
+          profileId: profileId as Id<'profiles'>,
+          cardId,
+          cardName: selectedCard.name,
+          setName: selectedCard.set.name,
+        });
+        // Close modal after successful removal
+        setIsDetailModalOpen(false);
+        setSelectedCard(null);
+      } finally {
+        setIsRemoving(false);
+      }
+    },
+    [profileId, selectedCard, removeCardMutation]
+  );
+
+  const handleAddToWishlist = useCallback(
+    async (cardId: string) => {
+      if (!profileId) return;
+      setIsAddingToWishlist(true);
+      try {
+        await addToWishlistMutation({
+          profileId: profileId as Id<'profiles'>,
+          cardId,
+          gameSlug: 'pokemon',
+        });
+      } finally {
+        setIsAddingToWishlist(false);
+      }
+    },
+    [profileId, addToWishlistMutation]
+  );
+
+  const handleEditQuantity = useCallback(
+    async (cardId: string, newQuantity: number) => {
+      if (!profileId || !selectedCard) return;
+      try {
+        await updateQuantityMutation({
+          profileId: profileId as Id<'profiles'>,
+          cardId,
+          quantity: newQuantity,
+        });
+        // Update local state immediately for responsiveness
+        setSelectedCard((prev) => (prev ? { ...prev, quantity: newQuantity } : null));
+      } catch (err) {
+        console.error('Failed to update quantity:', err);
+      }
+    },
+    [profileId, selectedCard, updateQuantityMutation]
+  );
 
   if (isLoading) {
     // Show skeleton for estimated number of groups based on collection size
@@ -559,6 +638,12 @@ export function CollectionView({ collection }: CollectionViewProps) {
         onNext={handleNextCard}
         hasPrevious={hasPreviousCard}
         hasNext={hasNextCard}
+        onRemoveCard={handleRemoveCard}
+        onAddToWishlist={handleAddToWishlist}
+        onEditQuantity={handleEditQuantity}
+        isOnWishlist={wishlistStatus?.onWishlist ?? false}
+        isRemoving={isRemoving}
+        isAddingToWishlist={isAddingToWishlist}
       />
     </div>
   );

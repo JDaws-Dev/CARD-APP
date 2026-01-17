@@ -1,0 +1,24 @@
+
+# Ralph Session 2026-01-17 17:39:12
+# Scope: Working on: priority<=**1**
+
+
+# Ralph Session 2026-01-17 17:42:03
+# Scope: Working on: priority<=**1**
+
+## CD-sux - Collection Modal - Show owned variants
+**Status:** Completed
+**Changes:** Added owned variants display section to CardDetailModal showing variant badges with quantities (e.g., "Normal x2, Holo x1"). Updated CollectionView to aggregate collection entries by cardId and track variant quantities per card.
+**Files:** src/components/collection/CardDetailModal.tsx, src/components/collection/CollectionView.tsx
+**Commit:** 90b4ca2
+---
+
+# Ralph Session 2026-01-17 17:54:27
+# Scope: Working on: **all open issues**
+
+## CD-2i4 - Profile switcher for families
+**Status:** Completed (previously implemented)
+**Changes:** Verified existing implementation from commit 6f2190a
+**Files:** src/components/header/ProfileSwitcher.tsx, src/components/layout/AppHeader.tsx
+**Commit:** 6f2190a (existing)
+---

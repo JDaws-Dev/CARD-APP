@@ -28,10 +28,10 @@ The loop will restart you for the next issue. Your job is ONE issue per iteratio
 
 ## Current Scope
 
-{{SCOPE_DESCRIPTION}}
+Working on: **all open issues**
 
-**Filter command:** `{{READY_CMD}}`
-{{EPIC_CONTEXT}}
+**Filter command:** `cd /Users/jeremiahdaws/.beads-planning {{READY_CMD}}{{READY_CMD}} bd ready`
+
 
 ---
 
@@ -39,7 +39,7 @@ The loop will restart you for the next issue. Your job is ONE issue per iteratio
 
 Run the ready command to get your next issue:
 ```bash
-{{READY_CMD}}
+cd /Users/jeremiahdaws/.beads-planning {{READY_CMD}}{{READY_CMD}} bd ready
 ```
 
 Select the **top issue** from the list.
@@ -221,7 +221,7 @@ During your work, you may discover bugs, missing functionality, or follow-up tas
 
 **DO NOT get blocked by these.** File new issues:
 ```bash
-bd create --title "<title>" --type <bug|task|feature> --priority P2{{PARENT_FLAG}}
+bd create --title "<title>" --type <bug|task|feature> --priority P2
 ```
 
 Add any relevant context to the new issue description.
@@ -300,12 +300,12 @@ If you completed an issue successfully, just stop. The loop will restart you.
 
 | Command | Purpose |
 |---------|---------|
-| `{{READY_CMD}}` | List issues ready to work (scoped) |
+| `cd /Users/jeremiahdaws/.beads-planning {{READY_CMD}}{{READY_CMD}} bd ready` | List issues ready to work (scoped) |
 | `bd show <id>` | View issue details |
 | `bd update <id> --status in_progress` | Claim an issue |
 | `bd update <id> --acceptance "<text>"` | Update acceptance criteria |
 | `bd update <id> --notes "<text>"` | Add implementation notes |
-| `bd create --title "..." --type task{{PARENT_FLAG}}` | Create new issue |
+| `bd create --title "..." --type task` | Create new issue |
 | `bd close <id>` | Close completed issue |
 
 ---

@@ -7,8 +7,12 @@ import {
   XMarkIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
+  SparklesIcon,
+  TrashIcon,
+  HeartIcon,
+  MinusIcon,
+  PlusIcon,
 } from '@heroicons/react/24/solid';
-import { SparklesIcon } from '@heroicons/react/24/solid';
 import Link from 'next/link';
 
 // Variant type definition (matches CardGrid.tsx)
@@ -79,6 +83,13 @@ interface CardDetailModalProps {
   onNext?: () => void;
   hasPrevious?: boolean;
   hasNext?: boolean;
+  // Quick action callbacks
+  onRemoveCard?: (cardId: string) => void;
+  onAddToWishlist?: (cardId: string) => void;
+  onEditQuantity?: (cardId: string, newQuantity: number) => void;
+  isOnWishlist?: boolean;
+  isRemoving?: boolean;
+  isAddingToWishlist?: boolean;
 }
 
 export function CardDetailModal({
@@ -89,6 +100,12 @@ export function CardDetailModal({
   onNext,
   hasPrevious = false,
   hasNext = false,
+  onRemoveCard,
+  onAddToWishlist,
+  onEditQuantity,
+  isOnWishlist = false,
+  isRemoving = false,
+  isAddingToWishlist = false,
 }: CardDetailModalProps) {
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
@@ -314,14 +331,92 @@ export function CardDetailModal({
             )}
           </div>
 
-          {/* View in set link */}
-          <Link
-            href={`/sets/${card.set.id}`}
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-kid-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-kid-primary/80"
-          >
-            View in Set
-            <ArrowRightIcon className="h-4 w-4" />
-          </Link>
+          {/* Quick Actions */}
+          <div className="mt-6 space-y-3">
+            <span className="text-sm text-white/50">Quick Actions:</span>
+            <div className="flex flex-wrap gap-2">
+              {/* View in Set */}
+              <Link
+                href={`/sets/${card.set.id}`}
+                className="inline-flex items-center gap-2 rounded-lg bg-kid-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-kid-primary/80"
+              >
+                View in Set
+                <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+
+              {/* Add to Wishlist */}
+              {onAddToWishlist && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToWishlist(card.id);
+                  }}
+                  disabled={isAddingToWishlist || isOnWishlist}
+                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
+                    isOnWishlist
+                      ? 'cursor-default bg-rose-500/30 text-rose-300'
+                      : 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30'
+                  } disabled:opacity-50`}
+                  aria-label={isOnWishlist ? 'Already on wishlist' : 'Add to wishlist'}
+                >
+                  <HeartIcon className={`h-4 w-4 ${isOnWishlist ? 'fill-current' : ''}`} />
+                  {isAddingToWishlist
+                    ? 'Adding...'
+                    : isOnWishlist
+                      ? 'On Wishlist'
+                      : 'Add to Wishlist'}
+                </button>
+              )}
+
+              {/* Edit Quantity */}
+              {onEditQuantity && (
+                <div className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (card.quantity > 1) {
+                        onEditQuantity(card.id, card.quantity - 1);
+                      }
+                    }}
+                    disabled={card.quantity <= 1}
+                    className="rounded p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent"
+                    aria-label="Decrease quantity"
+                  >
+                    <MinusIcon className="h-4 w-4" />
+                  </button>
+                  <span className="min-w-[2rem] text-center text-sm font-medium text-white">
+                    x{card.quantity}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditQuantity(card.id, card.quantity + 1);
+                    }}
+                    className="rounded p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white"
+                    aria-label="Increase quantity"
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Remove Card */}
+              {onRemoveCard && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemoveCard(card.id);
+                  }}
+                  disabled={isRemoving}
+                  className="inline-flex items-center gap-2 rounded-lg bg-red-500/20 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/30 disabled:opacity-50"
+                  aria-label="Remove card from collection"
+                >
+                  <TrashIcon className="h-4 w-4" />
+                  {isRemoving ? 'Removing...' : 'Remove'}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
