@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import { useMutation, useQuery } from 'convex/react';
+import { CardImage } from '@/components/ui/CardImage';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { cn } from '@/lib/utils';
@@ -38,8 +38,8 @@ function AddedCard({ card, onAnimationEnd }: { card: PokemonCard; onAnimationEnd
   return (
     <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center">
       <div className="animate-just-pulled-pop relative">
-        <div className="h-64 w-44 overflow-hidden rounded-xl shadow-2xl ring-4 ring-kid-success">
-          <Image src={card.images.small} alt={card.name} fill className="object-contain" />
+        <div className="relative h-64 w-44 overflow-hidden rounded-xl shadow-2xl ring-4 ring-kid-success">
+          <CardImage src={card.images.small} alt={card.name} fill className="object-contain" />
         </div>
         <div className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-kid-success text-white shadow-lg">
           <CheckIcon className="h-6 w-6" strokeWidth={3} />
@@ -254,7 +254,7 @@ export function JustPulledMode({ cards, setId, setName, onClose }: JustPulledMod
                 )}
                 aria-label={`Add ${card.name} to collection${isOwned ? `, currently have ${totalQty}` : ''}`}
               >
-                <Image
+                <CardImage
                   src={card.images.small}
                   alt={card.name}
                   fill
