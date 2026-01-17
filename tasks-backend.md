@@ -5,15 +5,15 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: ██████████████████████░░░░░░  71/89 (80%)
-Remaining: 18 tasks
+Progress: ██████████████████████░░░░░░  72/89 (81%)
+Remaining: 17 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
 
 | Section                             | Complete | Remaining |
 | ----------------------------------- | -------- | --------- |
-| **CRITICAL - Multi-TCG API**        | 3        | **2**     |
+| **CRITICAL - Multi-TCG API**        | 4        | **1**     |
 | **CRITICAL - Auth Fixes**           | 5        | **0**     |
 | **HIGH - Performance Optimization** | 5        | **2**     |
 | HIGH PRIORITY - Auth & Pricing      | 9        | **1**     |
@@ -28,7 +28,7 @@ Remaining: 18 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | Launch Prep                         | 4        | **5**     |
-| **TOTAL**                           | **71**   | **18**    |
+| **TOTAL**                           | **72**   | **17**    |
 
 ### Critical Path for Launch
 
@@ -69,7 +69,7 @@ These API routes are currently hardcoded to Pokemon and must be updated to suppo
 - [x] `/api/sets/route.ts` - Update to accept `?game=pokemon|yugioh|etc` parameter, fetch from Convex cachedSets instead of pokemon-tcg.ts
 - [x] `/api/cards/route.ts` - Update to accept game parameter, fetch from Convex cachedCards by game
 - [x] `/api/search/route.ts` - Update to search within selected game's cached cards
-- [ ] `/api/filter/route.ts` - Update to filter within selected game's cached cards
+- [x] `/api/filter/route.ts` - Update to filter within selected game's cached cards
 - [x] Add Convex public query for cards by game - Create `getCardsByGame` and `searchCardsByGame` queries in dataPopulation.ts
 
 ### CRITICAL - Auth & Security Fixes (January 2026 Evaluation)
@@ -213,6 +213,48 @@ Add `games` table to Convex schema with fields: id, slug, display_name, api_sour
 ---
 
 ## Progress
+
+### 2026-01-17: Update /api/filter route to support multi-TCG game selection
+
+- **Added `filterCardsByGame` Convex query to `convex/dataPopulation.ts`**
+  - Supports filtering by setId, type, name, and rarity
+  - Uses `by_game_and_set` index for optimal setId+game queries
+  - Case-insensitive partial matching for name, exact match for type/rarity
+  - Pagination support with limit (default 50, max 500) and offset
+  - Returns totalCount, hasMore, and applied filters metadata
+- **Updated `src/app/api/filter/route.ts` to support multi-TCG games**
+  - Migrated from `pokemon-tcg.ts` `filterCards` to Convex `filterCardsByGame` query
+  - Supports all 7 TCGs: pokemon, yugioh, mtg, onepiece, lorcana, digimon, dragonball
+- **GET endpoint enhancements:**
+  - Added `game` query parameter (defaults to 'pokemon' for backward compatibility)
+  - Added `rarity` filter parameter (new feature)
+  - Added `offset` parameter for pagination
+  - Retained existing filters: setId, type, name, limit
+  - At least one filter (setId, type, name, or rarity) required
+  - Name validation: 2-100 chars, trimmed
+  - Limit clamped to 1-100, offset must be non-negative
+- **Response structure includes:**
+  - `data`: Array of transformed cards
+  - `game`: Selected game slug
+  - `filters`: Applied filter values
+  - `count`, `totalCount`: Number of cards in page / total matching
+  - `limit`, `offset`, `hasMore`: Pagination metadata
+  - `availableGames`: Array of valid game slugs
+  - `commonTypes`: Hint list of types for selected game
+- **Comprehensive error handling:**
+  - 400 for missing filters, invalid game, name too short/long
+  - 500 for server config errors and Convex query failures
+  - Error responses include `details` field for debugging
+- **Wrote 52 test cases covering:**
+  - Filter parameter validation (setId, type, name, rarity)
+  - Game parameter handling (default, explicit, all 7 valid slugs, invalid)
+  - Limit/offset pagination parameters
+  - Multiple filter combinations
+  - Response structure validation (transformed cards, metadata, commonTypes)
+  - Error handling (env vars, Convex errors, non-Error exceptions)
+  - Backward compatibility (works without game param)
+  - Cross-game filtering (yugioh, mtg, lorcana, onepiece, digimon, dragonball)
+- All 52 tests pass, ESLint clean, Prettier formatted
 
 ### 2026-01-17: Update /api/search route to support multi-TCG game selection
 
