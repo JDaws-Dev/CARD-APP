@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: █████████████████████████░░░░  107/124 (86%)
-Remaining: 17 tasks
+Progress: █████████████████████████░░░░  108/124 (87%)
+Remaining: 16 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -27,11 +27,11 @@ Remaining: 17 tasks
 | Gamification Backend                | 3        | 0         |
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
-| **AI-Powered Features**             | 18       | **3**     |
+| **AI-Powered Features**             | 19       | **2**     |
 | **Trade Logging**                   | 7        | **0**     |
 | Launch Prep                         | 4        | **5**     |
 | **Kid-Friendly Set Filtering**      | **7**    | **0**     |
-| **TOTAL**                           | **107**  | **17**    |
+| **TOTAL**                           | **108**  | **16**    |
 
 ### Critical Path for Launch
 
@@ -245,7 +245,7 @@ Backend actions and queries for AI features. Requires `OPENAI_API_KEY` environme
 - [x] AI-032: Create `convex/ai/recommendations.ts` - Smart card recommendations based on collection patterns
 - [x] AI-033: Create `convex/ai/tradeAdvisor.ts` - Fair trade suggestions between siblings using collection data
 - [x] AI-034: Create `convex/ai/shoppingAssistant.ts` - Parent gift helper analyzing wishlist, set completion, budget
-- [ ] AI-035: Create `convex/ai/conditionGrader.ts` - Card condition tutoring with GPT-4o Vision explaining grades
+- [x] AI-035: Create `convex/ai/conditionGrader.ts` - Card condition tutoring with GPT-4o Vision explaining grades
 
 ### Trade Logging System
 
@@ -3167,6 +3167,41 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - Integration scenarios (12) - friend trade, family gift, donation, invalid trade, variant upgrade
   - Edge case tests (8) - empty collections, large quantities, special characters
 - All 108 tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Add AI-powered card condition grader (AI-035)
+
+- **Created `convex/ai/conditionGrader.ts` with GPT-4o Vision card condition tutoring:**
+  - `gradeCardCondition` action: Uses GPT-4o Vision to analyze card photos
+  - Identifies condition grade: NM (Near Mint), LP (Lightly Played), MP (Moderately Played), HP (Heavily Played), DMG (Damaged)
+  - Provides detailed breakdown of corners, edges, surface, and centering
+  - Explains WHY the card has that grade in kid-friendly language
+  - Includes care tips and fun facts about card collecting
+  - Rate limited to 10 gradings per day per profile
+  - Multi-TCG support for all 7 games
+  - `getRemainingGradings` action: Returns rate limit status
+  - `getGradingGuide` action: Returns static educational content about grading
+- **Updated `convex/ai/internalMutations.ts`:**
+  - Added `logConditionGrading` internal mutation for usage tracking
+  - Logs grade, confidence, model, tokens, and cost
+  - Increments rate limit counter (daily window)
+- **Created `src/lib/__tests__/conditionGrader.test.ts` with 45 tests:**
+  - Grade validation tests (5) - NM, LP, MP, HP, DMG
+  - Condition rating validation tests (4) - perfect, good, fair, poor
+  - Centering rating validation tests (3) - well-centered, slightly-off, off-center
+  - Confidence validation tests (3) - high, medium, low
+  - Grade information function tests (8) - getGradeFullName, getGradeEmoji, getGradeSortOrder, getValuePercentage
+  - Condition area validation tests (4)
+  - Condition details validation tests (3)
+  - Grading result validation tests (3)
+  - Grade estimation from ratings tests (5)
+  - Trade acceptability tests (2)
+  - Grade comparison tests (2)
+  - Condition category tests (4)
+  - Grading guide structure tests (2)
+  - Error handling tests (2)
+  - Multi-TCG support tests (2)
+  - Rate limiting tests (2)
+- All 45 tests pass, ESLint clean, Prettier formatted
 
 ---
 
