@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import Image from 'next/image';
 import { useQuery, useMutation } from 'convex/react';
+import { CardImage } from '@/components/ui/CardImage';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { cn } from '@/lib/utils';
@@ -713,12 +713,11 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
               <div className="absolute inset-0 -translate-x-full animate-[shimmer_3s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-cyan-200/30 to-transparent" />
             </div>
           )}
-          <Image
+          <CardImage
             src={card.images.small}
             alt={card.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            className="object-contain"
           />
 
           {/* Owned Checkmark */}
