@@ -52,3 +52,21 @@
 **Files:** convex/schema.ts, convex/profileSettings.ts (new), src/components/providers/SleepModeProvider.tsx, src/components/settings/SleepModeSettings.tsx
 **Commit:** fde2fb7
 ---
+## CD-r4z - Add unlock button flow for Family Controls
+**Status:** Completed
+**Changes:** Verified existing implementation - PinProtectionWrapper component provides full unlock button flow with PIN entry, session-based unlock state, and re-lock capability
+**Files:** 
+- src/components/settings/PinProtectionWrapper.tsx (unlock UI)
+- src/app/settings/page.tsx (uses wrapper)
+- convex/pinProtection.ts (backend validation)
+**Commit:** N/A - feature was already implemented
+---
+## CD-0bg - Protect Game Selection toggle in Family Controls
+**Status:** Completed (Already Implemented)
+**Changes:** No code changes required - verified feature is already implemented
+**Files:** 
+- src/app/settings/page.tsx - GameSettingsToggle inside PinProtectionWrapper
+- src/components/settings/PinProtectionWrapper.tsx - PIN protection UI
+- convex/pinProtection.ts - Secure PIN backend
+**Verification:** Game selection is fully protected by parent PIN in Family Controls
+---
