@@ -9,12 +9,7 @@ import type { Id } from '../../../convex/_generated/dataModel';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/components/providers/ReducedMotionProvider';
 import { Skeleton } from '@/components/ui/Skeleton';
-import {
-  TrophyIcon,
-  SparklesIcon,
-  CurrencyDollarIcon,
-  StarIcon,
-} from '@heroicons/react/24/solid';
+import { TrophyIcon, SparklesIcon, CurrencyDollarIcon, StarIcon } from '@heroicons/react/24/solid';
 import { Square3Stack3DIcon } from '@heroicons/react/24/outline';
 
 // Rarity glow color mapping
@@ -27,7 +22,8 @@ const RARITY_GLOW_COLORS: Record<string, string> = {
   'Rare Holo VSTAR': 'from-amber-400/60 via-yellow-300/40 to-amber-500/60',
   'Rare Ultra': 'from-purple-500/70 via-indigo-400/50 to-purple-600/70',
   'Rare Secret': 'from-yellow-500/70 via-amber-400/50 to-yellow-600/70',
-  'Rare Rainbow': 'from-red-400/50 via-yellow-400/50 via-green-400/50 via-blue-400/50 to-purple-400/50',
+  'Rare Rainbow':
+    'from-red-400/50 via-yellow-400/50 via-green-400/50 via-blue-400/50 to-purple-400/50',
   'Rare Shiny': 'from-cyan-400/60 via-teal-300/40 to-cyan-500/60',
   'Amazing Rare': 'from-rose-400/60 via-pink-300/40 to-rose-500/60',
   'Illustration Rare': 'from-emerald-400/60 via-teal-300/40 to-emerald-500/60',
@@ -139,16 +135,14 @@ function TrophySlot({ card, rank, reducedMotion }: TrophySlotProps) {
             ${card.totalValue.toFixed(2)}
           </span>
         </div>
-        {card.rarity && (
-          <p className="mt-0.5 truncate text-[10px] text-gray-500">{card.rarity}</p>
-        )}
+        {card.rarity && <p className="mt-0.5 truncate text-[10px] text-gray-500">{card.rarity}</p>}
       </div>
     </div>
   );
 }
 
-// Skeleton for loading state
-function TrophyRoomSkeleton() {
+// Skeleton for loading state - exported for use as Suspense fallback
+export function TrophyRoomSkeleton() {
   return (
     <div className="rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-6 shadow-sm">
       {/* Header skeleton */}
@@ -262,7 +256,7 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
       </div>
 
       {/* Trophy display shelves */}
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-amber-100/50 via-amber-150/30 to-amber-200/50 p-4 sm:p-6">
+      <div className="via-amber-150/30 relative overflow-hidden rounded-xl bg-gradient-to-b from-amber-100/50 to-amber-200/50 p-4 sm:p-6">
         {/* Decorative wall texture */}
         <div className="pointer-events-none absolute inset-0 opacity-10">
           <div className="absolute left-4 top-4 h-20 w-20 rounded-full bg-gradient-to-br from-amber-400 to-transparent blur-2xl" />

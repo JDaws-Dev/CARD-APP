@@ -78,7 +78,22 @@ These issues were identified during the January 17, 2026 site evaluation and MUS
 - [x] Fix AuthForm styling - Replace blue-600 colors with CardDex brand gradients
 - [x] Add password strength indicator - Visual indicator showing password requirements during signup
 - [ ] Add profile switcher to header - Allow switching between child profiles for families (parent accounts)
-- [ ] Redirect logged-in users from landing page to dashboard - In `/page.tsx`, check auth state and redirect authenticated users to `/dashboard` so they don't see the marketing landing page with the app navbar
+- [ ] **CRITICAL: Redirect logged-in users from `/` to `/dashboard`** - Currently logged-in users see landing page with AppHeader navbar overlaid on marketing content. Add auth check to `/page.tsx` and redirect authenticated users to `/dashboard`
+
+### Auth State Issues (January 17, 2026 - Comprehensive Eval)
+
+These issues relate to inconsistent behavior between logged-in and logged-out states.
+
+- [ ] **CRITICAL: `/login` should redirect to `/dashboard` if already authenticated** - Logged-in users can still access login page
+- [ ] **CRITICAL: `/signup` should redirect to `/dashboard` if already authenticated** - Logged-in users can still access signup page
+- [ ] Protect `/dashboard` route - Redirect to `/login` if not authenticated
+- [ ] Protect `/collection` route - Redirect to `/login` if not authenticated
+- [ ] Protect `/my-wishlist` route - Redirect to `/login` if not authenticated
+- [ ] Protect `/badges` route - Redirect to `/login` if not authenticated
+- [ ] Protect `/settings` route - Redirect to `/login` if not authenticated
+- [ ] Protect `/parent-dashboard` route - Redirect to `/login` if not authenticated (also check parent role)
+- [ ] Protect `/streak` route - Redirect to `/login` if not authenticated
+- [ ] Protect `/learn` route - Redirect to `/login` if not authenticated
 
 ## Multi-TCG Pages Update
 
@@ -174,7 +189,7 @@ The My Collection page is slow to load. These UI-side optimizations will help.
 - [ ] Add loading="lazy" to CardGrid card images - Defer offscreen image loading
 - [ ] Add loading="lazy" to CollectionView card images - Defer offscreen image loading
 - [ ] Add loading="lazy" to VirtualCardGrid card images - Defer offscreen image loading
-- [ ] Lazy load VirtualTrophyRoom with React.lazy() - Don't load trophy room until needed
+- [x] Lazy load VirtualTrophyRoom with React.lazy() - Don't load trophy room until needed
 - [ ] Increase VirtualCardGrid overscan on mobile - Change from 3 to 5 rows for smoother scrolling on slower devices
 - [ ] Memoize cardData Map in CollectionView - Prevent recreation on every render
 
@@ -507,6 +522,7 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-16**: Moved accessibility toggles from header to Settings page - Removed Low-Stimulation, Dyslexic Font, High Contrast, Reduced Motion, and Focus Mode toggles from AppHeader (both desktop and mobile views). Header now shows only essential items: logo, nav links, level display, streak counter, offline indicator, kid mode toggle, dark mode toggle, and profile menu. Accessibility options remain fully accessible via the dedicated Settings page. Commit: b1ef6c9
 - **2026-01-16**: Simplified header to essential items only - Removed LevelDisplay, StreakCounter, OfflineIndicator, KidModeToggle, and DarkModeToggle from AppHeader. Added single settings gear icon (Cog6ToothIcon) linking to /settings page. Header now contains only: logo, main nav links (My Collection, Browse Sets, Badges, Wishlist, Search), settings gear icon, and profile dropdown menu. Mobile menu also simplified with Settings link instead of inline toggles. All removed features remain accessible via dedicated Settings page. Commit: 55c9475
 - **2026-01-16**: Added Settings link to profile dropdown menu - Quick access to Settings page from anywhere in the app via profile dropdown. Link appears with Cog6ToothIcon after Learn to Collect and before Sign Out divider. Matches existing menu item styling with active state highlighting. Commit: 70b0a86
+- **2026-01-17**: Lazy loaded VirtualTrophyRoom with React.lazy() - Updated src/app/collection/page.tsx to use dynamic import for VirtualTrophyRoom component. Wrapped in Suspense boundary with TrophyRoomSkeleton as fallback for smooth loading experience. Exported TrophyRoomSkeleton from VirtualTrophyRoom.tsx for use as Suspense fallback. This improves initial page load by deferring trophy room bundle until needed.
 - **2026-01-16**: Completed UI Cleanup & Settings section - Settings page sections already organized into Display (dark mode, kid mode), Accessibility (low-stim, dyslexic font, high contrast, reduced motion, focus mode), Games (TCG selection), and Notifications. Added quick settings popover from header gear icon with DarkModeToggle and KidModeToggle for fast access without leaving current page. Desktop shows popover on gear click; mobile menu includes Quick Settings section with same toggles. Commit: b835962
 - **2026-01-16**: Added streak repair with XP - Created comprehensive streak repair system (src/lib/streakRepair.ts, src/components/gamification/StreakRepair.tsx) allowing users to spend accumulated XP to repair a recently broken streak. Features: 48-hour repair window after streak breaks; cost formula scales with streak length (base cost + streak bonus); cost breakdown display showing base cost and streak multiplier; urgency indicators (critical/high styling when time running low); StreakRepairStatus card with XP cost, time remaining, repair button; RepairSuccessModal with celebration animation when streak restored; StreakRepairIndicator compact version for inline display; localStorage persistence for repair state and history. Integrated into /streak page below calendar, updated info card and tips section to mention repair feature. Uses Heroicons (WrenchScrewdriverIcon, BoltIcon, ClockIcon, FireIcon, ExclamationTriangleIcon, CheckCircleIcon, SparklesIcon). Commit: cd9db31
 - **2026-01-16**: Added daily stamp collection system - Created non-consecutive stamp system where users collect 5 stamps in any week for bonus XP reward. Features: dailyStamps.ts utility library with stamp tracking, week boundaries, and progress calculations; DailyStampProvider context for app-wide state management; DailyStampCollection component with weekly 7-day stamp grid, interactive collect-today cells with pulse animation, progress bar with smooth transitions, reward claim modal with celebration animation; stamp milestones at 10/25/50/100 total stamps with progress indicators; localStorage persistence with automatic cleanup of old data (>8 weeks); integrated into /streak page with skeleton loading states; added tip about daily stamps to tips section. Uses Heroicons (CalendarDaysIcon, GiftIcon, SparklesIcon, CheckCircleIcon, StarIcon, FireIcon, BoltIcon). Commit: fb6ee0d

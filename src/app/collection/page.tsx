@@ -1,5 +1,6 @@
 'use client';
 
+import { lazy, Suspense } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
@@ -19,7 +20,10 @@ import {
 } from '@heroicons/react/24/outline';
 import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
-import { VirtualTrophyRoom } from '@/components/virtual/VirtualTrophyRoom';
+import { TrophyRoomSkeleton } from '@/components/virtual/VirtualTrophyRoom';
+
+// Lazy load VirtualTrophyRoom - it's not critical for initial page render
+const VirtualTrophyRoom = lazy(() => import('@/components/virtual/VirtualTrophyRoom'));
 
 export default function MyCollectionPage() {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
@@ -135,9 +139,11 @@ export default function MyCollectionPage() {
           </div>
         </div>
 
-        {/* Virtual Trophy Room */}
+        {/* Virtual Trophy Room - lazy loaded with Suspense */}
         <div className="mb-6 sm:mb-8">
-          <VirtualTrophyRoom />
+          <Suspense fallback={<TrophyRoomSkeleton />}>
+            <VirtualTrophyRoom />
+          </Suspense>
         </div>
 
         {/* Stats Overview */}
