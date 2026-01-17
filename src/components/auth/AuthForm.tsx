@@ -8,11 +8,80 @@ import {
   CheckCircleIcon,
   UserGroupIcon,
   UserIcon,
+  CheckIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 type AuthMode = "signIn" | "signUp";
 type AccountType = "family" | "individual" | null;
 type SignUpStep = "account-type" | "credentials";
+
+interface PasswordRequirement {
+  label: string;
+  met: boolean;
+}
+
+function getPasswordRequirements(password: string): PasswordRequirement[] {
+  return [
+    { label: "At least 8 characters", met: password.length >= 8 },
+    { label: "Contains a number", met: /\d/.test(password) },
+    { label: "Contains uppercase letter", met: /[A-Z]/.test(password) },
+    { label: "Contains lowercase letter", met: /[a-z]/.test(password) },
+  ];
+}
+
+function getPasswordStrength(password: string): { label: string; color: string; width: string } {
+  const requirements = getPasswordRequirements(password);
+  const metCount = requirements.filter((r) => r.met).length;
+
+  if (metCount === 0) return { label: "", color: "bg-gray-200", width: "w-0" };
+  if (metCount === 1) return { label: "Weak", color: "bg-red-500", width: "w-1/4" };
+  if (metCount === 2) return { label: "Fair", color: "bg-orange-500", width: "w-2/4" };
+  if (metCount === 3) return { label: "Good", color: "bg-yellow-500", width: "w-3/4" };
+  return { label: "Strong", color: "bg-green-500", width: "w-full" };
+}
+
+function PasswordStrengthIndicator({ password }: { password: string }) {
+  const requirements = getPasswordRequirements(password);
+  const strength = getPasswordStrength(password);
+
+  if (!password) return null;
+
+  return (
+    <div className="mt-2 space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={`h-full ${strength.color} ${strength.width} transition-all duration-300`}
+          />
+        </div>
+        {strength.label && (
+          <span className={`text-xs font-medium ${
+            strength.label === "Strong" ? "text-green-600" :
+            strength.label === "Good" ? "text-yellow-600" :
+            strength.label === "Fair" ? "text-orange-600" : "text-red-600"
+          }`}>
+            {strength.label}
+          </span>
+        )}
+      </div>
+      <ul className="space-y-1">
+        {requirements.map((req) => (
+          <li key={req.label} className="flex items-center gap-2 text-xs">
+            {req.met ? (
+              <CheckIcon className="w-4 h-4 text-green-500" />
+            ) : (
+              <XMarkIcon className="w-4 h-4 text-gray-400" />
+            )}
+            <span className={req.met ? "text-green-600" : "text-gray-500"}>
+              {req.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 interface AuthFormProps {
   defaultMode?: AuthMode;
@@ -303,6 +372,7 @@ export function AuthForm({ defaultMode = "signIn" }: AuthFormProps) {
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-kid-primary focus:border-transparent transition-colors"
               placeholder="••••••••"
             />
+            {mode === "signUp" && <PasswordStrengthIndicator password={password} />}
           </div>
 
           {error && (

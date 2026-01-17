@@ -886,6 +886,52 @@ Users clicking any "Sign Up" button get a 404 error. This is the primary convers
 
 ---
 
+## Issues Found During Code Review (January 17, 2026)
+
+### Critical Issues
+
+| Issue | Location | Impact | Fix Required |
+|-------|----------|--------|--------------|
+| **Parent dashboard uses demo data** | `src/app/parent-dashboard/page.tsx:23` | Security: Any user sees demo family data, not their real data | Replace `getOrCreateDemoProfile()` with real authenticated user lookup via `getCurrentUserProfile()` |
+| **No image error handlers** | 22 component files | Silent failures when card images fail to load | Add `onError` handlers with fallback placeholder images |
+| **Landing page says "Pokemon Cards"** | `src/app/page.tsx:102-104` | Misrepresents multi-TCG product | Change to "Trading Card Collection" or "Card Collection" |
+| **API routes hardcoded to Pokemon** | `src/app/api/sets/route.ts`, `search/route.ts` | Multi-TCG doesn't work for sets/search | Add `?game=` parameter, route to game-specific services |
+| **Settings not protected from kids** | `src/app/settings/page.tsx` | Safety: Kids can disable Sleep Mode, remove Parent PIN | Add PIN protection to "Family Controls" section |
+
+### High Priority Issues
+
+| Issue | Location | Impact | Fix Required |
+|-------|----------|--------|--------------|
+| **No app footer** | Layout missing footer | No access to Help, Privacy Policy, Terms from inner pages | Create `Footer` component with essential links |
+| **Parent dashboard still says "Pokemon"** | `src/app/parent-dashboard/page.tsx:75` | Inconsistent with multi-TCG branding | Change to "trading card collections" |
+| **My Collection page slow** | Collection queries | Poor UX for large collections | Use virtualized list, paginated queries |
+| **No profile switcher in header** | `src/app/layout.tsx` | Families can't switch between child profiles easily | Add dropdown to switch active profile |
+| **Password strength indicator missing** | Signup form | Users may create weak passwords | Add visual indicator during password entry |
+
+### Medium Priority Issues
+
+| Issue | Location | Impact | Fix Required |
+|-------|----------|--------|--------------|
+| **No back navigation on some pages** | Various detail pages | Users get stuck, must use browser back | Add consistent back links/breadcrumbs |
+| **Missing games in landing page** | `src/app/page.tsx` | No showcase of supported TCGs | Add "Supported Games" section with logos |
+| **Search only Pokemon** | `src/app/api/search/route.ts` | Can't search other TCGs | Route search to selected game's data |
+
+### Files Requiring Updates
+
+**Hardcoded Pokemon references found in:**
+1. `src/app/page.tsx` - Hero "Track Your Pokemon Cards"
+2. `src/app/parent-dashboard/page.tsx` - "Manage your family's Pokemon collections"
+3. `src/app/learn/page.tsx` - Educational content
+4. `src/app/collection/page.tsx` - Collection view
+5. `src/app/my-wishlist/page.tsx` - Wishlist
+6. `src/app/search/page.tsx` - Search page
+7. `src/app/browse/page.tsx` - Browse page
+8. `src/app/sets/[setId]/page.tsx` - Set detail
+9. `src/app/wishlist/[token]/page.tsx` - Public wishlist
+10. `src/app/layout.tsx` - App metadata
+
+---
+
 ## Conclusion
 
 CardDex (formerly KidCollect) addresses a clear market gap with a focused, achievable product. The combination of an underserved audience (kids and families), free data infrastructure (Pokemon TCG API), and proven monetization model (freemium family subscriptions) creates a compelling opportunity.

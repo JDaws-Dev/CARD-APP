@@ -39,8 +39,9 @@ export const getPriorityCount = query({
   handler: async (ctx, args) => {
     const priorityItems = await ctx.db
       .query('wishlistCards')
-      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
-      .filter((q) => q.eq(q.field('isPriority'), true))
+      .withIndex('by_profile_and_priority', (q) =>
+        q.eq('profileId', args.profileId).eq('isPriority', true)
+      )
       .collect();
 
     return {
