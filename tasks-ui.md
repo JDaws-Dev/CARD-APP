@@ -408,6 +408,40 @@ Detailed landing page text changes to support multi-TCG while keeping Pokemon pr
 - [x] Comeback rewards - Special welcome back celebration and bonus XP for returning after absence
 - [x] Collection snapshot sharing - Generate shareable image of collection stats/highlights for social media
 
+### AI-Powered Features UI
+
+UI components for AI features. Backend actions are in `convex/ai/`. These components provide the user interface for AI-powered card scanning, chat, stories, and quizzes.
+
+#### Card Scanner UI
+
+- [ ] AI-008: Build camera capture component (`src/components/ai/CardScanner.tsx`) - Camera preview with capture button, image preview, "Scan Card" action
+- [ ] AI-011: Create "Snap to Add" UI flow with confirmation step - Show AI identification result, allow user to confirm/correct before adding to collection
+- [ ] AI-012: Add scanner button to collection/set detail pages - Camera icon button that opens CardScanner modal
+
+#### Collection Chatbot UI
+
+- [ ] AI-016: Build chat UI component (`src/components/ai/CollectionChat.tsx`) - Chat bubble interface with message history, input field, send button
+- [ ] AI-017: Create friendly assistant avatar and personality - Animated avatar for chatbot, typing indicator, themed to CardDex brand
+- [ ] AI-020: Add chat button to dashboard/collection pages - Floating chat bubble or sidebar panel trigger
+
+#### Card Storyteller UI
+
+- [ ] AI-023: Create story display modal (`src/components/ai/CardStoryModal.tsx`) - Modal showing AI-generated story and fun facts about a card
+- [ ] AI-024: Add "Tell me about this card!" button to card detail view - SparklesIcon button on cards that opens story modal
+- [ ] AI-026: Add loading states and error handling - Skeleton loading for stories, friendly error messages if generation fails
+
+#### AI Quiz UI
+
+- [ ] AI-028: Build quiz UI component (`src/components/ai/AIQuiz.tsx`) - Multiple choice questions from user's collection, timer, score display
+- [ ] AI-030: Add AI quiz to Learn page alongside existing mini-games - Quiz banner with SparklesIcon, "Quiz Me!" CTA
+
+#### Advanced AI Features UI (P2)
+
+- [ ] Create recommendations panel (`src/components/ai/RecommendationsPanel.tsx`) - "Cards you might like" section for collection/wishlist pages
+- [ ] Create trade advisor UI (`src/components/ai/TradeAdvisor.tsx`) - Sibling trade suggestions in parent dashboard
+- [ ] Create shopping assistant UI (`src/components/ai/ShoppingAssistant.tsx`) - Gift helper for parents with budget input and recommendations
+- [ ] Create condition grader tutorial (`src/components/ai/ConditionGrader.tsx`) - Upload photo, see AI explanation of card condition
+
 ---
 
 ## LOW PRIORITY - Card Examples Across All TCGs (Polish)
@@ -566,6 +600,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 - **2026-01-17**: Added React.memo() to ActivityFeed component - Wrapped ActivityFeed, ActivityItem, and ActivityFeedSkeleton components with React.memo to prevent unnecessary re-renders when parent components update but props haven't changed. This optimization improves performance on the dashboard and collection pages where the activity feed is displayed. Added test suite verifying memo wrapping. ESLint and Prettier clean. Commit: 49a586a
 
+- **2026-01-17**: Lazy loaded GradeLikeAProGame with React.lazy() - Updated src/app/learn/page.tsx to use dynamic import for GradeLikeAProGame component. Wrapped in Suspense boundary with GradeLikeAProGameSkeleton as fallback for smooth loading experience. Added GradeLikeAProGameSkeleton component to GradeLikeAProGame.tsx that mimics the intro screen layout with shimmer placeholders. This improves initial page load by deferring game bundle until user clicks to open the game. Commit: e49178d
+
 ---
 
 ## NEW - SEO & Marketing Tasks (January 17, 2026 Evaluation)
@@ -612,7 +648,7 @@ These tasks address critical SEO gaps identified during the comprehensive site e
 
 ### Code Splitting
 
-- [ ] Lazy load GradeLikeAProGame - Use React.lazy() and Suspense
+- [x] Lazy load GradeLikeAProGame - Use React.lazy() and Suspense
 - [ ] Lazy load RarityGuessingGame - Use React.lazy() and Suspense
 - [ ] Lazy load SetSymbolMatchingGame - Use React.lazy() and Suspense
 - [ ] Lazy load PokemonTypeQuiz - Use React.lazy() and Suspense
