@@ -98,3 +98,9 @@
 **Files:** src/app/page.tsx
 **Commit:** (pending)
 ---
+## CD-blj - Landing Page - Kid-Safe AI trust badges
+**Status:** Completed
+**Changes:** Added two new trust badges (Kid-Safe AI and No Personal Data) to the Trust Signals Section on the landing page. Updated grid layout to accommodate 5 badges responsively.
+**Files:** src/app/page.tsx
+**Commit:** ad7d786
+---
