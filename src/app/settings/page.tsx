@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useConvexAuth } from 'convex/react';
+import { useConvexAuth, useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import {
   ArrowLeftIcon,
   Cog6ToothIcon,
@@ -18,10 +19,15 @@ import { ReducedMotionToggle } from '@/components/layout/ReducedMotionToggle';
 import { FocusModeToggle } from '@/components/layout/FocusModeToggle';
 import { GameSettingsToggle } from '@/components/settings/GameSettingsToggle';
 import { SleepModeSettings } from '@/components/settings/SleepModeSettings';
+import { PinProtectionWrapper } from '@/components/settings/PinProtectionWrapper';
 
 export default function SettingsPage() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const router = useRouter();
+
+  // Get current user profile to access familyId
+  const currentUserProfile = useQuery(api.profiles.getCurrentUserProfile, {});
+  const familyId = currentUserProfile?.family?.id;
 
   // Redirect unauthenticated users to login
   useEffect(() => {
@@ -206,7 +212,7 @@ export default function SettingsPage() {
         </div>
 
         {/* ================================================================== */}
-        {/* FAMILY CONTROLS - Parent-only settings */}
+        {/* FAMILY CONTROLS - Parent-only settings (PIN protected) */}
         {/* ================================================================== */}
         <div className="mt-12 space-y-6">
           <div className="flex items-center gap-3">
@@ -223,39 +229,41 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Games Settings - Parent controlled */}
-          <section
-            className="rounded-2xl border-2 border-amber-200 bg-white p-6 shadow-sm dark:border-amber-700/50 dark:bg-slate-800"
-            aria-labelledby="games-settings-heading"
-          >
-            <h3
-              id="games-settings-heading"
-              className="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
+          <PinProtectionWrapper familyId={familyId}>
+            {/* Games Settings - Parent controlled */}
+            <section
+              className="rounded-2xl border-2 border-amber-200 bg-white p-6 shadow-sm dark:border-amber-700/50 dark:bg-slate-800"
+              aria-labelledby="games-settings-heading"
             >
-              Games You Collect
-            </h3>
-            <p className="mb-4 text-sm text-gray-600 dark:text-slate-400">
-              Choose which trading card games to show in your collection.
-            </p>
-            <GameSettingsToggle />
-          </section>
+              <h3
+                id="games-settings-heading"
+                className="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
+              >
+                Games You Collect
+              </h3>
+              <p className="mb-4 text-sm text-gray-600 dark:text-slate-400">
+                Choose which trading card games to show in your collection.
+              </p>
+              <GameSettingsToggle />
+            </section>
 
-          {/* Sleep Mode Settings - Parent controlled */}
-          <section
-            className="rounded-2xl border-2 border-amber-200 bg-white p-6 shadow-sm dark:border-amber-700/50 dark:bg-slate-800"
-            aria-labelledby="family-settings-heading"
-          >
-            <h3
-              id="family-settings-heading"
-              className="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
+            {/* Sleep Mode Settings - Parent controlled */}
+            <section
+              className="mt-6 rounded-2xl border-2 border-amber-200 bg-white p-6 shadow-sm dark:border-amber-700/50 dark:bg-slate-800"
+              aria-labelledby="family-settings-heading"
             >
-              Sleep Mode
-            </h3>
-            <p className="mb-4 text-sm text-gray-600 dark:text-slate-400">
-              Set quiet hours to encourage healthy screen time habits.
-            </p>
-            <SleepModeSettings />
-          </section>
+              <h3
+                id="family-settings-heading"
+                className="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
+              >
+                Sleep Mode
+              </h3>
+              <p className="mb-4 text-sm text-gray-600 dark:text-slate-400">
+                Set quiet hours to encourage healthy screen time habits.
+              </p>
+              <SleepModeSettings />
+            </section>
+          </PinProtectionWrapper>
         </div>
       </div>
     </main>
