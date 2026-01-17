@@ -1759,6 +1759,116 @@ export const getSetRarityDistribution = query({
 });
 
 /**
+ * Combined batch query for VirtualCardGrid component.
+ * Merges 4 separate queries into a single optimized query:
+ * 1. getCollectionBySet - Cards owned in this set
+ * 2. getWishlist - All wishlisted cards (filtered to this set)
+ * 3. getNewlyAddedCards - Recently added cards (filtered to this set)
+ * 4. getPriorityCount - Count of priority wishlist items
+ *
+ * This eliminates multiple round-trips and redundant data fetching.
+ */
+export const getSetViewData = query({
+  args: {
+    profileId: v.id('profiles'),
+    setId: v.string(),
+    newlyAddedDays: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const days = args.newlyAddedDays ?? 7;
+    const cutoffDate = Date.now() - days * 24 * 60 * 60 * 1000;
+    const setPrefix = args.setId + '-';
+
+    // Run all queries in parallel for maximum efficiency
+    const [allCollectionCards, allWishlistCards, recentActivityLogs] = await Promise.all([
+      // Get all collection cards for this profile
+      ctx.db
+        .query('collectionCards')
+        .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+        .collect(),
+      // Get all wishlist cards for this profile
+      ctx.db
+        .query('wishlistCards')
+        .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+        .collect(),
+      // Get recent activity logs for newly added detection
+      ctx.db
+        .query('activityLogs')
+        .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+        .order('desc')
+        .collect(),
+    ]);
+
+    // 1. Filter collection to cards in this set
+    const collectionBySet = allCollectionCards.filter((card) => card.cardId.startsWith(setPrefix));
+
+    // 2. Build wishlist map (cardId -> isPriority) for all wishlist items
+    // Also filter to cards in this set for the response
+    const wishlistMap = new Map<string, boolean>();
+    let priorityCount = 0;
+
+    for (const item of allWishlistCards) {
+      wishlistMap.set(item.cardId, item.isPriority ?? false);
+      if (item.isPriority) {
+        priorityCount++;
+      }
+    }
+
+    // Filter wishlist to cards in this set
+    const wishlistBySet = allWishlistCards
+      .filter((item) => item.cardId.startsWith(setPrefix))
+      .map((item) => ({
+        cardId: item.cardId,
+        isPriority: item.isPriority ?? false,
+      }));
+
+    // 3. Build newly added card IDs from recent activity logs
+    const newlyAddedCardIds = new Set<string>();
+    const recentCardAdds = recentActivityLogs.filter(
+      (log) => log.action === 'card_added' && log._creationTime >= cutoffDate
+    );
+
+    for (const log of recentCardAdds) {
+      const metadata = log.metadata as { cardId?: string } | undefined;
+      if (metadata?.cardId && metadata.cardId.startsWith(setPrefix)) {
+        newlyAddedCardIds.add(metadata.cardId);
+      }
+    }
+
+    // 4. Priority count is already calculated above
+    const maxPriorityItems = 5; // Matches MAX_PRIORITY_ITEMS from wishlist.ts
+
+    return {
+      // Collection data for this set
+      collection: collectionBySet,
+
+      // Wishlist data for this set
+      wishlist: wishlistBySet,
+
+      // Full wishlist map for quick lookups (includes cards from other sets)
+      wishlistMap: Object.fromEntries(wishlistMap),
+
+      // Newly added card IDs in this set
+      newlyAddedCardIds: Array.from(newlyAddedCardIds),
+
+      // Priority count info
+      priorityCount: {
+        count: priorityCount,
+        max: maxPriorityItems,
+        remaining: maxPriorityItems - priorityCount,
+      },
+
+      // Summary stats
+      stats: {
+        ownedInSet: collectionBySet.length,
+        wishlistedInSet: wishlistBySet.length,
+        newlyAddedInSet: newlyAddedCardIds.size,
+      },
+    };
+  },
+});
+
+/**
  * Check collection progress for a specific rarity within a set.
  * Returns how many cards of that rarity the user owns vs total in set.
  */
