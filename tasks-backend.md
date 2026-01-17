@@ -5,8 +5,8 @@
 ## Current Focus: CRITICAL API & Auth fixes, then Performance
 
 ```
-Progress: █████████████████████████░░░░  100/124 (81%)
-Remaining: 24 tasks
+Progress: █████████████████████████░░░░  105/124 (85%)
+Remaining: 19 tasks
 ```
 
 ## Status Summary (Updated 2026-01-17)
@@ -28,10 +28,10 @@ Remaining: 24 tasks
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
 | **AI-Powered Features**             | 18       | **3**     |
-| **Trade Logging**                   | 0        | **7**     |
+| **Trade Logging**                   | 5        | **2**     |
 | Launch Prep                         | 4        | **5**     |
 | **Kid-Friendly Set Filtering**      | **7**    | **0**     |
-| **TOTAL**                           | **100**  | **24**    |
+| **TOTAL**                           | **105**  | **19**    |
 
 ### Critical Path for Launch
 
@@ -262,7 +262,7 @@ Simple trade logging to record real-life trades. Kids log what they gave and rec
 #### Queries
 
 - [x] TRADE-003: Create `getTradeHistory` query - Return all `trade_logged` activity events for a profile, sorted by date
-- [ ] TRADE-004: Update `getRecentActivityWithNames` query - Include `trade_logged` events in timeline data with proper formatting
+- [x] TRADE-004: Update `getRecentActivityWithNames` query - Include `trade_logged` events in timeline data with proper formatting
 
 #### Validation
 
@@ -3151,6 +3151,7 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
 **Completed:** TRADE-001 - Add `trade_logged` action type to `activityLogs` schema
 
 **Changes Made:**
+
 - **Updated `convex/schema.ts`:**
   - Added `trade_logged` action type to `activityLogs.action` union for simple trade logging
   - Also added `trade_completed` action type for the full Sibling Trade Tracking System
@@ -3165,6 +3166,7 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
     - `tradeNotificationsEnabled`: Optional parent notifications for trades
 
 **Testing:**
+
 - Schema compiles successfully via `npx convex dev --once`
 - ESLint passes with only pre-existing warnings
 - Prettier formatting verified (no changes needed)
@@ -3176,6 +3178,7 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
 **Completed:** TRADE-002, TRADE-003, TRADE-005
 
 **Changes Made:**
+
 - **Created `convex/trades.ts`:**
   - `logTrade` mutation: Accepts cardsGiven/cardsReceived arrays with optional tradingPartner string
     - Removes given cards from user's collection (validates ownership and quantity)
@@ -3190,11 +3193,58 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
     - Total trades, cards given/received, net change, unique trading partners
 
 **Validation (TRADE-005):**
+
 - Verifies user owns cards being given with correct quantity
 - Validates card variant matches collection entries
 - Throws descriptive errors for validation failures
 
 **Testing:**
+
 - All 6085 tests pass (10 pre-existing failures in unrelated UI components)
 - ESLint passes with only pre-existing warnings
+- Prettier formatting verified
+
+---
+
+## Progress: January 17, 2026 - Trade Event Timeline Integration (TRADE-004)
+
+**Completed:** TRADE-004 - Update `getRecentActivityWithNames` query to include `trade_logged` events in timeline data with proper formatting
+
+**Changes Made:**
+
+- **Updated `convex/activityLogs.ts`:**
+  - Extended action type union to include `trade_logged` and `trade_completed`
+  - Added `TradeCardEntry` and `TradeLoggedMetadata` interfaces for type safety
+  - Created `enrichTradeLogMetadata` helper function for consistent formatting
+  - Created `collectTradeCardIds` helper for efficient card name lookups
+  - Updated `getRecentActivityWithNames` query to:
+    - Collect card IDs from trade_logged events for name enrichment
+    - Enrich trade events with card names and human-readable `tradeSummary`
+    - Format: "Traded Pikachu for Charizard with my brother"
+  - Updated `getFamilyActivityWithNames` query with same trade_logged support
+  - Updated `getRecentActivityWithNamesPaginated` query with trade enrichment
+  - Updated `getFamilyActivityPaginated` query with trade enrichment
+
+- **Updated `src/lib/activityLogs.ts`:**
+  - Extended `ActivityAction` type with `trade_completed` and `trade_logged`
+  - Added `TradeCardEntry` and `TradeLoggedMetadata` interfaces (frontend types)
+  - Added `formatTradeLoggedForDisplay` for human-readable trade summaries
+  - Added `getTradeSummaryFromMetadata` utility function
+  - Updated `formatActionForDisplay` with new action types
+  - Updated `formatActivityLogForDisplay` to handle trade_logged events
+  - Updated `countActionsByType` to include new action types
+
+- **Added tests in `src/lib/__tests__/activityLogs.test.ts`:**
+  - Tests for `formatActionForDisplay` trade actions
+  - Tests for `countActionsByType` with trade actions
+  - Tests for `formatTradeLoggedForDisplay` (8 test cases)
+  - Tests for `getTradeSummaryFromMetadata` (4 test cases)
+  - Tests for `formatActivityLogForDisplay` trade_logged action (3 test cases)
+  - Tests for `formatActivityLogForDisplay` trade_completed action
+  - Updated existing `countActionsByType` tests for new action types
+
+**Testing:**
+
+- All 144 activityLogs tests pass
+- ESLint passes
 - Prettier formatting verified
