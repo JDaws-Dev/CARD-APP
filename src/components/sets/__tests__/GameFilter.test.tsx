@@ -145,10 +145,7 @@ describe('GameFilter', () => {
         pokemon: 45,
         yugioh: 5,
         onepiece: 0,
-        dragonball: 0,
         lorcana: 0,
-        digimon: 0,
-        mtg: 0,
       };
 
       render(<GameFilter {...defaultProps} setCounts={setCounts} />);

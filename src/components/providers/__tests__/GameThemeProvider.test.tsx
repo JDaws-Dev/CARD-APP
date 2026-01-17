@@ -229,12 +229,12 @@ describe('GameThemed', () => {
 
   it('should apply className', () => {
     render(
-      <GameThemed game="mtg" className="rounded-lg p-4">
+      <GameThemed game="lorcana" className="rounded-lg p-4">
         <div>Content</div>
       </GameThemed>
     );
 
-    expect(screen.getByTestId('game-themed-mtg')).toHaveClass('rounded-lg', 'p-4');
+    expect(screen.getByTestId('game-themed-lorcana')).toHaveClass('rounded-lg', 'p-4');
   });
 
   it('should have unique styles for each game', () => {
@@ -243,22 +243,11 @@ describe('GameThemed', () => {
         <GameThemed game="pokemon">Pokemon</GameThemed>
         <GameThemed game="yugioh">Yu-Gi-Oh!</GameThemed>
         <GameThemed game="onepiece">One Piece</GameThemed>
-        <GameThemed game="dragonball">Dragon Ball</GameThemed>
         <GameThemed game="lorcana">Lorcana</GameThemed>
-        <GameThemed game="digimon">Digimon</GameThemed>
-        <GameThemed game="mtg">MTG</GameThemed>
       </>
     );
 
-    const gameIds: GameId[] = [
-      'pokemon',
-      'yugioh',
-      'onepiece',
-      'dragonball',
-      'lorcana',
-      'digimon',
-      'mtg',
-    ];
+    const gameIds: GameId[] = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
 
     for (const gameId of gameIds) {
       const wrapper = screen.getByTestId(`game-themed-${gameId}`);
@@ -308,10 +297,10 @@ describe('useGameTheme hook', () => {
   });
 
   it('should work outside provider with defaults', () => {
-    render(<HookTestComponent gameOverride="mtg" />);
+    render(<HookTestComponent gameOverride="lorcana" />);
 
     // Should still work with override even outside provider
-    expect(screen.getByTestId('game-id')).toHaveTextContent('mtg');
+    expect(screen.getByTestId('game-id')).toHaveTextContent('lorcana');
   });
 });
 

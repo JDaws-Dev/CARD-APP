@@ -19,20 +19,12 @@ import {
 
 describe('Games Schema Validation', () => {
   describe('GAME_SLUGS constant', () => {
-    it('should have exactly 7 supported games', () => {
-      expect(GAME_SLUGS).toHaveLength(7);
+    it('should have exactly 4 supported games', () => {
+      expect(GAME_SLUGS).toHaveLength(4);
     });
 
     it('should include all expected game slugs', () => {
-      const expectedSlugs: GameSlug[] = [
-        'pokemon',
-        'yugioh',
-        'mtg',
-        'onepiece',
-        'lorcana',
-        'digimon',
-        'dragonball',
-      ];
+      const expectedSlugs: GameSlug[] = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
       expect(GAME_SLUGS).toEqual(expect.arrayContaining(expectedSlugs));
     });
 
@@ -68,11 +60,11 @@ describe('Games Schema Validation', () => {
       expect(uniqueOrders.size).toBe(releaseOrders.length);
     });
 
-    it('should have release orders from 1 to 7', () => {
+    it('should have release orders from 1 to 4', () => {
       const releaseOrders = Object.values(GAME_CONFIGS)
         .map((c) => c.releaseOrder)
         .sort((a, b) => a - b);
-      expect(releaseOrders).toEqual([1, 2, 3, 4, 5, 6, 7]);
+      expect(releaseOrders).toEqual([1, 2, 3, 4]);
     });
 
     it('should have valid hex colors', () => {
@@ -107,11 +99,8 @@ describe('Game Validation Functions', () => {
     it('should return true for valid game slugs', () => {
       expect(isValidGameSlug('pokemon')).toBe(true);
       expect(isValidGameSlug('yugioh')).toBe(true);
-      expect(isValidGameSlug('mtg')).toBe(true);
       expect(isValidGameSlug('onepiece')).toBe(true);
       expect(isValidGameSlug('lorcana')).toBe(true);
-      expect(isValidGameSlug('digimon')).toBe(true);
-      expect(isValidGameSlug('dragonball')).toBe(true);
     });
 
     it('should return false for invalid game slugs', () => {
@@ -121,6 +110,9 @@ describe('Game Validation Functions', () => {
       expect(isValidGameSlug('POKEMON')).toBe(false);
       expect(isValidGameSlug('magic')).toBe(false);
       expect(isValidGameSlug('one-piece')).toBe(false);
+      expect(isValidGameSlug('mtg')).toBe(false);
+      expect(isValidGameSlug('digimon')).toBe(false);
+      expect(isValidGameSlug('dragonball')).toBe(false);
     });
   });
 
@@ -156,11 +148,8 @@ describe('Game Display Helpers', () => {
     it('should return correct display names', () => {
       expect(getGameDisplayName('pokemon')).toBe('Pokémon TCG');
       expect(getGameDisplayName('yugioh')).toBe('Yu-Gi-Oh!');
-      expect(getGameDisplayName('mtg')).toBe('Magic: The Gathering');
       expect(getGameDisplayName('onepiece')).toBe('One Piece TCG');
       expect(getGameDisplayName('lorcana')).toBe('Disney Lorcana');
-      expect(getGameDisplayName('digimon')).toBe('Digimon TCG');
-      expect(getGameDisplayName('dragonball')).toBe('Dragon Ball Fusion World');
     });
   });
 
@@ -168,11 +157,8 @@ describe('Game Display Helpers', () => {
     it('should return correct primary colors', () => {
       expect(getGamePrimaryColor('pokemon')).toBe('#FFCB05');
       expect(getGamePrimaryColor('yugioh')).toBe('#1D1D1D');
-      expect(getGamePrimaryColor('mtg')).toBe('#000000');
       expect(getGamePrimaryColor('onepiece')).toBe('#E74C3C');
       expect(getGamePrimaryColor('lorcana')).toBe('#1B1464');
-      expect(getGamePrimaryColor('digimon')).toBe('#FF6600');
-      expect(getGamePrimaryColor('dragonball')).toBe('#FF8C00');
     });
   });
 
@@ -228,17 +214,6 @@ describe('Game-specific Configuration', () => {
     });
   });
 
-  describe('Magic: The Gathering', () => {
-    it('should have correct configuration', () => {
-      const config = GAME_CONFIGS.mtg;
-      expect(config.displayName).toBe('Magic: The Gathering');
-      expect(config.apiSource).toBe('scryfall.com');
-      expect(config.primaryColor).toBe('#000000'); // Black
-      expect(config.releaseOrder).toBe(3);
-      expect(config.isActive).toBe(true);
-    });
-  });
-
   describe('One Piece TCG', () => {
     it('should have correct configuration', () => {
       const config = GAME_CONFIGS.onepiece;
@@ -246,7 +221,7 @@ describe('Game-specific Configuration', () => {
       expect(config.apiSource).toBe('optcg-api');
       expect(config.primaryColor).toBe('#E74C3C'); // Red
       expect(config.secondaryColor).toBe('#3498DB'); // Blue
-      expect(config.releaseOrder).toBe(4);
+      expect(config.releaseOrder).toBe(3);
       expect(config.isActive).toBe(true);
     });
   });
@@ -258,31 +233,7 @@ describe('Game-specific Configuration', () => {
       expect(config.apiSource).toBe('lorcast.com');
       expect(config.primaryColor).toBe('#1B1464'); // Deep purple
       expect(config.secondaryColor).toBe('#F5A623'); // Gold
-      expect(config.releaseOrder).toBe(5);
-      expect(config.isActive).toBe(true);
-    });
-  });
-
-  describe('Digimon TCG', () => {
-    it('should have correct configuration', () => {
-      const config = GAME_CONFIGS.digimon;
-      expect(config.displayName).toBe('Digimon TCG');
-      expect(config.apiSource).toBe('digimoncard.io');
-      expect(config.primaryColor).toBe('#FF6600'); // Orange
-      expect(config.secondaryColor).toBe('#0066FF'); // Blue
-      expect(config.releaseOrder).toBe(6);
-      expect(config.isActive).toBe(true);
-    });
-  });
-
-  describe('Dragon Ball Fusion World', () => {
-    it('should have correct configuration', () => {
-      const config = GAME_CONFIGS.dragonball;
-      expect(config.displayName).toBe('Dragon Ball Fusion World');
-      expect(config.apiSource).toBe('apitcg.com');
-      expect(config.primaryColor).toBe('#FF8C00'); // Orange
-      expect(config.secondaryColor).toBe('#4169E1'); // Royal blue
-      expect(config.releaseOrder).toBe(7);
+      expect(config.releaseOrder).toBe(4);
       expect(config.isActive).toBe(true);
     });
   });
@@ -300,7 +251,7 @@ describe('Integration Scenarios', () => {
         color: game.primaryColor,
       }));
 
-      expect(options.length).toBe(7);
+      expect(options.length).toBe(4);
       expect(options[0].value).toBe('pokemon'); // First by release order
       expect(options[0].label).toBe('Pokémon TCG');
     });

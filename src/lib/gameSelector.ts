@@ -13,15 +13,9 @@
 
 /**
  * Supported TCG game identifiers
+ * Note: Only 4 games are currently supported: Pokemon, Yu-Gi-Oh!, One Piece, and Disney Lorcana
  */
-export type GameId =
-  | 'pokemon'
-  | 'yugioh'
-  | 'onepiece'
-  | 'dragonball'
-  | 'lorcana'
-  | 'digimon'
-  | 'mtg';
+export type GameId = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
 /**
  * Game information for display and theming
@@ -132,23 +126,6 @@ export const GAMES: readonly GameInfo[] = [
     appealPoints: ['Luffy & the Straw Hats', 'Brand new card game', 'Amazing anime artwork'],
   },
   {
-    id: 'dragonball',
-    name: 'Dragon Ball Fusion World',
-    shortName: 'Dragon Ball',
-    description:
-      'Power up with Goku and friends! Collect cards featuring Super Saiyans and legendary warriors.',
-    tagline: 'Power up to the max!',
-    gradientFrom: 'from-orange-400',
-    gradientTo: 'to-yellow-500',
-    primaryColor: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-300',
-    textColor: 'text-orange-800',
-    iconName: 'StarIcon',
-    hasApiSupport: true,
-    appealPoints: ['Goku, Vegeta & more', 'Super Saiyan transformations', 'Epic battle artwork'],
-  },
-  {
     id: 'lorcana',
     name: 'Disney Lorcana',
     shortName: 'Lorcana',
@@ -164,40 +141,6 @@ export const GAMES: readonly GameInfo[] = [
     iconName: 'SparklesIcon',
     hasApiSupport: true,
     appealPoints: ['Mickey, Elsa & friends', 'Stunning Disney artwork', 'Magical ink colors'],
-  },
-  {
-    id: 'digimon',
-    name: 'Digimon Card Game',
-    shortName: 'Digimon',
-    description:
-      'Digivolve your collection! Collect cards featuring digital monsters from the Digimon universe.',
-    tagline: 'Digivolve to the max!',
-    gradientFrom: 'from-cyan-500',
-    gradientTo: 'to-blue-600',
-    primaryColor: 'text-cyan-600',
-    bgColor: 'bg-cyan-50',
-    borderColor: 'border-cyan-300',
-    textColor: 'text-cyan-800',
-    iconName: 'CpuChipIcon',
-    hasApiSupport: true,
-    appealPoints: ['Agumon, Gabumon & more', 'Cool Digivolution chains', 'Retro & modern Digimon'],
-  },
-  {
-    id: 'mtg',
-    name: 'Magic: The Gathering',
-    shortName: 'Magic',
-    description:
-      "Become a planeswalker! Collect cards from the world's original trading card game with 30+ years of history.",
-    tagline: 'Tap into your power!',
-    gradientFrom: 'from-amber-600',
-    gradientTo: 'to-yellow-700',
-    primaryColor: 'text-amber-700',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-300',
-    textColor: 'text-amber-900',
-    iconName: 'ShieldCheckIcon',
-    hasApiSupport: true,
-    appealPoints: ['The original TCG', 'Five mana colors to explore', 'Endless deck possibilities'],
   },
 ] as const;
 
@@ -506,18 +449,6 @@ export const GAME_CSS_VARIABLES: Record<GameId, GameCssVariables> = {
     border: '#fca5a5', // Red-300
     borderRgb: '252, 165, 165',
   },
-  dragonball: {
-    primary: '#f97316', // Orange-500
-    primaryRgb: '249, 115, 22',
-    secondary: '#eab308', // Yellow-500
-    secondaryRgb: '234, 179, 8',
-    accent: '#fff7ed', // Orange-50
-    accentRgb: '255, 247, 237',
-    text: '#9a3412', // Orange-800
-    textRgb: '154, 52, 18',
-    border: '#fdba74', // Orange-300
-    borderRgb: '253, 186, 116',
-  },
   lorcana: {
     primary: '#3b82f6', // Blue-500
     primaryRgb: '59, 130, 246',
@@ -529,30 +460,6 @@ export const GAME_CSS_VARIABLES: Record<GameId, GameCssVariables> = {
     textRgb: '30, 64, 175',
     border: '#93c5fd', // Blue-300
     borderRgb: '147, 197, 253',
-  },
-  digimon: {
-    primary: '#06b6d4', // Cyan-500
-    primaryRgb: '6, 182, 212',
-    secondary: '#2563eb', // Blue-600
-    secondaryRgb: '37, 99, 235',
-    accent: '#ecfeff', // Cyan-50
-    accentRgb: '236, 254, 255',
-    text: '#155e75', // Cyan-800
-    textRgb: '21, 94, 117',
-    border: '#67e8f9', // Cyan-300
-    borderRgb: '103, 232, 249',
-  },
-  mtg: {
-    primary: '#d97706', // Amber-600
-    primaryRgb: '217, 119, 6',
-    secondary: '#ca8a04', // Yellow-600
-    secondaryRgb: '202, 138, 4',
-    accent: '#fffbeb', // Amber-50
-    accentRgb: '255, 251, 235',
-    text: '#78350f', // Amber-900
-    textRgb: '120, 53, 15',
-    border: '#fbbf24', // Amber-400
-    borderRgb: '251, 191, 36',
   },
 };
 

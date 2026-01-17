@@ -78,15 +78,7 @@ describe('Game Selector - Lookup Functions', () => {
     });
 
     it('should return each supported game', () => {
-      const gameIds: GameId[] = [
-        'pokemon',
-        'yugioh',
-        'onepiece',
-        'dragonball',
-        'lorcana',
-        'digimon',
-        'mtg',
-      ];
+      const gameIds: GameId[] = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
       for (const id of gameIds) {
         const game = getGameInfo(id);
         expect(game).not.toBeNull();
@@ -112,7 +104,7 @@ describe('Game Selector - Lookup Functions', () => {
   describe('getAllGames', () => {
     it('should return all games', () => {
       const games = getAllGames();
-      expect(games.length).toBe(7);
+      expect(games.length).toBe(4);
       expect(games).toBe(GAMES);
     });
 
@@ -122,17 +114,9 @@ describe('Game Selector - Lookup Functions', () => {
       expect(pokemon).toBeDefined();
     });
 
-    it('should include all 7 supported games', () => {
+    it('should include all 4 supported games', () => {
       const games = getAllGames();
-      const expectedIds = [
-        'pokemon',
-        'yugioh',
-        'onepiece',
-        'dragonball',
-        'lorcana',
-        'digimon',
-        'mtg',
-      ];
+      const expectedIds = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
       for (const id of expectedIds) {
         expect(games.some((g) => g.id === id)).toBe(true);
       }
@@ -154,7 +138,7 @@ describe('Game Selector - Lookup Functions', () => {
   describe('getGameCount', () => {
     it('should return correct count', () => {
       const count = getGameCount();
-      expect(count).toBe(7);
+      expect(count).toBe(4);
       expect(count).toBe(GAMES.length);
     });
   });
@@ -163,7 +147,7 @@ describe('Game Selector - Lookup Functions', () => {
     it('should return true for valid game IDs', () => {
       expect(isValidGameId('pokemon')).toBe(true);
       expect(isValidGameId('yugioh')).toBe(true);
-      expect(isValidGameId('mtg')).toBe(true);
+      expect(isValidGameId('lorcana')).toBe(true);
     });
 
     it('should return false for invalid game IDs', () => {
@@ -175,9 +159,9 @@ describe('Game Selector - Lookup Functions', () => {
 
   describe('getGamesByIds', () => {
     it('should return games by IDs in order', () => {
-      const games = getGamesByIds(['mtg', 'pokemon', 'yugioh']);
+      const games = getGamesByIds(['lorcana', 'pokemon', 'yugioh']);
       expect(games.length).toBe(3);
-      expect(games[0].id).toBe('mtg');
+      expect(games[0].id).toBe('lorcana');
       expect(games[1].id).toBe('pokemon');
       expect(games[2].id).toBe('yugioh');
     });
@@ -342,7 +326,7 @@ describe('Game Selector - Display Helpers', () => {
     it('should format three+ games', () => {
       const result = formatEnabledGames({
         primary: 'pokemon',
-        enabled: ['pokemon', 'yugioh', 'mtg'],
+        enabled: ['pokemon', 'yugioh', 'lorcana'],
       });
       expect(result).toBe('Pokémon +2 more');
     });
@@ -463,15 +447,7 @@ describe('Game Selector - Data Validation', () => {
 describe('Game Selector - CSS Variable Theming', () => {
   describe('GAME_CSS_VARIABLES', () => {
     it('should have CSS variables for all games', () => {
-      const gameIds: GameId[] = [
-        'pokemon',
-        'yugioh',
-        'onepiece',
-        'dragonball',
-        'lorcana',
-        'digimon',
-        'mtg',
-      ];
+      const gameIds: GameId[] = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
       for (const id of gameIds) {
         expect(GAME_CSS_VARIABLES[id]).toBeDefined();
       }
@@ -555,24 +531,9 @@ describe('Game Selector - CSS Variable Theming', () => {
       expect(vars.primary).toBe('#ef4444');
     });
 
-    it('should return Dragon Ball orange theme', () => {
-      const vars = getGameCssVariables('dragonball');
-      expect(vars.primary).toBe('#f97316');
-    });
-
     it('should return Lorcana blue theme', () => {
       const vars = getGameCssVariables('lorcana');
       expect(vars.primary).toBe('#3b82f6');
-    });
-
-    it('should return Digimon cyan theme', () => {
-      const vars = getGameCssVariables('digimon');
-      expect(vars.primary).toBe('#06b6d4');
-    });
-
-    it('should return MTG amber theme', () => {
-      const vars = getGameCssVariables('mtg');
-      expect(vars.primary).toBe('#d97706');
     });
   });
 
@@ -623,7 +584,7 @@ describe('Game Selector - CSS Variable Theming', () => {
     it('should return correct variable name format', () => {
       expect(getGameCssVariableName('pokemon', 'primary')).toBe('--game-pokemon-primary');
       expect(getGameCssVariableName('yugioh', 'secondary')).toBe('--game-yugioh-secondary');
-      expect(getGameCssVariableName('mtg', 'accent')).toBe('--game-mtg-accent');
+      expect(getGameCssVariableName('lorcana', 'accent')).toBe('--game-lorcana-accent');
     });
 
     it('should support all color types', () => {
@@ -635,15 +596,7 @@ describe('Game Selector - CSS Variable Theming', () => {
     });
 
     it('should work for all game IDs', () => {
-      const gameIds: GameId[] = [
-        'pokemon',
-        'yugioh',
-        'onepiece',
-        'dragonball',
-        'lorcana',
-        'digimon',
-        'mtg',
-      ];
+      const gameIds: GameId[] = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
       for (const gameId of gameIds) {
         const varName = getGameCssVariableName(gameId, 'primary');
         expect(varName).toBe(`--game-${gameId}-primary`);
@@ -661,8 +614,8 @@ describe('Game Selector - CSS Variable Theming', () => {
       const bgStyle = getGameColorStyle('yugioh', 'accent', 'backgroundColor');
       expect(bgStyle.backgroundColor).toBe('var(--game-yugioh-accent)');
 
-      const borderStyle = getGameColorStyle('mtg', 'border', 'borderColor');
-      expect(borderStyle.borderColor).toBe('var(--game-mtg-border)');
+      const borderStyle = getGameColorStyle('lorcana', 'border', 'borderColor');
+      expect(borderStyle.borderColor).toBe('var(--game-lorcana-border)');
     });
 
     it('should default to color property', () => {
@@ -674,8 +627,8 @@ describe('Game Selector - CSS Variable Theming', () => {
     it('should work with all color types', () => {
       const colorTypes = ['primary', 'secondary', 'accent', 'text', 'border'] as const;
       for (const colorType of colorTypes) {
-        const style = getGameColorStyle('digimon', colorType);
-        expect(style.color).toBe(`var(--game-digimon-${colorType})`);
+        const style = getGameColorStyle('onepiece', colorType);
+        expect(style.color).toBe(`var(--game-onepiece-${colorType})`);
       }
     });
   });
