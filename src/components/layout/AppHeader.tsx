@@ -22,6 +22,7 @@ import { api } from '../../../convex/_generated/api';
 import { hasParentAccess } from '@/lib/profiles';
 import { DarkModeToggle } from './DarkModeToggle';
 import { KidModeToggle } from './KidModeToggle';
+import { GameSwitcher } from '@/components/header/GameSwitcher';
 
 // Custom card stack icon for logo (shared across all headers)
 function CardStackIcon({ className }: { className?: string }) {
@@ -117,8 +118,11 @@ export function AppHeader() {
           })}
         </div>
 
-        {/* Right side: Quick Settings popover, Profile Menu */}
+        {/* Right side: Game Switcher, Quick Settings popover, Profile Menu */}
         <div className="hidden items-center gap-2 lg:flex">
+          {/* Game Switcher */}
+          <GameSwitcher />
+
           {/* Quick Settings popover */}
           <div className="relative">
             <button

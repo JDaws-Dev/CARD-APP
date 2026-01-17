@@ -325,7 +325,7 @@ export const getPopulationStatus = query({
 });
 
 /**
- * Get cached sets for a game
+ * Get cached sets for a game (internal)
  */
 export const getCachedSets = internalQuery({
   args: {
@@ -342,6 +342,26 @@ export const getCachedSets = internalQuery({
     sets.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
 
     return args.limit ? sets.slice(0, args.limit) : sets;
+  },
+});
+
+/**
+ * Get cached sets for a game (public query)
+ */
+export const getSetsByGame = query({
+  args: {
+    gameSlug: gameSlugValidator,
+  },
+  handler: async (ctx, args) => {
+    const sets = await ctx.db
+      .query('cachedSets')
+      .withIndex('by_game', (q) => q.eq('gameSlug', args.gameSlug))
+      .collect();
+
+    // Sort by release date descending
+    sets.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+
+    return sets;
   },
 });
 
