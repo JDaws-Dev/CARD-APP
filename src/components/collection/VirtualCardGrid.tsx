@@ -359,18 +359,18 @@ const CARD_DIMENSIONS = {
   GAP: 12, // Grid gap in pixels
 };
 
-// Helper to calculate columns based on screen width
-function getColumnCount(containerWidth: number, simplifiedLayout: boolean): number {
+// Helper to calculate columns based on viewport width (to match Tailwind responsive breakpoints)
+function getColumnCount(viewportWidth: number, simplifiedLayout: boolean): number {
   if (simplifiedLayout) {
-    if (containerWidth >= 768) return 4; // md
-    if (containerWidth >= 640) return 3; // sm
+    if (viewportWidth >= 768) return 4; // md
+    if (viewportWidth >= 640) return 3; // sm
     return 2;
   }
-  // Standard card-grid breakpoints
-  if (containerWidth >= 1280) return 6; // xl
-  if (containerWidth >= 1024) return 5; // lg
-  if (containerWidth >= 768) return 4; // md
-  if (containerWidth >= 640) return 3; // sm
+  // Standard card-grid breakpoints - must match Tailwind responsive classes
+  if (viewportWidth >= 1280) return 6; // xl
+  if (viewportWidth >= 1024) return 5; // lg
+  if (viewportWidth >= 768) return 4; // md
+  if (viewportWidth >= 640) return 3; // sm
   return 2;
 }
 
@@ -385,7 +385,9 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
   const { showXPGain } = useLevelUp();
   const { features } = useKidMode();
   const parentRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 0
+  );
 
   // State for variant selector popup
   const [selectedCard, setSelectedCard] = useState<PokemonCard | null>(null);
@@ -416,28 +418,23 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
 
-  // Track container width for responsive column calculation
+  // Track viewport width for responsive column calculation (must match Tailwind breakpoints)
   useEffect(() => {
-    if (!parentRef.current) return;
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+    };
 
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-
-    observer.observe(parentRef.current);
     // Set initial width
-    setContainerWidth(parentRef.current.offsetWidth);
+    setViewportWidth(window.innerWidth);
 
-    return () => observer.disconnect();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Calculate column count based on container width
+  // Calculate column count based on viewport width (to match Tailwind responsive breakpoints)
   const columnCount = useMemo(
-    () => (containerWidth > 0 ? getColumnCount(containerWidth, features.simplifiedLayout) : 2),
-    [containerWidth, features.simplifiedLayout]
+    () => (viewportWidth > 0 ? getColumnCount(viewportWidth, features.simplifiedLayout) : 2),
+    [viewportWidth, features.simplifiedLayout]
   );
 
   // Organize cards into rows
@@ -718,6 +715,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
             alt={card.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            loading="lazy"
           />
 
           {/* Owned Checkmark */}
@@ -962,7 +960,10 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
       {/* Card Grid Container */}
       <div
         ref={parentRef}
-        className={cn('relative', useVirtualScrolling && 'h-[600px] overflow-auto rounded-xl')}
+        className={cn(
+          'relative w-full min-w-0',
+          useVirtualScrolling && 'h-[600px] overflow-auto rounded-xl'
+        )}
         role="grid"
         aria-label={`Card collection grid with ${cards.length} cards`}
       >
