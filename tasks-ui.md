@@ -98,7 +98,7 @@ These issues relate to inconsistent behavior between logged-in and logged-out st
 - [x] Protect `/collection` route - Redirect to `/login` if not authenticated
 - [x] Protect `/my-wishlist` route - Redirect to `/login` if not authenticated
 - [x] Protect `/badges` route - Redirect to `/login` if not authenticated
-- [ ] Protect `/settings` route - Redirect to `/login` if not authenticated
+- [x] Protect `/settings` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/parent-dashboard` route - Redirect to `/login` if not authenticated (also check parent role)
 - [x] Protect `/streak` route - Redirect to `/login` if not authenticated
 - [ ] Protect `/learn` route - Redirect to `/login` if not authenticated
@@ -712,6 +712,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Protected /collection route with auth redirect - Updated src/app/collection/page.tsx to redirect unauthenticated users to /login automatically. Uses useConvexAuth hook to check authentication state, redirects via useEffect when not authenticated. Shows loading spinner while checking auth status. Added comprehensive test suite (11 tests) covering authentication protection, loading states, empty collection state, and authenticated behavior. All collection page tests pass, ESLint and Prettier clean. Commit: 65916f2
 
 - **2026-01-17**: Protected /streak route with auth redirect - Updated src/app/streak/page.tsx to redirect unauthenticated users to /login automatically. Uses useConvexAuth hook to check authentication state, useRouter for navigation, and useEffect for redirect logic. Shows loading spinner with orange theme while checking auth status. Changed "No profile" state from sign-in prompt to "Profile Not Found" message directing to dashboard. Removed unused HomeIcon and ShieldCheckIcon imports. Added comprehensive test suite (13 tests) covering authentication protection, loading states, profile loading, authenticated behavior, and no-profile edge case. All streak page tests pass, ESLint and Prettier clean. Commit: 32515ea
+
+- **2026-01-17**: Completed Protect /settings route task - Added authentication protection to `/settings` page to redirect unauthenticated users to `/login`. Updated `src/app/settings/page.tsx` to use `useConvexAuth` hook for auth state checking, `useRouter` for navigation, and `useEffect` for redirect logic. Added loading spinner with slate gradient theme matching the page styling. Follows same pattern as other protected routes (`/dashboard`, `/collection`, `/my-wishlist`, `/badges`, `/streak`). Commit: 97c3bff
 
 ---
 
