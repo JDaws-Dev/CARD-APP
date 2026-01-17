@@ -22,3 +22,9 @@
 **Files:** src/components/header/ProfileSwitcher.tsx, src/components/layout/AppHeader.tsx
 **Commit:** 6f2190a (existing)
 ---
+## CD-4nd - Restructure settings page - My Settings vs Family Controls
+**Status:** Completed
+**Changes:** Restructured settings page to visually separate kid-accessible settings (My Settings) from parent-controlled settings (Family Controls). My Settings includes Display and Accessibility options with standard borders. Family Controls includes Games You Collect and Sleep Mode with amber borders for visual distinction.
+**Files:** src/app/settings/page.tsx
+**Commit:** 5815da3
+---
