@@ -76,3 +76,9 @@
 **Files:** src/app/page.tsx
 **Commit:** b9a1ecf
 ---
+## CD-mfx - Collection Modal - Quick actions
+**Status:** Completed
+**Changes:** Verified existing implementation - all four quick action buttons (View in Set, Add to Wishlist, Edit Quantity, Remove Card) were already fully implemented in CardDetailModal.tsx with handlers in CollectionView.tsx
+**Files:** src/components/collection/CardDetailModal.tsx, src/components/collection/CollectionView.tsx
+**Commit:** N/A - no code changes needed, feature was already complete
+---
