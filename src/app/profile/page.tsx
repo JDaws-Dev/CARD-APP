@@ -7,7 +7,8 @@ import {
   GameSettingsToggle,
   GameSettingsToggleSkeleton,
 } from '@/components/settings/GameSettingsToggle';
-import { ArrowLeftIcon, UserCircleIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { UserCircleIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { BackLink } from '@/components/ui/BackLink';
 
 export default function ProfilePage() {
   const { profileId, isLoading } = useCurrentProfile();
@@ -17,13 +18,9 @@ export default function ProfilePage() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/collection"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
-          >
-            <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" />
+          <BackLink href="/collection" withMargin>
             Back to Collection
-          </Link>
+          </BackLink>
 
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-kid-primary to-purple-500 shadow-lg">

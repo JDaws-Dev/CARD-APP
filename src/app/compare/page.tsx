@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { DuplicateFinder } from '@/components/collection/DuplicateFinder';
-import { ArrowsRightLeftIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
+import { BackLink } from '@/components/ui/BackLink';
 
 export default function ComparePage() {
   return (
@@ -10,13 +10,9 @@ export default function ComparePage() {
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/collection"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeftIcon className="h-4 w-4" />
+          <BackLink href="/collection" withMargin>
             Back to Collection
-          </Link>
+          </BackLink>
 
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-kid-primary/10 p-2">

@@ -5,9 +5,10 @@ import { useQuery, useConvexAuth } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../convex/_generated/api';
 import Link from 'next/link';
-import { ShieldCheckIcon, ArrowLeftIcon, Cog6ToothIcon, PlusIcon } from '@heroicons/react/24/solid';
+import { ShieldCheckIcon, Cog6ToothIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { ParentDashboard, ParentDashboardSkeleton } from '@/components/dashboard/ParentDashboard';
 import { AddProfileModal } from '@/components/dashboard/AddProfileModal';
+import { BackLink } from '@/components/ui/BackLink';
 
 export default function ParentDashboardPage() {
   const [isAddProfileModalOpen, setIsAddProfileModalOpen] = useState(false);
@@ -77,13 +78,7 @@ export default function ParentDashboardPage() {
           )}
 
           <div className="mt-4">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-gray-700"
-            >
-              <ArrowLeftIcon className="h-4 w-4" />
-              Back to Home
-            </Link>
+            <BackLink href="/">Back to Home</BackLink>
           </div>
         </div>
       </main>
@@ -98,13 +93,9 @@ export default function ParentDashboardPage() {
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-gray-700"
-          >
-            <ArrowLeftIcon className="h-4 w-4" />
+          <BackLink href="/" withMargin>
             Back to Home
-          </Link>
+          </BackLink>
 
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-center gap-4">

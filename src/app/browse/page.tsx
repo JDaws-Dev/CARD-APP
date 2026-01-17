@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { FilterPanel, FilterChips } from '@/components/filter';
 import { SearchResults } from '@/components/search/SearchResults';
 import { FilterPanelSkeleton } from '@/components/ui/Skeleton';
 import { InlineError } from '@/components/ui/ErrorBoundary';
-import { FunnelIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { FunnelIcon } from '@heroicons/react/24/outline';
 import type { PokemonCard, PokemonSet } from '@/lib/pokemon-tcg';
+import { BackLink } from '@/components/ui/BackLink';
 
 export default function BrowsePage() {
   // Filter state
@@ -117,13 +117,9 @@ export default function BrowsePage() {
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeftIcon className="h-4 w-4" />
+          <BackLink href="/" withMargin>
             Back to Home
-          </Link>
+          </BackLink>
 
           <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">Browse Cards</h1>
           <p className="text-sm text-gray-500 sm:text-base">

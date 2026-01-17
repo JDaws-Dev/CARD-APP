@@ -14,11 +14,11 @@ import {
   CheckIcon,
   TrashIcon,
   GiftIcon,
-  ArrowLeftIcon,
   ShareIcon,
   SparklesIcon,
   CurrencyDollarIcon,
 } from '@heroicons/react/24/solid';
+import { BackLink } from '@/components/ui/BackLink';
 import {
   HeartIcon as HeartIconOutline,
   StarIcon as StarIconOutline,
@@ -519,13 +519,9 @@ export default function MyWishlistPage() {
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/collection"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" />
+          <BackLink href="/collection" withMargin>
             Back to Collection
-          </Link>
+          </BackLink>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">

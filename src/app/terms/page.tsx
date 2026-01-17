@@ -1,8 +1,6 @@
 'use client';
 
-import Link from 'next/link';
 import {
-  ArrowLeftIcon,
   DocumentTextIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -10,20 +8,16 @@ import {
   ScaleIcon,
   EnvelopeIcon,
 } from '@heroicons/react/24/solid';
+import { BackLink } from '@/components/ui/BackLink';
 
 export default function TermsPage() {
   return (
     <main className="min-h-screen bg-gray-50 pb-16 pt-24 dark:bg-slate-900">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Back link */}
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-400 dark:hover:text-slate-200"
-          aria-label="Back to Home"
-        >
-          <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" />
+        <BackLink href="/" className="mb-6" aria-label="Back to Home">
           Back to Home
-        </Link>
+        </BackLink>
 
         {/* Header */}
         <div className="mb-8">

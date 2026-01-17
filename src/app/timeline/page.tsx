@@ -5,8 +5,9 @@ import { FirstCardCelebration } from '@/components/collection/FirstCardCelebrati
 import { CollectionStatsGraph } from '@/components/collection/CollectionStatsGraph';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import Link from 'next/link';
-import { ArrowLeftIcon, CalendarDaysIcon, SparklesIcon, HomeIcon } from '@heroicons/react/24/outline';
+import { CalendarDaysIcon, SparklesIcon, HomeIcon } from '@heroicons/react/24/outline';
 import { CollectionTimelineSkeleton } from '@/components/collection/CollectionTimeline';
+import { BackLink } from '@/components/ui/BackLink';
 
 export default function TimelinePage() {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
@@ -66,13 +67,9 @@ export default function TimelinePage() {
       <div className="mx-auto max-w-5xl">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/collection"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeftIcon className="h-4 w-4" />
+          <BackLink href="/collection" withMargin>
             Back to Collection
-          </Link>
+          </BackLink>
 
           <div className="flex items-start gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg">

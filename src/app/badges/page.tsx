@@ -1,15 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useConvexAuth } from 'convex/react';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { TrophyCase, TrophyCaseSkeleton } from '@/components/achievements/TrophyCase';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { TrophyIcon } from '@heroicons/react/24/solid';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { BackLink } from '@/components/ui/BackLink';
 
 export default function BadgesPage() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
@@ -63,13 +62,9 @@ export default function BadgesPage() {
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/collection"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeftIcon className="h-4 w-4" />
+          <BackLink href="/collection" withMargin>
             Back to Collection
-          </Link>
+          </BackLink>
 
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg">
