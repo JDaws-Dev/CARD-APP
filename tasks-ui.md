@@ -228,7 +228,7 @@ The My Collection page is slow to load. These UI-side optimizations will help.
 - [x] Add loading="lazy" to CollectionView card images - Defer offscreen image loading
 - [x] Add loading="lazy" to VirtualCardGrid card images - Defer offscreen image loading
 - [x] Lazy load VirtualTrophyRoom with React.lazy() - Don't load trophy room until needed
-- [ ] Increase VirtualCardGrid overscan on mobile - Change from 3 to 5 rows for smoother scrolling on slower devices
+- [x] Increase VirtualCardGrid overscan on mobile - Change from 3 to 5 rows for smoother scrolling on slower devices
 - [ ] Memoize cardData Map in CollectionView - Prevent recreation on every render
 
 ## HIGH - UX & Navigation Improvements (January 2026)
@@ -242,7 +242,7 @@ Improve site organization, navigation, and user flow clarity.
 - [ ] Add breadcrumb to /sets/[setId] - Show "Home > Browse Sets > [Set Name]"
 - [ ] Create AppFooter component - Footer for authenticated pages with Help, Privacy, Terms links
 - [ ] Add AppFooter to all app pages - Consistent footer across the app
-- [ ] Add ESC key handler to mobile menu - Close menu on Escape key press
+- [x] Add ESC key handler to mobile menu - Close menu on Escape key press
 - [x] Fix onboarding redirect - Change /onboarding completion to redirect to /collection instead of /dashboard
 - [ ] Add "What's Next" card to Dashboard - Guide new users to Browse Sets, Learning Resources after onboarding
 - [ ] Standardize back link styling - Use consistent gap, font-weight, and hover colors across all pages
@@ -652,6 +652,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 - **2026-01-17**: Updated signup page tagline - Changed "Start tracking your trading card collection" to "Start your collecting adventure!" in src/app/signup/page.tsx for more exciting, kid-friendly copy. Commit: a4d921c
 
+- **2026-01-17**: Increased VirtualCardGrid overscan on mobile - Changed overscan from static 3 rows to dynamic value based on viewport width (5 rows on mobile < 640px, 3 rows on desktop). This improves scrolling smoothness on slower mobile devices by pre-rendering more rows above and below the visible viewport. Commit: 3603a4d
+
 - **2026-01-17**: Created CardImage component with error handling - Built reusable CardImage component (src/components/ui/CardImage.tsx) wrapping Next.js Image with automatic fallback to placeholder on load errors. Features: inline SVG placeholder as data URL (no external dependencies), loading skeleton state with PhotoIcon, support for fill and fixed dimension modes, CardBack component for flip animations, customizable fallback image, onError/onLoad callbacks. Created card-placeholder.svg (public/images/card-placeholder.svg) with card-shaped design and "Card not available" message. Added comprehensive test suite (16 tests) covering error handling, fallback behavior, callbacks, and prop handling. Commit: 1eba4f1
 
 - **2026-01-17**: Updated parent dashboard text for multi-TCG support - Changed "Manage your family's Pokemon collections" to "Manage your family's trading card collections" in src/app/parent-dashboard/page.tsx line 75 to reflect that the app supports multiple trading card games. Commit: a506f8d
@@ -694,6 +696,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Created /privacy page stub - Added placeholder privacy policy page at src/app/privacy/page.tsx with kid-friendly, COPPA-focused content. Features: COPPA compliance section with emerald gradient highlighting family-focused design; Information We Collect section (account, profile, collection, usage data); How We Use Your Information section; "What We Don't Do" section in rose gradient (no selling data, no ads, no sharing, no sending children's info to AI); Data Retention & Deletion section; Contact section with email link. Uses Heroicons (ShieldCheckIcon, UserGroupIcon, LockClosedIcon, EyeSlashIcon, TrashIcon, EnvelopeIcon, ArrowLeftIcon). Full dark mode support and accessible focus states. Includes disclaimer noting this is a placeholder to be replaced with legal-reviewed policy. ESLint and Prettier clean. Commit: 24ee127
 
 - **2026-01-17**: Added useMemo to CollectionView set grouping logic - Wrapped the expensive set grouping computation in useMemo to cache results and prevent recalculating grouping, sorting, and map creation on every render. Now only recalculates when collection or cardData changes. Also fixed CollectionView test mock to wrap card data in { data: mockCards } to match API response structure. All 5 CollectionView tests pass. ESLint and Prettier clean. Commit: 47d112d
+
+- **2026-01-17**: Added ESC key handler to close mobile menus - Added keyboard accessibility to AppHeader and MarketingHeader by closing mobile menu on Escape key press. Also closes profile menu and quick settings popover in AppHeader when Escape is pressed. Uses useEffect with keydown listener and useCallback for stable handler reference. Added 4 tests covering ESC key behavior (3 for AppHeader: mobile menu, profile menu, quick settings; 1 for MarketingHeader: mobile menu). All new tests pass, ESLint and Prettier clean. Commit: d154bae
 
 ---
 
