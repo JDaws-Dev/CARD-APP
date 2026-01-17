@@ -461,6 +461,355 @@ export const clearOldLogs = mutation({
 });
 
 // ============================================================================
+// PAGINATED QUERIES - Cursor-based pagination for large activity histories
+// ============================================================================
+
+/**
+ * Get paginated activity logs for a profile.
+ * Uses cursor-based pagination instead of offset for efficient large data sets.
+ *
+ * @param profileId - The profile to fetch activity for
+ * @param pageSize - Number of items per page (default 50, max 100)
+ * @param cursor - Optional cursor (timestamp) from previous page to continue from
+ * @returns Page of logs with cursor for next page and metadata
+ */
+export const getRecentActivityPaginated = query({
+  args: {
+    profileId: v.id('profiles'),
+    pageSize: v.optional(v.number()),
+    cursor: v.optional(v.number()), // Timestamp cursor - fetch items older than this
+  },
+  handler: async (ctx, args) => {
+    // Clamp page size between 1 and 100
+    const pageSize = Math.min(Math.max(args.pageSize ?? 50, 1), 100);
+
+    // Build query with index
+    let query = ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .order('desc');
+
+    // If we have a cursor, we need to filter manually since Convex doesn't support
+    // starting from a specific point in the index directly
+    const logs = await query.take(pageSize * 10 + 1); // Fetch extra to find cursor position
+
+    let filteredLogs = logs;
+    if (args.cursor !== undefined) {
+      // Filter to only include logs older than the cursor
+      filteredLogs = logs.filter((log) => log._creationTime < args.cursor!);
+    }
+
+    // Take only the page size we need
+    const pageLogs = filteredLogs.slice(0, pageSize);
+
+    // Determine if there are more items
+    const hasMore = filteredLogs.length > pageSize;
+
+    // Get cursor for next page (timestamp of last item)
+    const nextCursor =
+      pageLogs.length > 0 ? pageLogs[pageLogs.length - 1]._creationTime : undefined;
+
+    return {
+      logs: pageLogs,
+      nextCursor: hasMore ? nextCursor : undefined,
+      hasMore,
+      pageSize,
+      totalFetched: pageLogs.length,
+    };
+  },
+});
+
+/**
+ * Get paginated activity logs with card names enriched.
+ * Combines pagination with card name enrichment for efficient display.
+ */
+export const getRecentActivityWithNamesPaginated = query({
+  args: {
+    profileId: v.id('profiles'),
+    pageSize: v.optional(v.number()),
+    cursor: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const pageSize = Math.min(Math.max(args.pageSize ?? 50, 1), 100);
+
+    let query = ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .order('desc');
+
+    const logs = await query.take(pageSize * 10 + 1);
+
+    let filteredLogs = logs;
+    if (args.cursor !== undefined) {
+      filteredLogs = logs.filter((log) => log._creationTime < args.cursor!);
+    }
+
+    const pageLogs = filteredLogs.slice(0, pageSize);
+    const hasMore = filteredLogs.length > pageSize;
+    const nextCursor =
+      pageLogs.length > 0 ? pageLogs[pageLogs.length - 1]._creationTime : undefined;
+
+    // Collect all unique cardIds that need name lookup
+    const cardIdsToLookup = new Set<string>();
+    for (const log of pageLogs) {
+      if (log.action === 'card_added' || log.action === 'card_removed') {
+        const metadata = log.metadata as { cardId?: string; cardName?: string } | undefined;
+        if (metadata?.cardId && !metadata?.cardName) {
+          cardIdsToLookup.add(metadata.cardId);
+        }
+      }
+    }
+
+    // Fetch card names from cachedCards in parallel
+    const cardNameMap = new Map<string, string>();
+    if (cardIdsToLookup.size > 0) {
+      const cardLookups = await Promise.all(
+        Array.from(cardIdsToLookup).map((cardId) =>
+          ctx.db
+            .query('cachedCards')
+            .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+            .first()
+        )
+      );
+
+      for (const card of cardLookups) {
+        if (card) {
+          cardNameMap.set(card.cardId, card.name);
+        }
+      }
+    }
+
+    // Enrich logs with card names
+    const enrichedLogs = pageLogs.map((log) => {
+      if (log.action === 'card_added' || log.action === 'card_removed') {
+        const metadata = log.metadata as
+          | { cardId?: string; cardName?: string; [key: string]: unknown }
+          | undefined;
+        if (metadata?.cardId) {
+          const cardName = metadata.cardName ?? cardNameMap.get(metadata.cardId) ?? metadata.cardId;
+          return {
+            ...log,
+            metadata: {
+              ...metadata,
+              cardName,
+            },
+          };
+        }
+      }
+      return log;
+    });
+
+    return {
+      logs: enrichedLogs,
+      nextCursor: hasMore ? nextCursor : undefined,
+      hasMore,
+      pageSize,
+      totalFetched: enrichedLogs.length,
+    };
+  },
+});
+
+/**
+ * Get paginated family activity with card names.
+ * Efficiently fetches activity across all family profiles with pagination.
+ */
+export const getFamilyActivityPaginated = query({
+  args: {
+    familyId: v.id('families'),
+    pageSize: v.optional(v.number()),
+    cursor: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const pageSize = Math.min(Math.max(args.pageSize ?? 50, 1), 100);
+
+    // Get all profiles in the family
+    const profiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', (q) => q.eq('familyId', args.familyId))
+      .collect();
+
+    const profileIds = new Set(profiles.map((p) => p._id));
+
+    // For family activity, we need to scan globally since we can't query multiple profiles
+    // Use a larger batch to ensure we get enough family-specific logs
+    const batchSize = Math.max(pageSize * 10, 500);
+    let allLogs = await ctx.db.query('activityLogs').order('desc').take(batchSize);
+
+    // Filter to family profiles
+    let familyLogs = allLogs.filter((log) => profileIds.has(log.profileId));
+
+    // Apply cursor filter if provided
+    if (args.cursor !== undefined) {
+      familyLogs = familyLogs.filter((log) => log._creationTime < args.cursor!);
+    }
+
+    // Take only the page size we need
+    const pageLogs = familyLogs.slice(0, pageSize);
+    const hasMore = familyLogs.length > pageSize;
+    const nextCursor =
+      pageLogs.length > 0 ? pageLogs[pageLogs.length - 1]._creationTime : undefined;
+
+    // Collect cardIds for name lookup
+    const cardIdsToLookup = new Set<string>();
+    for (const log of pageLogs) {
+      if (log.action === 'card_added' || log.action === 'card_removed') {
+        const metadata = log.metadata as { cardId?: string; cardName?: string } | undefined;
+        if (metadata?.cardId && !metadata?.cardName) {
+          cardIdsToLookup.add(metadata.cardId);
+        }
+      }
+    }
+
+    // Fetch card names in parallel
+    const cardNameMap = new Map<string, string>();
+    if (cardIdsToLookup.size > 0) {
+      const cardLookups = await Promise.all(
+        Array.from(cardIdsToLookup).map((cardId) =>
+          ctx.db
+            .query('cachedCards')
+            .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+            .first()
+        )
+      );
+
+      for (const card of cardLookups) {
+        if (card) {
+          cardNameMap.set(card.cardId, card.name);
+        }
+      }
+    }
+
+    // Enrich with profile names and card names
+    const enrichedLogs = pageLogs.map((log) => {
+      const profile = profiles.find((p) => p._id === log.profileId);
+      let enrichedMetadata = log.metadata;
+
+      if (log.action === 'card_added' || log.action === 'card_removed') {
+        const metadata = log.metadata as
+          | { cardId?: string; cardName?: string; [key: string]: unknown }
+          | undefined;
+        if (metadata?.cardId) {
+          const cardName = metadata.cardName ?? cardNameMap.get(metadata.cardId) ?? metadata.cardId;
+          enrichedMetadata = {
+            ...metadata,
+            cardName,
+          };
+        }
+      }
+
+      return {
+        ...log,
+        metadata: enrichedMetadata,
+        profileName: profile?.displayName ?? 'Unknown',
+      };
+    });
+
+    return {
+      logs: enrichedLogs,
+      nextCursor: hasMore ? nextCursor : undefined,
+      hasMore,
+      pageSize,
+      totalFetched: enrichedLogs.length,
+      familyProfileCount: profiles.length,
+    };
+  },
+});
+
+/**
+ * Get paginated activity by action type.
+ * Uses compound index for efficient filtering and pagination.
+ */
+export const getActivityByTypePaginated = query({
+  args: {
+    profileId: v.id('profiles'),
+    action: actionType,
+    pageSize: v.optional(v.number()),
+    cursor: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const pageSize = Math.min(Math.max(args.pageSize ?? 50, 1), 100);
+
+    // Use compound index for efficient profile + action filtering
+    const logs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile_and_action', (q) =>
+        q.eq('profileId', args.profileId).eq('action', args.action)
+      )
+      .order('desc')
+      .take(pageSize * 10 + 1);
+
+    let filteredLogs = logs;
+    if (args.cursor !== undefined) {
+      filteredLogs = logs.filter((log) => log._creationTime < args.cursor!);
+    }
+
+    const pageLogs = filteredLogs.slice(0, pageSize);
+    const hasMore = filteredLogs.length > pageSize;
+    const nextCursor =
+      pageLogs.length > 0 ? pageLogs[pageLogs.length - 1]._creationTime : undefined;
+
+    return {
+      logs: pageLogs,
+      nextCursor: hasMore ? nextCursor : undefined,
+      hasMore,
+      pageSize,
+      totalFetched: pageLogs.length,
+      action: args.action,
+    };
+  },
+});
+
+/**
+ * Get paginated activity within a date range.
+ * Useful for parent dashboard with time-bounded queries.
+ */
+export const getActivityByDateRangePaginated = query({
+  args: {
+    profileId: v.id('profiles'),
+    startDate: v.number(), // Unix timestamp (inclusive)
+    endDate: v.number(), // Unix timestamp (inclusive)
+    pageSize: v.optional(v.number()),
+    cursor: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const pageSize = Math.min(Math.max(args.pageSize ?? 50, 1), 100);
+
+    // Fetch logs for the profile
+    const logs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .order('desc')
+      .take(pageSize * 10 + 1);
+
+    // Filter by date range and cursor
+    let filteredLogs = logs.filter(
+      (log) => log._creationTime >= args.startDate && log._creationTime <= args.endDate
+    );
+
+    if (args.cursor !== undefined) {
+      filteredLogs = filteredLogs.filter((log) => log._creationTime < args.cursor!);
+    }
+
+    const pageLogs = filteredLogs.slice(0, pageSize);
+    const hasMore = filteredLogs.length > pageSize;
+    const nextCursor =
+      pageLogs.length > 0 ? pageLogs[pageLogs.length - 1]._creationTime : undefined;
+
+    return {
+      logs: pageLogs,
+      nextCursor: hasMore ? nextCursor : undefined,
+      hasMore,
+      pageSize,
+      totalFetched: pageLogs.length,
+      dateRange: {
+        start: args.startDate,
+        end: args.endDate,
+      },
+    };
+  },
+});
+
+// ============================================================================
 // OPTIMIZED QUERIES - Using compound indexes for better performance
 // ============================================================================
 

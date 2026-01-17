@@ -20,7 +20,22 @@ import {
   buildCardDisplayLabel,
   formatVariantForDisplay,
   formatActivityLogForDisplay,
+  // Pagination utilities
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_SIZE,
+  MIN_PAGE_SIZE,
+  clampPageSize,
+  isValidPageSize,
+  isValidCursor,
+  filterByCursor,
+  getNextCursor,
+  buildPaginatedResult,
+  hasMorePages,
+  getPageInfoString,
+  estimateTotalPages,
+  mergePaginatedResults,
   type ActivityLog,
+  type PaginatedResult,
 } from '../activityLogs';
 
 // ============================================================================
@@ -598,23 +613,33 @@ describe('buildCardDisplayLabel', () => {
   });
 
   it('should return card name only for normal variant with quantity 1', () => {
-    expect(buildCardDisplayLabel({ cardName: 'Pikachu', variant: 'normal', quantity: 1 })).toBe('Pikachu');
+    expect(buildCardDisplayLabel({ cardName: 'Pikachu', variant: 'normal', quantity: 1 })).toBe(
+      'Pikachu'
+    );
   });
 
   it('should include variant for non-normal variants', () => {
-    expect(buildCardDisplayLabel({ cardName: 'Charizard', variant: 'holofoil', quantity: 1 })).toBe('Charizard (Holofoil)');
+    expect(buildCardDisplayLabel({ cardName: 'Charizard', variant: 'holofoil', quantity: 1 })).toBe(
+      'Charizard (Holofoil)'
+    );
   });
 
   it('should include quantity when greater than 1', () => {
-    expect(buildCardDisplayLabel({ cardName: 'Bulbasaur', variant: 'normal', quantity: 3 })).toBe('Bulbasaur x3');
+    expect(buildCardDisplayLabel({ cardName: 'Bulbasaur', variant: 'normal', quantity: 3 })).toBe(
+      'Bulbasaur x3'
+    );
   });
 
   it('should include both variant and quantity', () => {
-    expect(buildCardDisplayLabel({ cardName: 'Mewtwo', variant: 'reverseHolofoil', quantity: 2 })).toBe('Mewtwo (Reverse Holofoil) x2');
+    expect(
+      buildCardDisplayLabel({ cardName: 'Mewtwo', variant: 'reverseHolofoil', quantity: 2 })
+    ).toBe('Mewtwo (Reverse Holofoil) x2');
   });
 
   it('should use cardId as fallback when cardName is missing', () => {
-    expect(buildCardDisplayLabel({ cardId: 'sv1-25', variant: 'holofoil' })).toBe('sv1-25 (Holofoil)');
+    expect(buildCardDisplayLabel({ cardId: 'sv1-25', variant: 'holofoil' })).toBe(
+      'sv1-25 (Holofoil)'
+    );
   });
 
   it('should handle missing variant (defaults to not showing it)', () => {
@@ -622,7 +647,9 @@ describe('buildCardDisplayLabel', () => {
   });
 
   it('should handle missing quantity (defaults to not showing it)', () => {
-    expect(buildCardDisplayLabel({ cardName: 'Charmander', variant: 'holofoil' })).toBe('Charmander (Holofoil)');
+    expect(buildCardDisplayLabel({ cardName: 'Charmander', variant: 'holofoil' })).toBe(
+      'Charmander (Holofoil)'
+    );
   });
 });
 
@@ -639,12 +666,20 @@ describe('formatActivityLogForDisplay', () => {
 
   describe('card_added action', () => {
     it('should format card_added with name and variant', () => {
-      const log = createLog('card_added', { cardName: 'Pikachu', variant: 'holofoil', quantity: 1 });
+      const log = createLog('card_added', {
+        cardName: 'Pikachu',
+        variant: 'holofoil',
+        quantity: 1,
+      });
       expect(formatActivityLogForDisplay(log)).toBe('Added card: Pikachu (Holofoil)');
     });
 
     it('should format card_added with quantity', () => {
-      const log = createLog('card_added', { cardName: 'Bulbasaur', variant: 'normal', quantity: 3 });
+      const log = createLog('card_added', {
+        cardName: 'Bulbasaur',
+        variant: 'normal',
+        quantity: 3,
+      });
       expect(formatActivityLogForDisplay(log)).toBe('Added card: Bulbasaur x3');
     });
 
@@ -678,7 +713,10 @@ describe('formatActivityLogForDisplay', () => {
 
   describe('achievement_earned action', () => {
     it('should format achievement_earned with key', () => {
-      const log = createLog('achievement_earned', { achievementKey: 'sv1_100', achievementType: 'set_completion' });
+      const log = createLog('achievement_earned', {
+        achievementKey: 'sv1_100',
+        achievementType: 'set_completion',
+      });
       expect(formatActivityLogForDisplay(log)).toBe('Earned achievement: sv1_100');
     });
 
@@ -686,5 +724,420 @@ describe('formatActivityLogForDisplay', () => {
       const log = createLog('achievement_earned', undefined);
       expect(formatActivityLogForDisplay(log)).toBe('Earned achievement: Unknown achievement');
     });
+  });
+});
+
+// ============================================================================
+// PAGINATION UTILITIES TESTS
+// ============================================================================
+
+describe('Pagination Constants', () => {
+  it('should have correct default page size', () => {
+    expect(DEFAULT_PAGE_SIZE).toBe(50);
+  });
+
+  it('should have correct max page size', () => {
+    expect(MAX_PAGE_SIZE).toBe(100);
+  });
+
+  it('should have correct min page size', () => {
+    expect(MIN_PAGE_SIZE).toBe(1);
+  });
+});
+
+describe('clampPageSize', () => {
+  it('should return default page size for undefined', () => {
+    expect(clampPageSize(undefined)).toBe(DEFAULT_PAGE_SIZE);
+  });
+
+  it('should clamp to min page size', () => {
+    expect(clampPageSize(0)).toBe(MIN_PAGE_SIZE);
+    expect(clampPageSize(-5)).toBe(MIN_PAGE_SIZE);
+  });
+
+  it('should clamp to max page size', () => {
+    expect(clampPageSize(150)).toBe(MAX_PAGE_SIZE);
+    expect(clampPageSize(1000)).toBe(MAX_PAGE_SIZE);
+  });
+
+  it('should return valid page sizes unchanged', () => {
+    expect(clampPageSize(1)).toBe(1);
+    expect(clampPageSize(50)).toBe(50);
+    expect(clampPageSize(100)).toBe(100);
+    expect(clampPageSize(25)).toBe(25);
+  });
+});
+
+describe('isValidPageSize', () => {
+  it('should return true for valid page sizes', () => {
+    expect(isValidPageSize(1)).toBe(true);
+    expect(isValidPageSize(50)).toBe(true);
+    expect(isValidPageSize(100)).toBe(true);
+  });
+
+  it('should return false for page sizes below min', () => {
+    expect(isValidPageSize(0)).toBe(false);
+    expect(isValidPageSize(-1)).toBe(false);
+  });
+
+  it('should return false for page sizes above max', () => {
+    expect(isValidPageSize(101)).toBe(false);
+    expect(isValidPageSize(1000)).toBe(false);
+  });
+
+  it('should return false for non-integer values', () => {
+    expect(isValidPageSize(10.5)).toBe(false);
+    expect(isValidPageSize(50.1)).toBe(false);
+  });
+});
+
+describe('isValidCursor', () => {
+  it('should return true for undefined cursor', () => {
+    expect(isValidCursor(undefined)).toBe(true);
+  });
+
+  it('should return true for positive timestamps', () => {
+    expect(isValidCursor(1000)).toBe(true);
+    expect(isValidCursor(Date.now())).toBe(true);
+  });
+
+  it('should return false for zero or negative values', () => {
+    expect(isValidCursor(0)).toBe(false);
+    expect(isValidCursor(-1000)).toBe(false);
+  });
+
+  it('should return false for non-finite values', () => {
+    expect(isValidCursor(Infinity)).toBe(false);
+    expect(isValidCursor(NaN)).toBe(false);
+  });
+});
+
+describe('filterByCursor', () => {
+  const createLogWithTime = (time: number): { _creationTime: number } => ({
+    _creationTime: time,
+  });
+
+  it('should return all logs when cursor is undefined', () => {
+    const logs = [createLogWithTime(1000), createLogWithTime(2000), createLogWithTime(3000)];
+    expect(filterByCursor(logs, undefined)).toEqual(logs);
+  });
+
+  it('should filter logs older than cursor', () => {
+    const logs = [createLogWithTime(1000), createLogWithTime(2000), createLogWithTime(3000)];
+    const result = filterByCursor(logs, 2500);
+    expect(result).toEqual([createLogWithTime(1000), createLogWithTime(2000)]);
+  });
+
+  it('should return empty array when all logs are newer than cursor', () => {
+    const logs = [createLogWithTime(3000), createLogWithTime(4000)];
+    const result = filterByCursor(logs, 2000);
+    expect(result).toEqual([]);
+  });
+
+  it('should exclude logs with exact cursor timestamp', () => {
+    const logs = [createLogWithTime(1000), createLogWithTime(2000)];
+    const result = filterByCursor(logs, 2000);
+    expect(result).toEqual([createLogWithTime(1000)]);
+  });
+});
+
+describe('getNextCursor', () => {
+  const createLogWithTime = (time: number): { _creationTime: number } => ({
+    _creationTime: time,
+  });
+
+  it('should return undefined when hasMore is false', () => {
+    const logs = [createLogWithTime(1000)];
+    expect(getNextCursor(logs, false)).toBeUndefined();
+  });
+
+  it('should return undefined for empty logs', () => {
+    expect(getNextCursor([], true)).toBeUndefined();
+  });
+
+  it('should return last log timestamp when hasMore is true', () => {
+    const logs = [createLogWithTime(3000), createLogWithTime(2000), createLogWithTime(1000)];
+    expect(getNextCursor(logs, true)).toBe(1000);
+  });
+});
+
+describe('buildPaginatedResult', () => {
+  const createLogWithTime = (time: number): { _creationTime: number } => ({
+    _creationTime: time,
+  });
+
+  it('should build correct result for first page with more data', () => {
+    const logs = [
+      createLogWithTime(5000),
+      createLogWithTime(4000),
+      createLogWithTime(3000),
+      createLogWithTime(2000),
+      createLogWithTime(1000),
+    ];
+    const result = buildPaginatedResult(logs, undefined, 3);
+
+    expect(result.logs.length).toBe(3);
+    expect(result.hasMore).toBe(true);
+    expect(result.nextCursor).toBe(3000);
+    expect(result.pageSize).toBe(3);
+    expect(result.totalFetched).toBe(3);
+  });
+
+  it('should build correct result for last page', () => {
+    const logs = [createLogWithTime(2000), createLogWithTime(1000)];
+    const result = buildPaginatedResult(logs, undefined, 5);
+
+    expect(result.logs.length).toBe(2);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBeUndefined();
+    expect(result.totalFetched).toBe(2);
+  });
+
+  it('should apply cursor correctly', () => {
+    const logs = [
+      createLogWithTime(5000),
+      createLogWithTime(4000),
+      createLogWithTime(3000),
+      createLogWithTime(2000),
+      createLogWithTime(1000),
+    ];
+    const result = buildPaginatedResult(logs, 4000, 2);
+
+    expect(result.logs.length).toBe(2);
+    expect(result.logs[0]._creationTime).toBe(3000);
+    expect(result.logs[1]._creationTime).toBe(2000);
+    expect(result.hasMore).toBe(true);
+  });
+
+  it('should handle empty logs', () => {
+    const result = buildPaginatedResult([], undefined, 10);
+
+    expect(result.logs).toEqual([]);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBeUndefined();
+    expect(result.totalFetched).toBe(0);
+  });
+});
+
+describe('hasMorePages', () => {
+  it('should return true when hasMore and nextCursor exist', () => {
+    const result: PaginatedResult<ActivityLog> = {
+      logs: [],
+      hasMore: true,
+      nextCursor: 1000,
+      pageSize: 50,
+      totalFetched: 50,
+    };
+    expect(hasMorePages(result)).toBe(true);
+  });
+
+  it('should return false when hasMore is false', () => {
+    const result: PaginatedResult<ActivityLog> = {
+      logs: [],
+      hasMore: false,
+      nextCursor: 1000,
+      pageSize: 50,
+      totalFetched: 50,
+    };
+    expect(hasMorePages(result)).toBe(false);
+  });
+
+  it('should return false when nextCursor is undefined', () => {
+    const result: PaginatedResult<ActivityLog> = {
+      logs: [],
+      hasMore: true,
+      nextCursor: undefined,
+      pageSize: 50,
+      totalFetched: 50,
+    };
+    expect(hasMorePages(result)).toBe(false);
+  });
+});
+
+describe('getPageInfoString', () => {
+  it('should return "No activity found" for empty result', () => {
+    const result: PaginatedResult<ActivityLog> = {
+      logs: [],
+      hasMore: false,
+      nextCursor: undefined,
+      pageSize: 50,
+      totalFetched: 0,
+    };
+    expect(getPageInfoString(result, 1)).toBe('No activity found');
+  });
+
+  it('should show page info with more available', () => {
+    const result: PaginatedResult<ActivityLog> = {
+      logs: [],
+      hasMore: true,
+      nextCursor: 1000,
+      pageSize: 50,
+      totalFetched: 50,
+    };
+    expect(getPageInfoString(result, 1)).toBe('Page 1: 50 items (more available)');
+  });
+
+  it('should show page info at end', () => {
+    const result: PaginatedResult<ActivityLog> = {
+      logs: [],
+      hasMore: false,
+      nextCursor: undefined,
+      pageSize: 50,
+      totalFetched: 25,
+    };
+    expect(getPageInfoString(result, 3)).toBe('Page 3: 25 items (end)');
+  });
+});
+
+describe('estimateTotalPages', () => {
+  it('should calculate correct page count', () => {
+    expect(estimateTotalPages(100, 50)).toBe(2);
+    expect(estimateTotalPages(150, 50)).toBe(3);
+    expect(estimateTotalPages(51, 50)).toBe(2);
+  });
+
+  it('should return at least 1 page', () => {
+    expect(estimateTotalPages(0, 50)).toBe(1);
+  });
+
+  it('should handle single page', () => {
+    expect(estimateTotalPages(25, 50)).toBe(1);
+  });
+});
+
+describe('mergePaginatedResults', () => {
+  const createLogWithTime = (time: number): { _creationTime: number; id: string } => ({
+    _creationTime: time,
+    id: `log-${time}`,
+  });
+
+  it('should return empty result for empty array', () => {
+    const result = mergePaginatedResults([]);
+    expect(result.logs).toEqual([]);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBeUndefined();
+    expect(result.totalFetched).toBe(0);
+  });
+
+  it('should merge multiple results correctly', () => {
+    const result1: PaginatedResult<{ _creationTime: number; id: string }> = {
+      logs: [createLogWithTime(5000), createLogWithTime(4000)],
+      hasMore: true,
+      nextCursor: 4000,
+      pageSize: 2,
+      totalFetched: 2,
+    };
+    const result2: PaginatedResult<{ _creationTime: number; id: string }> = {
+      logs: [createLogWithTime(3000), createLogWithTime(2000)],
+      hasMore: false,
+      nextCursor: undefined,
+      pageSize: 2,
+      totalFetched: 2,
+    };
+
+    const merged = mergePaginatedResults([result1, result2]);
+    expect(merged.logs.length).toBe(4);
+    expect(merged.logs[0]._creationTime).toBe(5000);
+    expect(merged.logs[3]._creationTime).toBe(2000);
+    expect(merged.hasMore).toBe(false); // Uses last result
+    expect(merged.totalFetched).toBe(4);
+  });
+
+  it('should deduplicate logs with same timestamp', () => {
+    const result1: PaginatedResult<{ _creationTime: number; id: string }> = {
+      logs: [createLogWithTime(3000), createLogWithTime(2000)],
+      hasMore: true,
+      nextCursor: 2000,
+      pageSize: 2,
+      totalFetched: 2,
+    };
+    const result2: PaginatedResult<{ _creationTime: number; id: string }> = {
+      logs: [createLogWithTime(2000), createLogWithTime(1000)], // 2000 is duplicate
+      hasMore: false,
+      nextCursor: undefined,
+      pageSize: 2,
+      totalFetched: 2,
+    };
+
+    const merged = mergePaginatedResults([result1, result2]);
+    expect(merged.logs.length).toBe(3); // 3000, 2000, 1000 (deduplicated)
+  });
+
+  it('should sort logs by creation time descending', () => {
+    const result1: PaginatedResult<{ _creationTime: number; id: string }> = {
+      logs: [createLogWithTime(2000)],
+      hasMore: true,
+      nextCursor: 2000,
+      pageSize: 1,
+      totalFetched: 1,
+    };
+    const result2: PaginatedResult<{ _creationTime: number; id: string }> = {
+      logs: [createLogWithTime(5000)],
+      hasMore: false,
+      nextCursor: undefined,
+      pageSize: 1,
+      totalFetched: 1,
+    };
+
+    const merged = mergePaginatedResults([result1, result2]);
+    expect(merged.logs[0]._creationTime).toBe(5000);
+    expect(merged.logs[1]._creationTime).toBe(2000);
+  });
+});
+
+// ============================================================================
+// PAGINATION INTEGRATION TESTS
+// ============================================================================
+
+describe('Pagination Integration', () => {
+  it('should support iterating through multiple pages', () => {
+    // Simulate 7 logs
+    const allLogs = [
+      { _creationTime: 7000 },
+      { _creationTime: 6000 },
+      { _creationTime: 5000 },
+      { _creationTime: 4000 },
+      { _creationTime: 3000 },
+      { _creationTime: 2000 },
+      { _creationTime: 1000 },
+    ];
+
+    // First page
+    const page1 = buildPaginatedResult(allLogs, undefined, 3);
+    expect(page1.logs.length).toBe(3);
+    expect(page1.hasMore).toBe(true);
+    expect(page1.logs[0]._creationTime).toBe(7000);
+    expect(page1.logs[2]._creationTime).toBe(5000);
+
+    // Second page
+    const page2 = buildPaginatedResult(allLogs, page1.nextCursor, 3);
+    expect(page2.logs.length).toBe(3);
+    expect(page2.hasMore).toBe(true);
+    expect(page2.logs[0]._creationTime).toBe(4000);
+    expect(page2.logs[2]._creationTime).toBe(2000);
+
+    // Third page (last)
+    const page3 = buildPaginatedResult(allLogs, page2.nextCursor, 3);
+    expect(page3.logs.length).toBe(1);
+    expect(page3.hasMore).toBe(false);
+    expect(page3.logs[0]._creationTime).toBe(1000);
+  });
+
+  it('should handle page size larger than available data', () => {
+    const logs = [{ _creationTime: 2000 }, { _creationTime: 1000 }];
+
+    const result = buildPaginatedResult(logs, undefined, 100);
+    expect(result.logs.length).toBe(2);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBeUndefined();
+  });
+
+  it('should handle cursor pointing to non-existent data', () => {
+    const logs = [{ _creationTime: 5000 }, { _creationTime: 4000 }];
+
+    // Cursor at 3000 means we want logs older than 3000, but all our logs are newer
+    const result = buildPaginatedResult(logs, 3000, 10);
+    expect(result.logs.length).toBe(0);
+    expect(result.hasMore).toBe(false);
   });
 });
