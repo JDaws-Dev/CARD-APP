@@ -267,7 +267,7 @@ Improve site organization, navigation, and user flow clarity.
 - [x] Add ESC key handler to mobile menu - Close menu on Escape key press
 - [x] Fix onboarding redirect - Change /onboarding completion to redirect to /collection instead of /dashboard
 - [x] Add "What's Next" card to Dashboard - Guide new users to Browse Sets, Learning Resources after onboarding
-- [ ] Standardize back link styling - Use consistent gap, font-weight, and hover colors across all pages
+- [x] Standardize back link styling - Use consistent gap, font-weight, and hover colors across all pages
 - [ ] Add parent features indicator - Badge on profile menu showing "Parent features available" when applicable
 
 ## CRITICAL - Landing Page Content Updates (January 2026)
@@ -749,6 +749,7 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 
 - **2026-01-17**: Completed Protect /settings route task - Added authentication protection to `/settings` page to redirect unauthenticated users to `/login`. Updated `src/app/settings/page.tsx` to use `useConvexAuth` hook for auth state checking, `useRouter` for navigation, and `useEffect` for redirect logic. Added loading spinner with slate gradient theme matching the page styling. Follows same pattern as other protected routes (`/dashboard`, `/collection`, `/my-wishlist`, `/badges`, `/streak`). Commit: 97c3bff
 - **2026-01-17**: Completed Add breadcrumb to /sets/[setId] task - Added breadcrumb navigation to set detail page showing "Home > Browse Sets > [Set Name]". Replaced the previous "Back to Sets" link with the reusable Breadcrumb component. Uses existing Breadcrumb component from src/components/ui/Breadcrumb.tsx with HomeIcon, proper navigation hierarchy, and current page indication. Commit: 5fcc42e
+- **2026-01-17**: Completed Standardize back link styling task - Replaced inconsistent inline back link implementations with the reusable BackLink component across 10 pages for consistent styling, accessibility, and dark mode support. Pages updated: /learn, /my-wishlist, /badges, /profile, /timeline, /compare, /browse, /parent-dashboard (2 instances), /terms, /privacy. All back links now use consistent gap-1.5, text-sm font-medium styling, text-gray-600 with hover:text-kid-primary, dark mode support (dark:text-slate-400), and focus-visible accessibility states. BackLink tests pass (28 tests). ESLint clean. Commit: b0b6a4f
 
 ---
 
