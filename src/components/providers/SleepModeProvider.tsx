@@ -8,6 +8,9 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import type { Id } from '../../../convex/_generated/dataModel';
 
 // ============================================================================
 // TYPES
@@ -24,7 +27,7 @@ interface SleepSchedule {
 interface SleepModeState {
   schedule: SleepSchedule;
   isCurrentlySleepTime: boolean;
-  parentPin: string | null; // Optional PIN to exit sleep mode
+  parentPin: string | null; // Local-only PIN for temporary exit
 }
 
 interface SleepModeContextType {
@@ -33,6 +36,8 @@ interface SleepModeContextType {
   isSleepTime: boolean;
   schedule: SleepSchedule;
   isInitialized: boolean;
+  isLoading: boolean;
+  sleepPinSet: boolean; // Whether a PIN is set in the database
 
   // Actions
   enable: () => void;
@@ -47,7 +52,8 @@ interface SleepModeContextType {
 // DEFAULTS & STORAGE
 // ============================================================================
 
-const STORAGE_KEY = 'carddex-sleep-mode';
+const LOCAL_STORAGE_KEY = 'carddex-sleep-mode';
+const PROFILE_ID_KEY = 'kidcollect_profile_id';
 
 const DEFAULT_SCHEDULE: SleepSchedule = {
   enabled: false,
@@ -63,28 +69,26 @@ const DEFAULT_STATE: SleepModeState = {
   parentPin: null,
 };
 
-function loadSleepModeState(): SleepModeState {
-  if (typeof window === 'undefined') return DEFAULT_STATE;
+// Load local-only state (PIN for temporary exit)
+function loadLocalState(): { parentPin: string | null } {
+  if (typeof window === 'undefined') return { parentPin: null };
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      return {
-        ...DEFAULT_STATE,
-        ...parsed,
-        schedule: { ...DEFAULT_SCHEDULE, ...parsed.schedule },
-      };
+      return { parentPin: parsed.parentPin ?? null };
     }
   } catch {
     // Ignore parse errors
   }
-  return DEFAULT_STATE;
+  return { parentPin: null };
 }
 
-function saveSleepModeState(state: SleepModeState): void {
+// Save local-only state
+function saveLocalState(parentPin: string | null): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ parentPin }));
   } catch {
     // Ignore storage errors
   }
@@ -119,6 +123,15 @@ function formatTime(hour: number, minute: number): string {
   return `${displayHour}:${displayMinute} ${period}`;
 }
 
+// Simple hash function for PIN (client-side)
+async function hashPin(pin: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pin);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 // ============================================================================
 // CONTEXT
 // ============================================================================
@@ -138,6 +151,8 @@ export function useSleepMode() {
       isSleepTime: false,
       schedule: DEFAULT_SCHEDULE,
       isInitialized: false,
+      isLoading: false,
+      sleepPinSet: false,
       enable: () => {},
       disable: () => {},
       toggle: () => {},
@@ -149,7 +164,7 @@ export function useSleepMode() {
   return context;
 }
 
-export { formatTime };
+export { formatTime, hashPin };
 
 // ============================================================================
 // PROVIDER
@@ -157,32 +172,64 @@ export { formatTime };
 
 interface SleepModeProviderProps {
   children: ReactNode;
+  profileId?: Id<'profiles'>;
 }
 
-export function SleepModeProvider({ children }: SleepModeProviderProps) {
-  const [state, setState] = useState<SleepModeState>(DEFAULT_STATE);
+export function SleepModeProvider({ children, profileId }: SleepModeProviderProps) {
+  const [localParentPin, setLocalParentPin] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [temporaryExit, setTemporaryExit] = useState(false);
+  const [currentProfileId, setCurrentProfileId] = useState<Id<'profiles'> | undefined>(profileId);
 
-  // Initialize from localStorage
+  // Query profile settings from Convex
+  const profileSettings = useQuery(
+    api.profileSettings.getProfileSettings,
+    currentProfileId ? { profileId: currentProfileId } : 'skip'
+  );
+
+  // Mutations
+  const updateSleepSchedule = useMutation(api.profileSettings.updateSleepSchedule);
+  const toggleSleepModeMutation = useMutation(api.profileSettings.toggleSleepMode);
+  const setSleepPinMutation = useMutation(api.profileSettings.setSleepPin);
+  const removeSleepPinMutation = useMutation(api.profileSettings.removeSleepPin);
+
+  // Load profile ID from localStorage if not provided
   useEffect(() => {
-    const savedState = loadSleepModeState();
-    setState({
-      ...savedState,
-      isCurrentlySleepTime: isWithinSleepTime(savedState.schedule),
-    });
+    if (!profileId && typeof window !== 'undefined') {
+      const savedProfileId = localStorage.getItem(PROFILE_ID_KEY);
+      if (savedProfileId) {
+        setCurrentProfileId(savedProfileId as Id<'profiles'>);
+      }
+    }
+  }, [profileId]);
+
+  // Update currentProfileId when prop changes
+  useEffect(() => {
+    if (profileId) {
+      setCurrentProfileId(profileId);
+    }
+  }, [profileId]);
+
+  // Initialize local state (PIN)
+  useEffect(() => {
+    const localState = loadLocalState();
+    setLocalParentPin(localState.parentPin);
     setIsInitialized(true);
   }, []);
 
+  // Build schedule from Convex data or defaults
+  const schedule: SleepSchedule = profileSettings
+    ? profileSettings.sleepSchedule
+    : DEFAULT_SCHEDULE;
+
   // Check sleep time every minute
+  const [isCurrentlySleepTime, setIsCurrentlySleepTime] = useState(false);
+
   useEffect(() => {
     if (!isInitialized) return;
 
     const checkSleepTime = () => {
-      setState((prev) => ({
-        ...prev,
-        isCurrentlySleepTime: isWithinSleepTime(prev.schedule),
-      }));
+      setIsCurrentlySleepTime(isWithinSleepTime(schedule));
     };
 
     // Check immediately and then every minute
@@ -190,72 +237,94 @@ export function SleepModeProvider({ children }: SleepModeProviderProps) {
     const interval = setInterval(checkSleepTime, 60000);
 
     return () => clearInterval(interval);
-  }, [isInitialized, state.schedule]);
+  }, [isInitialized, schedule]);
 
-  // Persist state changes
+  // Persist local PIN changes
   useEffect(() => {
     if (!isInitialized) return;
-    saveSleepModeState(state);
-  }, [state, isInitialized]);
+    saveLocalState(localParentPin);
+  }, [localParentPin, isInitialized]);
 
-  const enable = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      schedule: { ...prev.schedule, enabled: true },
-    }));
+  const enable = useCallback(async () => {
+    if (!currentProfileId) return;
+    await updateSleepSchedule({ profileId: currentProfileId, enabled: true });
     setTemporaryExit(false);
-  }, []);
+  }, [currentProfileId, updateSleepSchedule]);
 
-  const disable = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      schedule: { ...prev.schedule, enabled: false },
-    }));
-  }, []);
+  const disable = useCallback(async () => {
+    if (!currentProfileId) return;
+    await updateSleepSchedule({ profileId: currentProfileId, enabled: false });
+  }, [currentProfileId, updateSleepSchedule]);
 
-  const toggle = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      schedule: { ...prev.schedule, enabled: !prev.schedule.enabled },
-    }));
-  }, []);
+  const toggle = useCallback(async () => {
+    if (!currentProfileId) return;
+    await toggleSleepModeMutation({ profileId: currentProfileId });
+  }, [currentProfileId, toggleSleepModeMutation]);
 
-  const setSchedule = useCallback((newSchedule: Partial<SleepSchedule>) => {
-    setState((prev) => ({
-      ...prev,
-      schedule: { ...prev.schedule, ...newSchedule },
-    }));
-  }, []);
+  const setSchedule = useCallback(
+    async (newSchedule: Partial<SleepSchedule>) => {
+      if (!currentProfileId) return;
+      await updateSleepSchedule({
+        profileId: currentProfileId,
+        enabled: newSchedule.enabled,
+        startHour: newSchedule.startHour,
+        startMinute: newSchedule.startMinute,
+        endHour: newSchedule.endHour,
+        endMinute: newSchedule.endMinute,
+      });
+    },
+    [currentProfileId, updateSleepSchedule]
+  );
 
-  const setParentPin = useCallback((pin: string | null) => {
-    setState((prev) => ({
-      ...prev,
-      parentPin: pin,
-    }));
-  }, []);
+  const setParentPin = useCallback(
+    async (pin: string | null) => {
+      // Store locally for temporary exit functionality
+      setLocalParentPin(pin);
+
+      // Also store hashed PIN in database for persistence
+      if (!currentProfileId) return;
+
+      if (pin) {
+        const pinHash = await hashPin(pin);
+        await setSleepPinMutation({ profileId: currentProfileId, pinHash });
+      } else {
+        await removeSleepPinMutation({ profileId: currentProfileId });
+      }
+    },
+    [currentProfileId, setSleepPinMutation, removeSleepPinMutation]
+  );
 
   const checkPinAndExit = useCallback(
     (pin: string): boolean => {
-      if (state.parentPin && pin === state.parentPin) {
+      if (localParentPin && pin === localParentPin) {
         setTemporaryExit(true);
         return true;
       }
       return false;
     },
-    [state.parentPin]
+    [localParentPin]
   );
 
+  // Build state object
+  const state: SleepModeState = {
+    schedule,
+    isCurrentlySleepTime,
+    parentPin: localParentPin,
+  };
+
   // Determine if sleep mode is currently active
-  const isSleepTime = state.isCurrentlySleepTime && !temporaryExit;
+  const isSleepTime = isCurrentlySleepTime && !temporaryExit;
 
   return (
     <SleepModeContext.Provider
       value={{
         state,
-        isEnabled: state.schedule.enabled,
+        isEnabled: schedule.enabled,
         isSleepTime,
-        schedule: state.schedule,
+        schedule,
         isInitialized,
+        isLoading: profileSettings === undefined && currentProfileId !== undefined,
+        sleepPinSet: profileSettings?.sleepPinSet ?? false,
         enable,
         disable,
         toggle,

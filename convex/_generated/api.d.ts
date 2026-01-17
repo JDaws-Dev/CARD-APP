@@ -41,6 +41,7 @@ import type * as milestones from "../milestones.js";
 import type * as notifications from "../notifications.js";
 import type * as pinProtection from "../pinProtection.js";
 import type * as profileGames from "../profileGames.js";
+import type * as profileSettings from "../profileSettings.js";
 import type * as profiles from "../profiles.js";
 import type * as rarityDefinitions from "../rarityDefinitions.js";
 import type * as subscriptionLimits from "../subscriptionLimits.js";
@@ -90,6 +91,7 @@ declare const fullApi: ApiFromModules<{
   notifications: typeof notifications;
   pinProtection: typeof pinProtection;
   profileGames: typeof profileGames;
+  profileSettings: typeof profileSettings;
   profiles: typeof profiles;
   rarityDefinitions: typeof rarityDefinitions;
   subscriptionLimits: typeof subscriptionLimits;

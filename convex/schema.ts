@@ -524,4 +524,28 @@ export default defineSchema({
     quietHoursEnd: v.optional(v.string()), // End time (HH:MM format, e.g., "07:00")
     updatedAt: v.number(), // Unix timestamp of last update
   }).index('by_family', ['familyId']),
+
+  // ============================================================================
+  // PROFILE-SPECIFIC SETTINGS
+  // ============================================================================
+
+  /**
+   * Per-profile settings for child-specific preferences.
+   * Allows different settings (like sleep schedules) for each child.
+   */
+  profileSettings: defineTable({
+    profileId: v.id('profiles'), // One settings record per profile
+
+    // Sleep Schedule (per-child)
+    sleepEnabled: v.optional(v.boolean()), // Whether sleep mode is enabled
+    sleepStartHour: v.optional(v.number()), // 0-23 (e.g., 20 = 8 PM)
+    sleepStartMinute: v.optional(v.number()), // 0-59
+    sleepEndHour: v.optional(v.number()), // 0-23 (e.g., 7 = 7 AM)
+    sleepEndMinute: v.optional(v.number()), // 0-59
+    sleepPinHash: v.optional(v.string()), // Hashed PIN to exit sleep mode
+
+    // Metadata
+    updatedAt: v.number(), // Unix timestamp of last update
+    updatedBy: v.optional(v.id('profiles')), // Which profile last updated settings
+  }).index('by_profile', ['profileId']),
 });
