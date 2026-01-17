@@ -241,7 +241,7 @@ Backend actions and queries for AI features. Requires `OPENAI_API_KEY` environme
 
 #### Phase 6: Advanced AI Features (P2)
 
-- [ ] AI-032: Create `convex/ai/recommendations.ts` - Smart card recommendations based on collection patterns
+- [x] AI-032: Create `convex/ai/recommendations.ts` - Smart card recommendations based on collection patterns
 - [ ] AI-033: Create `convex/ai/tradeAdvisor.ts` - Fair trade suggestions between siblings using collection data
 - [ ] AI-034: Create `convex/ai/shoppingAssistant.ts` - Parent gift helper analyzing wishlist, set completion, budget
 - [ ] AI-035: Create `convex/ai/conditionGrader.ts` - Card condition tutoring with GPT-4o Vision explaining grades
@@ -3012,3 +3012,35 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - Default preferences tests (2)
   - Tests are timezone-aware for quiet hours (dynamic assertions based on local time)
 - All 91 tests pass, ESLint clean, Prettier formatted
+
+### 2026-01-17: Add AI-powered card recommendations (AI-032)
+
+- **Created `convex/ai/recommendations.ts`:**
+  - `getRecommendations` action: AI-powered personalized card recommendations
+  - `getSetCompletionRecommendations` action: Rule-based set completion suggestions
+  - `getRemainingRecommendations` action: Check daily rate limit status
+  - Game-specific prompts for all 7 TCGs (Pokemon, Yu-Gi-Oh!, MTG, One Piece, Lorcana, Digimon, Dragon Ball)
+  - 5 recommendation types: set_completion, type_based, similar_cards, diversify, wishlist_similar
+  - Collection pattern analysis: favorite types, active sets, collection style detection
+  - Fallback recommendations when OpenAI API fails
+  - Rate limited to 20 recommendations per day per profile
+- **Created `convex/ai/recommendationsHelpers.ts`:**
+  - `analyzeCollectionPatterns` internal query: Analyzes user collection for preferences
+  - `getCandidateCards` internal query: Finds cards matching user preferences they don't own
+  - `getMissingCardsForSets` internal query: Identifies cards needed for set completion
+  - `logRecommendationGeneration` internal mutation: Tracks usage and rate limits
+  - Note: Separated from recommendations.ts because internal mutations cannot be in 'use node' files
+- **Created 40 tests in `src/lib/__tests__/recommendations.test.ts`:**
+  - RecommendationType validation tests (9)
+  - CardRecommendation validation tests (7)
+  - Collection style detection tests (5)
+  - Recommendation count bounds tests (3)
+  - Result structure tests (3)
+  - Collection analysis tests (3)
+  - Game-specific support tests (3)
+  - Rate limiting tests (2)
+  - Set completion tests (3)
+  - Rarity ordering tests (3)
+  - Type-based recommendation tests (2)
+  - Fallback recommendation tests (2)
+- All 40 tests pass, ESLint clean, Prettier formatted
