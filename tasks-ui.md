@@ -4,7 +4,7 @@
 
 | Section                                  | Complete | Remaining |
 | ---------------------------------------- | -------- | --------- |
-| **CRITICAL - Site Evaluation Fixes**     | 0        | **8**     |
+| **CRITICAL - Site Evaluation Fixes**     | 1        | **7**     |
 | **CRITICAL - Settings Permissions**      | 0        | **7**     |
 | **CRITICAL - Landing Page Content**      | 0        | **10**    |
 | **HIGH - Broken Images & Error Handling**| 0        | **10**    |
@@ -29,11 +29,11 @@
 | Educational Mini-Games                   | 3        | 2         |
 | Enhanced Accessibility                   | 6        | 0         |
 | Engagement & Retention                   | 4        | 0         |
-| **TOTAL**                                | **108**  | **68**    |
+| **TOTAL**                                | **109**  | **67**    |
 
 ### Priority Order for Remaining Tasks
 
-1. **CRITICAL - Site Evaluation Fixes** (8 tasks) - Signup page, login copy, auth flow fixes
+1. **CRITICAL - Site Evaluation Fixes** (7 tasks) - Login copy, auth flow fixes
 2. **CRITICAL - Settings Permissions** (7 tasks) - Parent vs kid settings access control
 3. **CRITICAL - Landing Page Content** (10 tasks) - Specific text changes for multi-TCG
 4. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
@@ -49,7 +49,7 @@
 
 These issues were identified during the January 17, 2026 site evaluation and MUST be fixed before launch.
 
-- [ ] Create `/signup` page - Either redirect to `/login?mode=signup` or create dedicated signup page with proper flow
+- [x] Create `/signup` page - Either redirect to `/login?mode=signup` or create dedicated signup page with proper flow
 - [ ] Update `/login` page copy - Change "Track your Pokemon card collection" to "Track your trading card collection"
 - [ ] Update `/login` page styling - Match CardDex brand colors (use kid-primary/kid-secondary gradients instead of generic blue)
 - [ ] Add email verification UI - Show verification pending state and resend button after signup
@@ -339,6 +339,7 @@ Detailed landing page text changes to support multi-TCG while keeping Pokemon pr
 
 ## Progress
 
+- **2026-01-17**: Completed Create /signup page - Created dedicated signup page at src/app/signup/page.tsx with CardDex branding, kid-primary/kid-secondary gradients, and signup-focused copy. Updated AuthForm component to accept defaultMode prop for controlling initial mode. Redirects authenticated users to /onboarding. Commit: f9b4f63
 - **2026-01-16**: Completed Price Estimation Game - Created PriceEstimationGame component (src/components/games/PriceEstimationGame.tsx) that teaches card value awareness. Features: 12 cards with varied prices from $0.25 to $280 (including Charizard, Umbreon alt art, commons), 5-round gameplay where players guess if card is worth more or less than a given price, hint system explaining value factors, XP rewards (20 per correct, 50 bonus for perfect), results screen with round summary showing actual prices. Added game banner to Learn page with CurrencyDollarIcon in emerald/teal gradient theme. Uses Heroicons (CurrencyDollarIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, StarIcon, LightBulbIcon, TrophyIcon, SparklesIcon, CheckIcon, XMarkIcon, ArrowPathIcon, PlayIcon, ChevronRightIcon, BoltIcon). Commit: 20d1fcf
 - **2026-01-16**: Completed Pokemon Type Quiz - Created PokemonTypeQuiz component (src/components/games/PokemonTypeQuiz.tsx) for learning Pokemon TCG energy types. Features: 10 types (Fire, Water, Grass, Electric, Psychic, Fighting, Darkness, Metal, Dragon, Colorless), 12 Pokemon challenges from Sword & Shield base set, 5-round quiz with 4 type options per round, hint system, XP rewards (20 per correct, 50 bonus for perfect), results screen with round summary. Added game banner to Learn page with FireIcon in orange/red gradient theme. Uses Heroicons (FireIcon, StarIcon, LightBulbIcon, TrophyIcon, SparklesIcon, CheckIcon, XMarkIcon, ArrowPathIcon, PlayIcon, ChevronRightIcon, BoltIcon). Commit: 14758c8
 - **2026-01-16**: Completed Set Symbol Matching Game - Created SetSymbolMatchingGame component (src/components/games/SetSymbolMatchingGame.tsx) for learning Pokemon TCG set symbols. Features: 12 popular sets from Sword & Shield and Scarlet & Violet eras, 5-round matching gameplay where players match symbols to set names from 4 options, hint system with set descriptions, XP rewards (20 per correct, 50 bonus for perfect), progress tracking, results screen with round summary. Added game banner to Learn page with PuzzlePieceIcon in blue/cyan gradient theme. Uses Heroicons (PuzzlePieceIcon, StarIcon, LightBulbIcon, TrophyIcon, SparklesIcon, CheckIcon, XMarkIcon, ArrowPathIcon, PlayIcon, ChevronRightIcon, BoltIcon). Commit: 8a3cc14
