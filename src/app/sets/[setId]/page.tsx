@@ -1,8 +1,7 @@
 import { getSet, getCardsInSet } from '@/lib/pokemon-tcg';
-import Link from 'next/link';
 import Image from 'next/image';
 import { SetDetailClient } from '@/components/collection/SetDetailClient';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 
 interface SetDetailPageProps {
   params: { setId: string };
@@ -22,16 +21,18 @@ export default async function SetDetailPage({ params }: SetDetailPageProps) {
   return (
     <main className="min-h-screen bg-gradient-to-b from-indigo-50 to-purple-50 px-4 py-8">
       <div className="mx-auto max-w-7xl">
+        {/* Breadcrumb navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: '/dashboard' },
+            { label: 'Browse Sets', href: '/sets' },
+            { label: set.name },
+          ]}
+          className="mb-6"
+        />
+
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/sets"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeftIcon className="h-4 w-4" />
-            Back to Sets
-          </Link>
-
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
             {/* Set Logo */}
             {set.images?.logo && (
