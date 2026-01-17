@@ -82,7 +82,7 @@ These issues were identified during the January 17, 2026 site evaluation and MUS
 - [x] Fix AuthForm styling - Replace blue-600 colors with CardDex brand gradients
 - [x] Add password strength indicator - Visual indicator showing password requirements during signup
 - [ ] Add profile switcher to header - Allow switching between child profiles for families (parent accounts)
-- [ ] **CRITICAL: Redirect logged-in users from `/` to `/dashboard`** - Currently logged-in users see landing page with AppHeader navbar overlaid on marketing content. Add auth check to `/page.tsx` and redirect authenticated users to `/dashboard`
+- [x] **CRITICAL: Redirect logged-in users from `/` to `/dashboard`** - Currently logged-in users see landing page with AppHeader navbar overlaid on marketing content. Add auth check to `/page.tsx` and redirect authenticated users to `/dashboard`
 
 ### Auth State Issues (January 17, 2026 - Comprehensive Eval)
 
@@ -639,6 +639,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Added loading="lazy" to CardGrid card images - Added `loading` prop to CardImage component (src/components/ui/CardImage.tsx) with "lazy" as default value. Updated CardImage to pass loading prop to Next.js Image component (set to undefined when priority is true to let Next.js handle it). Explicitly passed `loading="lazy"` to CardImage in CardGrid (src/components/collection/CardGrid.tsx) to defer offscreen image loading for better initial page performance. This optimization reduces bandwidth and improves Time to Interactive by only loading card images when they enter the viewport. Commit: 9da4809
 
 - **2026-01-17**: Added loading="lazy" to CollectionView card images - Added explicit `loading="lazy"` prop to both CardImage components in CollectionView (src/components/collection/CollectionView.tsx) for the Most Valuable Cards section and main collection grid. Added test to verify lazy loading is applied for performance optimization. This defers loading of offscreen card images, improving initial page load time for collections with many cards. Commit: 1205700
+
+- **2026-01-17**: Completed CRITICAL redirect for logged-in users from landing page to dashboard - Converted src/app/page.tsx from server component to client component to enable auth hooks. Added useConvexAuth and useRouter hooks to check authentication status and redirect authenticated users to /dashboard immediately. Shows loading spinner while checking auth state, returns null during redirect to prevent flash of landing content. Updated LandingPage.test.tsx with mocks for convex/react and next/navigation, added 3 new tests covering loading state, redirect behavior, and unauthenticated content display. All 29 landing page tests pass. ESLint and Prettier clean. Commit: f78b53c
 
 ---
 
