@@ -40,16 +40,8 @@ describe('gameAchievements', () => {
   // ============================================================================
 
   describe('GAME_MASTERY_TITLES', () => {
-    it('should have mastery titles for all 7 TCG games', () => {
-      const gameIds: GameId[] = [
-        'pokemon',
-        'yugioh',
-        'onepiece',
-        'dragonball',
-        'lorcana',
-        'digimon',
-        'mtg',
-      ];
+    it('should have mastery titles for all 4 supported TCG games', () => {
+      const gameIds: GameId[] = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
 
       for (const gameId of gameIds) {
         expect(GAME_MASTERY_TITLES[gameId]).toBeDefined();
@@ -70,10 +62,7 @@ describe('gameAchievements', () => {
       expect(GAME_MASTERY_TITLES.pokemon.title).toBe('Pokémon Master');
       expect(GAME_MASTERY_TITLES.yugioh.title).toBe('Duelist Champion');
       expect(GAME_MASTERY_TITLES.onepiece.title).toBe('Pirate King');
-      expect(GAME_MASTERY_TITLES.dragonball.title).toBe('Super Saiyan Master');
       expect(GAME_MASTERY_TITLES.lorcana.title).toBe('Lorekeeper');
-      expect(GAME_MASTERY_TITLES.digimon.title).toBe('Digimon Champion');
-      expect(GAME_MASTERY_TITLES.mtg.title).toBe('Planeswalker');
     });
   });
 
@@ -112,16 +101,8 @@ describe('gameAchievements', () => {
   // ============================================================================
 
   describe('GAME_MILESTONE_NAMES', () => {
-    it('should have milestone names for all 7 games', () => {
-      const gameIds: GameId[] = [
-        'pokemon',
-        'yugioh',
-        'onepiece',
-        'dragonball',
-        'lorcana',
-        'digimon',
-        'mtg',
-      ];
+    it('should have milestone names for all 4 supported games', () => {
+      const gameIds: GameId[] = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
 
       for (const gameId of gameIds) {
         expect(GAME_MILESTONE_NAMES[gameId]).toBeDefined();
@@ -159,8 +140,8 @@ describe('gameAchievements', () => {
       expect(GAME_MILESTONE_NAMES.onepiece.novice.name).toBe('Cabin Boy');
       expect(GAME_MILESTONE_NAMES.onepiece.legend.name).toBe('Pirate King');
 
-      // Dragon Ball names should be battle-themed
-      expect(GAME_MILESTONE_NAMES.dragonball.expert.name).toBe('Super Saiyan');
+      // Lorcana names should be ink-themed
+      expect(GAME_MILESTONE_NAMES.lorcana.novice.name).toBe('Ink Novice');
     });
   });
 
@@ -169,13 +150,14 @@ describe('gameAchievements', () => {
   // ============================================================================
 
   describe('CROSS_GAME_ACHIEVEMENTS', () => {
-    it('should have 4 cross-game achievement tiers', () => {
-      expect(CROSS_GAME_ACHIEVEMENTS).toHaveLength(4);
+    it('should have 3 cross-game achievement tiers', () => {
+      // With 4 supported games, we have 3 tiers: 2, 3, and all (4)
+      expect(CROSS_GAME_ACHIEVEMENTS).toHaveLength(3);
     });
 
     it('should have increasing thresholds', () => {
       const thresholds = CROSS_GAME_ACHIEVEMENTS.map((a) => a.threshold);
-      expect(thresholds).toEqual([2, 3, 5, 7]);
+      expect(thresholds).toEqual([2, 3, 4]);
     });
 
     it('should have unique keys', () => {
@@ -185,10 +167,10 @@ describe('gameAchievements', () => {
     });
 
     it('should have valid tier assignments', () => {
+      // With 4 games, we have 3 tiers: 2 (bronze), 3 (silver), all/4 (platinum)
       expect(CROSS_GAME_ACHIEVEMENTS[0].tier).toBe('bronze');
       expect(CROSS_GAME_ACHIEVEMENTS[1].tier).toBe('silver');
-      expect(CROSS_GAME_ACHIEVEMENTS[2].tier).toBe('gold');
-      expect(CROSS_GAME_ACHIEVEMENTS[3].tier).toBe('platinum');
+      expect(CROSS_GAME_ACHIEVEMENTS[2].tier).toBe('platinum');
     });
 
     it('should have valid hex color codes', () => {
@@ -206,8 +188,8 @@ describe('gameAchievements', () => {
     it('should return achievements for all games plus cross-game', () => {
       const achievements = getAllGameAchievements();
 
-      // 7 games * 6 milestones = 42 game-specific + 4 cross-game = 46 total
-      expect(achievements).toHaveLength(46);
+      // 4 games * 6 milestones = 24 game-specific + 3 cross-game = 27 total
+      expect(achievements).toHaveLength(27);
     });
 
     it('should have valid structure for each achievement', () => {
@@ -259,7 +241,8 @@ describe('gameAchievements', () => {
     it('should return only cross-game achievements', () => {
       const crossGameAchievements = getCrossGameAchievements();
 
-      expect(crossGameAchievements).toHaveLength(4);
+      // 3 cross-game achievements with 4 supported games
+      expect(crossGameAchievements).toHaveLength(3);
       for (const achievement of crossGameAchievements) {
         expect(achievement.category).toBe('cross_game');
         expect(achievement.gameId).toBeNull();
@@ -343,35 +326,24 @@ describe('gameAchievements', () => {
       expect(badges).not.toContain('multi_collector_3');
     });
 
-    it('should return multiple badges for many games', () => {
-      const badges = checkCrossGameAchievements([
-        'pokemon',
-        'yugioh',
-        'onepiece',
-        'dragonball',
-        'lorcana',
-      ]);
+    it('should return multiple badges for 3 games', () => {
+      const badges = checkCrossGameAchievements(['pokemon', 'yugioh', 'onepiece']);
 
       expect(badges).toContain('multi_collector_2');
       expect(badges).toContain('multi_collector_3');
-      expect(badges).toContain('multi_collector_5');
       expect(badges).not.toContain('multi_collector_all');
     });
 
-    it('should return all badges for all 7 games', () => {
+    it('should return all badges for all 4 supported games', () => {
       const badges = checkCrossGameAchievements([
         'pokemon',
         'yugioh',
         'onepiece',
-        'dragonball',
         'lorcana',
-        'digimon',
-        'mtg',
       ]);
 
       expect(badges).toContain('multi_collector_2');
       expect(badges).toContain('multi_collector_3');
-      expect(badges).toContain('multi_collector_5');
       expect(badges).toContain('multi_collector_all');
     });
 
@@ -397,10 +369,7 @@ describe('gameAchievements', () => {
         pokemon: 100,
         yugioh: 50,
         onepiece: 0,
-        dragonball: 0,
         lorcana: 0,
-        digimon: 0,
-        mtg: 0,
       });
 
       // Pokemon milestones
@@ -459,10 +428,11 @@ describe('gameAchievements', () => {
   // ============================================================================
 
   describe('getCrossGameProgress', () => {
-    it('should return progress for all 4 cross-game achievements', () => {
+    it('should return progress for all 3 cross-game achievements', () => {
       const progress = getCrossGameProgress(['pokemon', 'yugioh']);
 
-      expect(progress).toHaveLength(4);
+      // 3 cross-game achievements with 4 supported games
+      expect(progress).toHaveLength(3);
     });
 
     it('should calculate current count correctly', () => {
@@ -500,7 +470,7 @@ describe('gameAchievements', () => {
     it('should return correct titles for different games', () => {
       expect(getCurrentGameMasteryTitle('yugioh', 500)).toBe('Duelist Champion');
       expect(getCurrentGameMasteryTitle('onepiece', 500)).toBe('Captain');
-      expect(getCurrentGameMasteryTitle('mtg', 500)).toBe('Planeswalker');
+      expect(getCurrentGameMasteryTitle('lorcana', 500)).toBe('Lorekeeper');
     });
   });
 
@@ -552,17 +522,14 @@ describe('gameAchievements', () => {
   // ============================================================================
 
   describe('getGamesWithAchievements', () => {
-    it('should return all 7 game IDs', () => {
+    it('should return all 4 supported game IDs', () => {
       const games = getGamesWithAchievements();
 
-      expect(games).toHaveLength(7);
+      expect(games).toHaveLength(4);
       expect(games).toContain('pokemon');
       expect(games).toContain('yugioh');
       expect(games).toContain('onepiece');
-      expect(games).toContain('dragonball');
       expect(games).toContain('lorcana');
-      expect(games).toContain('digimon');
-      expect(games).toContain('mtg');
     });
   });
 
@@ -655,16 +622,14 @@ describe('gameAchievements', () => {
           pokemon: 100,
           yugioh: 0,
           onepiece: 0,
-          dragonball: 0,
           lorcana: 0,
-          digimon: 0,
-          mtg: 0,
         },
         ['pokemon_novice', 'pokemon_apprentice', 'pokemon_collector']
       );
 
       expect(summary.totalEarned).toBe(3);
-      expect(summary.totalAvailable).toBe(46);
+      // 4 games * 6 milestones + 3 cross-game = 27 total
+      expect(summary.totalAvailable).toBe(27);
       expect(summary.byGame.pokemon.earned).toBe(3);
       expect(summary.byGame.pokemon.total).toBe(6);
       expect(summary.byGame.pokemon.currentTitle).toBe('Pokémon Collector');
@@ -676,16 +641,14 @@ describe('gameAchievements', () => {
           pokemon: 10,
           yugioh: 10,
           onepiece: 0,
-          dragonball: 0,
           lorcana: 0,
-          digimon: 0,
-          mtg: 0,
         },
         ['multi_collector_2']
       );
 
       expect(summary.crossGame.earned).toBe(1);
-      expect(summary.crossGame.total).toBe(4);
+      // 3 cross-game achievements with 4 supported games
+      expect(summary.crossGame.total).toBe(3);
     });
   });
 });

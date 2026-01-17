@@ -13,7 +13,7 @@ export default function SetsPage() {
 
   const sets = useQuery(
     api.dataPopulation.getSetsByGame,
-    primaryGame ? { gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'mtg' | 'onepiece' | 'lorcana' | 'digimon' | 'dragonball' } : 'skip'
+    primaryGame ? { gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' } : 'skip'
   );
 
   const isLoading = gameLoading || sets === undefined;
@@ -85,7 +85,8 @@ export default function SetsPage() {
               >
                 {/* Set logo/image */}
                 <div className="relative mb-3 flex h-20 items-center justify-center">
-                  {set.logoUrl ? (
+                  {/* Use logo for Pokemon/Lorcana, but not Yu-Gi-Oh! packaging images */}
+                  {set.logoUrl && primaryGame?.id !== 'yugioh' ? (
                     <Image
                       src={set.logoUrl}
                       alt={set.name}

@@ -54,17 +54,17 @@ const mockYugiohSet = {
   symbolUrl: undefined,
 };
 
-const mockMtgSet = {
+const mockLorcanaSet = {
   _id: 'cached_set_4',
   _creationTime: 1704067200000,
-  setId: 'dmu',
-  gameSlug: 'mtg' as const,
-  name: 'Dominaria United',
-  series: 'Dominaria',
-  releaseDate: '2022-09-09',
-  totalCards: 281,
+  setId: 'tfc',
+  gameSlug: 'lorcana' as const,
+  name: 'The First Chapter',
+  series: 'Lorcana',
+  releaseDate: '2023-08-18',
+  totalCards: 204,
   logoUrl: undefined,
-  symbolUrl: 'https://svgs.scryfall.io/sets/dmu.svg',
+  symbolUrl: undefined,
 };
 
 function createRequest(url: string): NextRequest {
@@ -124,28 +124,21 @@ describe('GET /api/sets', () => {
       expect(mockQuery).toHaveBeenCalledWith(expect.anything(), { gameSlug: 'yugioh' });
     });
 
-    it('returns mtg sets when game=mtg', async () => {
-      mockQuery.mockResolvedValue([mockMtgSet]);
+    it('returns lorcana sets when game=lorcana', async () => {
+      mockQuery.mockResolvedValue([mockLorcanaSet]);
 
-      const request = createRequest('/api/sets?game=mtg');
+      const request = createRequest('/api/sets?game=lorcana');
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.game).toBe('mtg');
+      expect(data.game).toBe('lorcana');
       expect(data.data).toHaveLength(1);
     });
 
     it('accepts all valid game slugs', async () => {
-      const validGames = [
-        'pokemon',
-        'yugioh',
-        'mtg',
-        'onepiece',
-        'lorcana',
-        'digimon',
-        'dragonball',
-      ];
+      // Only 4 games are supported: Pokemon, Yu-Gi-Oh!, One Piece, and Disney Lorcana
+      const validGames = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
 
       for (const game of validGames) {
         mockQuery.mockResolvedValue([]);
@@ -167,7 +160,7 @@ describe('GET /api/sets', () => {
       expect(data.error).toBe('Invalid game parameter');
       expect(data.validOptions).toContain('pokemon');
       expect(data.validOptions).toContain('yugioh');
-      expect(data.validOptions).toContain('mtg');
+      expect(data.validOptions).toContain('lorcana');
       expect(data.received).toBe('invalidgame');
     });
   });

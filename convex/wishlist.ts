@@ -8,21 +8,11 @@ export const MAX_PRIORITY_ITEMS = 5;
 const gameSlugValidator = v.union(
   v.literal('pokemon'),
   v.literal('yugioh'),
-  v.literal('mtg'),
   v.literal('onepiece'),
-  v.literal('lorcana'),
-  v.literal('digimon'),
-  v.literal('dragonball')
+  v.literal('lorcana')
 );
 
-export type GameSlug =
-  | 'pokemon'
-  | 'yugioh'
-  | 'mtg'
-  | 'onepiece'
-  | 'lorcana'
-  | 'digimon'
-  | 'dragonball';
+export type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
 // ============================================================================
 // QUERIES

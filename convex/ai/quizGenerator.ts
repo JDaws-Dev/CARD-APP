@@ -86,17 +86,6 @@ Generate engaging questions about Yu-Gi-Oh! cards. Questions should test:
 
 Keep questions fun, educational, and age-appropriate (6-14 years old).`,
 
-  mtg: `You are creating a fun quiz for a young Magic: The Gathering collector!
-
-Generate engaging questions about Magic cards. Questions should test:
-- Card colors and mana costs
-- Creature types
-- Card abilities and keywords
-- Set knowledge
-- Plane lore basics
-
-Keep questions fun, educational, and age-appropriate (6-14 years old).`,
-
   onepiece: `You are creating a fun quiz for a young One Piece card collector!
 
 Generate engaging questions about One Piece cards. Questions should test:
@@ -118,28 +107,6 @@ Generate engaging questions about Lorcana cards. Questions should test:
 - Song cards
 
 Keep questions fun, magical, and age-appropriate (6-14 years old).`,
-
-  digimon: `You are creating a fun quiz for a young Digimon card collector!
-
-Generate engaging questions about Digimon cards. Questions should test:
-- Digimon levels and stages
-- Digivolution chains
-- Types and attributes
-- Special abilities
-- Digital World lore
-
-Keep questions fun, educational, and age-appropriate (6-14 years old).`,
-
-  dragonball: `You are creating a fun quiz for a young Dragon Ball card collector!
-
-Generate engaging questions about Dragon Ball cards. Questions should test:
-- Character transformations
-- Special techniques and attacks
-- Energy colors
-- Character relationships
-- Saga events
-
-Keep questions fun, exciting, and age-appropriate (6-14 years old).`,
 };
 
 // ============================================================================
@@ -164,11 +131,8 @@ export const generateQuiz = action({
       v.union(
         v.literal('pokemon'),
         v.literal('yugioh'),
-        v.literal('mtg'),
         v.literal('onepiece'),
-        v.literal('lorcana'),
-        v.literal('digimon'),
-        v.literal('dragonball')
+        v.literal('lorcana')
       )
     ),
   },

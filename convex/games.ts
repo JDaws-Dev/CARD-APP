@@ -14,14 +14,7 @@ import { query, mutation } from './_generated/server';
 /**
  * Valid game slugs matching the schema definition
  */
-export type GameSlug =
-  | 'pokemon'
-  | 'yugioh'
-  | 'mtg'
-  | 'onepiece'
-  | 'lorcana'
-  | 'digimon'
-  | 'dragonball';
+export type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
 /**
  * Game configuration for seeding
@@ -63,22 +56,13 @@ export const DEFAULT_GAMES: GameSeedData[] = [
     releaseOrder: 2,
   },
   {
-    slug: 'mtg',
-    displayName: 'Magic: The Gathering',
-    apiSource: 'scryfall.com',
-    primaryColor: '#000000',
-    secondaryColor: '#8B4513',
-    isActive: true,
-    releaseOrder: 3,
-  },
-  {
     slug: 'onepiece',
     displayName: 'One Piece TCG',
     apiSource: 'optcg-api',
     primaryColor: '#E74C3C',
     secondaryColor: '#3498DB',
     isActive: true,
-    releaseOrder: 4,
+    releaseOrder: 3,
   },
   {
     slug: 'lorcana',
@@ -87,25 +71,7 @@ export const DEFAULT_GAMES: GameSeedData[] = [
     primaryColor: '#1B1464',
     secondaryColor: '#F5A623',
     isActive: true,
-    releaseOrder: 5,
-  },
-  {
-    slug: 'digimon',
-    displayName: 'Digimon TCG',
-    apiSource: 'digimoncard.io',
-    primaryColor: '#FF6600',
-    secondaryColor: '#0066FF',
-    isActive: true,
-    releaseOrder: 6,
-  },
-  {
-    slug: 'dragonball',
-    displayName: 'Dragon Ball Fusion World',
-    apiSource: 'apitcg.com',
-    primaryColor: '#FF8C00',
-    secondaryColor: '#4169E1',
-    isActive: true,
-    releaseOrder: 7,
+    releaseOrder: 4,
   },
 ];
 
@@ -154,11 +120,8 @@ export const getGameBySlug = query({
     slug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
   },
   handler: async (ctx, args) => {
@@ -246,11 +209,8 @@ export const setGameActive = mutation({
     slug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     isActive: v.boolean(),
   },
@@ -281,11 +241,8 @@ export const updateGameConfig = mutation({
     slug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     displayName: v.optional(v.string()),
     primaryColor: v.optional(v.string()),

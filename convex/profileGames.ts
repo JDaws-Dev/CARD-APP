@@ -14,14 +14,7 @@ import { mutation, query } from './_generated/server';
 /**
  * Valid game slugs matching the schema definition
  */
-export type GameSlug =
-  | 'pokemon'
-  | 'yugioh'
-  | 'mtg'
-  | 'onepiece'
-  | 'lorcana'
-  | 'digimon'
-  | 'dragonball';
+export type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
 /**
  * Game slug validator for use in queries/mutations
@@ -29,11 +22,8 @@ export type GameSlug =
 const gameSlugValidator = v.union(
   v.literal('pokemon'),
   v.literal('yugioh'),
-  v.literal('mtg'),
   v.literal('onepiece'),
-  v.literal('lorcana'),
-  v.literal('digimon'),
-  v.literal('dragonball')
+  v.literal('lorcana')
 );
 
 // =============================================================================

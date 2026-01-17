@@ -104,29 +104,11 @@ export const GAME_MASTERY_TITLES: Record<
     threshold: 500,
     color: '#EF4444', // Red for One Piece
   },
-  dragonball: {
-    title: 'Super Saiyan Master',
-    description: 'Collect 500 Dragon Ball cards to achieve legendary status',
-    threshold: 500,
-    color: '#F97316', // Orange for Dragon Ball
-  },
   lorcana: {
     title: 'Lorekeeper',
     description: 'Collect 500 Lorcana cards to master the magical inks',
     threshold: 500,
     color: '#3B82F6', // Blue for Lorcana
-  },
-  digimon: {
-    title: 'Digimon Champion',
-    description: 'Collect 500 Digimon cards to become a legendary tamer',
-    threshold: 500,
-    color: '#06B6D4', // Cyan for Digimon
-  },
-  mtg: {
-    title: 'Planeswalker',
-    description: 'Collect 500 Magic cards to transcend as a Planeswalker',
-    threshold: 500,
-    color: '#D97706', // Amber for MTG
   },
 };
 
@@ -179,14 +161,6 @@ export const GAME_MILESTONE_NAMES: Record<
     master: { name: 'Captain', description: 'Collect 500 One Piece cards' },
     legend: { name: 'Pirate King', description: 'Collect 1000 One Piece cards' },
   },
-  dragonball: {
-    novice: { name: 'Martial Artist', description: 'Collect 10 Dragon Ball cards' },
-    apprentice: { name: 'Z Fighter', description: 'Collect 50 Dragon Ball cards' },
-    collector: { name: 'Saiyan Warrior', description: 'Collect 100 Dragon Ball cards' },
-    expert: { name: 'Super Saiyan', description: 'Collect 250 Dragon Ball cards' },
-    master: { name: 'Super Saiyan God', description: 'Collect 500 Dragon Ball cards' },
-    legend: { name: 'Ultra Instinct', description: 'Collect 1000 Dragon Ball cards' },
-  },
   lorcana: {
     novice: { name: 'Ink Novice', description: 'Collect 10 Lorcana cards' },
     apprentice: { name: 'Ink Apprentice', description: 'Collect 50 Lorcana cards' },
@@ -194,22 +168,6 @@ export const GAME_MILESTONE_NAMES: Record<
     expert: { name: 'Ink Master', description: 'Collect 250 Lorcana cards' },
     master: { name: 'Lorekeeper', description: 'Collect 500 Lorcana cards' },
     legend: { name: 'Illuminary', description: 'Collect 1000 Lorcana cards' },
-  },
-  digimon: {
-    novice: { name: 'DigiDestined', description: 'Collect 10 Digimon cards' },
-    apprentice: { name: 'Tamer Apprentice', description: 'Collect 50 Digimon cards' },
-    collector: { name: 'Tamer Collector', description: 'Collect 100 Digimon cards' },
-    expert: { name: 'Tamer Expert', description: 'Collect 250 Digimon cards' },
-    master: { name: 'Digimon Champion', description: 'Collect 500 Digimon cards' },
-    legend: { name: 'Mega Tamer', description: 'Collect 1000 Digimon cards' },
-  },
-  mtg: {
-    novice: { name: 'Mage Novice', description: 'Collect 10 Magic cards' },
-    apprentice: { name: 'Mage Apprentice', description: 'Collect 50 Magic cards' },
-    collector: { name: 'Mage Collector', description: 'Collect 100 Magic cards' },
-    expert: { name: 'Mage Expert', description: 'Collect 250 Magic cards' },
-    master: { name: 'Planeswalker', description: 'Collect 500 Magic cards' },
-    legend: { name: 'Archmage', description: 'Collect 1000 Magic cards' },
   },
 };
 
@@ -219,6 +177,7 @@ export const GAME_MILESTONE_NAMES: Record<
 
 /**
  * Cross-game achievements for collecting across multiple TCGs.
+ * Note: With 4 supported games, the maximum achievable threshold is 4.
  */
 export const CROSS_GAME_ACHIEVEMENTS = [
   {
@@ -238,18 +197,10 @@ export const CROSS_GAME_ACHIEVEMENTS = [
     color: '#6890F0',
   },
   {
-    key: 'multi_collector_5',
-    name: 'Multi-Master',
-    description: 'Collect cards from 5 different TCG games',
-    threshold: 5,
-    tier: 'gold' as const,
-    color: '#F8D030',
-  },
-  {
     key: 'multi_collector_all',
     name: 'Ultimate Collector',
-    description: 'Collect cards from all 7 TCG games',
-    threshold: 7,
+    description: 'Collect cards from all 4 TCG games',
+    threshold: 4,
     tier: 'platinum' as const,
     color: '#7038F8',
   },

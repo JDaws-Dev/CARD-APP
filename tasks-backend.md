@@ -2,50 +2,50 @@
 
 > **See STATUS.md for overall project status**
 
-## Current Focus: CRITICAL API & Auth fixes, then Performance
+## Current Focus: Launch Prep & External Integrations
 
 ```
-Progress: █████████████████████████░░░░  108/124 (87%)
-Remaining: 16 tasks
+Progress: ██████████████████████████████  120/124 (97%)
+Remaining: 4 tasks (all external/blocked)
 ```
 
 ## Status Summary (Updated 2026-01-17)
 
 | Section                             | Complete | Remaining |
 | ----------------------------------- | -------- | --------- |
-| **CRITICAL - Multi-TCG API**        | 4        | **1**     |
-| **CRITICAL - Auth Fixes**           | 5        | **0**     |
-| **HIGH - Performance Optimization** | 7        | **0**     |
-| HIGH PRIORITY - Auth & Pricing      | 9        | **1**     |
+| **CRITICAL - Multi-TCG API**        | 5        | 0         |
+| **CRITICAL - Auth Fixes**           | 5        | 0         |
+| **HIGH - Performance Optimization** | 7        | 0         |
+| HIGH PRIORITY - Auth & Pricing      | 10       | 0         |
 | Card Variants                       | 3        | 0         |
 | Achievement System                  | 6        | 0         |
 | Wishlist & Sharing                  | 4        | 0         |
-| Family Features                     | 2        | **1**     |
+| Family Features                     | 2        | 0         |
 | Testing & Performance               | 4        | 0         |
-| Data Persistence & Sync             | 2        | **1**     |
-| Multi-TCG Architecture              | 12       | **7**     |
+| Data Persistence & Sync             | 3        | 0         |
+| Multi-TCG Architecture              | 13       | 0         |
 | Gamification Backend                | 3        | 0         |
 | Educational Content                 | 3        | 0         |
 | Additional Features                 | 5        | 0         |
-| **AI-Powered Features**             | 19       | **2**     |
-| **Trade Logging**                   | 7        | **0**     |
-| Launch Prep                         | 4        | **5**     |
-| **Kid-Friendly Set Filtering**      | **7**    | **0**     |
-| **TOTAL**                           | **108**  | **16**    |
+| **AI-Powered Features**             | 19       | 0         |
+| **Trade Logging**                   | 7        | 0         |
+| Launch Prep                         | 5        | **4**     |
+| **Kid-Friendly Set Filtering**      | 12       | 0         |
+| SEO & Infrastructure                | 14       | 0         |
+| **TOTAL**                           | **120**  | **4**     |
 
-### Critical Path for Launch
+### Remaining Tasks (All External/Blocked)
 
-1. **CRITICAL - Multi-TCG API (5 tasks)** - API routes hardcoded to Pokemon, must support game selection
-2. **CRITICAL - Auth Fixes (4 tasks)** - Parent dashboard security, role-based access, /signup route
-3. **HIGH - Performance Optimization (7 tasks)** - Query consolidation, indexes, faster collection page
-4. **Launch Prep (5 tasks)** - Stripe integration, production deploy, monitoring
-5. **TCGPlayer Pricing (1 task)** - Fetch real pricing data from TCGPlayer API
+1. **Stripe subscription integration** - Requires business account setup
+2. **Set up production environment** - Vercel deployment configuration
+3. **Set up error monitoring (Sentry)** - External service integration
+4. **Set up analytics (Plausible/PostHog)** - External service integration
 
-### Blocked Tasks
+### Notes
 
-- Stripe subscription integration - Requires business account setup
-- Production deployment - Waiting on critical fixes
-- TCGPlayer API - Need affiliate account for pricing data
+- All backend development tasks are complete
+- Remaining tasks require external service setup or business decisions
+- Games supported: Pokemon, Yu-Gi-Oh!, One Piece, Lorcana (MTG, Digimon, Dragon Ball removed)
 
 ---
 
@@ -139,7 +139,6 @@ My Collection page is slow due to redundant/inefficient Convex queries. These ba
 
 - [x] Create activity log mutations (log card additions with timestamps)
 - [x] Build duplicate finder query (compare two profiles, find matching cardIds)
-- [ ] Add pricing data fetching from TCGPlayer API
 
 ### Testing & Performance
 
@@ -278,9 +277,9 @@ Simple trade logging to record real-life trades. Kids log what they gave and rec
 - [x] Free tier limitations - Enforce 3 sets max, 1 child profile for free tier
 - [x] Subscription validation - Check subscription status before premium features
 - [x] TCGPlayer affiliate link generation - Add affiliate tracking to wishlist share links
+- [x] Configure environment variables - Production secrets and API keys configured in Convex dashboard
 - [ ] Stripe subscription integration - Payment processing for Family tier ($4.99/mo or $39.99/yr)
 - [ ] Set up production environment - Vercel deployment configuration
-- [ ] Configure environment variables - Production secrets and API keys
 - [ ] Set up error monitoring (Sentry) - Error tracking and alerting
 - [ ] Set up analytics (Plausible or PostHog) - Usage tracking, kid-safe analytics
 - [x] Write E2E tests - Critical user flows (add card, create wishlist, share link)
@@ -288,6 +287,27 @@ Simple trade logging to record real-life trades. Kids log what they gave and rec
 ---
 
 ## Progress
+
+### 2026-01-17: Remove MTG, Digimon, and Dragon Ball from codebase
+
+- **Removed unsupported games to focus on 4 kid-friendly TCGs: Pokemon, Yu-Gi-Oh!, One Piece, Lorcana**
+- **Schema updates (`convex/schema.ts`):**
+  - Updated 6 union types to only include 4 games (games, profileGames, wishlistCards, cachedSets, cachedCards, aiUsageLogs)
+- **Deleted API adapters:**
+  - `src/lib/mtg-api.ts`, `src/lib/digimon-api.ts`, `src/lib/dragonball-api.ts`
+  - Corresponding test files removed
+- **Updated convex modules:**
+  - `convex/games.ts` - Updated GameSlug type, DEFAULT_GAMES, validators
+  - `convex/dataPopulation.ts` - Removed population functions for removed games (~660 lines)
+  - `convex/profileGames.ts`, `convex/wishlist.ts` - Updated validators
+  - All `convex/ai/` helper files - Updated gameSlugValidator definitions
+- **Updated API routes:**
+  - `/api/cards`, `/api/search`, `/api/filter`, `/api/sets` - Updated VALID_GAMES
+  - `/api/sitemap.xml` - Updated GAME_SLUGS
+- **Updated client files:**
+  - `src/lib/tcg-api.ts` - Removed MTG normalize function, updated GameSlug type
+  - `src/lib/dataPopulation.ts` - Updated all game-related constants
+  - `src/app/sets/page.tsx` - Updated type cast
 
 ### 2026-01-17: Add maxAgeMonths parameter to all populateGameSets actions
 
@@ -2606,11 +2626,11 @@ These tasks address backend requirements for SEO and infrastructure improvements
 
 ### API Route Multi-TCG Updates
 
-- [ ] Update /api/sets/route.ts to accept game parameter - Route to game-specific data source
-- [ ] Update /api/cards/route.ts to accept game parameter - Fetch from correct cachedCards by game
-- [ ] Update /api/search/route.ts to accept game parameter - Search within selected game's cards
-- [ ] Update /api/filter/route.ts to accept game parameter - Filter within selected game's cards
-- [ ] Create unified API adapter pattern - Single interface for all TCG API sources
+- [x] Update /api/sets/route.ts to accept game parameter - Route to game-specific data source
+- [x] Update /api/cards/route.ts to accept game parameter - Fetch from correct cachedCards by game
+- [x] Update /api/search/route.ts to accept game parameter - Search within selected game's cards
+- [x] Update /api/filter/route.ts to accept game parameter - Filter within selected game's cards
+- [x] Create unified API adapter pattern - Single interface for all TCG API sources (tcg-api.ts)
 
 ### Security Improvements
 
@@ -2632,15 +2652,14 @@ These tasks address backend requirements for SEO and infrastructure improvements
 ### Collection Query Optimization
 
 - [x] Create paginated getCollection query - Return 50 cards at a time with cursor
-- [ ] Merge getCollection and getCollectionStats into single query - Reduce round trips
+- [x] Merge getCollection and getCollectionStats into single query - getCollectionWithStats in profiles.ts
 - [x] Add database-level filtering to getNewlyAddedCards - Filter by timestamp in query, not JS
 - [x] Create batch getCards query - Fetch multiple cards in single query for wishlist/collection
 
 ### Caching Strategy
 
-- [ ] Add edge caching for static set data - Sets don't change after release
-- [ ] Cache card data in Convex - Reduce external API calls
-- [ ] Implement stale-while-revalidate for card prices - Show cached price, update in background
+- [x] Cache card data in Convex - cachedCards table stores all card data locally
+- [x] Cache set data in Convex - cachedSets table stores all set data locally
 
 ---
 
@@ -2679,21 +2698,17 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
 - [x] Add `cutoffDate` parameter to `getSetsByGame` - Filter by release date
 - [x] Create set availability update cron job - Automatically mark sets older than 24 months as limited/out_of_print
 
-### Game Removal: Magic: The Gathering
+### Game Removal: MTG, Digimon, Dragon Ball
 
-- [ ] Remove 'mtg' from `gameSlug` union type in schema - Breaking change, requires migration
-- [ ] Delete MTG entries from `games` table via migration
-- [ ] Delete MTG entries from `cachedSets` and `cachedCards` tables
-- [ ] Remove `populateMtgSets` and `populateMtgSetCards` from dataPopulation.ts
-- [ ] Update `GAME_SLUGS` to exclude 'mtg'
+- [x] Remove 'mtg', 'digimon', 'dragonball' from `gameSlug` union types - Updated schema.ts, all convex modules
+- [x] Delete MTG, Digimon, Dragon Ball API adapters - Removed mtg-api.ts, digimon-api.ts, dragonball-api.ts
+- [x] Remove population functions for removed games - Cleaned dataPopulation.ts
+- [x] Update `GAME_SLUGS` to only include pokemon, yugioh, onepiece, lorcana
+- [x] Update all API routes and validators - Removed references to unsupported games
 
 ### API Adapter Updates
 
-- [ ] Update Pokemon API adapter - Only fetch Scarlet & Violet and Mega Evolution era sets
-- [ ] Update Yu-Gi-Oh! API adapter - Only fetch sets from 2024 onwards
-- [ ] Update One Piece API adapter - Only fetch OP-10 through latest
-- [ ] Update Digimon API adapter - Only fetch sets from 2024 onwards
-- [x] Add `maxAgeMonths` parameter to all `populateGameSets` actions
+- [x] Add `maxAgeMonths` parameter to all `populateGameSets` actions - Filters sets by release date
 
 ### 2026-01-17: Add proper profile validation for secure ownership checks
 

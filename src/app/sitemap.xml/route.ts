@@ -9,15 +9,7 @@ import {
 } from '../../lib/sitemap';
 
 // Valid game slugs for fetching sets
-const GAME_SLUGS = [
-  'pokemon',
-  'yugioh',
-  'mtg',
-  'onepiece',
-  'lorcana',
-  'digimon',
-  'dragonball',
-] as const;
+const GAME_SLUGS = ['pokemon', 'yugioh', 'onepiece', 'lorcana'] as const;
 type GameSlug = (typeof GAME_SLUGS)[number];
 
 /**

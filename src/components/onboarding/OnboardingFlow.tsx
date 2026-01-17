@@ -475,7 +475,7 @@ function FirstCardsStep({ onContinue, onSkip, onBack, primaryGameName }: FirstCa
             aria-hidden="true"
           />
           <p className="text-sm text-pink-700">
-            Use &quot;Just Pulled&quot; mode for quick adding when opening packs!
+            Tap cards quickly to add them when opening packs!
           </p>
         </div>
       </div>

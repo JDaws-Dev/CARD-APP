@@ -216,7 +216,7 @@ export default function StreakPage() {
             <li className="flex items-start gap-2">
               <div className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
               <span>
-                Use &ldquo;Just Pulled&rdquo; mode when opening packs for quick card entry.
+                Tap cards quickly in the set view when opening packs for fast entry.
               </span>
             </li>
             <li className="flex items-start gap-2">

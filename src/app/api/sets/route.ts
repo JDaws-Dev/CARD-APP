@@ -5,15 +5,7 @@ import { api } from '../../../../convex/_generated/api';
 /**
  * Valid game slugs for the API
  */
-const VALID_GAMES = [
-  'pokemon',
-  'yugioh',
-  'mtg',
-  'onepiece',
-  'lorcana',
-  'digimon',
-  'dragonball',
-] as const;
+const VALID_GAMES = ['pokemon', 'yugioh', 'onepiece', 'lorcana'] as const;
 
 type GameSlug = (typeof VALID_GAMES)[number];
 

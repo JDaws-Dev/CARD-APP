@@ -34,16 +34,13 @@ import { internal } from './_generated/api';
 /**
  * Game slug type matching schema
  */
-type GameSlug = 'pokemon' | 'yugioh' | 'mtg' | 'onepiece' | 'lorcana' | 'digimon' | 'dragonball';
+type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
 const gameSlugValidator = v.union(
   v.literal('pokemon'),
   v.literal('yugioh'),
-  v.literal('mtg'),
   v.literal('onepiece'),
-  v.literal('lorcana'),
-  v.literal('digimon'),
-  v.literal('dragonball')
+  v.literal('lorcana')
 );
 
 /**
@@ -52,11 +49,8 @@ const gameSlugValidator = v.union(
 const RATE_LIMITS: Record<GameSlug, number> = {
   pokemon: 100, // pokemontcg.io - generous (with API key: 1000 req/day)
   yugioh: 50, // ygoprodeck.com - 20 req/sec
-  mtg: 100, // scryfall.com - 10 req/sec
   onepiece: 100, // optcg-api - conservative
   lorcana: 100, // lorcast.com - 10 req/sec
-  digimon: 700, // digimoncard.io - 15 req/10sec
-  dragonball: 100, // apitcg.com - conservative
 };
 
 // =============================================================================
@@ -327,7 +321,7 @@ export const getPopulationStatus = query({
   handler: async (ctx, args) => {
     const games: GameSlug[] = args.gameSlug
       ? [args.gameSlug]
-      : ['pokemon', 'yugioh', 'mtg', 'onepiece', 'lorcana', 'digimon', 'dragonball'];
+      : ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
 
     const status: Record<
       string,
@@ -780,6 +774,22 @@ export const internalGetCachedSets = internalQuery({
     sets.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
 
     return args.limit ? sets.slice(0, args.limit) : sets;
+  },
+});
+
+/**
+ * Get Yu-Gi-Oh! set name by setId (internal helper for card population)
+ */
+export const getYugiohSetName = internalQuery({
+  args: {
+    setId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const set = await ctx.db
+      .query('cachedSets')
+      .withIndex('by_set_id', (q) => q.eq('setId', args.setId))
+      .first();
+    return set ? { name: set.name, setId: set.setId } : null;
   },
 });
 
@@ -1244,10 +1254,12 @@ export const populateYugiohSets = internalAction({
 
 /**
  * Populate Yu-Gi-Oh! cards for a specific set
+ * Note: The YGOPRODeck API requires the set NAME (not code) for filtering
  */
 export const populateYugiohSetCards = internalAction({
   args: {
     setId: v.string(),
+    setName: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<{ success: boolean; count: number; errors: string[] }> => {
     const errors: string[] = [];
@@ -1260,14 +1272,42 @@ export const populateYugiohSetCards = internalAction({
         frameType: string;
         race: string;
         attribute?: string;
-        card_sets?: Array<{ set_code: string; set_rarity?: string }>;
+        card_sets?: Array<{ set_code: string; set_rarity?: string; set_name?: string }>;
         card_images?: Array<{ image_url: string; image_url_small: string }>;
         card_prices?: Array<{ tcgplayer_price?: string }>;
       }
 
-      const data = await fetchJSON<{ data: YugiohCard[] }>(
-        `https://db.ygoprodeck.com/api/v7/cardinfo.php?cardset=${encodeURIComponent(args.setId)}`
-      );
+      // The API requires set NAME, not set CODE
+      // If setName is provided, use it; otherwise try to look up from cachedSets
+      let searchName = args.setName;
+      if (!searchName) {
+        const cachedSet = await ctx.runQuery(internal.dataPopulation.getYugiohSetName, {
+          setId: args.setId,
+        });
+        searchName = cachedSet?.name;
+      }
+
+      if (!searchName) {
+        return {
+          success: false,
+          count: 0,
+          errors: [`Could not find set name for setId: ${args.setId}`],
+        };
+      }
+
+      const apiUrl = `https://db.ygoprodeck.com/api/v7/cardinfo.php?cardset=${encodeURIComponent(searchName)}`;
+
+      let data: { data: YugiohCard[] };
+      try {
+        data = await fetchJSON<{ data: YugiohCard[] }>(apiUrl);
+      } catch (e) {
+        // Return more detailed error with the set name
+        return {
+          success: false,
+          count: 0,
+          errors: [`API error for "${searchName}" (${args.setId}): ${e instanceof Error ? e.message : 'Unknown'}`],
+        };
+      }
 
       const cards = data.data.map((card) => {
         const cardSet = card.card_sets?.find((s) => s.set_code === args.setId);
@@ -1303,169 +1343,7 @@ export const populateYugiohSetCards = internalAction({
       return {
         success: false,
         count: 0,
-        errors: [e instanceof Error ? e.message : 'Unknown error'],
-      };
-    }
-  },
-});
-
-// =============================================================================
-// MTG API POPULATION
-// =============================================================================
-
-/**
- * Populate MTG sets from scryfall.com
- * @param collectibleOnly - If true, only include collectible set types (default true)
- * @param maxAgeMonths - Optional filter to only include sets released within the last N months
- */
-export const populateMtgSets = internalAction({
-  args: {
-    collectibleOnly: v.optional(v.boolean()),
-    maxAgeMonths: v.optional(v.number()),
-  },
-  handler: async (
-    ctx,
-    args
-  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
-    const errors: string[] = [];
-    let count = 0;
-    let skipped = 0;
-    const cutoffDate = getCutoffDate(args.maxAgeMonths);
-
-    try {
-      interface MtgSet {
-        code: string;
-        name: string;
-        set_type: string;
-        block?: string;
-        released_at?: string;
-        card_count: number;
-        icon_svg_uri?: string;
-      }
-
-      const data = await fetchJSON<{ data: MtgSet[] }>('https://api.scryfall.com/sets', {
-        'User-Agent': 'KidCollect/1.0',
-      });
-
-      // Filter to collectible sets if requested
-      const collectibleTypes = ['core', 'expansion', 'masters', 'draft_innovation', 'commander'];
-      const sets =
-        args.collectibleOnly !== false
-          ? data.data.filter((s) => collectibleTypes.includes(s.set_type))
-          : data.data;
-
-      for (const set of sets) {
-        // Filter by release date if maxAgeMonths is specified
-        const releaseDate = set.released_at || '1993-08-05';
-        if (!isSetWithinAgeLimit(releaseDate, cutoffDate)) {
-          skipped++;
-          continue;
-        }
-
-        try {
-          await ctx.runMutation(internal.dataPopulation.upsertCachedSet, {
-            setId: set.code,
-            gameSlug: 'mtg',
-            name: set.name,
-            series: set.block || 'Standalone',
-            releaseDate,
-            totalCards: set.card_count || 0,
-            logoUrl: set.icon_svg_uri,
-            symbolUrl: set.icon_svg_uri,
-          });
-          count++;
-        } catch (e) {
-          errors.push(`Set ${set.code}: ${e instanceof Error ? e.message : 'Unknown'}`);
-        }
-        await delay(RATE_LIMITS.mtg);
-      }
-
-      return { success: errors.length === 0, count, errors, skipped };
-    } catch (e) {
-      return {
-        success: false,
-        count,
-        errors: [...errors, e instanceof Error ? e.message : 'Unknown error'],
-        skipped,
-      };
-    }
-  },
-});
-
-/**
- * Populate MTG cards for a specific set (handles pagination)
- */
-export const populateMtgSetCards = internalAction({
-  args: {
-    setId: v.string(),
-  },
-  handler: async (ctx, args): Promise<{ success: boolean; count: number; errors: string[] }> => {
-    const errors: string[] = [];
-    let totalCount = 0;
-
-    try {
-      interface MtgCard {
-        id: string;
-        name: string;
-        collector_number: string;
-        type_line: string;
-        colors?: string[];
-        rarity: string;
-        set: string;
-        image_uris?: { small?: string; large?: string };
-        card_faces?: Array<{ image_uris?: { small?: string; large?: string } }>;
-        purchase_uris?: { tcgplayer?: string };
-        prices?: { usd?: string };
-      }
-
-      interface MtgResponse {
-        data: MtgCard[];
-        has_more: boolean;
-        next_page?: string;
-      }
-
-      let page = `https://api.scryfall.com/cards/search?q=set:${args.setId}&unique=prints`;
-      let hasMore = true;
-
-      while (hasMore) {
-        const data = await fetchJSON<MtgResponse>(page, {
-          'User-Agent': 'KidCollect/1.0',
-        });
-
-        const cards = data.data.map((card) => ({
-          cardId: `${card.set}-${card.collector_number}`,
-          gameSlug: 'mtg' as const,
-          setId: card.set,
-          name: card.name,
-          number: card.collector_number,
-          supertype: card.type_line?.split(' — ')[0] || 'Unknown',
-          subtypes: card.type_line?.split(' — ')[1]?.split(' ') || [],
-          types: card.colors || [],
-          rarity: card.rarity,
-          imageSmall: card.image_uris?.small || card.card_faces?.[0]?.image_uris?.small || '',
-          imageLarge: card.image_uris?.large || card.card_faces?.[0]?.image_uris?.large || '',
-          tcgPlayerUrl: card.purchase_uris?.tcgplayer,
-          priceMarket: card.prices?.usd ? parseFloat(card.prices.usd) : undefined,
-        }));
-
-        const result = await ctx.runMutation(internal.dataPopulation.batchUpsertCards, {
-          cards,
-        });
-        totalCount += result.inserted + result.updated;
-
-        hasMore = data.has_more;
-        if (hasMore && data.next_page) {
-          page = data.next_page;
-          await delay(RATE_LIMITS.mtg);
-        }
-      }
-
-      return { success: true, count: totalCount, errors };
-    } catch (e) {
-      return {
-        success: false,
-        count: totalCount,
-        errors: [e instanceof Error ? e.message : 'Unknown error'],
+        errors: [`Set ${args.setId} (${args.setName}): ${e instanceof Error ? e.message : 'Unknown error'}`],
       };
     }
   },
@@ -1851,512 +1729,6 @@ export const populateOnePieceSetCards = internalAction({
 });
 
 // =============================================================================
-// DIGIMON API POPULATION
-// =============================================================================
-
-/**
- * Populate Digimon sets from digimoncard.io
- * Note: API doesn't have a dedicated sets endpoint, so we search by pack name patterns
- * @param maxAgeMonths - Optional filter to only include sets released within the last N months
- *                       Uses approximate release dates based on set numbers
- * @param minSetNumber - Alternative filter: only include BT/EX sets >= this number
- */
-export const populateDigimonSets = internalAction({
-  args: {
-    maxAgeMonths: v.optional(v.number()),
-    minSetNumber: v.optional(v.number()),
-  },
-  handler: async (
-    ctx,
-    args
-  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
-    const errors: string[] = [];
-    let count = 0;
-    let skipped = 0;
-    const cutoffDate = getCutoffDate(args.maxAgeMonths);
-
-    // Approximate release dates for Digimon sets
-    // BT01 = April 2020, BT sets roughly every 3 months
-    // EX01 = December 2021, EX sets roughly every 6 months
-    const getApproximateReleaseDate = (setCode: string): string => {
-      const btMatch = setCode.match(/^BT(\d+)$/i);
-      if (btMatch) {
-        const setNum = parseInt(btMatch[1], 10);
-        // BT01 = April 2020, each set ~3 months later
-        const monthsFromLaunch = (setNum - 1) * 3;
-        const launchDate = new Date(2020, 3, 24); // April 24, 2020
-        const releaseDate = new Date(launchDate);
-        releaseDate.setMonth(releaseDate.getMonth() + monthsFromLaunch);
-        return releaseDate.toISOString().split('T')[0];
-      }
-
-      const exMatch = setCode.match(/^EX(\d+)$/i);
-      if (exMatch) {
-        const setNum = parseInt(exMatch[1], 10);
-        // EX01 = December 2021, each set ~6 months later
-        const monthsFromLaunch = (setNum - 1) * 6;
-        const launchDate = new Date(2021, 11, 24); // December 24, 2021
-        const releaseDate = new Date(launchDate);
-        releaseDate.setMonth(releaseDate.getMonth() + monthsFromLaunch);
-        return releaseDate.toISOString().split('T')[0];
-      }
-
-      // Starter decks and promos use launch date
-      return '2020-04-24';
-    };
-
-    try {
-      // Get all card numbers to extract unique sets
-      const response = await fetchJSON<{ name: string; cardnumber: string }[]>(
-        'https://digimoncard.io/index.php/api-public/getAllCards?series=Digimon%20Card%20Game&sort=card_number&sortdirection=asc'
-      );
-
-      // Extract unique set codes from card numbers
-      const setMap = new Map<string, { name: string; cardCount: number }>();
-
-      for (const card of response) {
-        if (!card.cardnumber.includes('-')) continue;
-        const match = card.cardnumber.match(/^([A-Z]+\d*)-/i);
-        if (!match) continue;
-
-        const setCode = match[1].toUpperCase();
-        const existing = setMap.get(setCode);
-
-        if (existing) {
-          existing.cardCount++;
-        } else {
-          // Get set name from a card search
-          setMap.set(setCode, {
-            name: `Digimon ${setCode}`, // Will be updated later if possible
-            cardCount: 1,
-          });
-        }
-      }
-
-      // Insert sets (with filtering)
-      for (const [setCode, data] of setMap.entries()) {
-        // Filter by minSetNumber if specified (applies to BT and EX sets)
-        if (args.minSetNumber !== undefined) {
-          const btMatch = setCode.match(/^BT(\d+)$/i);
-          const exMatch = setCode.match(/^EX(\d+)$/i);
-          if (btMatch) {
-            const setNum = parseInt(btMatch[1], 10);
-            if (setNum < args.minSetNumber) {
-              skipped++;
-              continue;
-            }
-          }
-          if (exMatch) {
-            const setNum = parseInt(exMatch[1], 10);
-            if (setNum < args.minSetNumber) {
-              skipped++;
-              continue;
-            }
-          }
-        }
-
-        // Calculate approximate release date for this set
-        const releaseDate = getApproximateReleaseDate(setCode);
-
-        // Filter by release date if maxAgeMonths is specified
-        if (!isSetWithinAgeLimit(releaseDate, cutoffDate)) {
-          skipped++;
-          continue;
-        }
-
-        try {
-          await ctx.runMutation(internal.dataPopulation.upsertCachedSet, {
-            setId: setCode,
-            gameSlug: 'digimon',
-            name: data.name,
-            series: 'Digimon Card Game',
-            releaseDate,
-            totalCards: data.cardCount,
-            logoUrl: undefined,
-            symbolUrl: undefined,
-          });
-          count++;
-        } catch (e) {
-          errors.push(`Set ${setCode}: ${e instanceof Error ? e.message : 'Unknown'}`);
-        }
-        await delay(RATE_LIMITS.digimon);
-      }
-
-      return { success: errors.length === 0, count, errors, skipped };
-    } catch (e) {
-      return {
-        success: false,
-        count,
-        errors: [...errors, e instanceof Error ? e.message : 'Unknown error'],
-        skipped,
-      };
-    }
-  },
-});
-
-/**
- * Populate Digimon cards for a specific set
- */
-export const populateDigimonSetCards = internalAction({
-  args: {
-    setId: v.string(),
-  },
-  handler: async (ctx, args): Promise<{ success: boolean; count: number; errors: string[] }> => {
-    const errors: string[] = [];
-
-    try {
-      interface DigimonCard {
-        name: string;
-        type: string;
-        id: string;
-        level: number | null;
-        play_cost: number | null;
-        color: string;
-        color2: string | null;
-        digi_type: string | null;
-        digi_type2: string | null;
-        dp: number | null;
-        attribute: string | null;
-        rarity: string;
-        stage: string | null;
-        main_effect: string | null;
-        source_effect: string | null;
-      }
-
-      // Search for cards with the set prefix
-      const data = await fetchJSON<DigimonCard[]>(
-        `https://digimoncard.io/index.php/api-public/search?card=${args.setId}&sort=code&sortdirection=asc`
-      );
-
-      if (!data || data.length === 0) {
-        return { success: true, count: 0, errors };
-      }
-
-      // Filter to only cards that actually start with the set code
-      const filteredCards = data.filter((card) => {
-        const match = card.id.match(/^([A-Z]+\d*)-/i);
-        return match && match[1].toUpperCase() === args.setId.toUpperCase();
-      });
-
-      const cards = filteredCards.map((card) => ({
-        cardId: `digimon-${card.id}`,
-        gameSlug: 'digimon' as const,
-        setId: args.setId.toUpperCase(),
-        name: card.name,
-        number: card.id,
-        supertype: card.type || 'Digimon',
-        subtypes: [card.stage, card.digi_type, card.digi_type2].filter((s): s is string => !!s),
-        types: [card.color, card.color2].filter((c): c is string => !!c),
-        rarity: card.rarity,
-        imageSmall: `https://images.digimoncard.io/images/cards/${card.id}.png`,
-        imageLarge: `https://images.digimoncard.io/images/cards/${card.id}.png`,
-        tcgPlayerUrl: undefined,
-        priceMarket: undefined,
-      }));
-
-      if (cards.length > 0) {
-        const result = await ctx.runMutation(internal.dataPopulation.batchUpsertCards, {
-          cards,
-        });
-
-        return {
-          success: true,
-          count: result.inserted + result.updated,
-          errors,
-        };
-      }
-
-      return { success: true, count: 0, errors };
-    } catch (e) {
-      return {
-        success: false,
-        count: 0,
-        errors: [e instanceof Error ? e.message : 'Unknown error'],
-      };
-    }
-  },
-});
-
-// =============================================================================
-// DRAGON BALL FUSION WORLD API POPULATION
-// =============================================================================
-
-/**
- * Populate Dragon Ball Fusion World sets from apitcg.com
- * Note: Sets endpoint is under construction, so we extract from cards
- * @param maxAgeMonths - Optional filter to only include sets released within the last N months
- *                       Dragon Ball Fusion World launched Feb 2024, uses set number filtering
- * @param minSetNumber - Alternative filter: only include FB sets >= this number
- */
-export const populateDragonBallSets = internalAction({
-  args: {
-    maxAgeMonths: v.optional(v.number()),
-    minSetNumber: v.optional(v.number()),
-  },
-  handler: async (
-    ctx,
-    args
-  ): Promise<{ success: boolean; count: number; errors: string[]; skipped: number }> => {
-    const errors: string[] = [];
-    let count = 0;
-    let skipped = 0;
-    const cutoffDate = getCutoffDate(args.maxAgeMonths);
-
-    // Approximate release dates for Dragon Ball Fusion World sets
-    // FB01 = February 2024, subsequent sets roughly every 3 months
-    const getApproximateReleaseDate = (setCode: string): string => {
-      const match = setCode.match(/^FB(\d+)/i);
-      if (!match) return '2024-02-16'; // Default to launch date
-      const setNum = parseInt(match[1], 10);
-      // FB01 = February 2024, each set ~3 months later
-      const monthsFromLaunch = (setNum - 1) * 3;
-      const launchDate = new Date(2024, 1, 16); // February 16, 2024
-      const releaseDate = new Date(launchDate);
-      releaseDate.setMonth(releaseDate.getMonth() + monthsFromLaunch);
-      return releaseDate.toISOString().split('T')[0];
-    };
-
-    try {
-      interface DragonBallCard {
-        id: string;
-        code: string;
-        set: { name: string };
-      }
-
-      interface DragonBallResponse {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-        data: DragonBallCard[];
-      }
-
-      // Fetch all cards to extract set information
-      const allCards: DragonBallCard[] = [];
-      let currentPage = 1;
-      let hasMore = true;
-
-      const apiKey = process.env.DRAGONBALL_API_KEY;
-      const headers: Record<string, string> = {
-        Accept: 'application/json',
-        'User-Agent': 'KidCollect/1.0 (https://kidcollect.app)',
-      };
-      if (apiKey) {
-        headers['x-api-key'] = apiKey;
-      }
-
-      while (hasMore) {
-        const response = await fetch(
-          `https://apitcg.com/api/dragon-ball-fusion/cards?page=${currentPage}`,
-          { headers }
-        );
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status} ${response.statusText}`);
-        }
-
-        const data: DragonBallResponse = await response.json();
-        allCards.push(...data.data);
-
-        if (currentPage >= data.totalPages) {
-          hasMore = false;
-        } else {
-          currentPage++;
-          await delay(RATE_LIMITS.dragonball);
-        }
-      }
-
-      // Extract unique sets from cards
-      const setMap = new Map<string, { name: string; cardCount: number }>();
-
-      for (const card of allCards) {
-        // Extract set code from card code (e.g., "FB01" from "FB01-001")
-        const match = card.code.match(/^([A-Z]+\d+)/i);
-        const setCode = match ? match[1].toUpperCase() : card.code;
-
-        const existing = setMap.get(setCode);
-        if (existing) {
-          existing.cardCount++;
-        } else {
-          setMap.set(setCode, {
-            name: card.set?.name || setCode,
-            cardCount: 1,
-          });
-        }
-      }
-
-      // Insert sets (with filtering)
-      for (const [setCode, data] of setMap.entries()) {
-        // Filter by minSetNumber if specified
-        if (args.minSetNumber !== undefined) {
-          const match = setCode.match(/^FB(\d+)/i);
-          if (match) {
-            const setNum = parseInt(match[1], 10);
-            if (setNum < args.minSetNumber) {
-              skipped++;
-              continue;
-            }
-          }
-        }
-
-        // Calculate approximate release date for this set
-        const releaseDate = getApproximateReleaseDate(setCode);
-
-        // Filter by release date if maxAgeMonths is specified
-        if (!isSetWithinAgeLimit(releaseDate, cutoffDate)) {
-          skipped++;
-          continue;
-        }
-
-        try {
-          await ctx.runMutation(internal.dataPopulation.upsertCachedSet, {
-            setId: setCode,
-            gameSlug: 'dragonball',
-            name: data.name,
-            series: 'Dragon Ball Fusion World',
-            releaseDate,
-            totalCards: data.cardCount,
-            logoUrl: undefined,
-            symbolUrl: undefined,
-          });
-          count++;
-        } catch (e) {
-          errors.push(`Set ${setCode}: ${e instanceof Error ? e.message : 'Unknown'}`);
-        }
-        await delay(RATE_LIMITS.dragonball);
-      }
-
-      return { success: errors.length === 0, count, errors, skipped };
-    } catch (e) {
-      return {
-        success: false,
-        count,
-        errors: [...errors, e instanceof Error ? e.message : 'Unknown error'],
-        skipped,
-      };
-    }
-  },
-});
-
-/**
- * Populate Dragon Ball Fusion World cards for a specific set
- */
-export const populateDragonBallSetCards = internalAction({
-  args: {
-    setId: v.string(),
-  },
-  handler: async (ctx, args): Promise<{ success: boolean; count: number; errors: string[] }> => {
-    const errors: string[] = [];
-
-    try {
-      interface DragonBallCard {
-        id: string;
-        code: string;
-        rarity: string;
-        name: string;
-        color: string;
-        cardType: string;
-        cost: number | null;
-        specifiedCost: string | null;
-        power: number | null;
-        comboPower: number | null;
-        features: string[];
-        effect: string | null;
-        images: { small: string; large: string };
-        set: { name: string };
-      }
-
-      interface DragonBallResponse {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-        data: DragonBallCard[];
-      }
-
-      // Fetch all cards and filter by set
-      const allCards: DragonBallCard[] = [];
-      let currentPage = 1;
-      let hasMore = true;
-
-      const apiKey = process.env.DRAGONBALL_API_KEY;
-      const headers: Record<string, string> = {
-        Accept: 'application/json',
-        'User-Agent': 'KidCollect/1.0 (https://kidcollect.app)',
-      };
-      if (apiKey) {
-        headers['x-api-key'] = apiKey;
-      }
-
-      while (hasMore) {
-        const response = await fetch(
-          `https://apitcg.com/api/dragon-ball-fusion/cards?page=${currentPage}`,
-          { headers }
-        );
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status} ${response.statusText}`);
-        }
-
-        const data: DragonBallResponse = await response.json();
-
-        // Filter cards matching the setId
-        const setCards = data.data.filter((card) => {
-          const match = card.code.match(/^([A-Z]+\d+)/i);
-          const cardSetCode = match ? match[1].toUpperCase() : '';
-          return cardSetCode === args.setId.toUpperCase();
-        });
-
-        allCards.push(...setCards);
-
-        if (currentPage >= data.totalPages) {
-          hasMore = false;
-        } else {
-          currentPage++;
-          await delay(RATE_LIMITS.dragonball);
-        }
-      }
-
-      const cards = allCards.map((card) => ({
-        cardId: `dragonball-${card.code}`,
-        gameSlug: 'dragonball' as const,
-        setId: args.setId.toUpperCase(),
-        name: card.name,
-        number: card.code,
-        supertype: card.cardType || 'Battle',
-        subtypes: card.features || [],
-        types: card.color ? [card.color] : [],
-        rarity: card.rarity,
-        imageSmall: card.images?.small || '',
-        imageLarge: card.images?.large || '',
-        tcgPlayerUrl: undefined,
-        priceMarket: undefined,
-      }));
-
-      if (cards.length > 0) {
-        const result = await ctx.runMutation(internal.dataPopulation.batchUpsertCards, {
-          cards,
-        });
-
-        return {
-          success: true,
-          count: result.inserted + result.updated,
-          errors,
-        };
-      }
-
-      return { success: true, count: 0, errors };
-    } catch (e) {
-      return {
-        success: false,
-        count: 0,
-        errors: [e instanceof Error ? e.message : 'Unknown error'],
-      };
-    }
-  },
-});
-
-// =============================================================================
 // MAIN POPULATION ACTIONS
 // =============================================================================
 
@@ -2380,19 +1752,10 @@ export const internalPopulateSets = internalAction({
         return ctx.runAction(internal.dataPopulation.populatePokemonSets, { maxAgeMonths });
       case 'yugioh':
         return ctx.runAction(internal.dataPopulation.populateYugiohSets, { maxAgeMonths });
-      case 'mtg':
-        return ctx.runAction(internal.dataPopulation.populateMtgSets, {
-          collectibleOnly: true,
-          maxAgeMonths,
-        });
       case 'lorcana':
         return ctx.runAction(internal.dataPopulation.populateLorcanaSets, { maxAgeMonths });
       case 'onepiece':
         return ctx.runAction(internal.dataPopulation.populateOnePieceSets, { maxAgeMonths });
-      case 'digimon':
-        return ctx.runAction(internal.dataPopulation.populateDigimonSets, { maxAgeMonths });
-      case 'dragonball':
-        return ctx.runAction(internal.dataPopulation.populateDragonBallSets, { maxAgeMonths });
     }
   },
 });
@@ -2425,6 +1788,7 @@ export const internalPopulateSetCards = internalAction({
   args: {
     gameSlug: gameSlugValidator,
     setId: v.string(),
+    setName: v.optional(v.string()), // Required for Yu-Gi-Oh! API
   },
   handler: async (ctx, args): Promise<{ success: boolean; count: number; errors: string[] }> => {
     switch (args.gameSlug) {
@@ -2435,10 +1799,7 @@ export const internalPopulateSetCards = internalAction({
       case 'yugioh':
         return ctx.runAction(internal.dataPopulation.populateYugiohSetCards, {
           setId: args.setId,
-        });
-      case 'mtg':
-        return ctx.runAction(internal.dataPopulation.populateMtgSetCards, {
-          setId: args.setId,
+          setName: args.setName, // Pass set name for API lookup
         });
       case 'lorcana':
         return ctx.runAction(internal.dataPopulation.populateLorcanaSetCards, {
@@ -2446,14 +1807,6 @@ export const internalPopulateSetCards = internalAction({
         });
       case 'onepiece':
         return ctx.runAction(internal.dataPopulation.populateOnePieceSetCards, {
-          setId: args.setId,
-        });
-      case 'digimon':
-        return ctx.runAction(internal.dataPopulation.populateDigimonSetCards, {
-          setId: args.setId,
-        });
-      case 'dragonball':
-        return ctx.runAction(internal.dataPopulation.populateDragonBallSetCards, {
           setId: args.setId,
         });
     }
@@ -2532,6 +1885,7 @@ export const populateGameData = action({
         const cardsResult = await ctx.runAction(internal.dataPopulation.internalPopulateSetCards, {
           gameSlug: args.gameSlug,
           setId: set.setId,
+          setName: set.name, // Pass set name for Yu-Gi-Oh! API
         });
         cardsProcessed += cardsResult.count;
         errors.push(...cardsResult.errors);

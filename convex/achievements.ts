@@ -582,7 +582,11 @@ export const getMilestoneProgress = query({
       totalUniqueCards,
       milestones: milestoneProgress,
       currentMilestone: currentMilestone
-        ? { key: currentMilestone.key, name: currentMilestone.name, threshold: currentMilestone.threshold }
+        ? {
+            key: currentMilestone.key,
+            name: currentMilestone.name,
+            threshold: currentMilestone.threshold,
+          }
         : null,
       nextMilestone: nextMilestone
         ? {
@@ -1043,7 +1047,13 @@ const POKEMON_FAN_BADGES = [
   { pokemon: 'Eevee', key: 'eevee_fan', name: 'Eevee Fan', threshold: 5, includeEevolutions: true },
   { pokemon: 'Charizard', key: 'charizard_fan', name: 'Charizard Fan', threshold: 3 },
   { pokemon: 'Mewtwo', key: 'mewtwo_fan', name: 'Mewtwo Fan', threshold: 3 },
-  { pokemon: 'Legendary', key: 'legendary_fan', name: 'Legendary Fan', threshold: 10, isCategory: true },
+  {
+    pokemon: 'Legendary',
+    key: 'legendary_fan',
+    name: 'Legendary Fan',
+    threshold: 10,
+    isCategory: true,
+  },
 ] as const;
 
 // Eeveelutions for the Eevee fan badge
@@ -1062,23 +1072,111 @@ const EEVEELUTIONS = [
 // Legendary Pokemon list (common legendaries and mythicals)
 const LEGENDARY_POKEMON = [
   // Gen 1
-  'Articuno', 'Zapdos', 'Moltres', 'Mewtwo', 'Mew',
+  'Articuno',
+  'Zapdos',
+  'Moltres',
+  'Mewtwo',
+  'Mew',
   // Gen 2
-  'Raikou', 'Entei', 'Suicune', 'Lugia', 'Ho-Oh', 'Celebi',
+  'Raikou',
+  'Entei',
+  'Suicune',
+  'Lugia',
+  'Ho-Oh',
+  'Celebi',
   // Gen 3
-  'Regirock', 'Regice', 'Registeel', 'Latias', 'Latios', 'Kyogre', 'Groudon', 'Rayquaza', 'Jirachi', 'Deoxys',
+  'Regirock',
+  'Regice',
+  'Registeel',
+  'Latias',
+  'Latios',
+  'Kyogre',
+  'Groudon',
+  'Rayquaza',
+  'Jirachi',
+  'Deoxys',
   // Gen 4
-  'Uxie', 'Mesprit', 'Azelf', 'Dialga', 'Palkia', 'Heatran', 'Regigigas', 'Giratina', 'Cresselia', 'Phione', 'Manaphy', 'Darkrai', 'Shaymin', 'Arceus',
+  'Uxie',
+  'Mesprit',
+  'Azelf',
+  'Dialga',
+  'Palkia',
+  'Heatran',
+  'Regigigas',
+  'Giratina',
+  'Cresselia',
+  'Phione',
+  'Manaphy',
+  'Darkrai',
+  'Shaymin',
+  'Arceus',
   // Gen 5
-  'Victini', 'Cobalion', 'Terrakion', 'Virizion', 'Tornadus', 'Thundurus', 'Reshiram', 'Zekrom', 'Landorus', 'Kyurem', 'Keldeo', 'Meloetta', 'Genesect',
+  'Victini',
+  'Cobalion',
+  'Terrakion',
+  'Virizion',
+  'Tornadus',
+  'Thundurus',
+  'Reshiram',
+  'Zekrom',
+  'Landorus',
+  'Kyurem',
+  'Keldeo',
+  'Meloetta',
+  'Genesect',
   // Gen 6
-  'Xerneas', 'Yveltal', 'Zygarde', 'Diancie', 'Hoopa', 'Volcanion',
+  'Xerneas',
+  'Yveltal',
+  'Zygarde',
+  'Diancie',
+  'Hoopa',
+  'Volcanion',
   // Gen 7
-  'Tapu Koko', 'Tapu Lele', 'Tapu Bulu', 'Tapu Fini', 'Cosmog', 'Cosmoem', 'Solgaleo', 'Lunala', 'Nihilego', 'Buzzwole', 'Pheromosa', 'Xurkitree', 'Celesteela', 'Kartana', 'Guzzlord', 'Necrozma', 'Magearna', 'Marshadow', 'Poipole', 'Naganadel', 'Stakataka', 'Blacephalon', 'Zeraora',
+  'Tapu Koko',
+  'Tapu Lele',
+  'Tapu Bulu',
+  'Tapu Fini',
+  'Cosmog',
+  'Cosmoem',
+  'Solgaleo',
+  'Lunala',
+  'Nihilego',
+  'Buzzwole',
+  'Pheromosa',
+  'Xurkitree',
+  'Celesteela',
+  'Kartana',
+  'Guzzlord',
+  'Necrozma',
+  'Magearna',
+  'Marshadow',
+  'Poipole',
+  'Naganadel',
+  'Stakataka',
+  'Blacephalon',
+  'Zeraora',
   // Gen 8
-  'Zacian', 'Zamazenta', 'Eternatus', 'Kubfu', 'Urshifu', 'Zarude', 'Regieleki', 'Regidrago', 'Glastrier', 'Spectrier', 'Calyrex',
+  'Zacian',
+  'Zamazenta',
+  'Eternatus',
+  'Kubfu',
+  'Urshifu',
+  'Zarude',
+  'Regieleki',
+  'Regidrago',
+  'Glastrier',
+  'Spectrier',
+  'Calyrex',
   // Gen 9
-  'Koraidon', 'Miraidon', 'Wo-Chien', 'Chien-Pao', 'Ting-Lu', 'Chi-Yu', 'Ogerpon', 'Terapagos', 'Pecharunt',
+  'Koraidon',
+  'Miraidon',
+  'Wo-Chien',
+  'Chien-Pao',
+  'Ting-Lu',
+  'Chi-Yu',
+  'Ogerpon',
+  'Terapagos',
+  'Pecharunt',
 ];
 
 /**
@@ -1091,10 +1189,7 @@ function matchesPokemonName(cardName: string, targetPokemon: string): boolean {
 
   // Card name should start with the Pokemon name
   // This handles "Pikachu", "Pikachu V", "Pikachu VMAX", "Pikachu ex", etc.
-  return (
-    normalizedCard === normalizedTarget ||
-    normalizedCard.startsWith(normalizedTarget + ' ')
-  );
+  return normalizedCard === normalizedTarget || normalizedCard.startsWith(normalizedTarget + ' ');
 }
 
 /**
@@ -1526,7 +1621,8 @@ export const checkStreakAchievements = mutation({
             daysNeeded: nextBadge.threshold - streakInfo.currentStreak,
           }
         : null,
-      totalStreakBadgesEarned: STREAK_BADGES.filter((b) => streakInfo.currentStreak >= b.threshold).length,
+      totalStreakBadgesEarned: STREAK_BADGES.filter((b) => streakInfo.currentStreak >= b.threshold)
+        .length,
       totalStreakBadgesAvailable: STREAK_BADGES.length,
     };
   },
@@ -1644,7 +1740,8 @@ export const getAchievementsWithDates = query({
 
     // Enrich with badge definitions and formatted dates
     const enriched = sorted.map((achievement) => {
-      const badgeInfo = ACHIEVEMENT_DEFINITIONS[achievement.achievementKey] ??
+      const badgeInfo =
+        ACHIEVEMENT_DEFINITIONS[achievement.achievementKey] ??
         // For set-specific badges, extract the base badge key
         (() => {
           for (const [baseKey, def] of Object.entries(ACHIEVEMENT_DEFINITIONS)) {
@@ -1705,7 +1802,8 @@ export const getRecentlyEarnedAchievements = query({
       .slice(0, limit);
 
     return recent.map((achievement) => {
-      const badgeInfo = ACHIEVEMENT_DEFINITIONS[achievement.achievementKey] ??
+      const badgeInfo =
+        ACHIEVEMENT_DEFINITIONS[achievement.achievementKey] ??
         (() => {
           for (const [baseKey, def] of Object.entries(ACHIEVEMENT_DEFINITIONS)) {
             if (achievement.achievementKey.endsWith(`_${baseKey}`)) {
@@ -1788,7 +1886,8 @@ export const getAchievementTimeline = query({
     // Convert to array of date groups with enriched data
     const timeline = Array.from(byDate.entries()).map(([dateStr, dayAchievements]) => {
       const enrichedAchievements = dayAchievements.map((achievement) => {
-        const badgeInfo = ACHIEVEMENT_DEFINITIONS[achievement.achievementKey] ??
+        const badgeInfo =
+          ACHIEVEMENT_DEFINITIONS[achievement.achievementKey] ??
           (() => {
             for (const [baseKey, def] of Object.entries(ACHIEVEMENT_DEFINITIONS)) {
               if (achievement.achievementKey.endsWith(`_${baseKey}`)) {
@@ -1824,7 +1923,8 @@ export const getAchievementTimeline = query({
       timeline,
       totalDays: timeline.length,
       totalAchievements: achievements.length,
-      firstEarnedDate: sorted.length > 0 ? formatDateForDisplay(sorted[sorted.length - 1].earnedAt) : null,
+      firstEarnedDate:
+        sorted.length > 0 ? formatDateForDisplay(sorted[sorted.length - 1].earnedAt) : null,
       mostRecentDate: sorted.length > 0 ? formatDateForDisplay(sorted[0].earnedAt) : null,
     };
   },
@@ -1874,9 +1974,7 @@ function formatRelativeDate(timestamp: number): string {
 /**
  * Group achievements by category
  */
-function groupByCategory(
-  achievements: Array<{ achievementType: string }>
-): Record<string, number> {
+function groupByCategory(achievements: Array<{ achievementType: string }>): Record<string, number> {
   const counts: Record<string, number> = {
     set_completion: 0,
     collector_milestone: 0,

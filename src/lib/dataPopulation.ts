@@ -14,27 +14,12 @@
 /**
  * Valid game slugs for data population
  */
-export type GameSlug =
-  | 'pokemon'
-  | 'yugioh'
-  | 'mtg'
-  | 'onepiece'
-  | 'lorcana'
-  | 'digimon'
-  | 'dragonball';
+export type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
 /**
  * All supported game slugs
  */
-export const GAME_SLUGS: GameSlug[] = [
-  'pokemon',
-  'yugioh',
-  'mtg',
-  'onepiece',
-  'lorcana',
-  'digimon',
-  'dragonball',
-];
+export const GAME_SLUGS: GameSlug[] = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
 
 /**
  * Rate limits per game (milliseconds between requests)
@@ -42,11 +27,8 @@ export const GAME_SLUGS: GameSlug[] = [
 export const RATE_LIMITS: Record<GameSlug, number> = {
   pokemon: 100,
   yugioh: 50,
-  mtg: 100,
   onepiece: 100,
   lorcana: 100,
-  digimon: 700,
-  dragonball: 100,
 };
 
 /**
@@ -61,24 +43,12 @@ export const API_CONFIGS: Record<GameSlug, { baseUrl: string; setsEndpoint: stri
     baseUrl: 'https://db.ygoprodeck.com/api/v7',
     setsEndpoint: '/cardsets.php',
   },
-  mtg: {
-    baseUrl: 'https://api.scryfall.com',
-    setsEndpoint: '/sets',
-  },
   onepiece: {
     baseUrl: 'https://optcg-api.ryanmichaelhirst.us/api/v1',
     setsEndpoint: '/sets',
   },
   lorcana: {
     baseUrl: 'https://api.lorcast.com/v0',
-    setsEndpoint: '/sets',
-  },
-  digimon: {
-    baseUrl: 'https://digimoncard.io/api-public',
-    setsEndpoint: '/getAllCards.php',
-  },
-  dragonball: {
-    baseUrl: 'https://www.apitcg.com/api/v1/dbfw',
     setsEndpoint: '/sets',
   },
 };
@@ -367,11 +337,8 @@ export function formatGameName(gameSlug: GameSlug): string {
   const names: Record<GameSlug, string> = {
     pokemon: 'Pokémon TCG',
     yugioh: 'Yu-Gi-Oh!',
-    mtg: 'Magic: The Gathering',
     onepiece: 'One Piece TCG',
     lorcana: 'Disney Lorcana',
-    digimon: 'Digimon TCG',
-    dragonball: 'Dragon Ball Fusion World',
   };
   return names[gameSlug] || gameSlug;
 }
@@ -380,7 +347,7 @@ export function formatGameName(gameSlug: GameSlug): string {
  * Check if a game has population support
  */
 export function hasPopulationSupport(gameSlug: GameSlug): boolean {
-  const supported: GameSlug[] = ['pokemon', 'yugioh', 'mtg', 'lorcana'];
+  const supported: GameSlug[] = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
   return supported.includes(gameSlug);
 }
 
@@ -388,7 +355,7 @@ export function hasPopulationSupport(gameSlug: GameSlug): boolean {
  * Get games with full population support
  */
 export function getSupportedGames(): GameSlug[] {
-  return ['pokemon', 'yugioh', 'mtg', 'lorcana'];
+  return ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
 }
 
 /**

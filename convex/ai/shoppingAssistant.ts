@@ -114,17 +114,6 @@ Consider these factors for great gift suggestions:
 
 Focus on making gift-giving special for young duelists.`,
 
-  mtg: `You are helping a parent find the perfect Magic: The Gathering gifts!
-
-Consider these factors for great gift suggestions:
-- Priority wishlist items are most wanted
-- Cards that match their favorite colors
-- Legendary creatures and planeswalkers are popular
-- Complete playset suggestions (4 copies for deck building)
-- Sets closer to completion feel rewarding
-
-Focus on thoughtful gifts for young Planeswalkers.`,
-
   onepiece: `You are helping a parent find the perfect One Piece card gifts!
 
 Consider these factors for great gift suggestions:
@@ -146,28 +135,6 @@ Consider these factors for great gift suggestions:
 - Sets closer to completion feel rewarding
 
 Make gift-giving magical for Disney fans!`,
-
-  digimon: `You are helping a parent find the perfect Digimon card gifts!
-
-Consider these factors for great gift suggestions:
-- Priority wishlist items are most wanted
-- Cards that complete Digivolution lines
-- Partner Digimon are special to collectors
-- Match their favorite Digimon levels and colors
-- Sets closer to completion feel rewarding
-
-Make gift-giving feel like a Digi-adventure!`,
-
-  dragonball: `You are helping a parent find the perfect Dragon Ball card gifts!
-
-Consider these factors for great gift suggestions:
-- Priority wishlist items are most wanted
-- Transformation cards (Super Saiyan) are exciting
-- Popular characters (Goku, Vegeta) are always appreciated
-- Match their favorite energy colors
-- Sets closer to completion feel rewarding
-
-Make gift-giving power-packed for young fighters!`,
 };
 
 // ============================================================================
@@ -186,11 +153,8 @@ export const getGiftSuggestions = action({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     budget: v.optional(v.number()), // Max total budget in USD
     occasion: v.optional(
@@ -575,11 +539,8 @@ export const getWishlistSummary = action({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
   },
   handler: async (

@@ -34,10 +34,7 @@ import {
   PokemonIcon,
   YugiohIcon,
   OnePieceIcon,
-  DragonBallIcon,
   LorcanaIcon,
-  DigimonIcon,
-  MtgIcon,
 } from '@/components/icons/tcg';
 
 // Badge category definitions
@@ -700,14 +697,12 @@ function CategorySection({
 }
 
 // Game icon component map
+// Note: Only 4 games are currently supported: Pokemon, Yu-Gi-Oh!, One Piece, and Disney Lorcana
 const GAME_ICONS: Record<GameId, React.ComponentType<{ className?: string }>> = {
   pokemon: PokemonIcon,
   yugioh: YugiohIcon,
   onepiece: OnePieceIcon,
-  dragonball: DragonBallIcon,
   lorcana: LorcanaIcon,
-  digimon: DigimonIcon,
-  mtg: MtgIcon,
 };
 
 // Game-specific badge card component

@@ -140,11 +140,8 @@ export const gradeCardCondition = action({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     cardName: v.optional(v.string()), // Optional card name for context
   },

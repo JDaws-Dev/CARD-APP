@@ -18,11 +18,8 @@ export const logCardScan = internalMutation({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     model: v.string(),
     inputTokens: v.number(),
@@ -93,11 +90,8 @@ export const logChatMessage = internalMutation({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     userMessage: v.string(),
     assistantMessage: v.string(),
@@ -225,11 +219,8 @@ export const logStoryGeneration = internalMutation({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     cardId: v.string(),
     cardName: v.string(),
@@ -302,11 +293,8 @@ export const logConditionGrading = internalMutation({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     model: v.string(),
     inputTokens: v.number(),

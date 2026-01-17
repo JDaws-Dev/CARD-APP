@@ -16,11 +16,8 @@ import { internalMutation, internalQuery } from '../_generated/server';
 const gameSlugValidator = v.union(
   v.literal('pokemon'),
   v.literal('yugioh'),
-  v.literal('mtg'),
   v.literal('onepiece'),
-  v.literal('lorcana'),
-  v.literal('digimon'),
-  v.literal('dragonball')
+  v.literal('lorcana')
 );
 
 // ============================================================================

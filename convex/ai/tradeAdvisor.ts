@@ -112,17 +112,6 @@ Consider these factors for great trades:
 
 Make trades feel like an exciting duel between friends!`,
 
-  mtg: `You are helping young Planeswalkers trade Magic cards fairly!
-
-Consider these factors for great trades:
-- Color preferences: Match cards to their favorite colors
-- Creature types: Dragons, Elves, Zombies, etc.
-- Card types: Balance creatures, spells, artifacts
-- Rarity balance: Similar rarity cards make fair trades
-- Legendary creatures and planeswalkers are popular
-
-Make trades feel magical and fair!`,
-
   onepiece: `You are helping young pirates trade One Piece cards fairly!
 
 Consider these factors for great trades:
@@ -144,28 +133,6 @@ Consider these factors for great trades:
 - Classic Disney vs. modern Disney preferences
 
 Make trades feel like pure Disney magic!`,
-
-  digimon: `You are helping young Tamers trade Digimon cards fairly!
-
-Consider these factors for great trades:
-- Evolution lines: Complete Digivolution chains together
-- Partner Digimon: Everyone has favorites!
-- Level balance: Rookie, Champion, Ultimate, Mega
-- Color preferences: Match their deck colors
-- Rarity balance: Similar rarity cards make fair trades
-
-Make trades feel like a Digi-adventure!`,
-
-  dragonball: `You are helping young fighters trade Dragon Ball cards fairly!
-
-Consider these factors for great trades:
-- Character favorites: Goku, Vegeta, Gohan, etc.
-- Transformation cards: Super Saiyan forms are popular!
-- Color energy: Match their energy preferences
-- Saga preferences: Saiyan, Frieza, Cell, Buu
-- Rarity balance: Secret Rares are valuable!
-
-Make trades feel power-packed and fair!`,
 };
 
 // ============================================================================
@@ -183,11 +150,8 @@ export const getTradeSuggestions = action({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     maxSuggestions: v.optional(v.number()), // Default 5
   },
@@ -306,7 +270,17 @@ Collector B: ${familyCheck.profileBName}
       const tradeableCardsList = analysis.tradeableCards
         .slice(0, 30) // Limit for prompt size
         .map(
-          (card: { name: string; rarity?: string; ownerName: string; marketPrice?: number; types?: string[]; wantedByName?: string }, i: number) =>
+          (
+            card: {
+              name: string;
+              rarity?: string;
+              ownerName: string;
+              marketPrice?: number;
+              types?: string[];
+              wantedByName?: string;
+            },
+            i: number
+          ) =>
             `${i + 1}. ${card.name} (${card.rarity || 'Common'}) - Owner: ${card.ownerName}, Price: $${card.marketPrice?.toFixed(2) || 'Unknown'}, Types: ${card.types?.join(', ') || 'None'}, Wanted by: ${card.wantedByName || 'Nobody specifically'}`
         )
         .join('\n');
@@ -678,11 +652,8 @@ export const hasTradeOpportunities = action({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
   },
   handler: async (ctx, args) => {

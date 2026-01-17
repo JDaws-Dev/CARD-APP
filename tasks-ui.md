@@ -22,6 +22,7 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 | **HIGH - Broken Images & Error Handling** | 0        | **10**    |
 | **HIGH - Performance Optimization UI**    | 0        | **8**     |
 | **HIGH - UX & Navigation Improvements**   | 0        | **15**    |
+| **HIGH - Multi-TCG Master Toggle**        | 0        | **4**     |
 | **Multi-TCG Pages Update**                | 1        | **6**     |
 | **Landing Page Multi-TCG**                | 0        | **5**     |
 | **NEW - SEO & Marketing**                 | 0        | **12**    |
@@ -67,17 +68,18 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 9. **HIGH - Broken Images & Error Handling** (10 tasks) - Add error handlers, fallback images
 10. **HIGH - Performance Optimization UI** (8 tasks) - Memoization, lazy loading, faster collection page
 11. **HIGH - UX & Navigation Improvements** (15 tasks) - Back links, breadcrumbs, footer, user flow, dashboard fixes
-12. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
-13. **MEDIUM - Architecture Improvements** (13 tasks) - Provider optimization, error boundaries, code splitting
-14. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
-15. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section for 4 supported games
-16. **Landing Page AI Features** (13 tasks) - AI Magic section, pricing updates, trust badges
-17. **AI-Powered Features UI** (14 tasks) - Card scanner, chatbot, story modal, quiz components
-18. **Trade Logging UI** (12 tasks) - Log trade modal, timeline display, entry points
-19. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
-20. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
-21. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
-22. **MEDIUM - Master Set Mode & Variant Tracking** (16 tasks) - For completionist collectors who want to track all variants
+12. **HIGH - Multi-TCG Master Toggle** (4 tasks) - Game selector as master toggle for entire app experience
+13. **Multi-TCG Pages Update** (6 tasks) - Make all pages use game picker instead of Pokemon-only
+14. **MEDIUM - Architecture Improvements** (13 tasks) - Provider optimization, error boundaries, code splitting
+15. **MEDIUM - SEO & Marketing** (12 tasks) - Meta tags, sitemap, structured data
+16. **Landing Page Multi-TCG** (5 tasks) - Add game showcase section for 4 supported games
+17. **Landing Page AI Features** (13 tasks) - AI Magic section, pricing updates, trust badges
+18. **AI-Powered Features UI** (14 tasks) - Card scanner, chatbot, story modal, quiz components
+19. **Trade Logging UI** (12 tasks) - Log trade modal, timeline display, entry points
+20. **Educational Mini-Games** (2 tasks) - Set symbols, type quiz - Learning through play
+21. **LOW - Mobile UX Evaluation** (20 tasks) - Touch targets, gestures, mobile layouts - Do AFTER core features work
+22. **LOW - Gamification Evaluation** (22 tasks) - Review if gamification serves collectors or just engagement - Do AFTER launch
+23. **MEDIUM - Master Set Mode & Variant Tracking** (16 tasks) - For completionist collectors who want to track all variants
 
 ---
 
@@ -209,7 +211,7 @@ We are focusing on **only 4 kid-friendly TCGs** based on Q4 2025 market data. Re
 - [x] Update `GameSwitcher.tsx` - Remove unsupported games from game selector dropdown
 - [x] Update onboarding game selector - Only show 4 supported games in "What do you collect?" screen
 - [x] Update settings game toggle - Remove unsupported games from game selection options
-- [ ] Remove unsupported game icons - Delete or hide `DigimonLogo.tsx`, `DragonBallLogo.tsx`, `MtgLogo.tsx` from `src/components/icons/tcg/`
+- [x] Remove unsupported game icons - Delete or hide `DigimonLogo.tsx`, `DragonBallLogo.tsx`, `MtgLogo.tsx` from `src/components/icons/tcg/` (VERIFIED: Icons don't exist - never created)
 - [ ] Update any game-specific achievements - Remove Digimon, Dragon Ball, MTG themed badges if they exist
 - [ ] Search codebase for hardcoded game lists - Find and update any other places that list all 7 games
 
@@ -218,6 +220,24 @@ We are focusing on **only 4 kid-friendly TCGs** based on Q4 2025 market data. Re
 ## Multi-TCG Pages Update
 
 These pages are currently hardcoded to Pokemon and need to use the game picker (`useGameSelector`).
+
+### HIGH PRIORITY - Master Game Toggle
+
+The game toggle should act as a **master toggle** for the entire app experience. When the user selects Pokemon, the entire app should show Pokemon content exclusively. When they switch to Yu-Gi-Oh, everything switches to Yu-Gi-Oh. This is not just filtering - it's a complete context switch.
+
+- [ ] **Implement master game toggle** - When user selects a game, ALL pages respect that selection:
+  - Dashboard shows only that game's stats, recent activity, achievements
+  - Collection page filters to only show cards from selected game
+  - Sets page shows only sets from selected game
+  - Search filters to selected game by default
+  - Wishlist shows only items from selected game
+  - Achievements/badges show game-specific progress
+  - UI theming updates to match selected game colors
+- [ ] **Persist game selection** - Store selected game in user profile so it persists across sessions
+- [ ] **Game switch indicator** - Clear visual indicator showing which game is currently active across all pages
+- [ ] **Quick game switcher in header** - Allow switching games from anywhere without going to settings
+
+### Page-Specific Updates
 
 - [x] `/sets/page.tsx` - Sets listing (DONE - uses getSetsByGame from Convex)
 - [ ] `/sets/[setId]/page.tsx` - Individual set view - Must use selected game to fetch correct set/cards
@@ -328,7 +348,7 @@ Image components lack error handlers, causing silent failures when images don't 
 - [x] Add onError handlers to CollectionView card images (2 Image components) - Show placeholder instead of broken image
 - [x] Add onError handlers to SearchResults card images - Handle API image failures gracefully
 - [x] Add onError handlers to JustPulledMode card images - Maintain celebration UX even with failed images
-- [ ] Create /public/fallback-card.png - Default placeholder image for all failed card image loads
+- [x] Create /public/fallback-card.png - Default placeholder image for all failed card image loads (DONE: public/images/card-placeholder.svg exists)
 - [ ] Extract hardcoded game card URLs from mini-games - Move to config file (PriceEstimationGame, PokemonTypeQuiz, GradeLikeAProGame, RarityGuessingGame)
 - [ ] Extract hardcoded set symbol URLs from SetSymbolMatchingGame - Move to config and add fallbacks
 
@@ -364,8 +384,8 @@ Improve site organization, navigation, and user flow clarity.
   5. Look at `src/lib/achievements.ts` for badge unlock logic
   6. Check `convex/achievements.ts` for mutation that creates achievement records
   7. Verify `VirtualTrophyRoom` component loads and displays badges correctly
-- [ ] Create AppFooter component - Footer for authenticated pages with Help, Privacy, Terms links
-- [ ] Add AppFooter to all app pages - Consistent footer across the app
+- [x] Create AppFooter component - Footer for authenticated pages with Help, Privacy, Terms links (DONE: src/components/layout/AppFooter.tsx exists)
+- [x] Add AppFooter to all app pages - Consistent footer across the app (DONE: Added to layout.tsx)
 - [x] Add ESC key handler to mobile menu - Close menu on Escape key press
 - [x] Fix onboarding redirect - Change /onboarding completion to redirect to /collection instead of /dashboard
 - [x] Add "What's Next" card to Dashboard - Guide new users to Browse Sets, Learning Resources after onboarding
@@ -653,15 +673,16 @@ UI components for AI features. Backend actions are in `convex/ai/`. These compon
 
 ---
 
-## LOW PRIORITY - Card Examples Across All TCGs (Polish)
+## LOW PRIORITY - Card Examples Across All 4 TCGs (Polish)
 
-Replace Pokemon-only card examples with diverse examples from all 7 supported TCGs throughout the landing page. These are visual polish tasks - do after core functionality is complete.
+Replace Pokemon-only card examples with diverse examples from the **4 supported TCGs** throughout the landing page. These are visual polish tasks - do after core functionality is complete.
 
-- [ ] Hero card showcase - Show 7 cards (one from each TCG) in a fan/spread layout: Charizard (Pokemon), Blue-Eyes White Dragon (Yu-Gi-Oh!), Elsa (Lorcana), Monkey D. Luffy (One Piece), Agumon (Digimon), Goku (Dragon Ball), Black Lotus or popular card (MTG)
-- [ ] Wishlist example section - Replace Pokemon-only wishlist with mixed TCG examples showing cards from at least 4 different games
+**IMPORTANT:** We only support 4 games: Pokemon, Yu-Gi-Oh!, Disney Lorcana, One Piece. Do NOT include Digimon, Dragon Ball, or MTG.
+
+- [ ] Hero card showcase - Show 4 cards (one from each TCG) in a fan/spread layout: Charizard (Pokemon), Blue-Eyes White Dragon (Yu-Gi-Oh!), Elsa (Lorcana), Monkey D. Luffy (One Piece)
+- [ ] Wishlist example section - Replace Pokemon-only wishlist with mixed TCG examples showing cards from all 4 games
 - [ ] Collection preview mockup - Update any collection screenshots/mockups to show cards from multiple TCGs
-- [ ] Badge/achievement examples - If showing card-related badges, use diverse TCG examples
-- [ ] Testimonials section - If testimonials mention specific cards/games, diversify across TCGs or make game-agnostic
+- [ ] Testimonials section - If testimonials mention specific cards/games, diversify across 4 TCGs or make game-agnostic
 
 ---
 
@@ -957,11 +978,11 @@ These tasks ensure the UI only shows sets that kids can actually buy and collect
 
 ### MTG Removal from UI
 
-- [ ] Remove 'mtg' from `GAMES` array in gameSelector.ts
-- [ ] Remove 'mtg' from `GAME_CONFIGS` in tcg-api.ts
-- [ ] Update game count on landing page - "6 trading card games" instead of 7
-- [ ] Remove MTG from game picker/selector UI
-- [ ] Delete mtg-api.ts (or archive to /deprecated folder)
+- [x] Remove 'mtg' from `GAMES` array in gameSelector.ts (DONE - already removed)
+- [x] Remove 'mtg' from `GAME_CONFIGS` in tcg-api.ts (DONE - already removed)
+- [x] Update game count on landing page - Now says "4 trading card games" (DONE)
+- [x] Remove MTG from game picker/selector UI (DONE - GameSwitcher.tsx updated)
+- [x] Delete mtg-api.ts (or archive to /deprecated folder) (N/A - file doesn't exist)
 
 ### Set Filtering UI
 

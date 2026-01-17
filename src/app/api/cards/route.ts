@@ -5,15 +5,7 @@ import { api } from '../../../../convex/_generated/api';
 /**
  * Valid game slugs for the API
  */
-const VALID_GAMES = [
-  'pokemon',
-  'yugioh',
-  'mtg',
-  'onepiece',
-  'lorcana',
-  'digimon',
-  'dragonball',
-] as const;
+const VALID_GAMES = ['pokemon', 'yugioh', 'onepiece', 'lorcana'] as const;
 
 type GameSlug = (typeof VALID_GAMES)[number];
 
@@ -137,6 +129,23 @@ export async function POST(request: NextRequest) {
       totalMissing += result.stats.missing;
     }
 
+    // Collect unique set IDs to fetch set names
+    const uniqueSetIds = [
+      ...new Set(
+        Object.values(mergedCards).map(
+          (card) => (card as { setId: string }).setId
+        )
+      ),
+    ];
+
+    // Fetch set names from cachedSets table
+    const setNames: Record<string, string> =
+      uniqueSetIds.length > 0
+        ? await client.query(api.dataPopulation.getSetNamesByIds, {
+            setIds: uniqueSetIds,
+          })
+        : {};
+
     // Convert to array format for backward compatibility
     // Original API returned PokemonCard[] format
     const cardsArray = Object.values(mergedCards).map((card) => {
@@ -180,7 +189,7 @@ export async function POST(request: NextRequest) {
           : undefined,
         set: {
           id: c.setId,
-          name: '', // Set name not stored in cachedCards
+          name: setNames[c.setId] || '',
         },
         gameSlug: c.gameSlug,
       };
@@ -311,6 +320,23 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Collect unique set IDs to fetch set names
+    const uniqueSetIds = [
+      ...new Set(
+        cards.map(
+          (card: { setId: string }) => card.setId
+        )
+      ),
+    ];
+
+    // Fetch set names from cachedSets table
+    const setNames: Record<string, string> =
+      uniqueSetIds.length > 0
+        ? await client.query(api.dataPopulation.getSetNamesByIds, {
+            setIds: uniqueSetIds,
+          })
+        : {};
+
     // Transform cards to standard format
     const transformedCards = cards.map(
       (card: {
@@ -351,7 +377,7 @@ export async function GET(request: NextRequest) {
           : undefined,
         set: {
           id: card.setId,
-          name: '', // Set name not stored in cachedCards
+          name: setNames[card.setId] || '',
         },
         gameSlug: card.gameSlug,
       })

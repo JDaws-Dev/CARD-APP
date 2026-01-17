@@ -629,21 +629,20 @@ CREATE TABLE wishlist_shares (
 
 ### Product Evolution: KidCollect → CardDex
 
-The product has evolved from Pokemon-only to **multi-TCG support** covering 7 trading card games. The app is now branded as **CardDex** internally.
+The product has evolved from Pokemon-only to **multi-TCG support** covering the **top 4 kid-friendly trading card games**. The app is now branded as **CardDex** internally.
 
 ### Supported TCGs
 
-| Game | Kid-Friendly | Audience Fit | API Status | Priority |
-|------|--------------|--------------|------------|----------|
-| **Pokemon TCG** | ✅ Yes | Ages 6-14, perfect fit | ✅ Working | HIGH |
-| **Yu-Gi-Oh!** | ✅ Yes | Ages 8-16, anime fans | ✅ Working | HIGH |
-| **Disney Lorcana** | ✅ Yes | Ages 6-12, Disney fans | ✅ Working | HIGH |
-| **One Piece** | ✅ Yes | Ages 10-16, anime fans | ✅ Working | MEDIUM |
-| **Digimon** | ✅ Yes | Ages 8-14, nostalgia + new fans | ✅ Working | MEDIUM |
-| **Dragon Ball Fusion World** | ✅ Yes | Ages 8-16, anime fans | ⚠️ API Limit | MEDIUM |
-| **Magic: The Gathering** | ❌ No | Ages 13+, complex rules | ✅ Working | LOW (consider removing) |
+Based on Q4 2025 market data, we focus on the **top 4 kid-friendly trading card games**:
 
-**Recommendation:** Consider removing or hiding MTG for the kid-focused product. Its complexity and older target audience don't align with the 6-14 age range.
+| Game | Kid-Friendly | Audience Fit | Market Rank | Priority |
+|------|--------------|--------------|-------------|----------|
+| **Pokemon TCG** | ✅ Yes | Ages 6-14, perfect fit | #2 overall | PRIMARY |
+| **One Piece Card Game** | ✅ Yes | Ages 10-16, anime fans | #3 overall (fastest growing) | HIGH |
+| **Disney Lorcana** | ✅ Yes | Ages 6-12, Disney fans | #6 overall | HIGH |
+| **Yu-Gi-Oh!** | ✅ Yes | Ages 8-16, anime fans | #4 overall | HIGH |
+
+**Rationale:** Focusing on the top 4 kid-friendly games allows us to deliver a polished experience for the most popular TCGs in our target demographic.
 
 ### Site Evaluation Findings (January 17, 2026)
 

@@ -11,15 +11,7 @@ import {
 /**
  * Valid game slugs for the API
  */
-const VALID_GAMES = [
-  'pokemon',
-  'yugioh',
-  'mtg',
-  'onepiece',
-  'lorcana',
-  'digimon',
-  'dragonball',
-] as const;
+const VALID_GAMES = ['pokemon', 'yugioh', 'onepiece', 'lorcana'] as const;
 
 type GameSlug = (typeof VALID_GAMES)[number];
 
@@ -49,11 +41,8 @@ const COMMON_TYPES_BY_GAME: Record<GameSlug, string[]> = {
     'Water',
   ],
   yugioh: ['DARK', 'LIGHT', 'EARTH', 'WATER', 'FIRE', 'WIND', 'DIVINE'],
-  mtg: ['W', 'U', 'B', 'R', 'G'], // White, Blue, Black, Red, Green
   onepiece: ['Red', 'Green', 'Blue', 'Purple', 'Black', 'Yellow'],
   lorcana: ['Amber', 'Amethyst', 'Emerald', 'Ruby', 'Sapphire', 'Steel'],
-  digimon: ['Red', 'Blue', 'Yellow', 'Green', 'Black', 'Purple', 'White'],
-  dragonball: ['Red', 'Blue', 'Green', 'Yellow'],
 };
 
 /**

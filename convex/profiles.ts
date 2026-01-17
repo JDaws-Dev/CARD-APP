@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { getAuthUserId } from '@convex-dev/auth/server';
+import { Id } from './_generated/dataModel';
 
 // ============================================================================
 // QUERIES
@@ -1734,11 +1735,11 @@ export type FamilyAccessResult =
  * This is a helper function used by secure queries/mutations.
  */
 async function validateProfileOwnership(
-  ctx: { db: { get: (id: unknown) => Promise<unknown>; query: (table: string) => unknown } },
+  ctx: Parameters<typeof getAuthUserId>[0] & { db: { get: (id: unknown) => Promise<unknown>; query: (table: string) => unknown } },
   profileId: string
 ): Promise<ProfileAccessResult> {
   // Get the authenticated user's ID
-  const userId = await getAuthUserId(ctx as Parameters<typeof getAuthUserId>[0]);
+  const userId = await getAuthUserId(ctx);
   if (!userId) {
     return {
       hasAccess: false,
@@ -1811,11 +1812,11 @@ async function validateProfileOwnership(
  * This is a helper function used by secure queries/mutations.
  */
 async function validateFamilyOwnership(
-  ctx: { db: { get: (id: unknown) => Promise<unknown>; query: (table: string) => unknown } },
+  ctx: Parameters<typeof getAuthUserId>[0] & { db: { get: (id: unknown) => Promise<unknown>; query: (table: string) => unknown } },
   familyId: string
 ): Promise<FamilyAccessResult> {
   // Get the authenticated user's ID
-  const userId = await getAuthUserId(ctx as Parameters<typeof getAuthUserId>[0]);
+  const userId = await getAuthUserId(ctx);
   if (!userId) {
     return {
       hasAccess: false,
@@ -2205,7 +2206,7 @@ export const updateProfileSecure = mutation({
       if (nameErrors.length === 0) {
         const existingProfiles = await ctx.db
           .query('profiles')
-          .withIndex('by_family', (q) => q.eq('familyId', access.familyId as unknown as string))
+          .withIndex('by_family', (q) => q.eq('familyId', access.familyId as Id<'families'>))
           .collect();
 
         const normalizedName = args.displayName.trim().toLowerCase();

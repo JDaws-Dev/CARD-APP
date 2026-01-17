@@ -17,11 +17,8 @@ export default defineSchema({
     slug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     displayName: v.string(), // User-friendly name (e.g., "Pokémon TCG")
     apiSource: v.string(), // API source domain (e.g., "pokemontcg.io")
@@ -43,11 +40,8 @@ export default defineSchema({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     enabledAt: v.number(), // Unix timestamp when this game was enabled for the profile
     isActive: v.optional(v.boolean()), // Can be disabled without removing history (default true)
@@ -131,11 +125,8 @@ export default defineSchema({
       v.union(
         v.literal('pokemon'),
         v.literal('yugioh'),
-        v.literal('mtg'),
         v.literal('onepiece'),
-        v.literal('lorcana'),
-        v.literal('digimon'),
-        v.literal('dragonball')
+        v.literal('lorcana')
       )
     ), // Game the card belongs to (denormalized for query performance)
   })
@@ -285,11 +276,8 @@ export default defineSchema({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ), // Links set to its game
     name: v.string(),
     series: v.string(),
@@ -318,11 +306,8 @@ export default defineSchema({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ), // Links card to its game
     setId: v.string(),
     name: v.string(),
@@ -433,11 +418,8 @@ export default defineSchema({
       v.union(
         v.literal('pokemon'),
         v.literal('yugioh'),
-        v.literal('mtg'),
         v.literal('onepiece'),
-        v.literal('lorcana'),
-        v.literal('digimon'),
-        v.literal('dragonball')
+        v.literal('lorcana')
       )
     ), // Which game this AI call was for
     metadata: v.optional(v.any()), // Additional context (card ID, chat topic, etc.)
@@ -484,11 +466,8 @@ export default defineSchema({
       v.union(
         v.literal('pokemon'),
         v.literal('yugioh'),
-        v.literal('mtg'),
         v.literal('onepiece'),
-        v.literal('lorcana'),
-        v.literal('digimon'),
-        v.literal('dragonball')
+        v.literal('lorcana')
       )
     ),
     timestamp: v.number(),

@@ -277,7 +277,7 @@ export const createNotification = mutation({
       .first();
 
     // Map notification types to preference fields
-    const typeToPreference: Record<NotificationType, keyof typeof preferences | null> = {
+    const typeToPreference: Record<NotificationType, string | null> = {
       achievement_earned: 'achievementNotifications',
       milestone_reached: 'milestoneNotifications',
       streak_update: 'streakNotifications',
@@ -290,7 +290,7 @@ export const createNotification = mutation({
     // Default to true if no preferences are set
     if (preferences) {
       const preferenceField = typeToPreference[args.type as NotificationType];
-      if (preferenceField && preferences[preferenceField] === false) {
+      if (preferenceField && (preferences as Record<string, unknown>)[preferenceField] === false) {
         // User has disabled this notification type
         return { created: false, reason: 'disabled_by_preferences' };
       }

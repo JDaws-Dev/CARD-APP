@@ -16,11 +16,8 @@ import { internalMutation, internalQuery } from '../_generated/server';
 const gameSlugValidator = v.union(
   v.literal('pokemon'),
   v.literal('yugioh'),
-  v.literal('mtg'),
   v.literal('onepiece'),
-  v.literal('lorcana'),
-  v.literal('digimon'),
-  v.literal('dragonball')
+  v.literal('lorcana')
 );
 
 // ============================================================================
@@ -304,13 +301,14 @@ export const getMissingCardsForSets = internalQuery({
 
     if (args.setId) {
       // Specific set requested
+      const setId = args.setId;
       const cachedSet = await ctx.db
         .query('cachedSets')
-        .withIndex('by_set_id', (q) => q.eq('setId', args.setId))
+        .withIndex('by_set_id', (q) => q.eq('setId', setId))
         .first();
 
       if (cachedSet) {
-        const ownedInSet = ownedCards.filter((c) => c.cardId.startsWith(args.setId + '-')).length;
+        const ownedInSet = ownedCards.filter((c) => c.cardId.startsWith(setId + '-')).length;
 
         setProgress.push({
           setId: args.setId,

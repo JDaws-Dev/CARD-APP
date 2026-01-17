@@ -8,21 +8,15 @@
  * Supported Games:
  * - pokemon: Pokemon TCG (pokemontcg.io)
  * - yugioh: Yu-Gi-Oh! (ygoprodeck.com)
- * - mtg: Magic: The Gathering (scryfall.com)
  * - onepiece: One Piece TCG (optcg-api)
  * - lorcana: Disney Lorcana (lorcast.com)
- * - digimon: Digimon TCG (digimoncard.io)
- * - dragonball: Dragon Ball Fusion World (apitcg.com)
  */
 
 // Import game-specific adapters
 import * as pokemonApi from './pokemon-tcg';
 import * as yugiohApi from './yugioh-api';
-import * as mtgApi from './mtg-api';
 import * as onepieceApi from './onepiece-api';
 import * as lorcanaApi from './lorcana-api';
-import * as digimonApi from './digimon-api';
-import * as dragonballApi from './dragonball-api';
 
 // =============================================================================
 // TYPES
@@ -31,14 +25,7 @@ import * as dragonballApi from './dragonball-api';
 /**
  * Supported game slugs
  */
-export type GameSlug =
-  | 'pokemon'
-  | 'yugioh'
-  | 'mtg'
-  | 'onepiece'
-  | 'lorcana'
-  | 'digimon'
-  | 'dragonball';
+export type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
 /**
  * Game configuration
@@ -136,22 +123,13 @@ export const GAME_CONFIGS: Record<GameSlug, GameConfig> = {
     releaseOrder: 2,
     isActive: true,
   },
-  mtg: {
-    slug: 'mtg',
-    displayName: 'Magic: The Gathering',
-    apiSource: 'scryfall.com',
-    primaryColor: '#000000',
-    secondaryColor: '#8B4513',
-    releaseOrder: 3,
-    isActive: true,
-  },
   onepiece: {
     slug: 'onepiece',
     displayName: 'One Piece TCG',
     apiSource: 'optcg-api',
     primaryColor: '#E74C3C',
     secondaryColor: '#3498DB',
-    releaseOrder: 4,
+    releaseOrder: 3,
     isActive: true,
   },
   lorcana: {
@@ -160,25 +138,7 @@ export const GAME_CONFIGS: Record<GameSlug, GameConfig> = {
     apiSource: 'lorcast.com',
     primaryColor: '#1B1464',
     secondaryColor: '#F5A623',
-    releaseOrder: 5,
-    isActive: true,
-  },
-  digimon: {
-    slug: 'digimon',
-    displayName: 'Digimon TCG',
-    apiSource: 'digimoncard.io',
-    primaryColor: '#FF6600',
-    secondaryColor: '#0066FF',
-    releaseOrder: 6,
-    isActive: true,
-  },
-  dragonball: {
-    slug: 'dragonball',
-    displayName: 'Dragon Ball Fusion World',
-    apiSource: 'apitcg.com',
-    primaryColor: '#FF8C00',
-    secondaryColor: '#4169E1',
-    releaseOrder: 7,
+    releaseOrder: 4,
     isActive: true,
   },
 };
@@ -186,15 +146,7 @@ export const GAME_CONFIGS: Record<GameSlug, GameConfig> = {
 /**
  * All supported game slugs
  */
-export const GAME_SLUGS: GameSlug[] = [
-  'pokemon',
-  'yugioh',
-  'mtg',
-  'onepiece',
-  'lorcana',
-  'digimon',
-  'dragonball',
-];
+export const GAME_SLUGS: GameSlug[] = ['pokemon', 'yugioh', 'onepiece', 'lorcana'];
 
 /**
  * Active games sorted by release order
@@ -289,33 +241,6 @@ function normalizeYugiohCard(card: yugiohApi.YuGiOhCard): UnifiedCard {
 }
 
 /**
- * Convert MTG card to unified format
- */
-function normalizeMtgCard(card: mtgApi.MTGCard): UnifiedCard {
-  const imageSmall = mtgApi.getCardImage(card, 'small');
-  const imageLarge = mtgApi.getCardImage(card, 'large');
-  const priceNormal = mtgApi.getMarketPrice(card, false);
-  const priceFoil = mtgApi.getMarketPrice(card, true);
-
-  return {
-    id: mtgApi.getCardDexId(card),
-    dexId: `mtg-${mtgApi.getCardDexId(card)}`,
-    game: 'mtg',
-    name: card.name,
-    imageSmall: imageSmall,
-    imageLarge: imageLarge,
-    setId: card.set,
-    setName: card.set_name,
-    collectorNumber: card.collector_number,
-    rarity: card.rarity,
-    type: card.type_line,
-    priceNormal: priceNormal,
-    priceFoil: priceFoil,
-    originalData: card,
-  };
-}
-
-/**
  * Convert One Piece card to unified format
  */
 function normalizeOnepieceCard(card: onepieceApi.OnePieceCard): UnifiedCard {
@@ -365,56 +290,6 @@ function normalizeLorcanaCard(card: lorcanaApi.LorcanaCard): UnifiedCard {
   };
 }
 
-/**
- * Convert Digimon card to unified format
- */
-function normalizeDigimonCard(card: digimonApi.DigimonCard): UnifiedCard {
-  const setCode = digimonApi.extractSetCode(card.id);
-  const cardNumber = digimonApi.extractCardNumber(card.id);
-
-  return {
-    id: card.id,
-    dexId: digimonApi.getCardDexId(card),
-    game: 'digimon',
-    name: card.name,
-    imageSmall: digimonApi.getCardImage(card, 'small'),
-    imageLarge: digimonApi.getCardImage(card, 'large'),
-    setId: setCode,
-    setName: card.set_name[0] ?? '',
-    collectorNumber: cardNumber,
-    rarity: card.rarity,
-    type: card.type,
-    priceNormal: null, // DigimonCard.io doesn't provide pricing directly
-    priceFoil: null,
-    originalData: card,
-  };
-}
-
-/**
- * Convert Dragon Ball card to unified format
- */
-function normalizeDragonballCard(card: dragonballApi.DragonBallCard): UnifiedCard {
-  const setCode = dragonballApi.extractSetCode(card.code);
-  const cardNumber = dragonballApi.extractCardNumber(card.code);
-
-  return {
-    id: card.code,
-    dexId: dragonballApi.getCardDexId(card),
-    game: 'dragonball',
-    name: card.name,
-    imageSmall: dragonballApi.getCardImage(card, 'small'),
-    imageLarge: dragonballApi.getCardImage(card, 'large'),
-    setId: setCode,
-    setName: card.set?.name ?? '',
-    collectorNumber: cardNumber,
-    rarity: card.rarity,
-    type: card.cardType,
-    priceNormal: null, // ApiTCG doesn't provide pricing
-    priceFoil: null,
-    originalData: card,
-  };
-}
-
 // =============================================================================
 // SET NORMALIZATION FUNCTIONS
 // =============================================================================
@@ -454,23 +329,6 @@ function normalizeYugiohSet(set: yugiohApi.YuGiOhSet): UnifiedSet {
 }
 
 /**
- * Convert MTG set to unified format
- */
-function normalizeMtgSet(set: mtgApi.MTGSet): UnifiedSet {
-  return {
-    id: set.code,
-    dexId: `mtg-${set.code}`,
-    game: 'mtg',
-    name: set.name,
-    code: set.code,
-    cardCount: set.card_count,
-    releaseDate: set.released_at,
-    iconUrl: set.icon_svg_uri,
-    originalData: set,
-  };
-}
-
-/**
  * Convert One Piece set to unified format
  */
 function normalizeOnepieceSet(set: onepieceApi.OnePieceSet): UnifiedSet {
@@ -504,40 +362,6 @@ function normalizeLorcanaSet(set: lorcanaApi.LorcanaSet): UnifiedSet {
   };
 }
 
-/**
- * Convert Digimon set to unified format
- */
-function normalizeDigimonSet(set: digimonApi.DigimonSet): UnifiedSet {
-  return {
-    id: set.code,
-    dexId: `digimon-${set.code}`,
-    game: 'digimon',
-    name: set.name,
-    code: set.code,
-    cardCount: set.cardCount ?? 0,
-    releaseDate: null,
-    iconUrl: null,
-    originalData: set,
-  };
-}
-
-/**
- * Convert Dragon Ball set to unified format
- */
-function normalizeDragonballSet(set: dragonballApi.DragonBallSet): UnifiedSet {
-  return {
-    id: set.code,
-    dexId: `dragonball-${set.code}`,
-    game: 'dragonball',
-    name: set.name,
-    code: set.code,
-    cardCount: set.cardCount,
-    releaseDate: null,
-    iconUrl: null,
-    originalData: set,
-  };
-}
-
 // =============================================================================
 // UNIFIED API FUNCTIONS
 // =============================================================================
@@ -555,10 +379,6 @@ export async function getSets(game: GameSlug): Promise<UnifiedSet[]> {
       const sets = await yugiohApi.getAllSets();
       return sets.map(normalizeYugiohSet);
     }
-    case 'mtg': {
-      const sets = await mtgApi.getCollectibleSets();
-      return sets.map(normalizeMtgSet);
-    }
     case 'onepiece': {
       const sets = await onepieceApi.getAllSets();
       return sets.map(normalizeOnepieceSet);
@@ -566,15 +386,6 @@ export async function getSets(game: GameSlug): Promise<UnifiedSet[]> {
     case 'lorcana': {
       const sets = await lorcanaApi.getAllSets();
       return sets.map(normalizeLorcanaSet);
-    }
-    case 'digimon': {
-      // Digimon doesn't have a dedicated sets endpoint, return empty for now
-      // In practice, sets are extracted from card data
-      return [];
-    }
-    case 'dragonball': {
-      const sets = await dragonballApi.getAllSets();
-      return sets.map(normalizeDragonballSet);
     }
     default:
       throw new Error(`Unsupported game: ${game}`);
@@ -598,14 +409,6 @@ export async function getSet(game: GameSlug, setId: string): Promise<UnifiedSet 
       const set = await yugiohApi.getSetByCode(setId);
       return set ? normalizeYugiohSet(set) : null;
     }
-    case 'mtg': {
-      try {
-        const set = await mtgApi.getSetByCode(setId);
-        return normalizeMtgSet(set);
-      } catch {
-        return null;
-      }
-    }
     case 'onepiece': {
       const set = await onepieceApi.getSetByCode(setId);
       return set ? normalizeOnepieceSet(set) : null;
@@ -617,15 +420,6 @@ export async function getSet(game: GameSlug, setId: string): Promise<UnifiedSet 
       } catch {
         return null;
       }
-    }
-    case 'digimon': {
-      // Digimon sets are derived from cards, search by set name
-      const sets = await digimonApi.searchSets(setId);
-      return sets.length > 0 ? normalizeDigimonSet(sets[0]) : null;
-    }
-    case 'dragonball': {
-      const set = await dragonballApi.getSetByCode(setId);
-      return set ? normalizeDragonballSet(set) : null;
     }
     default:
       throw new Error(`Unsupported game: ${game}`);
@@ -645,10 +439,6 @@ export async function getCardsInSet(game: GameSlug, setId: string): Promise<Unif
       const cards = await yugiohApi.getCardsInSet(setId);
       return cards.map(normalizeYugiohCard);
     }
-    case 'mtg': {
-      const cards = await mtgApi.getCardsInSet(setId);
-      return cards.map(normalizeMtgCard);
-    }
     case 'onepiece': {
       const cards = await onepieceApi.getCardsInSet(setId);
       return cards.map(normalizeOnepieceCard);
@@ -656,14 +446,6 @@ export async function getCardsInSet(game: GameSlug, setId: string): Promise<Unif
     case 'lorcana': {
       const cards = await lorcanaApi.getCardsInSet(setId);
       return cards.map(normalizeLorcanaCard);
-    }
-    case 'digimon': {
-      const cards = await digimonApi.getCardsInSet(setId);
-      return cards.map(normalizeDigimonCard);
-    }
-    case 'dragonball': {
-      const cards = await dragonballApi.getCardsInSet(setId);
-      return cards.map(normalizeDragonballCard);
     }
     default:
       throw new Error(`Unsupported game: ${game}`);
@@ -687,14 +469,6 @@ export async function getCard(game: GameSlug, cardId: string): Promise<UnifiedCa
       const card = await yugiohApi.getCardById(parseInt(cardId, 10));
       return card ? normalizeYugiohCard(card) : null;
     }
-    case 'mtg': {
-      try {
-        const card = await mtgApi.getCardById(cardId);
-        return normalizeMtgCard(card);
-      } catch {
-        return null;
-      }
-    }
     case 'onepiece': {
       const card = await onepieceApi.getCardById(cardId);
       return card ? normalizeOnepieceCard(card) : null;
@@ -709,14 +483,6 @@ export async function getCard(game: GameSlug, cardId: string): Promise<UnifiedCa
       } catch {
         return null;
       }
-    }
-    case 'digimon': {
-      const card = await digimonApi.getCardByNumber(cardId);
-      return card ? normalizeDigimonCard(card) : null;
-    }
-    case 'dragonball': {
-      const card = await dragonballApi.getCardByCode(cardId);
-      return card ? normalizeDragonballCard(card) : null;
     }
     default:
       throw new Error(`Unsupported game: ${game}`);
@@ -740,10 +506,6 @@ export async function searchCards(
       const cards = await yugiohApi.searchCards(query, limit);
       return cards.map(normalizeYugiohCard);
     }
-    case 'mtg': {
-      const cards = await mtgApi.searchCards(query, limit);
-      return cards.map(normalizeMtgCard);
-    }
     case 'onepiece': {
       const cards = await onepieceApi.searchCards(query, limit);
       return cards.map(normalizeOnepieceCard);
@@ -751,14 +513,6 @@ export async function searchCards(
     case 'lorcana': {
       const cards = await lorcanaApi.searchCardsByName(query, limit);
       return cards.map(normalizeLorcanaCard);
-    }
-    case 'digimon': {
-      const cards = await digimonApi.searchCardsByName(query, limit);
-      return cards.map(normalizeDigimonCard);
-    }
-    case 'dragonball': {
-      const cards = await dragonballApi.searchCards(query);
-      return cards.slice(0, limit).map(normalizeDragonballCard);
     }
     default:
       throw new Error(`Unsupported game: ${game}`);
@@ -781,10 +535,6 @@ export async function getCardsByIds(game: GameSlug, cardIds: string[]): Promise<
       const cards = await yugiohApi.getCardsByIds(numericIds);
       return cards.map(normalizeYugiohCard);
     }
-    case 'mtg': {
-      const cards = await mtgApi.getCardsByIds(cardIds);
-      return cards.map(normalizeMtgCard);
-    }
     case 'onepiece': {
       const cards = await onepieceApi.getCardsByCode(cardIds);
       return cards.map(normalizeOnepieceCard);
@@ -797,14 +547,6 @@ export async function getCardsByIds(game: GameSlug, cardIds: string[]): Promise<
         if (card) results.push(card);
       }
       return results;
-    }
-    case 'digimon': {
-      const cards = await digimonApi.getCardsByNumbers(cardIds);
-      return cards.map(normalizeDigimonCard);
-    }
-    case 'dragonball': {
-      const cards = await dragonballApi.getCardsByCodes(cardIds);
-      return cards.map(normalizeDragonballCard);
     }
     default:
       throw new Error(`Unsupported game: ${game}`);

@@ -13,7 +13,6 @@ import { NextResponse } from 'next/server';
 export const VALID_GAMES = [
   'pokemon',
   'yugioh',
-  'mtg',
   'onepiece',
   'lorcana',
   'digimon',
@@ -43,7 +42,6 @@ export const COMMON_TYPES_BY_GAME: Record<GameSlug, readonly string[]> = {
     'Water',
   ] as const,
   yugioh: ['DARK', 'LIGHT', 'EARTH', 'WATER', 'FIRE', 'WIND', 'DIVINE'] as const,
-  mtg: ['W', 'U', 'B', 'R', 'G'] as const, // White, Blue, Black, Red, Green
   onepiece: ['Red', 'Green', 'Blue', 'Purple', 'Black', 'Yellow'] as const,
   lorcana: ['Amber', 'Amethyst', 'Emerald', 'Ruby', 'Sapphire', 'Steel'] as const,
   digimon: ['Red', 'Blue', 'Yellow', 'Green', 'Black', 'Purple', 'White'] as const,

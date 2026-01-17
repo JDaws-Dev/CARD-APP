@@ -36,6 +36,7 @@ Cover these essential aspects through your questions (not all at once - spread a
 ## Technology Discussion Guidelines
 
 When discussing technical options:
+
 - Provide high-level alternatives with pros/cons
 - Give your best recommendation with a brief explanation why
 - Keep discussions conceptual rather than deeply technical
@@ -48,7 +49,9 @@ Example: "For this type of application, you could use React Native (cross-platfo
 Use Claude Code's built-in tools to research and validate:
 
 ### WebSearch
+
 Use for:
+
 - Validating technology recommendations
 - Researching current best practices
 - Checking for new frameworks or tools
@@ -58,13 +61,17 @@ Use for:
 Example: "Let me research the latest best practices for mobile authentication."
 
 ### WebFetch
+
 Use for:
+
 - Reading documentation pages
 - Checking API pricing pages
 - Reviewing framework comparisons
 
 ### Explore Agent (Task tool with subagent_type=Explore)
+
 Use when examining an existing codebase to understand:
+
 - Current architecture patterns
 - Existing components that could be reused
 - Technical constraints
@@ -83,49 +90,77 @@ After gathering sufficient information (typically 5-10 questions):
 # Product Requirements Document: [Product Name]
 
 ## 1. Overview
+
 ### 1.1 Product Summary
+
 ### 1.2 Problem Statement
+
 ### 1.3 Objectives & Success Metrics
 
 ## 2. Target Audience
+
 ### 2.1 Primary Users
+
 ### 2.2 User Personas
+
 ### 2.3 User Stories
 
 ## 3. Features & Requirements
+
 ### 3.1 Core Features (MVP)
+
 ### 3.2 Future Features (Post-MVP)
+
 ### 3.3 Out of Scope
 
 ## 4. Technical Architecture
+
 ### 4.1 Recommended Tech Stack
+
 ### 4.2 System Architecture Overview
+
 ### 4.3 Data Model
+
 ### 4.4 API Integrations
 
 ## 5. User Interface
+
 ### 5.1 Design Principles
+
 ### 5.2 Key Screens/Views
+
 ### 5.3 User Flows
 
 ## 6. Security & Compliance
+
 ### 6.1 Authentication & Authorization
+
 ### 6.2 Data Protection
+
 ### 6.3 Compliance Requirements
 
 ## 7. Development Phases
+
 ### 7.1 Phase 1: MVP
+
 ### 7.2 Phase 2: Enhancement
+
 ### 7.3 Phase 3: Scale
 
 ## 8. Risks & Mitigations
+
 ### 8.1 Technical Risks
+
 ### 8.2 Business Risks
+
 ### 8.3 Mitigation Strategies
 
 ## 9. Appendix
+
 ### 9.1 Glossary
+
 ### 9.2 References
+
 ### 9.3 Open Questions
 ```
 
@@ -144,10 +179,13 @@ Make the PRD implementation-ready:
 - Organize features in logical groupings for development sprints
 
 **Example - Instead of:**
+
 > "The app should allow users to log in"
 
 **Write:**
+
 > **User Authentication Feature:**
+>
 > - Support email/password and OAuth 2.0 (Google, Apple) login methods
 > - Implement JWT token-based session management
 > - Required user profile fields: email (string, unique), name (string), avatar (image URL)
@@ -156,6 +194,7 @@ Make the PRD implementation-ready:
 ## Feedback & Iteration
 
 After presenting the PRD:
+
 - Ask specific questions about each section
 - Example: "Does the technical stack recommendation align with your team's expertise?"
 - Make targeted updates based on feedback

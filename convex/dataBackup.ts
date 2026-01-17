@@ -221,9 +221,7 @@ export const getExportSummary = query({
         willExport: Math.min(activityLogs.length, 1000),
       },
       lastActivity:
-        activityLogs.length > 0
-          ? Math.max(...activityLogs.map((l) => l._creationTime))
-          : null,
+        activityLogs.length > 0 ? Math.max(...activityLogs.map((l) => l._creationTime)) : null,
     };
   },
 });

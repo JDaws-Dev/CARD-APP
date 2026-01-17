@@ -23,11 +23,8 @@ export const getRandomCollectionCards = internalQuery({
       v.union(
         v.literal('pokemon'),
         v.literal('yugioh'),
-        v.literal('mtg'),
         v.literal('onepiece'),
-        v.literal('lorcana'),
-        v.literal('digimon'),
-        v.literal('dragonball')
+        v.literal('lorcana')
       )
     ),
   },
@@ -137,11 +134,8 @@ export const logQuizGeneration = internalMutation({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     quizId: v.string(),
     questionCount: v.number(),

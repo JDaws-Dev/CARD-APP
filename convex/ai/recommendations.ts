@@ -92,17 +92,6 @@ Consider these factors:
 
 Focus on collection value rather than competitive deck building.`,
 
-  mtg: `You are recommending Magic: The Gathering cards to a young collector!
-
-Consider these factors:
-- Their favorite colors and color combinations
-- Creature types they collect
-- Sets they're working on completing
-- Cards with cool art they might enjoy
-- Legendary creatures and planeswalkers
-
-Keep it focused on collecting fun, not competitive play.`,
-
   onepiece: `You are recommending One Piece cards to a young collector!
 
 Consider these factors:
@@ -124,28 +113,6 @@ Consider these factors:
 - Enchanted and rare cards they might enjoy
 
 Make it magical and Disney-themed!`,
-
-  digimon: `You are recommending Digimon cards to a young collector!
-
-Consider these factors:
-- Their favorite Digimon and evolution lines
-- Digimon levels they collect
-- Colors and types they prefer
-- Sets they're actively collecting
-- Partner Digimon they might want
-
-Focus on completing Digivolution chains!`,
-
-  dragonball: `You are recommending Dragon Ball cards to a young collector!
-
-Consider these factors:
-- Their favorite Dragon Ball characters and transformations
-- Energy colors they prefer
-- Character families (Saiyan, Namekian, etc.)
-- Sets they're collecting
-- Iconic moments and characters they're missing
-
-Make it power-packed and exciting!`,
 };
 
 // ============================================================================
@@ -162,11 +129,8 @@ export const getRecommendations = action({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     recommendationTypes: v.optional(
       v.array(
@@ -434,11 +398,8 @@ export const getSetCompletionRecommendations = action({
     gameSlug: v.union(
       v.literal('pokemon'),
       v.literal('yugioh'),
-      v.literal('mtg'),
       v.literal('onepiece'),
-      v.literal('lorcana'),
-      v.literal('digimon'),
-      v.literal('dragonball')
+      v.literal('lorcana')
     ),
     setId: v.optional(v.string()), // Specific set, or null for closest-to-completion
     limit: v.optional(v.number()),
