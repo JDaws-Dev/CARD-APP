@@ -17,16 +17,15 @@
 | **Virtual Experience Features**      | 6        | **0**     |
 | **Collection Timeline & Story**      | 5        | **0**     |
 | **Family & Social Features**         | 5        | **0**     |
-| **Financial Literacy**               | 3        | **1**     |
-| **Educational Mini-Games**           | 1        | **4**     |
+| **Financial Literacy**               | 4        | **0**     |
+| **Educational Mini-Games**           | 2        | **3**     |
 | **Enhanced Accessibility**           | 6        | **0**     |
 | **Engagement & Retention**           | 4        | **0**     |
-| **TOTAL**                            | **101**  | **5**     |
+| **TOTAL**                            | **102**  | **4**     |
 
 ### Priority Order for Remaining Tasks
 
-1. **Educational Mini-Games** (4 tasks) - Rarity guessing, set symbols, type quiz, price estimation - Learning through play
-2. **Financial Literacy** (1 task) - Remaining financial tools
+1. **Educational Mini-Games** (3 tasks) - Set symbols, type quiz, price estimation - Learning through play
 
 ---
 
@@ -190,7 +189,7 @@
 ### Educational Mini-Games
 
 - [x] "Grade Like a Pro" mini-game - Show card images, user guesses condition (NM/LP/MP/HP), earn XP for correct answers
-- [ ] Rarity guessing game - Show card artwork only, guess the rarity before reveal
+- [x] Rarity guessing game - Show card artwork only, guess the rarity before reveal
 - [ ] Set symbol matching game - Match set symbols to set names for learning
 - [ ] Pokemon type quiz - Quick quiz on Pokemon types based on cards in collection
 - [ ] Price estimation game - Guess if card is worth more or less than $X (teaches value awareness)
@@ -215,6 +214,7 @@
 
 ## Progress
 
+- **2026-01-16**: Completed Rarity Guessing Game - Integrated RarityGuessingGame component into Learn page. Game shows Pokemon card images and asks users to guess the rarity (Common, Uncommon, Rare, Rare Holo, Ultra Rare, Secret Rare). Features: intro screen with tips on identifying rarities, 5-round gameplay with hint system, instant feedback with explanations, progress tracking and XP rewards, results screen with round summary and play again option. Added game banner section to Learn page with QuestionMarkCircleIcon. Component at src/components/games/RarityGuessingGame.tsx. Uses Heroicons throughout. Commit: 779c7b3
 - **2026-01-16**: Completed "Is it worth it?" helper - Created IsItWorthIt component (src/components/financial/IsItWorthIt.tsx) for educational price comparison. Features: shows what else the card's price could buy (movie tickets, pizza, video games, bowling, booster packs, ETBs, sleeves, binders, savings), quick stats showing equivalent booster packs and movie tickets, category filter (All/Fun/Collect/Save), thoughtful prompt encouraging kids to consider value, custom SVG icons for each comparison item, IsItWorthItButton compact modal trigger for cards >= $5. Integrated into wishlist cards alongside budget alternatives. Uses Heroicons (ScaleIcon, XMarkIcon, ShoppingCartIcon, SparklesIcon, LightBulbIcon, ChevronRightIcon, ArrowRightIcon). Commit: 6b4afc7
 - **2026-01-16**: Completed Budget-friendly alternatives - Created BudgetAlternatives component (src/components/financial/BudgetAlternatives.tsx) that suggests similar but cheaper cards when viewing expensive wishlist items. Features: searches for cards with same base Pokemon name but lower price, shows savings amount and percentage, allows adding alternatives directly to wishlist, expandable panel with lightbulb icon, BudgetAlternativesBadge compact trigger shown on wishlist cards >= $5. Integrated into My Wishlist page (/my-wishlist) with modal display and wishlist state sync. Uses Heroicons (LightBulbIcon, ArrowTrendingDownIcon, SparklesIcon, XMarkIcon, CurrencyDollarIcon, ChevronRightIcon, HeartIcon). Commit: bda63d7
 - **2026-01-16**: Completed Wishlist total tracker - Added "Est. Total Value" stat to My Wishlist page showing combined estimated market value of all wishlisted cards. Uses TCGPlayer prices (normal, holofoil, or reverseHolofoil market values). Features: loading skeleton during price fetch, formatPrice helper for compact display ($1.2k format for large values), CurrencyDollarIcon in emerald theme. Updated stats section layout to accommodate 4 stats with responsive flex-wrap. Commit: d95adcd
