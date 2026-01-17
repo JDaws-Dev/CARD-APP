@@ -213,7 +213,7 @@ export default function Home() {
                 </div>
                 <h3 className="mb-2 text-lg font-bold text-gray-900 sm:text-xl">Pick Your Sets</h3>
                 <p className="text-sm text-gray-600 sm:text-base">
-                  Browse through all Pokemon card sets and choose which ones you want to track.
+                  Browse sets from Pokemon, Yu-Gi-Oh!, Lorcana, and more to track your favorites.
                 </p>
               </div>
 
