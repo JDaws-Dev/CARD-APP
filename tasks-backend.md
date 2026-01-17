@@ -2485,7 +2485,7 @@ These tasks address backend requirements for SEO and infrastructure improvements
 
 - [x] Create paginated getCollection query - Return 50 cards at a time with cursor
 - [ ] Merge getCollection and getCollectionStats into single query - Reduce round trips
-- [ ] Add database-level filtering to getNewlyAddedCards - Filter by timestamp in query, not JS
+- [x] Add database-level filtering to getNewlyAddedCards - Filter by timestamp in query, not JS
 - [x] Create batch getCards query - Fetch multiple cards in single query for wishlist/collection
 
 ### Caching Strategy
@@ -2597,7 +2597,7 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
 - **Optimized `getParentDashboardData` activity enrichment:**
   - Replace O(n) `find()` lookups with O(1) `Map` lookups
   - Build profile lookup map once, use for all 20 activity items
-  - Reduces algorithmic complexity from O(n*m) to O(n+m)
+  - Reduces algorithmic complexity from O(n\*m) to O(n+m)
 - **Optimized `validateFamilyOwnership` validation function:**
   - Batch user and family lookups in parallel with `Promise.all`
   - Reduces 2 sequential database round-trips to 1 parallel call
@@ -2815,3 +2815,37 @@ These tasks ensure we only show sets that kids can actually buy at retail TODAY.
   - Import: `import { paginationOptsValidator } from 'convex/server';`
   - Call: `api.collections.getCollectionPaginated` with `{ profileId, paginationOpts: { numItems: 50, cursor: null } }`
 - ESLint clean, Prettier formatted, tests pass
+
+### 2026-01-17: Add database-level timestamp filtering to getNewlyAddedCards queries
+
+- **Added `timestamp` field to `activityLogs` schema in `convex/schema.ts`:**
+  - Optional number field storing Unix timestamp at log creation
+  - Enables database-level time range filtering (vs JS filtering)
+  - Backwards compatible - legacy logs without timestamp still work
+- **Added `by_profile_action_time` compound index:**
+  - Index on `['profileId', 'action', 'timestamp']`
+  - Enables efficient range queries with `.gte('timestamp', cutoffDate)`
+  - Complements existing `by_profile_and_action` index
+- **Updated `getNewlyAddedCards` query in `convex/collections.ts`:**
+  - Uses new index with `.gte('timestamp', cutoffDate)` for database-level filtering
+  - Queries legacy logs separately and filters by `_creationTime` for backwards compatibility
+  - Deduplicates results using Set of log IDs
+  - Sorts combined results by timestamp (newest first)
+  - Uses `log.timestamp ?? log._creationTime` for `addedAt` field
+- **Updated `getNewlyAddedCardsSummary` query:**
+  - Same optimization pattern as `getNewlyAddedCards`
+  - Uses `log.timestamp ?? log._creationTime` for date grouping
+- **Updated `hasNewCards` query:**
+  - Same optimization pattern
+  - Combines timestamp-indexed and legacy logs for accurate count
+- **Updated `getSetViewData` batch query:**
+  - Queries both timestamp-indexed and legacy logs in parallel
+  - Maintains backwards compatibility with historical data
+- **Updated activity log insert mutations:**
+  - `addCard`, `removeCard` in `convex/collections.ts` now include `timestamp: Date.now()`
+  - `logActivity`, `logCardAdded`, `logCardRemoved`, `logAchievementEarned` in `convex/activityLogs.ts` include timestamp
+- **Performance benefits:**
+  - Reduces database load for profiles with many activity logs
+  - Filters at database level instead of fetching all logs then filtering in JS
+  - Especially helpful for active users with 1000+ activity logs
+- ESLint clean, Prettier formatted, tests pass (6 pre-existing failures unrelated to this change)
