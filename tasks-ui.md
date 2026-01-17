@@ -20,7 +20,7 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 | **CRITICAL - Landing Page Content**       | 0        | **10**    |
 | **HIGH - Broken Images & Error Handling** | 0        | **10**    |
 | **HIGH - Performance Optimization UI**    | 0        | **8**     |
-| **HIGH - UX & Navigation Improvements**   | 0        | **12**    |
+| **HIGH - UX & Navigation Improvements**   | 0        | **14**    |
 | **Multi-TCG Pages Update**                | 1        | **6**     |
 | **Landing Page Multi-TCG**                | 0        | **5**     |
 | **NEW - SEO & Marketing**                 | 0        | **12**    |
@@ -51,7 +51,7 @@ Remaining: 208 tasks (42 are LOW priority - do after launch)
 | Educational Mini-Games                    | 3        | 2         |
 | Enhanced Accessibility                    | 6        | 0         |
 | Engagement & Retention                    | 4        | 0         |
-| **TOTAL**                                 | **110**  | **227**   |
+| **TOTAL**                                 | **110**  | **229**   |
 
 ### Priority Order for Remaining Tasks
 
@@ -326,6 +326,8 @@ Improve site organization, navigation, and user flow clarity.
 - [x] Add back navigation to /learn page - Users can get stuck without way to return
 - [x] Add breadcrumb to /condition-guide - Show "Home > Learn > Condition Guide"
 - [x] Add breadcrumb to /sets/[setId] - Show "Home > Browse Sets > [Set Name]"
+- [ ] **FIX: Welcome message shows email instead of name** - Dashboard says "Good morning, jedaws!" using email prefix instead of user's actual name. Check KidDashboard.tsx and profile data - should use profile.name or displayName, not email
+- [ ] **FIX: Recent Activity missing set name** - Dashboard Recent Activity shows "Added Fearow" but not which set it's from. Should show "Added Fearow from 151" or similar. Check ActivityFeed component and ensure setName from metadata is displayed
 - [ ] Create AppFooter component - Footer for authenticated pages with Help, Privacy, Terms links
 - [ ] Add AppFooter to all app pages - Consistent footer across the app
 - [x] Add ESC key handler to mobile menu - Close menu on Escape key press
