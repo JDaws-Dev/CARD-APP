@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import LearnPage from '../learn/page';
 
@@ -18,6 +18,26 @@ vi.mock('next/link', () => ({
     </a>
   ),
 }));
+
+// Mock next/navigation
+const mockPush = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+  }),
+}));
+
+// Mock convex/react auth hooks - default to authenticated for page content tests
+vi.mock('convex/react', () => ({
+  useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
+}));
+
+beforeEach(() => {
+  mockPush.mockClear();
+});
 
 // Mock the game components to avoid complex dependencies
 vi.mock('@/components/games/GradeLikeAProGame', () => ({

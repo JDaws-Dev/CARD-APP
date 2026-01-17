@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useConvexAuth } from 'convex/react';
 import { LearnToCollect } from '@/components/tutorials/LearnToCollect';
 import {
   GradeLikeAProButton,
@@ -39,11 +41,32 @@ import {
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function LearnPage() {
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const router = useRouter();
   const [isGradeGameOpen, setIsGradeGameOpen] = useState(false);
   const [isRarityGameOpen, setIsRarityGameOpen] = useState(false);
   const [isSetSymbolGameOpen, setIsSetSymbolGameOpen] = useState(false);
   const [isTypeQuizOpen, setIsTypeQuizOpen] = useState(false);
   const [isPriceGameOpen, setIsPriceGameOpen] = useState(false);
+
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // Show loading while checking auth or if redirecting
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-purple-50 via-indigo-50 to-violet-50">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-purple-400 border-t-transparent" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
