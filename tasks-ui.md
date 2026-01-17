@@ -155,7 +155,7 @@ Image components lack error handlers, causing silent failures when images don't 
 
 - [x] Add onError handler to FlippableCard card back image - Show placeholder when `https://images.pokemontcg.io/cardback.png` fails
 - [ ] Add onError handlers to CardGrid card images - Display fallback placeholder on image load failure
-- [ ] Add onError handlers to DigitalBinder card images - Graceful degradation for binder view
+- [x] Add onError handlers to DigitalBinder card images - Graceful degradation for binder view
 - [ ] Add onError handlers to PackOpeningSimulator - Don't break pack opening experience if image fails
 - [ ] Add onError handlers to CollectionView card images (2 Image components) - Show placeholder instead of broken image
 - [ ] Add onError handlers to SearchResults card images - Handle API image failures gracefully
@@ -538,6 +538,8 @@ Replace Pokemon-only card examples with diverse examples from all 7 supported TC
 - **2026-01-17**: Added onError handler to FlippableCard card back images - Updated FlippableCard component (src/components/collection/FlippableCard.tsx) to use the CardBack component from CardImage.tsx instead of raw Next.js Image components. This provides automatic error handling with fallback to placeholder when the Pokemon card back URL (https://images.pokemontcg.io/cardback.png) fails to load. Changes: imported CardBack from @/components/ui/CardImage, replaced Image components with CardBack in both FlippableCard and ZoomableCardModal. Added comprehensive test suite (25 tests) covering FlippableCard, CardFlipModal, and ZoomableCardModal components including: flip functionality, keyboard navigation (F key), accessibility (ARIA labels), controlled/uncontrolled modes, CardBack integration verification, zoom controls, and modal interactions. All FlippableCard tests pass. Commit: edb71fe
 
 - **2026-01-17**: Updated VirtualCardGrid to use CardImage component - Replaced raw Next.js Image component with CardImage component in VirtualCardGrid (src/components/collection/VirtualCardGrid.tsx) for card image display. This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling across the virtual card grid. Prevents broken image icons from appearing when browsing large card sets with virtual scrolling. All tests pass (5730 tests), ESLint and Prettier clean. Commit: 53ff0a0
+
+- **2026-01-17**: Added error handling to DigitalBinder card images - Replaced raw Next.js Image components with CardImage component in DigitalBinder (src/components/virtual/DigitalBinder.tsx) for both left and right page card grids. This provides automatic fallback to placeholder SVG when external card images fail to load, loading skeleton while images load, and consistent error handling across the digital binder view. Ensures graceful degradation when viewing collection in binder mode. All tests pass (5730 tests), ESLint and Prettier clean. Commit: 2e4b5b1
 
 ---
 
