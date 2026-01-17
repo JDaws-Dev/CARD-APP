@@ -1,6 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useConvexAuth } from 'convex/react';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { TrophyCase, TrophyCaseSkeleton } from '@/components/achievements/TrophyCase';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -9,9 +12,30 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function BadgesPage() {
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const router = useRouter();
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
 
-  // Loading state
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // Show loading while checking auth or if redirecting
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-amber-400 border-t-transparent" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state for profile
   if (profileLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50 px-4 py-8">
