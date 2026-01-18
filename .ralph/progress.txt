@@ -194,3 +194,13 @@
 **Files:** src/app/page.tsx
 **Commit:** b79d336
 ---
+
+# Ralph Session 2026-01-17 21:16:01
+# Scope: Working on: **all open issues**
+
+## CD-6fa - Landing: No Personal Data AI indicator
+**Status:** Completed
+**Changes:** Updated existing No Personal Data trust badge with AI-focused privacy messaging. Changed description to "We never send your child's name or info to AI. Our AI features only see card data, never personal details about your family." Updated badge label to "AI privacy protected".
+**Files:** src/app/page.tsx
+**Commit:** 2d20333
+---

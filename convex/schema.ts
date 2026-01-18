@@ -126,7 +126,8 @@ export default defineSchema({
         v.literal('pokemon'),
         v.literal('yugioh'),
         v.literal('onepiece'),
-        v.literal('lorcana')
+        v.literal('lorcana'),
+        v.literal('mtg') // Legacy data - MTG no longer supported but data may exist
       )
     ), // Game the card belongs to (denormalized for query performance)
   })
@@ -307,7 +308,8 @@ export default defineSchema({
       v.literal('pokemon'),
       v.literal('yugioh'),
       v.literal('onepiece'),
-      v.literal('lorcana')
+      v.literal('lorcana'),
+      v.literal('mtg') // Legacy data - MTG no longer supported but data exists
     ), // Links card to its game
     setId: v.string(),
     name: v.string(),

@@ -222,15 +222,15 @@ export const getRecommendations = action({
 Collection Analysis for this ${gameName} collector:
 - Total unique cards: ${collectionAnalysis.totalCards}
 - Favorite types: ${collectionAnalysis.favoriteTypes.join(', ') || 'None yet'}
-- Active sets: ${collectionAnalysis.activeSets.map((s) => s.name).join(', ') || 'None yet'}
-- Set completion progress: ${collectionAnalysis.activeSets.map((s) => `${s.name}: ${s.owned}/${s.total}`).join(', ') || 'N/A'}
+- Active sets: ${collectionAnalysis.activeSets.map((s: { name: string }) => s.name).join(', ') || 'None yet'}
+- Set completion progress: ${collectionAnalysis.activeSets.map((s: { name: string; owned: number; total: number }) => `${s.name}: ${s.owned}/${s.total}`).join(', ') || 'N/A'}
 - Collection style: ${collectionAnalysis.collectionStyle}
 - Recently added types: ${collectionAnalysis.recentTypes.join(', ') || 'None'}
 `;
 
       const candidatesList = candidateCards
         .map(
-          (card, i) =>
+          (card: { name: string; rarity?: string | null; setName: string; types?: string[] }, i: number) =>
             `${i + 1}. ${card.name} (${card.rarity || 'Common'}, Set: ${card.setName}, Types: ${card.types?.join(', ') || 'None'})`
         )
         .join('\n');
@@ -347,7 +347,7 @@ Respond in JSON format:
         summary: parsed.summary,
         collectionInsights: {
           favoriteTypes: collectionAnalysis.favoriteTypes,
-          activeSets: collectionAnalysis.activeSets.map((s) => s.name),
+          activeSets: collectionAnalysis.activeSets.map((s: { name: string }) => s.name),
           collectionStyle: collectionAnalysis.collectionStyle,
         },
       };
@@ -446,7 +446,7 @@ export const getSetCompletionRecommendations = action({
           : "You're making great progress on your sets! Keep collecting! 🌟",
         collectionInsights: {
           favoriteTypes: [],
-          activeSets: missingCards.activeSets.map((s) => s.name),
+          activeSets: missingCards.activeSets.map((s: { name: string }) => s.name),
           collectionStyle: 'set completionist',
         },
       };
@@ -455,7 +455,7 @@ export const getSetCompletionRecommendations = action({
     // Convert to recommendations format
     const recommendations: CardRecommendation[] = missingCards.cards
       .slice(0, limit)
-      .map((card) => ({
+      .map((card: { cardId: string; name: string; setId: string; setName: string; rarity?: string | null; imageSmall: string; setProgress: { owned: number; total: number } }) => ({
         cardId: card.cardId,
         name: card.name,
         setId: card.setId,
@@ -486,7 +486,7 @@ export const getSetCompletionRecommendations = action({
         : 'Here are some cards to help complete your sets! 📚',
       collectionInsights: {
         favoriteTypes: [],
-        activeSets: missingCards.activeSets.map((s) => s.name),
+        activeSets: missingCards.activeSets.map((s: { name: string }) => s.name),
         collectionStyle: 'set completionist',
       },
     };
@@ -504,7 +504,7 @@ export const getRemainingRecommendations = action({
   args: {
     profileId: v.id('profiles'),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{ remaining: number; resetAt: number; limit: number }> => {
     const status = await ctx.runQuery(internal.ai.rateLimit.getRateLimitStatus, {
       profileId: args.profileId,
       featureType: 'recommendation',

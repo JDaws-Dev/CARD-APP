@@ -152,7 +152,32 @@ export function CardScanner({
 
   // Scan the captured card
   const scanCapturedCard = useCallback(async () => {
-    if (!capturedImage || !profileId || !family?._id) return;
+    console.log('scanCapturedCard called:', { capturedImage: !!capturedImage, profileId, familyId: family?.id });
+
+    if (!capturedImage) {
+      console.error('No captured image');
+      return;
+    }
+
+    if (!profileId) {
+      console.error('No profileId - user may not be authenticated');
+      setScanResult({
+        identified: false,
+        error: 'Please sign in to scan cards!',
+      });
+      setState('result');
+      return;
+    }
+
+    if (!family?.id) {
+      console.error('No family ID - user may not have a family account');
+      setScanResult({
+        identified: false,
+        error: 'Please set up your family account to scan cards!',
+      });
+      setState('result');
+      return;
+    }
 
     setState('scanning');
 
@@ -162,7 +187,7 @@ export function CardScanner({
 
       const result = await scanCard({
         profileId: profileId as Id<'profiles'>,
-        familyId: family._id as Id<'families'>,
+        familyId: family.id as Id<'families'>,
         imageBase64: base64Data,
         imageType: 'jpeg',
         gameSlug,
@@ -182,7 +207,7 @@ export function CardScanner({
       });
       setState('result');
     }
-  }, [capturedImage, profileId, family?._id, scanCard, gameSlug, onCardIdentified]);
+  }, [capturedImage, profileId, family?.id, scanCard, gameSlug, onCardIdentified]);
 
   // Handle close
   const handleClose = useCallback(() => {

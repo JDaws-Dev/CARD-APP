@@ -76,7 +76,7 @@ export function CardStoryModal({
 
   // Fetch story when modal opens
   useEffect(() => {
-    if (!isOpen || !card || !profileId || !family?._id) return;
+    if (!isOpen || !card || !profileId || !family?.id) return;
     if (story) return; // Already have a story
 
     const fetchStory = async () => {
@@ -86,7 +86,7 @@ export function CardStoryModal({
       try {
         const result = await getCardStory({
           profileId: profileId as Id<'profiles'>,
-          familyId: family._id as Id<'families'>,
+          familyId: family.id as Id<'families'>,
           cardId: card.id,
           cardName: card.name,
           cardType: card.supertype,
@@ -111,7 +111,7 @@ export function CardStoryModal({
     };
 
     fetchStory();
-  }, [isOpen, card, profileId, family?._id, story, getCardStory, gameSlug]);
+  }, [isOpen, card, profileId, family?.id, story, getCardStory, gameSlug]);
 
   // Handle keyboard (Escape to close)
   const handleKeyDown = useCallback(

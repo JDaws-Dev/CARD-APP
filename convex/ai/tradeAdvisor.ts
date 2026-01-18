@@ -379,7 +379,7 @@ Respond in JSON format:
 
       // Build trade suggestions from AI response
       const suggestions: TradeSuggestion[] = parsed.suggestions
-        .map((sug) => {
+        .map((sug: { fromCardIndices: number[]; toCardIndices: number[]; fromProfileName: string; toProfileName: string; reason: string; tradeType: TradeSuggestion['tradeType'] }) => {
           const fromCards: TradeCard[] = [];
           const toCards: TradeCard[] = [];
 
@@ -438,13 +438,13 @@ Respond in JSON format:
 
           return {
             fromProfile: {
-              profileId: isFromProfileA ? args.profileIdA : args.profileIdB,
+              profileId: (isFromProfileA ? args.profileIdA : args.profileIdB) as string,
               displayName: sug.fromProfileName,
               cards: fromCards,
               totalValue: Math.round(fromTotal * 100) / 100,
             },
             toProfile: {
-              profileId: isFromProfileA ? args.profileIdB : args.profileIdA,
+              profileId: (isFromProfileA ? args.profileIdB : args.profileIdA) as string,
               displayName: sug.toProfileName,
               cards: toCards,
               totalValue: Math.round(toTotal * 100) / 100,
@@ -453,7 +453,7 @@ Respond in JSON format:
             valueDifference: Math.round(valueDiff * 100) / 100,
             reason: sug.reason,
             tradeType: sug.tradeType,
-          };
+          } as TradeSuggestion;
         })
         .filter((sug): sug is TradeSuggestion => sug !== null)
         .slice(0, maxSuggestions);
@@ -656,7 +656,15 @@ export const hasTradeOpportunities = action({
       v.literal('lorcana')
     ),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{
+    hasOpportunities: boolean;
+    reason?: string;
+    tradeableCardCount?: number;
+    duplicateCount?: number;
+    wishlistMatchCount?: number;
+    profileAName?: string;
+    profileBName?: string;
+  }> => {
     // Verify family
     const familyCheck = await ctx.runQuery(internal.ai.tradeAdvisorHelpers.verifyFamilyProfiles, {
       profileIdA: args.profileIdA,
@@ -704,7 +712,7 @@ export const getRemainingTradeAdvice = action({
   args: {
     profileId: v.id('profiles'),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{ remaining: number; resetAt: number; limit: number }> => {
     const status = await ctx.runQuery(internal.ai.rateLimit.getRateLimitStatus, {
       profileId: args.profileId,
       featureType: 'trade_advisor',

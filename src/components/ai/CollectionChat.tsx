@@ -72,7 +72,7 @@ export function CollectionChat({
   // Send a message
   const sendMessage = useCallback(
     async (text: string) => {
-      if (!text.trim() || !profileId || !family?._id || isTyping) return;
+      if (!text.trim() || !profileId || !family?.id || isTyping) return;
 
       const userMessage: Message = {
         id: `user-${Date.now()}`,
@@ -89,7 +89,7 @@ export function CollectionChat({
       try {
         const result = await chat({
           profileId: profileId as Id<'profiles'>,
-          familyId: family._id as Id<'families'>,
+          familyId: family.id as Id<'families'>,
           message: text.trim(),
           gameSlug,
         });
@@ -120,7 +120,7 @@ export function CollectionChat({
         setIsTyping(false);
       }
     },
-    [profileId, family?._id, isTyping, chat, gameSlug]
+    [profileId, family?.id, isTyping, chat, gameSlug]
   );
 
   // Handle form submission
