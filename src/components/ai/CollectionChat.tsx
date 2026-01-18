@@ -31,13 +31,42 @@ interface CollectionChatProps {
   className?: string;
 }
 
-// Suggested questions for kids to get started
-const SUGGESTED_QUESTIONS = [
-  "What's my rarest card?",
-  'How many cards do I have?',
-  'Which sets am I closest to completing?',
-  'Do I have any Charizard cards?',
-];
+// Game-specific suggested questions for kids to get started
+// Includes both "Your Collection" and "Building Your Collection" suggestions
+const SUGGESTED_QUESTIONS: Record<GameSlug, string[]> = {
+  pokemon: [
+    // Your Collection
+    "What's my rarest Pokémon card?",
+    "Which Pokémon types am I missing?",
+    // Building Your Collection
+    "Help me complete my Charizard collection",
+    "What Trainer cards should I look for?",
+  ],
+  yugioh: [
+    // Your Collection
+    "What archetypes do I have cards for?",
+    "Which monsters have the highest ATK?",
+    // Building Your Collection
+    "Help me build a Blue-Eyes deck",
+    "What Spell cards should I look for?",
+  ],
+  onepiece: [
+    // Your Collection
+    "Which Leaders do I have?",
+    "What colors am I strongest in?",
+    // Building Your Collection
+    "Help me build a Luffy deck",
+    "Which starter decks should I get?",
+  ],
+  lorcana: [
+    // Your Collection
+    "Which ink colors do I collect?",
+    "What's my highest lore character?",
+    // Building Your Collection
+    "Help me build an Amber/Steel deck",
+    "What songs and actions do I have?",
+  ],
+};
 
 export function CollectionChat({
   gameSlug = 'pokemon',
@@ -199,7 +228,7 @@ export function CollectionChat({
                 Try asking:
               </p>
               <div className="flex flex-wrap justify-center gap-2">
-                {SUGGESTED_QUESTIONS.map((question) => (
+                {SUGGESTED_QUESTIONS[gameSlug].map((question) => (
                   <button
                     key={question}
                     onClick={() => handleSuggestedQuestion(question)}

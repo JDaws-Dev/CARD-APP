@@ -83,6 +83,9 @@ export const GAME_CONTEXTS = {
       rare: 'Ultra Rare',
       pack: 'booster pack',
     },
+    concepts: ['types (Fire, Water, Grass, etc.)', 'Trainer cards', 'Energy cards', 'evolutions', 'HP', 'attacks'],
+    characters: ['Pikachu', 'Charizard', 'Mewtwo', 'Eevee'],
+    deckBuilding: 'types and evolutions',
   },
   yugioh: {
     name: 'Yu-Gi-Oh! TCG',
@@ -92,6 +95,9 @@ export const GAME_CONTEXTS = {
       rare: 'Secret Rare',
       pack: 'booster pack',
     },
+    concepts: ['archetypes', 'Monster cards', 'Spell cards', 'Trap cards', 'ATK/DEF', 'Levels', 'Extra Deck'],
+    characters: ['Blue-Eyes White Dragon', 'Dark Magician', 'Exodia'],
+    deckBuilding: 'archetypes and combos',
   },
   onepiece: {
     name: 'One Piece Card Game',
@@ -101,6 +107,9 @@ export const GAME_CONTEXTS = {
       rare: 'Secret Rare',
       pack: 'booster pack',
     },
+    concepts: ['Leaders', 'colors (Red, Green, Blue, Purple, Black, Yellow)', 'DON!! cards', 'Characters', 'Events', 'Stages', 'power'],
+    characters: ['Luffy', 'Zoro', 'Nami', 'Shanks', 'Ace'],
+    deckBuilding: 'colors and Leaders',
   },
   lorcana: {
     name: 'Disney Lorcana',
@@ -110,6 +119,9 @@ export const GAME_CONTEXTS = {
       rare: 'Enchanted',
       pack: 'booster pack',
     },
+    concepts: ['ink colors (Amber, Amethyst, Emerald, Ruby, Sapphire, Steel)', 'lore', 'Characters', 'Songs', 'Actions', 'Items', 'Locations', 'willpower', 'strength'],
+    characters: ['Mickey Mouse', 'Elsa', 'Maleficent', 'Stitch'],
+    deckBuilding: 'ink colors and card synergies',
   },
 } as const;
 
@@ -117,10 +129,26 @@ export type GameSlug = keyof typeof GAME_CONTEXTS;
 
 /**
  * Get game-specific system prompt addition
+ * Provides rich context to help the AI use appropriate terminology and concepts
  */
 export function getGameContext(gameSlug: GameSlug): string {
   const game = GAME_CONTEXTS[gameSlug];
-  return `You are currently helping with ${game.name} cards. Use appropriate terminology like "${game.terminology.card}" and "${game.terminology.rare}".`;
+  return `You are currently helping with ${game.name} cards.
+
+GAME-SPECIFIC INSTRUCTIONS:
+- Always refer to cards as "${game.terminology.card}s"
+- Use the correct rarity terms (highest rarity: ${game.terminology.rare})
+- Key concepts for this game: ${game.concepts.join(', ')}
+- Popular characters: ${game.characters.join(', ')}
+- When discussing deck building, focus on ${game.deckBuilding}
+
+IMPORTANT: Do NOT use terminology from other card games. For example:
+${gameSlug === 'pokemon' ? '- Say "types" not "archetypes", "Trainer cards" not "Spell cards"' : ''}
+${gameSlug === 'yugioh' ? '- Say "archetypes" not "types", "Spell/Trap cards" not "Trainer cards"' : ''}
+${gameSlug === 'onepiece' ? '- Say "Leaders" and "colors" not "types" or "archetypes", use "DON!!" not "Energy"' : ''}
+${gameSlug === 'lorcana' ? '- Say "ink colors" not "types", "lore" not "HP", "Songs" not "Spell cards"' : ''}
+
+Help the user both explore their existing collection AND discover new cards they might want to collect!`;
 }
 
 /**
