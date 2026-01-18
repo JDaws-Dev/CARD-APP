@@ -1435,3 +1435,21 @@
 **Files:** src/components/collection/CardGrid.tsx, src/components/collection/VirtualCardGrid.tsx
 **Commit:** b500872
 ---
+## CD-0mz.6 - Sub-task 6: Hide price sort options and audit for remaining price mentions
+**Status:** Completed
+**Changes:** 
+- Hide price sort option in SetDetailClient.tsx and CollectionView.tsx when hidePrices enabled
+- Hide collection value banner in CollectionView.tsx
+- Hide Price Estimation Game on learn page
+- Hide prices in TradeAdvisor (card prices, totals, value difference)
+- Hide prices in VirtualTrophyRoom (trophy prices, total value badge)
+- Hide prices in SnapToAddFlow (variant prices, add button price)
+**Files:** 
+- src/components/collection/SetDetailClient.tsx
+- src/components/collection/CollectionView.tsx
+- src/app/learn/page.tsx
+- src/components/ai/TradeAdvisor.tsx
+- src/components/virtual/VirtualTrophyRoom.tsx
+- src/components/ai/SnapToAddFlow.tsx
+**Commit:** 4b99409
+---
