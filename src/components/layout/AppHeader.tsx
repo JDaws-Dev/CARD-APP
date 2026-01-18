@@ -15,6 +15,7 @@ import {
   Cog6ToothIcon,
   ArrowRightIcon,
   SparklesIcon,
+  HomeIcon,
 } from '@heroicons/react/24/outline';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
@@ -90,7 +91,9 @@ function CardDexLogo({ className }: { className?: string }) {
 }
 
 // App navigation links for logged-in users
+// Desktop header shows these navigation items
 const appNavLinks = [
+  { href: '/dashboard', label: 'Dashboard', icon: HomeIcon },
   { href: '/collection', label: 'My Collection', icon: Square3Stack3DIcon },
   { href: '/sets', label: 'Browse Sets', icon: Square3Stack3DIcon },
   { href: '/badges', label: 'Badges', icon: TrophyIcon },
@@ -150,9 +153,9 @@ export function AppHeader() {
       >
         {/* Logo with game branding - prominent and sleek */}
         <Link
-          href="/"
+          href="/dashboard"
           className="group flex items-center gap-2.5 rounded-2xl px-2 py-1.5 transition-all duration-300 hover:bg-game-gradient-subtle focus-visible:outline-none focus-visible:ring-2 focus-game sm:gap-3"
-          aria-label="CardDex - Go to home page"
+          aria-label="CardDex - Go to dashboard"
         >
           <CardDexLogo
             className="h-10 w-10 transition-transform duration-300 group-hover:scale-110 sm:h-11 sm:w-11"
