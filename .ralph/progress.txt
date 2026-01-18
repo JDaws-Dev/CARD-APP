@@ -1453,3 +1453,9 @@
 - src/components/ai/SnapToAddFlow.tsx
 **Commit:** 4b99409
 ---
+## CD-pss - Add Google OAuth login option
+**Status:** Completed
+**Changes:** Added Google OAuth provider to Convex Auth, added "Sign in with Google" button to login/signup pages following Google branding guidelines, documented required environment variables
+**Files:** convex/auth.ts, src/components/auth/AuthForm.tsx, .env.example
+**Commit:** d456507
+---
