@@ -255,8 +255,8 @@ describe('Trade Advisor Types', () => {
       expect(isValidGameSlug('magic')).toBe(false);
     });
 
-    it('should have exactly 7 valid game slugs', () => {
-      expect(VALID_GAME_SLUGS).toHaveLength(7);
+    it('should have exactly 4 valid game slugs', () => {
+      expect(VALID_GAME_SLUGS).toHaveLength(4);
     });
   });
 
