@@ -210,3 +210,9 @@
 **Files:** src/app/page.tsx
 **Commit:** ef9afac
 ---
+## CD-8go - Landing: Update hero for AI-powered messaging
+**Status:** Completed
+**Changes:** Added "AI-Powered Scanning" badge to hero section, updated subheading to highlight "Snap a photo to add cards instantly"
+**Files:** src/app/page.tsx
+**Commit:** 1d66368
+---
