@@ -43,8 +43,9 @@ export function GameFilter({ value, onChange, setCounts }: GameFilterProps) {
         label="All Games"
         icon={<Squares2X2Icon className="h-4 w-4" aria-hidden="true" />}
         count={setCounts?.['all']}
-        gradientFrom="from-gray-500"
-        gradientTo="to-gray-600"
+        bgColor="bg-gray-100"
+        borderColor="border-gray-400"
+        textColor="text-gray-700"
       />
 
       {/* Individual Game Tabs - Only show enabled games */}
@@ -58,8 +59,9 @@ export function GameFilter({ value, onChange, setCounts }: GameFilterProps) {
             label={game.shortName}
             icon={<IconComponent className="h-4 w-4" aria-hidden="true" />}
             count={setCounts?.[game.id]}
-            gradientFrom={game.gradientFrom}
-            gradientTo={game.gradientTo}
+            bgColor={game.bgColor}
+            borderColor={game.borderColor}
+            textColor={game.textColor}
           />
         );
       })}
@@ -73,8 +75,9 @@ interface GameFilterTabProps {
   label: string;
   icon: React.ReactNode;
   count?: number;
-  gradientFrom: string;
-  gradientTo: string;
+  bgColor?: string;
+  borderColor?: string;
+  textColor?: string;
 }
 
 function GameFilterTab({
@@ -83,8 +86,9 @@ function GameFilterTab({
   label,
   icon,
   count,
-  gradientFrom,
-  gradientTo,
+  bgColor = 'bg-gray-100',
+  borderColor = 'border-gray-300',
+  textColor = 'text-gray-700',
 }: GameFilterTabProps) {
   return (
     <button
@@ -92,10 +96,10 @@ function GameFilterTab({
       role="tab"
       aria-selected={isSelected}
       className={cn(
-        'flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-all sm:px-4',
+        'flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-all sm:px-4 border-2',
         isSelected
-          ? `bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white shadow-md`
-          : 'bg-white text-gray-600 shadow-sm hover:bg-gray-50 hover:shadow-md'
+          ? `${bgColor} ${borderColor} ${textColor} shadow-md`
+          : 'bg-white border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 hover:shadow-md'
       )}
     >
       {/* Icon */}

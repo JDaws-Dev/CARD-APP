@@ -81,7 +81,7 @@ function MobileGamePicker({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900"
+      className="fixed inset-0 z-[100] flex flex-col bg-slate-900"
       role="dialog"
       aria-modal="true"
       aria-label="Choose your game"
@@ -115,9 +115,10 @@ function MobileGamePicker({
                 onClick={() => handleSelect(game.id)}
                 className={cn(
                   'group relative flex min-h-[140px] flex-col items-center justify-center gap-3 rounded-2xl p-4 transition-all duration-200 sm:min-h-[160px] sm:gap-4 sm:p-5',
-                  'bg-gradient-to-br shadow-lg',
-                  game.gradientFrom,
-                  game.gradientTo,
+                  'shadow-lg',
+                  game.bgColor,
+                  'border-2',
+                  game.borderColor,
                   isActive && 'ring-4 ring-white ring-offset-2 ring-offset-transparent',
                   isAnimating && 'scale-95',
                   !isActive && 'hover:scale-[1.02] active:scale-95'
@@ -135,19 +136,20 @@ function MobileGamePicker({
                 {/* Game Icon - large for easy recognition */}
                 <div
                   className={cn(
-                    'flex h-16 w-16 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm transition-transform sm:h-20 sm:w-20',
+                    'flex h-16 w-16 items-center justify-center rounded-xl transition-transform sm:h-20 sm:w-20',
+                    'bg-white/80 shadow-sm',
                     'group-hover:scale-105 group-active:scale-95'
                   )}
                 >
-                  <GameIcon className="h-10 w-10 text-white sm:h-12 sm:w-12" />
+                  <GameIcon className={cn('h-10 w-10 sm:h-12 sm:w-12', game.primaryColor)} />
                 </div>
 
                 {/* Game Name */}
                 <div className="text-center">
-                  <div className="text-base font-bold text-white drop-shadow-sm sm:text-lg">
+                  <div className={cn('text-base font-bold sm:text-lg', game.textColor)}>
                     {game.shortName}
                   </div>
-                  <div className="mt-0.5 text-xs text-white/80 sm:text-sm">{game.tagline}</div>
+                  <div className="mt-0.5 text-xs text-gray-600 sm:text-sm">{game.tagline}</div>
                 </div>
               </button>
             );
@@ -276,20 +278,21 @@ export function GameSwitcher() {
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'flex items-center gap-2 rounded-lg font-medium transition-all',
-          'bg-gradient-to-r text-white shadow-md hover:shadow-lg active:scale-95',
+          'border-2 shadow-md hover:shadow-lg active:scale-95',
           // Mobile: larger touch target (min 44x44px)
           'h-11 min-w-[44px] justify-center px-3 md:h-auto md:min-w-0 md:px-3 md:py-2',
-          primaryGame.gradientFrom,
-          primaryGame.gradientTo
+          primaryGame.bgColor,
+          primaryGame.borderColor,
+          primaryGame.textColor
         )}
         aria-label={`Current game: ${primaryGame.name}. Tap to switch games.`}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
       >
-        <PrimaryIcon className="h-5 w-5 md:h-5 md:w-5" />
+        <PrimaryIcon className={cn('h-5 w-5 md:h-5 md:w-5', primaryGame.primaryColor)} />
         <span className="hidden md:inline">{primaryGame.name}</span>
         <ChevronDownIcon
-          className={cn('hidden h-4 w-4 transition-transform md:block', isOpen && 'rotate-180')}
+          className={cn('hidden h-4 w-4 transition-transform md:block', primaryGame.primaryColor, isOpen && 'rotate-180')}
         />
       </button>
 

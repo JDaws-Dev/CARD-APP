@@ -105,12 +105,12 @@ function GameCard({ game, isSelected, isPrimary, onToggle, onSetPrimary }: GameC
         <div
           className={cn(
             'absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full shadow-md',
-            'bg-gradient-to-br',
-            game.gradientFrom,
-            game.gradientTo
+            game.bgColor,
+            'border-2',
+            game.borderColor
           )}
         >
-          <CheckIcon className="h-4 w-4 text-white" aria-hidden="true" />
+          <CheckIcon className={cn('h-4 w-4', game.primaryColor)} aria-hidden="true" />
         </div>
       )}
 
@@ -132,12 +132,12 @@ function GameCard({ game, isSelected, isPrimary, onToggle, onSetPrimary }: GameC
         {/* Game icon */}
         <div
           className={cn(
-            'mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br shadow-sm',
-            game.gradientFrom,
-            game.gradientTo
+            'mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl shadow-sm',
+            'bg-white border-2',
+            game.borderColor
           )}
         >
-          <IconComponent className="h-8 w-8 text-white" aria-hidden="true" />
+          <IconComponent className={cn('h-8 w-8', game.primaryColor)} aria-hidden="true" />
         </div>
 
         {/* Game name */}

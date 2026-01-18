@@ -40,12 +40,12 @@
   --game-yugioh-text: #5b21b6;
   --game-yugioh-border: #a78bfa;
 
-  /* One Piece */
-  --game-onepiece-primary: #ef4444;
-  --game-onepiece-secondary: #f97316;
-  --game-onepiece-accent: #fef2f2;
-  --game-onepiece-text: #991b1b;
-  --game-onepiece-border: #fca5a5;
+  /* One Piece - deep crimson with dark accent (pirate theme) */
+  --game-onepiece-primary: #be123c;
+  --game-onepiece-secondary: #334155;
+  --game-onepiece-accent: #fff1f2;
+  --game-onepiece-text: #881337;
+  --game-onepiece-border: #fb7185;
 
   /* Lorcana */
   --game-lorcana-primary: #3b82f6;
@@ -79,11 +79,11 @@
   --game-yugioh-text: #ede9fe;
   --game-yugioh-border: #a78bfa;
 
-  --game-onepiece-primary: #f87171;
-  --game-onepiece-secondary: #fb923c;
-  --game-onepiece-accent: #450a0a;
-  --game-onepiece-text: #fef2f2;
-  --game-onepiece-border: #fca5a5;
+  --game-onepiece-primary: #fb7185;
+  --game-onepiece-secondary: #94a3b8;
+  --game-onepiece-accent: #4c0519;
+  --game-onepiece-text: #fff1f2;
+  --game-onepiece-border: #fb7185;
 
   --game-lorcana-primary: #60a5fa;
   --game-lorcana-secondary: #22d3ee;

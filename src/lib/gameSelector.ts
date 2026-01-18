@@ -115,12 +115,12 @@ export const GAMES: readonly GameInfo[] = [
     description:
       "Set sail with Luffy and the Straw Hat crew! Collect cards from the world's most popular manga.",
     tagline: 'Set sail for adventure!',
-    gradientFrom: 'from-red-500',
-    gradientTo: 'to-orange-500',
-    primaryColor: 'text-red-600',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-300',
-    textColor: 'text-red-800',
+    gradientFrom: 'from-rose-700',
+    gradientTo: 'to-slate-800',
+    primaryColor: 'text-rose-700',
+    bgColor: 'bg-rose-50',
+    borderColor: 'border-rose-400',
+    textColor: 'text-rose-900',
     iconName: 'FireIcon',
     hasApiSupport: true,
     appealPoints: ['Luffy & the Straw Hats', 'Brand new card game', 'Amazing anime artwork'],
@@ -438,16 +438,16 @@ export const GAME_CSS_VARIABLES: Record<GameId, GameCssVariables> = {
     borderRgb: '167, 139, 250',
   },
   onepiece: {
-    primary: '#ef4444', // Red-500
-    primaryRgb: '239, 68, 68',
-    secondary: '#f97316', // Orange-500
-    secondaryRgb: '249, 115, 22',
-    accent: '#fef2f2', // Red-50
-    accentRgb: '254, 242, 242',
-    text: '#991b1b', // Red-800
-    textRgb: '153, 27, 27',
-    border: '#fca5a5', // Red-300
-    borderRgb: '252, 165, 165',
+    primary: '#be123c', // Rose-700 (deep crimson - pirate theme)
+    primaryRgb: '190, 18, 60',
+    secondary: '#334155', // Slate-700 (dark accent - pirate ship)
+    secondaryRgb: '51, 65, 85',
+    accent: '#fff1f2', // Rose-50
+    accentRgb: '255, 241, 242',
+    text: '#881337', // Rose-900
+    textRgb: '136, 19, 55',
+    border: '#fb7185', // Rose-400
+    borderRgb: '251, 113, 133',
   },
   lorcana: {
     primary: '#3b82f6', // Blue-500
@@ -493,16 +493,16 @@ export const GAME_CSS_VARIABLES_DARK: Record<GameId, GameCssVariables> = {
     borderRgb: '167, 139, 250',
   },
   onepiece: {
-    primary: '#f87171', // Red-400 (brighter)
-    primaryRgb: '248, 113, 113',
-    secondary: '#fb923c', // Orange-400
-    secondaryRgb: '251, 146, 60',
-    accent: '#450a0a', // Red-950
-    accentRgb: '69, 10, 10',
-    text: '#fef2f2', // Red-50
-    textRgb: '254, 242, 242',
-    border: '#fca5a5', // Red-300
-    borderRgb: '252, 165, 165',
+    primary: '#fb7185', // Rose-400 (brighter for dark bg)
+    primaryRgb: '251, 113, 133',
+    secondary: '#94a3b8', // Slate-400
+    secondaryRgb: '148, 163, 184',
+    accent: '#4c0519', // Rose-950
+    accentRgb: '76, 5, 25',
+    text: '#fff1f2', // Rose-50
+    textRgb: '255, 241, 242',
+    border: '#fb7185', // Rose-400
+    borderRgb: '251, 113, 133',
   },
   lorcana: {
     primary: '#60a5fa', // Blue-400 (brighter)
