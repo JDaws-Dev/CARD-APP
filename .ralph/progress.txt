@@ -250,3 +250,9 @@
 **Files:** src/components/collection/CollectionView.tsx
 **Commit:** 4ca8267
 ---
+## CD-0f3 - Collection - Sort by value
+**Status:** Completed
+**Changes:** Added "By Value" sort option to collection view dropdown. Cards are sorted by market price (highest first), with cards without price data at the end.
+**Files:** src/components/collection/CollectionView.tsx
+**Commit:** 656cb3d
+---
