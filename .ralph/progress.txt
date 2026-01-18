@@ -586,3 +586,18 @@
 **Files:** src/components/virtual/VirtualTrophyRoom.tsx
 **Commit:** 847f888
 ---
+## CD-4ka.4 - Add game logo to dashboard header
+**Status:** Completed
+**Changes:** Added game logo badge with first letter, game-specific gradient theming, and game name display to dashboard header
+**Files:** src/components/dashboard/KidDashboard.tsx
+**Commit:** 712584e
+---
+## CD-4ka.1 - Add featured card images to dashboard
+**Status:** Completed
+**Changes:** Added RecentCardsPreview and FeaturedCardsPreview components to dashboard. Recent cards show horizontal scroll of recently added cards with time ago. Featured cards show 3 random spotlight cards with refresh button. Both components integrated into KidDashboard.
+**Files:** 
+- src/components/dashboard/RecentCardsPreview.tsx (new)
+- src/components/dashboard/FeaturedCardsPreview.tsx (new)
+- src/components/dashboard/KidDashboard.tsx (modified)
+**Commit:** 68f9692
+---
