@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   ShareIcon,
   XMarkIcon,
@@ -311,11 +311,11 @@ function SnapshotModal({ onClose }: SnapshotModalProps) {
   }, [isLoading, selectedTheme, stats, profile, earnedBadges, totalBadges, currentStreak]);
 
   // Generate snapshot when modal opens or theme changes
-  useState(() => {
+  useEffect(() => {
     if (!isLoading) {
       setTimeout(generateSnapshot, 100);
     }
-  });
+  }, [isLoading, generateSnapshot]);
 
   const handleDownload = () => {
     if (!canvasRef.current) return;
@@ -371,10 +371,10 @@ function SnapshotModal({ onClose }: SnapshotModalProps) {
     [onClose]
   );
 
-  useState(() => {
+  useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  });
+  }, [handleKeyDown]);
 
   return (
     <div
