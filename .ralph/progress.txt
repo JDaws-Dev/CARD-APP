@@ -780,3 +780,9 @@
 **Files:** src/components/ai/CollectionChat.tsx, convex/ai/openai.ts
 **Commit:** bfb4902
 ---
+## CD-4f0 - Make AI Chat game-specific with relevant suggestions
+**Status:** Completed
+**Changes:** Added game-specific suggested questions (Pokemon: types/Charizard, Yu-Gi-Oh: archetypes/Blue-Eyes, One Piece: Leaders/Luffy, Lorcana: ink colors/Amber/Steel). Enhanced AI context with concepts, characters, and deck building terms. Added explicit instructions to prevent cross-game terminology mixing.
+**Files:** src/components/ai/CollectionChat.tsx, convex/ai/openai.ts
+**Commit:** bfb4902
+---
