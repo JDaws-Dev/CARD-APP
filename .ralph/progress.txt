@@ -1117,3 +1117,9 @@
 - src/lib/tutorialContent.ts: Confirmed 4 game-specific tutorial content configs
 **Commit:** Verification task - no code changes
 ---
+## CD-uv9 - Card Scanner: Wrong card added + show price/variant selection in results
+**Status:** Completed
+**Changes:** Fixed bug where wrong card was added by implementing "what you see is what you add" pattern. Now fetches actual card data from database, displays card image for verification, shows available variants with prices, and uses verified card ID when adding.
+**Files:** src/components/ai/SnapToAddFlow.tsx
+**Commit:** a65f528
+---

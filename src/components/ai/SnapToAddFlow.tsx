@@ -43,6 +43,20 @@ interface CardScanResult {
   error?: string;
 }
 
+// Card data fetched from database with pricing info
+interface FetchedCardData {
+  id: string;
+  name: string;
+  setName: string;
+  setId: string;
+  number: string;
+  rarity?: string;
+  imageSmall: string;
+  imageLarge: string;
+  availableVariants: CardVariant[];
+  variantPrices: Record<CardVariant, number | null>;
+}
+
 interface SnapToAddFlowProps {
   /** The AI scan result to display */
   scanResult: CardScanResult;
@@ -56,19 +70,26 @@ interface SnapToAddFlowProps {
   className?: string;
 }
 
-type FlowState = 'confirm' | 'search' | 'adding' | 'success' | 'error';
+type FlowState = 'loading' | 'confirm' | 'search' | 'adding' | 'success' | 'error';
 
 interface SearchResult extends PokemonCard {
   // Extended with any additional fields we might need
 }
 
-const VARIANT_OPTIONS: { value: CardVariant; label: string }[] = [
+// All possible variant options with labels
+const ALL_VARIANT_OPTIONS: { value: CardVariant; label: string }[] = [
   { value: 'normal', label: 'Normal' },
   { value: 'holofoil', label: 'Holofoil' },
   { value: 'reverseHolofoil', label: 'Reverse Holo' },
   { value: '1stEditionHolofoil', label: '1st Ed. Holo' },
   { value: '1stEditionNormal', label: '1st Edition' },
 ];
+
+// Format price for display
+function formatPrice(price: number | null): string {
+  if (price === null || price === undefined) return '';
+  return `$${price.toFixed(2)}`;
+}
 
 export function SnapToAddFlow({
   scanResult,
@@ -80,7 +101,10 @@ export function SnapToAddFlow({
   const { profileId } = useCurrentProfile();
   const addCard = useMutation(api.collections.addCard);
 
-  const [flowState, setFlowState] = useState<FlowState>('confirm');
+  // Start in loading state if we have a suggestedCardId to fetch
+  const [flowState, setFlowState] = useState<FlowState>(
+    scanResult.identified && scanResult.suggestedCardId ? 'loading' : 'confirm'
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -89,6 +113,10 @@ export function SnapToAddFlow({
   const [addedCard, setAddedCard] = useState<{ name: string; setName: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Fetched card data from database (ensures "what you see is what you add")
+  const [fetchedCard, setFetchedCard] = useState<FetchedCardData | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   // Initialize search query from scan result
   useEffect(() => {
     if (scanResult.cardName) {
@@ -96,8 +124,113 @@ export function SnapToAddFlow({
     }
   }, [scanResult.cardName]);
 
-  // Detect variant from scan result
+  // Fetch actual card data when we have a suggestedCardId
   useEffect(() => {
+    async function fetchCardData() {
+      if (!scanResult.suggestedCardId || !scanResult.identified) {
+        setFlowState('confirm');
+        return;
+      }
+
+      try {
+        // Fetch card data from our API
+        const response = await fetch('/api/cards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cardIds: [scanResult.suggestedCardId] }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch card data');
+        }
+
+        const data = await response.json();
+        const card = data.data?.[0];
+
+        if (!card) {
+          // Card not found in database - fall back to AI info
+          setFetchError('Card not found in database');
+          setFlowState('confirm');
+          return;
+        }
+
+        // Extract variant prices from tcgplayer data
+        const prices = card.tcgplayer?.prices || {};
+        const variantPrices: Record<CardVariant, number | null> = {
+          normal: prices.normal?.market ?? null,
+          holofoil: prices.holofoil?.market ?? null,
+          reverseHolofoil: prices.reverseHolofoil?.market ?? null,
+          '1stEditionHolofoil': prices['1stEditionHolofoil']?.market ?? null,
+          '1stEditionNormal': prices['1stEditionNormal']?.market ?? null,
+        };
+
+        // Determine available variants (those with prices or explicitly listed)
+        const availableVariants: CardVariant[] = [];
+        // Check price keys first
+        for (const [variant, price] of Object.entries(variantPrices)) {
+          if (price !== null) {
+            availableVariants.push(variant as CardVariant);
+          }
+        }
+        // If no variants found from prices, default to normal
+        if (availableVariants.length === 0) {
+          availableVariants.push('normal');
+        }
+
+        const fetchedCardData: FetchedCardData = {
+          id: card.id,
+          name: card.name,
+          setName: card.set?.name || scanResult.setName || 'Unknown Set',
+          setId: card.set?.id || '',
+          number: card.number || scanResult.cardNumber || '',
+          rarity: card.rarity,
+          imageSmall: card.images?.small || '',
+          imageLarge: card.images?.large || '',
+          availableVariants,
+          variantPrices,
+        };
+
+        setFetchedCard(fetchedCardData);
+
+        // Auto-select variant based on AI detection or first available
+        let detectedVariant: CardVariant = 'normal';
+        if (scanResult.specialFeatures) {
+          const features = scanResult.specialFeatures.map((f) => f.toLowerCase());
+          if (features.some((f) => f.includes('reverse holo')) && availableVariants.includes('reverseHolofoil')) {
+            detectedVariant = 'reverseHolofoil';
+          } else if (features.some((f) => f.includes('holo')) && availableVariants.includes('holofoil')) {
+            detectedVariant = 'holofoil';
+          } else if (scanResult.edition?.toLowerCase().includes('1st')) {
+            if (availableVariants.includes('1stEditionHolofoil')) {
+              detectedVariant = '1stEditionHolofoil';
+            } else if (availableVariants.includes('1stEditionNormal')) {
+              detectedVariant = '1stEditionNormal';
+            }
+          }
+        }
+        // Ensure selected variant is available
+        if (!availableVariants.includes(detectedVariant)) {
+          detectedVariant = availableVariants[0];
+        }
+        setSelectedVariant(detectedVariant);
+
+        setFlowState('confirm');
+      } catch (err) {
+        console.error('Error fetching card data:', err);
+        setFetchError('Could not verify card details');
+        setFlowState('confirm');
+      }
+    }
+
+    if (flowState === 'loading') {
+      fetchCardData();
+    }
+  }, [scanResult, flowState]);
+
+  // Detect variant from scan result (fallback when no fetched card)
+  useEffect(() => {
+    if (fetchedCard) return; // Skip if we have fetched card data
+
     if (scanResult.specialFeatures) {
       const features = scanResult.specialFeatures.map((f) => f.toLowerCase());
       if (features.some((f) => f.includes('reverse holo'))) {
@@ -108,7 +241,7 @@ export function SnapToAddFlow({
         setSelectedVariant('1stEditionNormal');
       }
     }
-  }, [scanResult.specialFeatures, scanResult.edition]);
+  }, [scanResult.specialFeatures, scanResult.edition, fetchedCard]);
 
   // Search for cards
   const handleSearch = useCallback(async () => {
@@ -169,8 +302,13 @@ export function SnapToAddFlow({
 
   // Handle confirming the AI-suggested card
   const handleConfirmSuggested = useCallback(async () => {
-    if (!scanResult.suggestedCardId) {
-      // No suggested card ID - go to search
+    // Use fetched card data if available (ensures "what you see is what you add")
+    const cardId = fetchedCard?.id || scanResult.suggestedCardId;
+    const cardName = fetchedCard?.name || scanResult.cardName;
+    const setName = fetchedCard?.setName || scanResult.setName;
+
+    if (!cardId) {
+      // No card ID - go to search
       setFlowState('search');
       return;
     }
@@ -185,16 +323,16 @@ export function SnapToAddFlow({
     try {
       await addCard({
         profileId: profileId as Id<'profiles'>,
-        cardId: scanResult.suggestedCardId,
-        cardName: scanResult.cardName,
-        setName: scanResult.setName ?? undefined,
+        cardId,
+        cardName,
+        setName: setName ?? undefined,
         variant: selectedVariant,
         quantity: 1,
       });
 
       setAddedCard({
-        name: scanResult.cardName || 'Card',
-        setName: scanResult.setName || 'Unknown Set',
+        name: cardName || 'Card',
+        setName: setName || 'Unknown Set',
       });
       setFlowState('success');
     } catch (err) {
@@ -202,7 +340,7 @@ export function SnapToAddFlow({
       setErrorMessage('Failed to add card. Please try again.');
       setFlowState('error');
     }
-  }, [scanResult, profileId, addCard, selectedVariant]);
+  }, [fetchedCard, scanResult, profileId, addCard, selectedVariant]);
 
   // Confidence badge color
   const getConfidenceColor = (confidence?: string) => {
@@ -221,6 +359,8 @@ export function SnapToAddFlow({
   // Render different states
   const renderContent = () => {
     switch (flowState) {
+      case 'loading':
+        return renderLoadingState();
       case 'confirm':
         return renderConfirmState();
       case 'search':
@@ -236,111 +376,185 @@ export function SnapToAddFlow({
     }
   };
 
-  const renderConfirmState = () => (
-    <div className="space-y-4">
-      {/* AI Result Display */}
-      <div className="rounded-xl bg-white p-4 shadow-sm">
-        {scanResult.identified ? (
-          <div className="space-y-4">
-            {/* Card Info Header */}
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-kid-primary/10">
-                <SparklesIcon className="h-5 w-5 text-kid-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-500">I found this card!</p>
-                <h3 className="text-lg font-bold text-gray-900">{scanResult.cardName}</h3>
-                {scanResult.setName && (
-                  <p className="text-sm text-gray-600">{scanResult.setName}</p>
+  const renderLoadingState = () => (
+    <div className="flex flex-col items-center justify-center py-12">
+      <div className="relative">
+        <SparklesIcon className="h-16 w-16 animate-pulse text-kid-primary" />
+        <div className="absolute inset-0 animate-spin">
+          <ArrowPathIcon className="h-16 w-16 text-kid-primary/30" />
+        </div>
+      </div>
+      <p className="mt-4 text-lg font-medium text-gray-900">Verifying card...</p>
+      <p className="mt-1 text-sm text-gray-500">Finding the best match in our database</p>
+    </div>
+  );
+
+  const renderConfirmState = () => {
+    // Use fetched card data if available, otherwise fall back to scan result
+    const cardName = fetchedCard?.name || scanResult.cardName;
+    const setName = fetchedCard?.setName || scanResult.setName;
+    const cardNumber = fetchedCard?.number || scanResult.cardNumber;
+    const rarity = fetchedCard?.rarity || scanResult.rarity;
+    const cardImage = fetchedCard?.imageSmall;
+
+    // Get available variants - prefer fetched card data
+    const availableVariants = fetchedCard?.availableVariants || ALL_VARIANT_OPTIONS.map(o => o.value);
+    const variantOptions = ALL_VARIANT_OPTIONS.filter(opt => availableVariants.includes(opt.value));
+
+    // Get current price based on selected variant
+    const currentPrice = fetchedCard?.variantPrices[selectedVariant] ?? null;
+
+    return (
+      <div className="space-y-4">
+        {/* AI Result Display */}
+        <div className="rounded-xl bg-white p-4 shadow-sm">
+          {scanResult.identified ? (
+            <div className="space-y-4">
+              {/* Card Info Header with Image */}
+              <div className="flex items-start gap-4">
+                {/* Card Image (from database) */}
+                {cardImage && (
+                  <div className="relative h-24 w-16 flex-shrink-0 overflow-hidden rounded-lg shadow-md">
+                    <CardImage
+                      src={cardImage}
+                      alt={cardName || 'Card'}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                  </div>
                 )}
-                {scanResult.cardNumber && (
-                  <p className="text-xs text-gray-500">#{scanResult.cardNumber}</p>
+                {!cardImage && (
+                  <div className="flex h-24 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-kid-primary/10">
+                    <SparklesIcon className="h-8 w-8 text-kid-primary" />
+                  </div>
                 )}
-              </div>
-              {scanResult.confidence && (
-                <span
-                  className={cn(
-                    'rounded-full px-2 py-0.5 text-xs font-medium',
-                    getConfidenceColor(scanResult.confidence)
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-500">
+                    {fetchedCard ? 'Match found!' : 'I found this card!'}
+                  </p>
+                  <h3 className="text-lg font-bold text-gray-900 truncate">{cardName}</h3>
+                  {setName && (
+                    <p className="text-sm text-gray-600 truncate">{setName}</p>
                   )}
-                >
-                  {scanResult.confidence}
-                </span>
-              )}
-            </div>
-
-            {/* Rarity and features */}
-            {(scanResult.rarity || scanResult.specialFeatures?.length) && (
-              <div className="flex flex-wrap gap-2">
-                {scanResult.rarity && (
-                  <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800">
-                    {scanResult.rarity}
-                  </span>
-                )}
-                {scanResult.specialFeatures?.map((feature) => (
+                  {cardNumber && (
+                    <p className="text-xs text-gray-500">#{cardNumber}</p>
+                  )}
+                </div>
+                {scanResult.confidence && (
                   <span
-                    key={feature}
-                    className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
-                  >
-                    {feature}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Fun Fact */}
-            {scanResult.funFact && (
-              <div className="rounded-lg bg-yellow-50 p-3">
-                <p className="flex items-start gap-2 text-sm text-yellow-800">
-                  <SparklesIcon className="h-4 w-4 flex-shrink-0 text-yellow-500" />
-                  {scanResult.funFact}
-                </p>
-              </div>
-            )}
-
-            {/* Variant Selection */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Card Version</label>
-              <div className="flex flex-wrap gap-2">
-                {VARIANT_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSelectedVariant(option.value)}
                     className={cn(
-                      'rounded-full px-3 py-1.5 text-sm font-medium transition',
-                      selectedVariant === option.value
-                        ? 'bg-kid-primary text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      'flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
+                      getConfidenceColor(scanResult.confidence)
                     )}
                   >
-                    {option.label}
-                  </button>
-                ))}
+                    {scanResult.confidence}
+                  </span>
+                )}
               </div>
-            </div>
 
-            {/* Confirmation Prompt */}
-            <div className="rounded-lg bg-gray-50 p-4 text-center">
-              <p className="mb-4 text-sm font-medium text-gray-700">Is this your card?</p>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleConfirmSuggested}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-kid-success py-3 font-semibold text-white shadow-lg transition hover:bg-kid-success/90"
-                >
-                  <CheckIcon className="h-5 w-5" />
-                  Yes, add it!
-                </button>
-                <button
-                  onClick={() => setFlowState('search')}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-200 py-3 font-semibold text-gray-700 transition hover:bg-gray-300"
-                >
-                  <MagnifyingGlassIcon className="h-5 w-5" />
-                  No, search
-                </button>
+              {/* Rarity and features */}
+              {(rarity || scanResult.specialFeatures?.length) && (
+                <div className="flex flex-wrap gap-2">
+                  {rarity && (
+                    <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800">
+                      {rarity}
+                    </span>
+                  )}
+                  {scanResult.specialFeatures?.map((feature) => (
+                    <span
+                      key={feature}
+                      className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Fun Fact */}
+              {scanResult.funFact && (
+                <div className="rounded-lg bg-yellow-50 p-3">
+                  <p className="flex items-start gap-2 text-sm text-yellow-800">
+                    <SparklesIcon className="h-4 w-4 flex-shrink-0 text-yellow-500" />
+                    {scanResult.funFact}
+                  </p>
+                </div>
+              )}
+
+              {/* Variant Selection with Prices */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Select Version
+                  {currentPrice !== null && (
+                    <span className="ml-2 text-kid-success font-semibold">
+                      {formatPrice(currentPrice)}
+                    </span>
+                  )}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {variantOptions.map((option) => {
+                    const price = fetchedCard?.variantPrices[option.value] ?? null;
+                    const isSelected = selectedVariant === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        onClick={() => setSelectedVariant(option.value)}
+                        className={cn(
+                          'flex flex-col items-center rounded-lg px-3 py-2 text-sm font-medium transition border-2',
+                          isSelected
+                            ? 'bg-kid-primary text-white border-kid-primary'
+                            : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-kid-primary/50 hover:bg-gray-100'
+                        )}
+                      >
+                        <span>{option.label}</span>
+                        {price !== null && (
+                          <span className={cn(
+                            'text-xs mt-0.5',
+                            isSelected ? 'text-white/80' : 'text-green-600'
+                          )}>
+                            {formatPrice(price)}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Fetch error warning */}
+              {fetchError && !fetchedCard && (
+                <div className="rounded-lg bg-orange-50 p-3">
+                  <p className="text-sm text-orange-700">
+                    Note: Could not verify card details. Using AI identification.
+                  </p>
+                </div>
+              )}
+
+              {/* Confirmation Prompt */}
+              <div className="rounded-lg bg-gray-50 p-4 text-center">
+                <p className="mb-4 text-sm font-medium text-gray-700">
+                  {fetchedCard ? 'Add this card to your collection?' : 'Is this your card?'}
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleConfirmSuggested}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-kid-success py-3 font-semibold text-white shadow-lg transition hover:bg-kid-success/90"
+                  >
+                    <CheckIcon className="h-5 w-5" />
+                    {currentPrice !== null ? `Add (${formatPrice(currentPrice)})` : 'Yes, add it!'}
+                  </button>
+                  <button
+                    onClick={() => setFlowState('search')}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-200 py-3 font-semibold text-gray-700 transition hover:bg-gray-300"
+                  >
+                    <MagnifyingGlassIcon className="h-5 w-5" />
+                    No, search
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
+          ) : (
           // Not identified - show error and search option
           <div className="space-y-4 text-center">
             <div className="flex justify-center">
@@ -365,7 +579,8 @@ export function SnapToAddFlow({
         )}
       </div>
     </div>
-  );
+    );
+  };
 
   const renderSearchState = () => (
     <div className="space-y-4">
@@ -404,7 +619,7 @@ export function SnapToAddFlow({
         <div className="mt-4 space-y-2">
           <label className="text-sm font-medium text-gray-700">Card Version</label>
           <div className="flex flex-wrap gap-2">
-            {VARIANT_OPTIONS.map((option) => (
+            {ALL_VARIANT_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 onClick={() => setSelectedVariant(option.value)}
@@ -518,7 +733,7 @@ export function SnapToAddFlow({
           <p className="font-medium text-gray-800">{addedCard.name}</p>
           <p className="text-sm text-gray-500">{addedCard.setName}</p>
           <span className="mt-2 inline-block rounded-full bg-kid-primary/10 px-3 py-1 text-sm font-medium text-kid-primary">
-            {VARIANT_OPTIONS.find((v) => v.value === selectedVariant)?.label || 'Normal'}
+            {ALL_VARIANT_OPTIONS.find((v) => v.value === selectedVariant)?.label || 'Normal'}
           </span>
         </div>
       )}
