@@ -1469,3 +1469,9 @@
 **Files:** No code changes - research task documented in beads issue notes
 **Commit:** N/A (research only)
 ---
+## CD-2ph - Dashboard greeting should use first name only
+**Status:** Completed
+**Changes:** Added getFirstName() utility to extract first name from display names; updated KidDashboard and OnboardingFlow completion step to show friendly first-name greetings
+**Files:** src/lib/displayName.ts, src/components/dashboard/KidDashboard.tsx, src/components/onboarding/OnboardingFlow.tsx, src/lib/__tests__/displayName.test.ts
+**Commit:** c3478e5
+---
