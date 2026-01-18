@@ -1327,3 +1327,9 @@
 **Files:** convex/schema.ts, convex/profileSettings.ts, src/lib/setCompletion.ts, src/components/collection/SetDetailClient.tsx
 **Commit:** N/A - no changes made, functionality already in place
 ---
+## CD-rez - Dashboard greeting uses email instead of display name
+**Status:** Completed
+**Changes:** Enhanced looksLikeEmailPrefix() to detect OAuth-derived name patterns like 'JE Dawes' and fall back to onboarding name from localStorage
+**Files:** src/lib/displayName.ts, src/lib/__tests__/displayName.test.ts
+**Commit:** 8ad3f25
+---
