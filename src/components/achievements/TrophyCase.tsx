@@ -1057,11 +1057,12 @@ export function TrophyCaseSkeleton() {
 // Main Trophy Case component
 interface TrophyCaseProps {
   profileId: Id<'profiles'>;
+  gameSlug?: GameId;
 }
 
-export function TrophyCase({ profileId }: TrophyCaseProps) {
-  // Fetch all achievement data
-  const achievements = useQuery(api.achievements.getAchievements, { profileId });
+export function TrophyCase({ profileId, gameSlug }: TrophyCaseProps) {
+  // Fetch all achievement data, filtered by game if specified
+  const achievements = useQuery(api.achievements.getAchievements, { profileId, gameSlug });
   const milestoneProgress = useQuery(api.achievements.getMilestoneProgress, { profileId });
   const typeProgress = useQuery(api.achievements.getTypeSpecialistProgress, { profileId });
   const pokemonProgress = useQuery(api.achievements.getPokemonFanProgress, { profileId });

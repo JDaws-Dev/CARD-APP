@@ -623,3 +623,13 @@
 - HTTP 200 responses from Next.js image optimizer for all games
 - Build passes successfully
 ---
+
+# Ralph Session 2026-01-18 05:06:51
+# Scope: Working on: **all open issues**
+
+## CD-fzv.5 - Update Badges page to use game-filtered achievements
+**Status:** Completed
+**Changes:** Verified existing implementation - Badges page already uses useGameSelector hook to get primaryGame and passes gameSlug to TrophyCase component, which passes it to the achievements.getAchievements query for game-specific filtering.
+**Files:** src/app/badges/page.tsx, src/components/achievements/TrophyCase.tsx, convex/achievements.ts (all verified, no changes needed)
+**Commit:** N/A - implementation was already complete
+---

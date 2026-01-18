@@ -9,11 +9,13 @@ import type { Id } from '../../../convex/_generated/dataModel';
 import { TrophyIcon } from '@heroicons/react/24/solid';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { BackLink } from '@/components/ui/BackLink';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 
 export default function BadgesPage() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const router = useRouter();
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
+  const { primaryGame, isLoading: gameLoading } = useGameSelector();
 
   // Redirect unauthenticated users to login
   useEffect(() => {
@@ -34,8 +36,8 @@ export default function BadgesPage() {
     );
   }
 
-  // Loading state for profile
-  if (profileLoading) {
+  // Loading state for profile or game selector
+  if (profileLoading || gameLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50 px-4 py-8">
         <div className="mx-auto max-w-6xl">
@@ -78,7 +80,12 @@ export default function BadgesPage() {
         </div>
 
         {/* Trophy Case */}
-        {profileId && <TrophyCase profileId={profileId as Id<'profiles'>} />}
+        {profileId && (
+          <TrophyCase
+            profileId={profileId as Id<'profiles'>}
+            gameSlug={primaryGame?.id}
+          />
+        )}
       </div>
     </main>
   );
