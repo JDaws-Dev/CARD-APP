@@ -10,6 +10,11 @@ import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import {
+  AvailabilityFilter,
+  type AvailabilityFilterValue,
+  isSetAvailable,
+} from '@/components/sets/AvailabilityFilter';
 
 type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
@@ -17,6 +22,8 @@ function SetsPageContent() {
   const searchParams = useSearchParams();
   const { primaryGame, isLoading: gameLoading } = useGameSelector();
   const [sampleCards, setSampleCards] = useState<Record<string, string>>({});
+  // Default to 'available' for simpler browsing (shows recent/purchasable sets)
+  const [availabilityFilter, setAvailabilityFilter] = useState<AvailabilityFilterValue>('available');
 
   // Use game from URL params if provided, otherwise fall back to the user's primary game
   const gameSlug = (searchParams.get('game') || primaryGame?.id) as GameSlug | undefined;
@@ -74,6 +81,21 @@ function SetsPageContent() {
 
   const isLoading = gameLoading || sets === undefined;
 
+  // Filter sets based on availability filter
+  const filteredSets = useMemo(() => {
+    if (!sets || !gameSlug) return [];
+    if (availabilityFilter === 'all') return sets;
+    // Filter to only available (recently released) sets
+    return sets.filter((set) => isSetAvailable(set.releaseDate, gameSlug));
+  }, [sets, gameSlug, availabilityFilter]);
+
+  // Calculate counts for availability filter
+  const availabilityCounts = useMemo(() => {
+    if (!sets || !gameSlug) return { available: 0, all: 0 };
+    const availableCount = sets.filter((set) => isSetAvailable(set.releaseDate, gameSlug)).length;
+    return { available: availableCount, all: sets.length };
+  }, [sets, gameSlug]);
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-indigo-50 to-purple-50 px-4 py-8 dark:from-slate-900 dark:to-slate-800">
       <div className="mx-auto max-w-6xl">
@@ -101,6 +123,17 @@ function SetsPageContent() {
             Choose a set to start tracking your collection!
           </p>
         </div>
+
+        {/* Availability Filter */}
+        {!isLoading && sets && sets.length > 0 && (
+          <div className="mb-6 flex justify-center">
+            <AvailabilityFilter
+              value={availabilityFilter}
+              onChange={setAvailabilityFilter}
+              counts={availabilityCounts}
+            />
+          </div>
+        )}
 
         {/* Loading state */}
         {isLoading && (
@@ -130,7 +163,7 @@ function SetsPageContent() {
         {/* Sets grid */}
         {!isLoading && sets && sets.length > 0 && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {sets.map((set) => {
+            {filteredSets.map((set) => {
               // Determine which image to show:
               // 1. Pokemon with logo -> use logo
               // 2. Any game with sample card -> use sample card
@@ -191,6 +224,24 @@ function SetsPageContent() {
                 </Link>
               );
             })}
+          </div>
+        )}
+
+        {/* Empty state when availability filter shows no results */}
+        {!isLoading && sets && sets.length > 0 && filteredSets.length === 0 && (
+          <div className="rounded-xl bg-white p-8 text-center shadow-md dark:bg-slate-800">
+            <p className="text-lg font-medium text-gray-700 dark:text-slate-300">
+              No available sets found
+            </p>
+            <p className="mt-2 text-gray-500 dark:text-slate-400">
+              Try switching to &quot;All Sets&quot; to see older and out-of-print sets.
+            </p>
+            <button
+              onClick={() => setAvailabilityFilter('all')}
+              className="mt-4 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 transition-colors"
+            >
+              Show All Sets
+            </button>
           </div>
         )}
       </div>

@@ -940,3 +940,9 @@
 **Files:** src/app/globals.css, src/components/dashboard/KidDashboard.tsx
 **Commit:** ade4488, e31a63e
 ---
+## CD-m1f - Add set availability/recency filter to Browse Sets
+**Status:** Completed
+**Changes:** Verified existing implementation of availability filter with toggle UI, per-game release date logic, and default to "available" sets
+**Files:** src/components/sets/AvailabilityFilter.tsx, src/app/sets/page.tsx
+**Commit:** Feature was already implemented - verification only
+---
