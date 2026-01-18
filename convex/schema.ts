@@ -540,6 +540,9 @@ export default defineSchema({
     // Collection Preferences
     variantAwareCompletion: v.optional(v.boolean()), // If true, count each variant separately for set completion (default: false = unique cards only)
 
+    // Price Visibility (Parent Control)
+    hidePrices: v.optional(v.boolean()), // If true, hide all price-related content for this profile (default: false = show prices)
+
     // Metadata
     updatedAt: v.number(), // Unix timestamp of last update
     updatedBy: v.optional(v.id('profiles')), // Which profile last updated settings

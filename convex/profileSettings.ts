@@ -81,6 +81,7 @@ export const getProfileSettings = query({
         profileId: args.profileId,
         sleepSchedule: DEFAULT_SLEEP_SCHEDULE,
         sleepPinSet: false,
+        hidePrices: false, // Default: show prices
         exists: false,
       };
     }
@@ -95,6 +96,7 @@ export const getProfileSettings = query({
         endMinute: settings.sleepEndMinute ?? DEFAULT_SLEEP_SCHEDULE.endMinute,
       },
       sleepPinSet: !!settings.sleepPinHash,
+      hidePrices: settings.hidePrices ?? false, // Default: show prices
       exists: true,
       updatedAt: settings.updatedAt,
       updatedBy: settings.updatedBy,
@@ -468,5 +470,132 @@ export const toggleSleepMode = mutation({
     });
 
     return { enabled: true };
+  },
+});
+
+// =============================================================================
+// PRICE VISIBILITY SETTINGS
+// =============================================================================
+
+/**
+ * Set hide prices preference for a profile
+ * This is a parent-controlled setting - only parent profiles can modify it
+ *
+ * @param targetProfileId - The profile to set the setting for
+ * @param hidePrices - Whether to hide prices for this profile
+ * @param callerProfileId - The profile making the request (must be a parent)
+ */
+export const setHidePrices = mutation({
+  args: {
+    targetProfileId: v.id('profiles'),
+    hidePrices: v.boolean(),
+    callerProfileId: v.id('profiles'),
+  },
+  handler: async (ctx, args) => {
+    // Get the caller's profile to verify they are a parent
+    const callerProfile = await ctx.db.get(args.callerProfileId);
+    if (!callerProfile) {
+      throw new Error('Caller profile not found');
+    }
+
+    if (callerProfile.profileType !== 'parent') {
+      throw new Error('Only parent profiles can modify the hide prices setting');
+    }
+
+    // Get the target profile to verify it exists and is in the same family
+    const targetProfile = await ctx.db.get(args.targetProfileId);
+    if (!targetProfile) {
+      throw new Error('Target profile not found');
+    }
+
+    // Verify both profiles are in the same family
+    if (callerProfile.familyId !== targetProfile.familyId) {
+      throw new Error('Cannot modify settings for profiles in another family');
+    }
+
+    // Get or create settings for the target profile
+    const existing = await ctx.db
+      .query('profileSettings')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.targetProfileId))
+      .unique();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        hidePrices: args.hidePrices,
+        updatedAt: Date.now(),
+        updatedBy: args.callerProfileId,
+      });
+      return {
+        action: 'updated' as const,
+        targetProfileId: args.targetProfileId,
+        hidePrices: args.hidePrices,
+      };
+    }
+
+    // Create new settings record with hidePrices
+    await ctx.db.insert('profileSettings', {
+      profileId: args.targetProfileId,
+      hidePrices: args.hidePrices,
+      updatedAt: Date.now(),
+      updatedBy: args.callerProfileId,
+    });
+
+    return {
+      action: 'created' as const,
+      targetProfileId: args.targetProfileId,
+      hidePrices: args.hidePrices,
+    };
+  },
+});
+
+/**
+ * Get hide prices setting for a profile
+ * Returns default value (false = show prices) if no setting exists
+ */
+export const getHidePrices = query({
+  args: {
+    profileId: v.id('profiles'),
+  },
+  handler: async (ctx, args) => {
+    const settings = await ctx.db
+      .query('profileSettings')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .unique();
+
+    return {
+      profileId: args.profileId,
+      hidePrices: settings?.hidePrices ?? false,
+    };
+  },
+});
+
+/**
+ * Get hide prices settings for multiple profiles (useful for parent view)
+ */
+export const getChildrenHidePricesSettings = query({
+  args: {
+    profileIds: v.array(v.id('profiles')),
+  },
+  handler: async (ctx, args) => {
+    const results = await Promise.all(
+      args.profileIds.map(async (profileId) => {
+        const settings = await ctx.db
+          .query('profileSettings')
+          .withIndex('by_profile', (q) => q.eq('profileId', profileId))
+          .unique();
+
+        // Get profile info
+        const profile = await ctx.db.get(profileId);
+
+        return {
+          profileId,
+          profileName: profile?.displayName ?? 'Unknown',
+          profileType: profile?.profileType,
+          hidePrices: settings?.hidePrices ?? false,
+        };
+      })
+    );
+
+    return results;
   },
 });

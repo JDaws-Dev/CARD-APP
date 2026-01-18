@@ -1399,3 +1399,13 @@
 **Files:** src/app/terms/page.tsx, src/app/privacy/page.tsx
 **Commit:** b927920
 ---
+
+# Ralph Session 2026-01-18 16:15:47
+# Scope: Working on: **all open issues**
+
+## CD-0mz.1 - Sub-task 1: Add hidePrices field to database schema and create queries/mutations
+**Status:** Completed
+**Changes:** Added hidePrices field to profileSettings schema, updated getProfileSettings query to return the value, created setHidePrices mutation with parent permission checks, added getHidePrices and getChildrenHidePricesSettings queries
+**Files:** convex/schema.ts, convex/profileSettings.ts
+**Commit:** 59e1df1
+---
