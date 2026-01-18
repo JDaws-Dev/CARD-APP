@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { JsonLD } from '@/components/JsonLD';
+import { generateFAQPageSchema, DEFAULT_CARDDEX_FAQS } from '@/lib/structured-data';
 
 export const metadata: Metadata = {
   title: 'Learn to Collect | CardDex',
@@ -7,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function LearnLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <JsonLD data={generateFAQPageSchema(DEFAULT_CARDDEX_FAQS)} />
+      {children}
+    </>
+  );
 }

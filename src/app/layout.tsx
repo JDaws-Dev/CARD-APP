@@ -25,6 +25,8 @@ import { AuthAwareHeader } from '@/components/layout/AuthAwareHeader';
 import { AuthAwareFooter } from '@/components/layout/AuthAwareFooter';
 import { AuthAwareMobileGameBar } from '@/components/layout/AuthAwareMobileGameBar';
 import { LiveRegionProvider } from '@/components/accessibility/LiveRegion';
+import { JsonLD } from '@/components/JsonLD';
+import { generateSoftwareApplicationSchema } from '@/lib/structured-data';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -61,6 +63,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <JsonLD data={generateSoftwareApplicationSchema()} />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ConvexClientProvider>
           <DarkModeProvider>

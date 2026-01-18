@@ -13,6 +13,8 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/utils';
 import { GAMES, type GameId } from '@/lib/gameSelector';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
+import { JsonLD } from '@/components/JsonLD';
+import { generateBreadcrumbListSchema } from '@/lib/structured-data';
 
 type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
@@ -148,8 +150,16 @@ export default function SetDetailPage({ params }: SetDetailPageProps) {
     );
   }
 
+  // Generate breadcrumb schema for JSON-LD
+  const breadcrumbItems = [
+    { name: 'Home', url: '/dashboard' },
+    { name: `${game?.name || 'Browse'} Sets`, url: `/sets?game=${gameSlug}` },
+    { name: currentSet.name, url: `/sets/${params.setId}?game=${gameSlug}` },
+  ];
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-indigo-50 to-purple-50 px-4 py-8 dark:from-slate-900 dark:to-slate-800">
+      <JsonLD data={generateBreadcrumbListSchema(breadcrumbItems)} />
       <div className="mx-auto max-w-7xl">
         {/* Breadcrumb navigation */}
         <Breadcrumb
