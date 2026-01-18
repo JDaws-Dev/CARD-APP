@@ -538,6 +538,16 @@ export default defineSchema({
   profileSettings: defineTable({
     profileId: v.id('profiles'), // One settings record per profile
 
+    // Game Selection (per-profile)
+    primaryGame: v.optional(
+      v.union(
+        v.literal('pokemon'),
+        v.literal('yugioh'),
+        v.literal('onepiece'),
+        v.literal('lorcana')
+      )
+    ), // Currently selected primary game for this profile
+
     // Sleep Schedule (per-child)
     sleepEnabled: v.optional(v.boolean()), // Whether sleep mode is enabled
     sleepStartHour: v.optional(v.number()), // 0-23 (e.g., 20 = 8 PM)

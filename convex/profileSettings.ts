@@ -1,11 +1,35 @@
 /**
  * Profile Settings queries and mutations
  *
- * Manages per-profile settings like sleep schedules.
+ * Manages per-profile settings like sleep schedules and game selection.
  * Allows different settings for each child profile.
  */
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+
+// =============================================================================
+// GAME SELECTION TYPES
+// =============================================================================
+
+/**
+ * Valid game slugs matching the schema definition
+ */
+export type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
+
+/**
+ * Game slug validator for use in queries/mutations
+ */
+const gameSlugValidator = v.union(
+  v.literal('pokemon'),
+  v.literal('yugioh'),
+  v.literal('onepiece'),
+  v.literal('lorcana')
+);
+
+/**
+ * Default primary game for new profiles
+ */
+const DEFAULT_PRIMARY_GAME: GameSlug = 'pokemon';
 
 // =============================================================================
 // TYPES
@@ -79,6 +103,27 @@ export const getProfileSettings = query({
 });
 
 /**
+ * Get primary game for a profile
+ * Returns default value (pokemon) if no setting exists
+ */
+export const getPrimaryGame = query({
+  args: {
+    profileId: v.id('profiles'),
+  },
+  handler: async (ctx, args) => {
+    const settings = await ctx.db
+      .query('profileSettings')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .unique();
+
+    return {
+      profileId: args.profileId,
+      primaryGame: (settings?.primaryGame as GameSlug) ?? DEFAULT_PRIMARY_GAME,
+    };
+  },
+});
+
+/**
  * Get sleep settings for multiple profiles (useful for parent view)
  */
 export const getChildrenSleepSettings = query({
@@ -121,6 +166,48 @@ export const getChildrenSleepSettings = query({
 // =============================================================================
 // MUTATIONS
 // =============================================================================
+
+/**
+ * Set primary game for a profile
+ * Creates settings record if it doesn't exist
+ */
+export const setPrimaryGame = mutation({
+  args: {
+    profileId: v.id('profiles'),
+    primaryGame: gameSlugValidator,
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query('profileSettings')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .unique();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        primaryGame: args.primaryGame,
+        updatedAt: Date.now(),
+      });
+      return {
+        action: 'updated' as const,
+        profileId: args.profileId,
+        primaryGame: args.primaryGame,
+      };
+    }
+
+    // Create new settings record with primary game
+    await ctx.db.insert('profileSettings', {
+      profileId: args.profileId,
+      primaryGame: args.primaryGame,
+      updatedAt: Date.now(),
+    });
+
+    return {
+      action: 'created' as const,
+      profileId: args.profileId,
+      primaryGame: args.primaryGame,
+    };
+  },
+});
 
 /**
  * Update sleep schedule for a profile
