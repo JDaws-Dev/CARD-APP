@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import { CardImage } from '@/components/ui/CardImage';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import type { Id } from '../../../convex/_generated/dataModel';
