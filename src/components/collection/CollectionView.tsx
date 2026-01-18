@@ -158,6 +158,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
 
   // Get current profile for mutations
   const { profileId } = useCurrentProfile();
+  const { primaryGame } = useGameSelector();
 
   // Mutations for quick actions
   const removeCardMutation = useMutation(api.collections.removeCard);
@@ -543,13 +544,13 @@ export function CollectionView({ collection }: CollectionViewProps) {
         await addToWishlistMutation({
           profileId: profileId as Id<'profiles'>,
           cardId,
-          gameSlug: 'pokemon',
+          gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana',
         });
       } finally {
         setIsAddingToWishlist(false);
       }
     },
-    [profileId, addToWishlistMutation]
+    [profileId, addToWishlistMutation, primaryGame.id]
   );
 
   const handleEditQuantity = useCallback(

@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { CardStoryModal } from '@/components/ai/CardStoryModal';
 import { CardImage } from '@/components/ui/CardImage';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import {
   XMarkIcon,
@@ -108,6 +109,9 @@ export function CardDetailModal({
   isRemoving = false,
   isAddingToWishlist = false,
 }: CardDetailModalProps) {
+  // Get game context
+  const { primaryGame } = useGameSelector();
+
   // State for CardStoryModal
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
 
@@ -493,7 +497,7 @@ export function CardDetailModal({
         card={card}
         isOpen={isStoryModalOpen}
         onClose={() => setIsStoryModalOpen(false)}
-        gameSlug="pokemon"
+        gameSlug={primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana'}
       />
     </div>
   );
