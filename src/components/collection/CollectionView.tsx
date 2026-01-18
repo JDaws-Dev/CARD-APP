@@ -14,8 +14,6 @@ import { ErrorFallback } from '@/components/ui/ErrorBoundary';
 import {
   CurrencyDollarIcon,
   SparklesIcon,
-  TrophyIcon,
-  FireIcon,
   ArrowRightIcon,
   MagnifyingGlassPlusIcon,
   Squares2X2Icon,
@@ -417,28 +415,6 @@ export function CollectionView({ collection }: CollectionViewProps) {
     return { total, cardsWithPrice, cardsWithoutPrice };
   }, [collection, cardData]);
 
-  // Get top 5 most valuable cards
-  const mostValuableCards = useMemo(() => {
-    const cardsWithPrices: {
-      card: PokemonCard;
-      price: number;
-      quantity: number;
-      collectionId: string;
-    }[] = [];
-
-    collection.forEach((item) => {
-      const card = cardData.get(item.cardId);
-      if (card) {
-        const price = getCardMarketPrice(card);
-        if (price !== null && price > 0) {
-          cardsWithPrices.push({ card, price, quantity: item.quantity, collectionId: item._id });
-        }
-      }
-    });
-
-    // Sort by price (highest first) and take top 5
-    return cardsWithPrices.sort((a, b) => b.price - a.price).slice(0, 5);
-  }, [collection, cardData]);
 
   // All cards for binder view - aggregated by cardId with variant info
   const allCardsForBinder = useMemo(() => {

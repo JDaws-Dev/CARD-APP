@@ -732,3 +732,22 @@
 **Files:** src/lib/profileGames.ts, src/lib/wishlist.ts, src/lib/unified-api-evaluation.ts, src/app/api/*/route.ts, src/lib/__tests__/profileGames.test.ts
 **Commit:** 5319999
 ---
+## CD-xzy - Remove all MTG references from codebase
+**Status:** Completed
+**Changes:** Removed MTG, Digimon, and DragonBall references from source files and tests. Updated GameSlug type to only support 4 games (pokemon, yugioh, onepiece, lorcana). Fixed remaining tradeAdvisor test that expected 7 games.
+**Files:** 
+- src/lib/profileGames.ts
+- src/lib/wishlist.ts
+- src/lib/unified-api-evaluation.ts
+- src/app/api/cards/route.ts
+- src/app/api/search/route.ts
+- src/lib/__tests__/profileGames.test.ts
+- src/lib/__tests__/wishlist.test.ts
+- src/lib/__tests__/tradeAdvisor.test.ts
+- src/lib/__tests__/quizGenerator.test.ts
+- src/lib/__tests__/recommendations.test.ts
+- src/lib/__tests__/shoppingAssistant.test.ts
+- src/lib/__tests__/conditionGrader.test.ts
+- src/lib/__tests__/suspiciousAccessLog.test.ts
+**Commit:** b98467c
+---
