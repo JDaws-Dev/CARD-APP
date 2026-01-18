@@ -726,8 +726,9 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
   const totalCount = cards.length;
   const progressPercent = totalCount > 0 ? Math.round((ownedCount / totalCount) * 100) : 0;
 
-  // Track set completion
+  // Track set completion and check set completion achievements
   useSetCompletionTracker({
+    profileId,
     setId,
     setName: setName ?? 'Set',
     totalCardsInSet: totalCount,

@@ -502,21 +502,24 @@ export function MilestoneProvider({ children }: MilestoneProviderProps) {
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
 
-  const checkMilestoneAchievements = useMutation(api.achievements.checkMilestoneAchievements);
+  // Use checkAllAchievements to check ALL achievement types (milestones, type specialist, pokemon fan, streak)
+  const checkAllAchievements = useMutation(api.achievements.checkAllAchievements);
 
   const checkForMilestone = useCallback(async () => {
     if (!profileId || milestoneProgress === undefined) return;
 
     try {
-      const result = await checkMilestoneAchievements({
+      // Check all achievement types at once
+      const result = await checkAllAchievements({
         profileId: profileId as Id<'profiles'>,
       });
 
-      // If any new milestones were awarded, show celebration for the highest one
+      // If any new achievements were awarded, show celebration for milestone achievements
       if (result.awarded && result.awarded.length > 0) {
-        // Find the highest threshold milestone that was just awarded
+        // Find milestone achievements that were just awarded
         const awardedMilestones = result.awarded
-          .map((key: string) => MILESTONE_DEFINITIONS.find((m) => m.key === key))
+          .filter((a: { type: string }) => a.type === 'collector_milestone')
+          .map((a: { key: string }) => MILESTONE_DEFINITIONS.find((m) => m.key === a.key))
           .filter(Boolean) as MilestoneDefinition[];
 
         if (awardedMilestones.length > 0) {
@@ -535,9 +538,9 @@ export function MilestoneProvider({ children }: MilestoneProviderProps) {
         }
       }
     } catch {
-      // Silently fail - milestone check is not critical
+      // Silently fail - achievement check is not critical
     }
-  }, [profileId, milestoneProgress, checkMilestoneAchievements]);
+  }, [profileId, milestoneProgress, checkAllAchievements]);
 
   // Watch for card count changes and trigger celebrations
   useEffect(() => {

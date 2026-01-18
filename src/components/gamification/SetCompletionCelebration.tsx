@@ -9,6 +9,9 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
+import { useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import type { Id } from '../../../convex/_generated/dataModel';
 import { TrophyIcon, SparklesIcon, StarIcon, CheckBadgeIcon } from '@heroicons/react/24/solid';
 import { cn } from '@/lib/utils';
 
@@ -416,6 +419,7 @@ export function SetCompletionProvider({ children }: SetCompletionProviderProps) 
 // ============================================================================
 
 interface UseSetCompletionTrackerProps {
+  profileId?: string | null;
   setId: string;
   setName: string;
   totalCardsInSet: number;
@@ -426,9 +430,11 @@ interface UseSetCompletionTrackerProps {
 
 /**
  * Hook to track set completion and trigger celebration when 100% is reached.
+ * Also triggers achievement checks for set completion badges (25%, 50%, 75%, 100%).
  * Should be used in components that display set collection progress.
  */
 export function useSetCompletionTracker({
+  profileId,
   setId,
   setName,
   totalCardsInSet,
@@ -437,6 +443,9 @@ export function useSetCompletionTracker({
   setLogoUrl,
 }: UseSetCompletionTrackerProps) {
   const { celebrateSetCompletion } = useSetCompletionCelebration();
+  const checkSetCompletionAchievements = useMutation(
+    api.achievements.checkSetCompletionAchievements
+  );
   const previousOwnedCountRef = useRef<number | null>(null);
   const hasCelebratedRef = useRef(false);
 
@@ -466,8 +475,20 @@ export function useSetCompletionTracker({
       });
     }
 
+    // Check set completion achievements when owned count increases
+    // This awards badges for 25%, 50%, 75%, 100% completion
+    if (profileId && ownedCount > (previousOwnedCountRef.current ?? 0)) {
+      checkSetCompletionAchievements({
+        profileId: profileId as Id<'profiles'>,
+        setId,
+      }).catch(() => {
+        // Silently fail - achievement check is not critical
+      });
+    }
+
     previousOwnedCountRef.current = ownedCount;
   }, [
+    profileId,
     ownedCount,
     totalCardsInSet,
     setId,
@@ -475,5 +496,6 @@ export function useSetCompletionTracker({
     setSymbolUrl,
     setLogoUrl,
     celebrateSetCompletion,
+    checkSetCompletionAchievements,
   ]);
 }

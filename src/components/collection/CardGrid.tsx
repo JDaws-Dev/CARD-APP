@@ -588,8 +588,9 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
   const totalCount = cards.length;
   const progressPercent = totalCount > 0 ? Math.round((ownedCount / totalCount) * 100) : 0;
 
-  // Track set completion and trigger celebration at 100%
+  // Track set completion, trigger celebration at 100%, and check set completion achievements
   useSetCompletionTracker({
+    profileId,
     setId,
     setName: setName ?? 'Set',
     totalCardsInSet: totalCount,

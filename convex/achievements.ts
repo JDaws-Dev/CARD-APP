@@ -2066,3 +2066,398 @@ export const getSetCompletionProgress = query({
     };
   },
 });
+
+// ============================================================================
+// UNIFIED ACHIEVEMENT CHECK
+// ============================================================================
+
+/**
+ * Check all achievement types at once and award any newly earned badges.
+ * This is the primary mutation that should be called after adding/removing cards.
+ *
+ * Checks: milestones, type specialist, pokemon fan, and streak achievements.
+ * For set completion, call checkSetCompletionAchievements with the specific setId.
+ *
+ * @param profileId - The profile to check achievements for
+ * @param setId - Optional setId to also check set completion achievements
+ * @returns Object with all awarded achievements and progress information
+ */
+export const checkAllAchievements = mutation({
+  args: {
+    profileId: v.id('profiles'),
+    setId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const allAwarded: Array<{
+      key: string;
+      type: string;
+      name: string;
+    }> = [];
+
+    // Get all cards in the collection (used by multiple checks)
+    const collectionCards = await ctx.db
+      .query('collectionCards')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    // Count unique cardIds
+    const uniqueCardIds = new Set(collectionCards.map((c) => c.cardId));
+    const totalUniqueCards = uniqueCardIds.size;
+
+    // ========================================================================
+    // 1. CHECK MILESTONE ACHIEVEMENTS
+    // ========================================================================
+    for (const milestone of MILESTONE_BADGES) {
+      if (totalUniqueCards >= milestone.threshold) {
+        const existing = await ctx.db
+          .query('achievements')
+          .withIndex('by_profile_and_key', (q) =>
+            q.eq('profileId', args.profileId).eq('achievementKey', milestone.key)
+          )
+          .first();
+
+        if (!existing) {
+          await ctx.db.insert('achievements', {
+            profileId: args.profileId,
+            achievementType: 'collector_milestone',
+            achievementKey: milestone.key,
+            achievementData: { totalCards: totalUniqueCards, threshold: milestone.threshold },
+            earnedAt: Date.now(),
+          });
+
+          await ctx.db.insert('activityLogs', {
+            profileId: args.profileId,
+            action: 'achievement_earned',
+            metadata: {
+              achievementKey: milestone.key,
+              achievementName: milestone.name,
+              achievementType: 'collector_milestone',
+              totalCards: totalUniqueCards,
+              threshold: milestone.threshold,
+            },
+            timestamp: Date.now(),
+          });
+
+          allAwarded.push({
+            key: milestone.key,
+            type: 'collector_milestone',
+            name: milestone.name,
+          });
+        }
+      }
+    }
+
+    // ========================================================================
+    // 2. CHECK TYPE SPECIALIST ACHIEVEMENTS
+    // ========================================================================
+    // Fetch cached card data to get types for each card
+    const typeCounts: Record<string, number> = {};
+    for (const cardId of uniqueCardIds) {
+      const cachedCard = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+        .first();
+
+      if (cachedCard && cachedCard.types) {
+        for (const type of cachedCard.types) {
+          typeCounts[type] = (typeCounts[type] ?? 0) + 1;
+        }
+      }
+    }
+
+    for (const badge of TYPE_SPECIALIST_BADGES) {
+      const count = typeCounts[badge.type] ?? 0;
+
+      if (count >= TYPE_SPECIALIST_THRESHOLD) {
+        const existing = await ctx.db
+          .query('achievements')
+          .withIndex('by_profile_and_key', (q) =>
+            q.eq('profileId', args.profileId).eq('achievementKey', badge.key)
+          )
+          .first();
+
+        if (!existing) {
+          await ctx.db.insert('achievements', {
+            profileId: args.profileId,
+            achievementType: 'type_specialist',
+            achievementKey: badge.key,
+            achievementData: {
+              type: badge.type,
+              count,
+              threshold: TYPE_SPECIALIST_THRESHOLD,
+            },
+            earnedAt: Date.now(),
+          });
+
+          await ctx.db.insert('activityLogs', {
+            profileId: args.profileId,
+            action: 'achievement_earned',
+            metadata: {
+              achievementKey: badge.key,
+              achievementName: badge.name,
+              achievementType: 'type_specialist',
+              pokemonType: badge.type,
+              count,
+              threshold: TYPE_SPECIALIST_THRESHOLD,
+            },
+            timestamp: Date.now(),
+          });
+
+          allAwarded.push({
+            key: badge.key,
+            type: 'type_specialist',
+            name: badge.name,
+          });
+        }
+      }
+    }
+
+    // ========================================================================
+    // 3. CHECK POKEMON FAN ACHIEVEMENTS
+    // ========================================================================
+    const pokemonCounts: Record<string, number> = {
+      Pikachu: 0,
+      Eevee: 0,
+      Charizard: 0,
+      Mewtwo: 0,
+      Legendary: 0,
+    };
+
+    for (const cardId of uniqueCardIds) {
+      const cachedCard = await ctx.db
+        .query('cachedCards')
+        .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+        .first();
+
+      if (cachedCard) {
+        const cardName = cachedCard.name;
+
+        if (matchesPokemonName(cardName, 'Pikachu')) {
+          pokemonCounts.Pikachu++;
+        }
+        if (isEeveelution(cardName)) {
+          pokemonCounts.Eevee++;
+        }
+        if (matchesPokemonName(cardName, 'Charizard')) {
+          pokemonCounts.Charizard++;
+        }
+        if (matchesPokemonName(cardName, 'Mewtwo')) {
+          pokemonCounts.Mewtwo++;
+        }
+        if (isLegendaryPokemon(cardName)) {
+          pokemonCounts.Legendary++;
+        }
+      }
+    }
+
+    for (const badge of POKEMON_FAN_BADGES) {
+      const count = pokemonCounts[badge.pokemon] ?? 0;
+
+      if (count >= badge.threshold) {
+        const existing = await ctx.db
+          .query('achievements')
+          .withIndex('by_profile_and_key', (q) =>
+            q.eq('profileId', args.profileId).eq('achievementKey', badge.key)
+          )
+          .first();
+
+        if (!existing) {
+          await ctx.db.insert('achievements', {
+            profileId: args.profileId,
+            achievementType: 'pokemon_fan',
+            achievementKey: badge.key,
+            achievementData: {
+              pokemon: badge.pokemon,
+              count,
+              threshold: badge.threshold,
+            },
+            earnedAt: Date.now(),
+          });
+
+          await ctx.db.insert('activityLogs', {
+            profileId: args.profileId,
+            action: 'achievement_earned',
+            metadata: {
+              achievementKey: badge.key,
+              achievementName: badge.name,
+              achievementType: 'pokemon_fan',
+              pokemon: badge.pokemon,
+              count,
+              threshold: badge.threshold,
+            },
+            timestamp: Date.now(),
+          });
+
+          allAwarded.push({
+            key: badge.key,
+            type: 'pokemon_fan',
+            name: badge.name,
+          });
+        }
+      }
+    }
+
+    // ========================================================================
+    // 4. CHECK STREAK ACHIEVEMENTS
+    // ========================================================================
+    const sixtyDaysAgo = Date.now() - 60 * 24 * 60 * 60 * 1000;
+
+    const logs = await ctx.db
+      .query('activityLogs')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .collect();
+
+    const recentCardAdds = logs.filter(
+      (log) => log._creationTime >= sixtyDaysAgo && log.action === 'card_added'
+    );
+
+    const uniqueDates = new Set<string>();
+    for (const log of recentCardAdds) {
+      const date = new Date(log._creationTime);
+      const dateStr = date.toISOString().split('T')[0];
+      uniqueDates.add(dateStr);
+    }
+
+    const activityDates = Array.from(uniqueDates).sort();
+    const streakInfo = calculateStreakFromDates(activityDates);
+
+    for (const badge of STREAK_BADGES) {
+      if (streakInfo.currentStreak >= badge.threshold) {
+        const existing = await ctx.db
+          .query('achievements')
+          .withIndex('by_profile_and_key', (q) =>
+            q.eq('profileId', args.profileId).eq('achievementKey', badge.key)
+          )
+          .first();
+
+        if (!existing) {
+          await ctx.db.insert('achievements', {
+            profileId: args.profileId,
+            achievementType: 'streak',
+            achievementKey: badge.key,
+            achievementData: {
+              streakDays: streakInfo.currentStreak,
+              threshold: badge.threshold,
+              lastActiveDate: streakInfo.lastActiveDate,
+            },
+            earnedAt: Date.now(),
+          });
+
+          await ctx.db.insert('activityLogs', {
+            profileId: args.profileId,
+            action: 'achievement_earned',
+            metadata: {
+              achievementKey: badge.key,
+              achievementName: badge.name,
+              achievementType: 'streak',
+              streakDays: streakInfo.currentStreak,
+              threshold: badge.threshold,
+            },
+            timestamp: Date.now(),
+          });
+
+          allAwarded.push({
+            key: badge.key,
+            type: 'streak',
+            name: badge.name,
+          });
+        }
+      }
+    }
+
+    // ========================================================================
+    // 5. CHECK SET COMPLETION ACHIEVEMENTS (if setId provided)
+    // ========================================================================
+    if (args.setId) {
+      const cachedSet = await ctx.db
+        .query('cachedSets')
+        .withIndex('by_set_id', (q) => q.eq('setId', args.setId!))
+        .first();
+
+      if (cachedSet && cachedSet.totalCards > 0) {
+        const setPrefix = args.setId + '-';
+        const cardsOwnedInSet = new Set<string>();
+        for (const card of collectionCards) {
+          if (card.cardId.startsWith(setPrefix)) {
+            cardsOwnedInSet.add(card.cardId);
+          }
+        }
+
+        const completionPercentage = Math.round(
+          (cardsOwnedInSet.size / cachedSet.totalCards) * 100
+        );
+
+        for (const badge of SET_COMPLETION_BADGES) {
+          if (completionPercentage >= badge.threshold) {
+            const achievementKey = `${args.setId}_${badge.key}`;
+
+            const existing = await ctx.db
+              .query('achievements')
+              .withIndex('by_profile_and_key', (q) =>
+                q.eq('profileId', args.profileId).eq('achievementKey', achievementKey)
+              )
+              .first();
+
+            if (!existing) {
+              const badgeDef = ACHIEVEMENT_DEFINITIONS[badge.key];
+
+              await ctx.db.insert('achievements', {
+                profileId: args.profileId,
+                achievementType: 'set_completion',
+                achievementKey: achievementKey,
+                achievementData: {
+                  setId: args.setId,
+                  setName: cachedSet.name,
+                  cardsOwned: cardsOwnedInSet.size,
+                  totalCards: cachedSet.totalCards,
+                  completionPercentage,
+                  threshold: badge.threshold,
+                },
+                earnedAt: Date.now(),
+              });
+
+              await ctx.db.insert('activityLogs', {
+                profileId: args.profileId,
+                action: 'achievement_earned',
+                metadata: {
+                  achievementKey: achievementKey,
+                  achievementName: badgeDef?.name ?? badge.key,
+                  achievementType: 'set_completion',
+                  setId: args.setId,
+                  setName: cachedSet.name,
+                  completionPercentage,
+                  threshold: badge.threshold,
+                },
+                timestamp: Date.now(),
+              });
+
+              allAwarded.push({
+                key: achievementKey,
+                type: 'set_completion',
+                name: `${cachedSet.name} - ${badgeDef?.name ?? badge.key}`,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // Calculate next milestones for return value
+    const nextMilestone = MILESTONE_BADGES.find((m) => totalUniqueCards < m.threshold);
+
+    return {
+      awarded: allAwarded,
+      totalAwarded: allAwarded.length,
+      totalUniqueCards,
+      currentStreak: streakInfo.currentStreak,
+      nextMilestone: nextMilestone
+        ? {
+            key: nextMilestone.key,
+            name: nextMilestone.name,
+            threshold: nextMilestone.threshold,
+            cardsNeeded: nextMilestone.threshold - totalUniqueCards,
+          }
+        : null,
+    };
+  },
+});
