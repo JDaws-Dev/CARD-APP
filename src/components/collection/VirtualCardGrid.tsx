@@ -181,23 +181,49 @@ function CardAddedCelebration({
   card: PokemonCard;
   onAnimationEnd: () => void;
 }) {
+  // Handle click anywhere to dismiss
+  const handleClick = useCallback(() => {
+    onAnimationEnd();
+  }, [onAnimationEnd]);
+
+  // Handle escape key to dismiss
   useEffect(() => {
-    const timer = setTimeout(onAnimationEnd, 1500);
-    return () => clearTimeout(timer);
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        onAnimationEnd();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onAnimationEnd]);
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/50"
+      onClick={handleClick}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${card.name} added to collection. Click to dismiss.`}
+    >
       <div className="animate-just-pulled-pop relative">
-        <div className="relative h-64 w-44 overflow-hidden rounded-xl shadow-2xl ring-4 ring-kid-success">
-          <CardImage src={card.images.small} alt={card.name} fill className="object-contain" />
+        {/* Enlarged card image using imageLarge */}
+        <div className="relative h-[420px] w-[300px] overflow-hidden rounded-xl shadow-2xl ring-4 ring-kid-success sm:h-[560px] sm:w-[400px]">
+          <CardImage
+            src={card.images.large || card.images.small}
+            alt={card.name}
+            fill
+            className="object-contain"
+          />
         </div>
-        <div className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-kid-success text-white shadow-lg">
-          <CheckIcon className="h-6 w-6" strokeWidth={3} />
+        <div className="absolute -right-2 -top-2 flex h-12 w-12 items-center justify-center rounded-full bg-kid-success text-white shadow-lg">
+          <CheckIcon className="h-7 w-7" strokeWidth={3} />
         </div>
-        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-kid-success px-4 py-1 text-sm font-bold text-white shadow-lg">
+        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-kid-success px-5 py-2 text-base font-bold text-white shadow-lg">
           Added!
         </div>
+        <p className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm text-white/80">
+          Tap anywhere to close
+        </p>
       </div>
     </div>
   );

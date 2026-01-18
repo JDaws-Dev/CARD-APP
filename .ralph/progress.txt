@@ -268,3 +268,9 @@
 **Files:** src/app/globals.css, src/components/collection/VirtualCardGrid.tsx, src/app/sets/[setId]/page.tsx
 **Commit:** 3b2083f
 ---
+## CD-3l7 - Sets Page - Enlarged card on add
+**Status:** Completed
+**Changes:** Modified CardAddedCelebration component to show enlarged imageLarge that stays visible until clicked away. Changed from 1.5s auto-dismiss to click-to-dismiss modal with semi-transparent backdrop.
+**Files:** src/components/collection/VirtualCardGrid.tsx
+**Commit:** See below
+---
