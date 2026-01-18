@@ -22,7 +22,6 @@ import {
   TrophyIcon,
   StarIcon as StarIconSolid,
   CurrencyDollarIcon,
-  SparklesIcon,
   CheckCircleIcon,
   BoltIcon,
 } from '@heroicons/react/24/solid';
@@ -34,55 +33,7 @@ import { useKidMode } from '@/components/providers/KidModeProvider';
 import { useSetCompletionTracker } from '@/components/gamification/SetCompletionCelebration';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import { CardFlipModal } from './FlippableCard';
-import { getVariantConfig } from '@/components/ui/VariantBadge';
-
-// Variant type definition
-type CardVariant =
-  | 'normal'
-  | 'holofoil'
-  | 'reverseHolofoil'
-  | '1stEditionHolofoil'
-  | '1stEditionNormal';
-
-// Variant display configuration
-const VARIANT_CONFIG: Record<
-  CardVariant,
-  {
-    label: string;
-    shortLabel: string;
-    gradient: string;
-    icon?: React.ComponentType<{ className?: string }>;
-  }
-> = {
-  normal: {
-    label: 'Normal',
-    shortLabel: 'N',
-    gradient: 'from-gray-400 to-gray-500',
-  },
-  holofoil: {
-    label: 'Holofoil',
-    shortLabel: 'H',
-    gradient: 'from-purple-400 to-indigo-500',
-    icon: SparklesIcon,
-  },
-  reverseHolofoil: {
-    label: 'Reverse Holo',
-    shortLabel: 'R',
-    gradient: 'from-cyan-400 to-blue-500',
-    icon: SparklesIcon,
-  },
-  '1stEditionHolofoil': {
-    label: '1st Ed. Holo',
-    shortLabel: '1H',
-    gradient: 'from-amber-400 to-yellow-500',
-    icon: SparklesIcon,
-  },
-  '1stEditionNormal': {
-    label: '1st Edition',
-    shortLabel: '1N',
-    gradient: 'from-amber-400 to-orange-500',
-  },
-};
+import { getVariantConfig, type CardVariant } from '@/components/ui/VariantBadge';
 
 // Get available variants from a card's availableVariants field or tcgplayer prices
 // Now supports all game types (Pokemon, Yu-Gi-Oh, etc.)
@@ -265,7 +216,7 @@ function VariantSelector({
       {/* Variant list */}
       <div className="space-y-2" role="list" aria-label="Available card variants">
         {availableVariants.map((variant) => {
-          const config = VARIANT_CONFIG[variant];
+          const config = getVariantConfig(variant);
           const quantity = ownedVariants.get(variant) ?? 0;
           const price = getVariantPrice(card, variant);
           const Icon = config.icon;
