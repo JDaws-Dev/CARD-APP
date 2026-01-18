@@ -502,3 +502,9 @@
 **Files:** convex/schema.ts, convex/dataPopulation.ts, src/app/sets/[setId]/page.tsx
 **Commit:** ce19b34
 ---
+## CD-4d7.2 - Update dashboard page to use game selector
+**Status:** Completed
+**Changes:** Verified that dashboard page was already using game selector. Dashboard page imports useGameSelector hook and passes primaryGame.id to KidDashboard and ChatButton components, and primaryGame.shortName for display text. No code changes required.
+**Files:** src/app/dashboard/page.tsx, src/components/dashboard/KidDashboard.tsx (both already configured correctly)
+**Commit:** N/A (no changes needed)
+---
