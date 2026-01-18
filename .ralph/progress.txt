@@ -1099,3 +1099,9 @@
 **Files:** src/components/tutorials/LearnToCollect.tsx
 **Commit:** bf9e90c
 ---
+## CD-ej7.6 - Update Learn page to show game-appropriate content
+**Status:** Completed
+**Changes:** Made Learn page game-specific by adding useGameSelector, updating title/heading to show current game name, and conditionally showing Pokemon mini-games only when Pokemon is selected
+**Files:** src/app/learn/page.tsx
+**Commit:** 8749d2f
+---
