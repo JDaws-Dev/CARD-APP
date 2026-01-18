@@ -262,14 +262,14 @@ export const COLLECTION_GOALS: readonly CollectionGoalInfo[] = [
     iconName: 'TrophyIcon',
   },
   {
-    id: 'pokemon-focus',
-    name: 'Pokemon Focus',
+    id: 'character-focus',
+    name: 'Character Focus',
     description:
-      'Collect every card featuring your favorite Pokemon across all sets - become the ultimate fan collector!',
-    completion: "All cards featuring your chosen Pokemon (never truly 'complete'!)",
+      'Collect every card featuring your favorite character across all sets - become the ultimate fan collector!',
+    completion: "All cards featuring your chosen character (never truly 'complete'!)",
     difficulty: 'easy',
     advice:
-      "Pick a Pokemon you love and hunt for all their cards. It's a fun way to build a unique collection!",
+      "Pick a character you love and hunt for all their cards. It's a fun way to build a unique collection!",
     iconName: 'HeartIcon',
   },
   {
