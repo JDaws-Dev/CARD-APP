@@ -37,8 +37,13 @@ export type OnePieceVariant =
   | 'promo' // P - Promo
   | 'parallel'; // Parallel/alternate art version
 
+// Lorcana variant type definition - based on foil status
+export type LorcanaVariant =
+  | 'normal' // Standard non-foil version
+  | 'foil'; // Foil version (cold foil/rainbow foil)
+
 // Combined variant type for backwards compatibility
-export type CardVariant = PokemonVariant | YugiohVariant | OnePieceVariant | string;
+export type CardVariant = PokemonVariant | YugiohVariant | OnePieceVariant | LorcanaVariant | string;
 
 // All possible Pokemon variants in display order
 export const ALL_POKEMON_VARIANTS: PokemonVariant[] = [
@@ -76,6 +81,9 @@ export const ALL_ONEPIECE_VARIANTS: OnePieceVariant[] = [
   'promo',
   'parallel',
 ];
+
+// All possible Lorcana variants in display order
+export const ALL_LORCANA_VARIANTS: LorcanaVariant[] = ['normal', 'foil'];
 
 // Legacy export for backwards compatibility
 export const ALL_VARIANTS: CardVariant[] = ALL_POKEMON_VARIANTS;
@@ -349,6 +357,29 @@ export const ONEPIECE_VARIANT_CONFIG: Record<OnePieceVariant, VariantDisplayConf
   },
 };
 
+// Lorcana variant display configuration
+export const LORCANA_VARIANT_CONFIG: Record<LorcanaVariant, VariantDisplayConfig> = {
+  normal: {
+    label: 'Normal',
+    shortLabel: 'N',
+    gradient: 'from-gray-400 to-gray-500',
+    bgOwned: 'bg-gradient-to-r from-gray-400 to-gray-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+  },
+  foil: {
+    label: 'Foil',
+    shortLabel: 'F',
+    gradient: 'from-amber-400 to-yellow-500',
+    bgOwned: 'bg-gradient-to-r from-amber-400 to-yellow-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+};
+
 // Default config for unknown variants
 const DEFAULT_VARIANT_CONFIG: VariantDisplayConfig = {
   label: 'Unknown',
@@ -373,6 +404,10 @@ export function getVariantConfig(variant: string): VariantDisplayConfig {
   // Check One Piece variants
   if (variant in ONEPIECE_VARIANT_CONFIG) {
     return ONEPIECE_VARIANT_CONFIG[variant as OnePieceVariant];
+  }
+  // Check Lorcana variants
+  if (variant in LORCANA_VARIANT_CONFIG) {
+    return LORCANA_VARIANT_CONFIG[variant as LorcanaVariant];
   }
   // Handle alt art variants (Yu-Gi-Oh)
   if (variant.startsWith('alt_art_')) {

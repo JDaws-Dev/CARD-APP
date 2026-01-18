@@ -1525,28 +1525,50 @@ export const populateLorcanaSetCards = internalAction({
         rarity?: string;
         set?: { code: string };
         image_uris?: { digital?: { small?: string; large?: string } };
-        prices?: { usd?: string };
+        prices?: { usd?: string; usd_foil?: string };
       }
 
       const data = await fetchJSON<{ results: LorcanaCard[] }>(
         `https://api.lorcast.com/v0/cards?set=${args.setId}`
       );
 
-      const cards = data.results.map((card) => ({
-        cardId: `${card.set?.code || args.setId}-${card.collector_number}`,
-        gameSlug: 'lorcana' as const,
-        setId: args.setId,
-        name: card.name + (card.subtitle ? ` - ${card.subtitle}` : ''),
-        number: card.collector_number,
-        supertype: card.type?.join('/') || 'Character',
-        subtypes: card.classifications || [],
-        types: card.ink ? [card.ink] : [],
-        rarity: card.rarity,
-        imageSmall: card.image_uris?.digital?.small || '',
-        imageLarge: card.image_uris?.digital?.large || '',
-        tcgPlayerUrl: undefined,
-        priceMarket: card.prices?.usd ? parseFloat(card.prices.usd) : undefined,
-      }));
+      const cards = data.results.map((card) => {
+        // Build availableVariants array based on price data
+        // Lorcana cards have normal and foil versions
+        const availableVariants: string[] = [];
+
+        // All cards have a normal version if they have a price
+        if (card.prices?.usd) {
+          availableVariants.push('normal');
+        }
+
+        // Cards with foil pricing have a foil variant
+        if (card.prices?.usd_foil) {
+          availableVariants.push('foil');
+        }
+
+        // If no price data, default to normal variant
+        if (availableVariants.length === 0) {
+          availableVariants.push('normal');
+        }
+
+        return {
+          cardId: `${card.set?.code || args.setId}-${card.collector_number}`,
+          gameSlug: 'lorcana' as const,
+          setId: args.setId,
+          name: card.name + (card.subtitle ? ` - ${card.subtitle}` : ''),
+          number: card.collector_number,
+          supertype: card.type?.join('/') || 'Character',
+          subtypes: card.classifications || [],
+          types: card.ink ? [card.ink] : [],
+          rarity: card.rarity,
+          imageSmall: card.image_uris?.digital?.small || '',
+          imageLarge: card.image_uris?.digital?.large || '',
+          tcgPlayerUrl: undefined,
+          priceMarket: card.prices?.usd ? parseFloat(card.prices.usd) : undefined,
+          availableVariants: availableVariants.length > 0 ? availableVariants : undefined,
+        };
+      });
 
       const result = await ctx.runMutation(internal.dataPopulation.batchUpsertCards, {
         cards,
