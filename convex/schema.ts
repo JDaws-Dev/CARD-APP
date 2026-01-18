@@ -322,6 +322,7 @@ export default defineSchema({
     imageLarge: v.string(),
     tcgPlayerUrl: v.optional(v.string()),
     priceMarket: v.optional(v.number()), // Optional pricing for parent view
+    availableVariants: v.optional(v.array(v.string())), // Variant keys from tcgplayer.prices (e.g., "normal", "holofoil", "reverseHolofoil")
   })
     .index('by_card_id', ['cardId'])
     .index('by_set', ['setId'])

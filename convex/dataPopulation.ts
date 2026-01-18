@@ -195,6 +195,7 @@ export const upsertCachedCard = internalMutation({
     imageLarge: v.string(),
     tcgPlayerUrl: v.optional(v.string()),
     priceMarket: v.optional(v.number()),
+    availableVariants: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     // Check if card already exists
@@ -216,6 +217,7 @@ export const upsertCachedCard = internalMutation({
         imageLarge: args.imageLarge,
         tcgPlayerUrl: args.tcgPlayerUrl,
         priceMarket: args.priceMarket,
+        availableVariants: args.availableVariants,
       });
       return { action: 'updated', cardId: args.cardId };
     }
@@ -235,6 +237,7 @@ export const upsertCachedCard = internalMutation({
       imageLarge: args.imageLarge,
       tcgPlayerUrl: args.tcgPlayerUrl,
       priceMarket: args.priceMarket,
+      availableVariants: args.availableVariants,
     });
     return { action: 'inserted', cardId: args.cardId };
   },
@@ -260,6 +263,7 @@ export const batchUpsertCards = internalMutation({
         imageLarge: v.string(),
         tcgPlayerUrl: v.optional(v.string()),
         priceMarket: v.optional(v.number()),
+        availableVariants: v.optional(v.array(v.string())),
       })
     ),
   },
@@ -292,6 +296,7 @@ export const batchUpsertCards = internalMutation({
             imageLarge: card.imageLarge,
             tcgPlayerUrl: card.tcgPlayerUrl,
             priceMarket: card.priceMarket,
+            availableVariants: card.availableVariants,
           });
           updated++;
         } else {
@@ -1174,7 +1179,7 @@ export const populatePokemonSetCards = internalAction({
         images: { small: string; large: string };
         tcgplayer?: {
           url?: string;
-          prices?: { normal?: { market?: number }; holofoil?: { market?: number } };
+          prices?: Record<string, { market?: number }>;
         };
         set: { id: string };
       }
@@ -1183,22 +1188,40 @@ export const populatePokemonSetCards = internalAction({
         `https://api.pokemontcg.io/v2/cards?q=set.id:${args.setId}&pageSize=250`
       );
 
-      const cards = data.data.map((card) => ({
-        cardId: card.id,
-        gameSlug: 'pokemon' as const,
-        setId: card.set.id,
-        name: card.name,
-        number: card.number,
-        supertype: card.supertype || 'Pokémon',
-        subtypes: card.subtypes || [],
-        types: card.types || [],
-        rarity: card.rarity,
-        imageSmall: card.images?.small || '',
-        imageLarge: card.images?.large || '',
-        tcgPlayerUrl: card.tcgplayer?.url,
-        priceMarket:
-          card.tcgplayer?.prices?.normal?.market ?? card.tcgplayer?.prices?.holofoil?.market,
-      }));
+      const cards = data.data.map((card) => {
+        // Extract available variant keys from tcgplayer.prices
+        const availableVariants = card.tcgplayer?.prices
+          ? Object.keys(card.tcgplayer.prices)
+          : undefined;
+
+        // Get the first available market price (prioritize normal, then holofoil, then any other)
+        let priceMarket: number | undefined;
+        if (card.tcgplayer?.prices) {
+          const prices = card.tcgplayer.prices;
+          priceMarket =
+            prices.normal?.market ??
+            prices.holofoil?.market ??
+            prices.reverseHolofoil?.market ??
+            Object.values(prices).find((p) => p?.market !== undefined)?.market;
+        }
+
+        return {
+          cardId: card.id,
+          gameSlug: 'pokemon' as const,
+          setId: card.set.id,
+          name: card.name,
+          number: card.number,
+          supertype: card.supertype || 'Pokémon',
+          subtypes: card.subtypes || [],
+          types: card.types || [],
+          rarity: card.rarity,
+          imageSmall: card.images?.small || '',
+          imageLarge: card.images?.large || '',
+          tcgPlayerUrl: card.tcgplayer?.url,
+          priceMarket,
+          availableVariants,
+        };
+      });
 
       const result = await ctx.runMutation(internal.dataPopulation.batchUpsertCards, {
         cards,

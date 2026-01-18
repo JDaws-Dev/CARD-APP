@@ -454,7 +454,7 @@
 **Status:** Completed
 **Changes:** Updated hero heading from "Track Your Trading Cards Like a Pro!" to "Track Your Trading Card Collection" for multi-TCG branding
 **Files:** src/app/page.tsx
-**Commit:** (pending)
+**Commit:** 31fad30
 ---
 ## CD-9wu - Landing Page - Add Supported Games section
 **Status:** Completed
@@ -466,7 +466,7 @@
 **Status:** Completed
 **Changes:** Updated Step 1 description in How It Works section to be game-agnostic. Changed from listing specific game names (Pokemon, Yu-Gi-Oh!, Lorcana) to generic "your favorite trading card games".
 **Files:** src/app/page.tsx
-**Commit:** (pending)
+**Commit:** 31fad30
 ---
 ## CD-qq4 - Landing Page - Update pricing for multi-TCG
 **Status:** Completed (work already done in CD-pt9)
@@ -484,5 +484,15 @@
 **Status:** Completed
 **Changes:** Added Content Security Policy and security headers to next.config.js. CSP includes directives for scripts, styles, images (all TCG domains), fonts, connections (Convex), and frame protection. Also added X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, and Permissions-Policy headers.
 **Files:** next.config.js
-**Commit:** (pending)
+**Commit:** 31fad30
+---
+
+# Ralph Session 2026-01-18 04:27:31
+# Scope: Working on: **all open issues**
+
+## CD-gvx - Store available variants in cachedCards schema
+**Status:** Completed
+**Changes:** Added availableVariants field to cachedCards schema, updated data population to extract variant keys from Pokemon TCG API, updated SetDetailPage to use stored variants
+**Files:** convex/schema.ts, convex/dataPopulation.ts, src/app/sets/[setId]/page.tsx
+**Commit:** 31fad30
 ---

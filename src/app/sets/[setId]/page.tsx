@@ -42,29 +42,41 @@ export default function SetDetailPage({ params }: SetDetailPageProps) {
   const isLoading = sets === undefined || cards === undefined;
 
   // Transform cards to match the expected format
-  const transformedCards = cards?.map((card) => ({
-    id: card.cardId,
-    name: card.name,
-    supertype: card.supertype,
-    subtypes: card.subtypes,
-    types: card.types,
-    number: card.number,
-    rarity: card.rarity,
-    images: {
-      small: card.imageSmall,
-      large: card.imageLarge,
-    },
-    tcgplayer: card.tcgPlayerUrl
-      ? {
-          url: card.tcgPlayerUrl,
-          prices: card.priceMarket ? { normal: { market: card.priceMarket } } : undefined,
-        }
-      : undefined,
-    set: {
-      id: card.setId,
-      name: currentSet?.name || card.setId,
-    },
-  })) || [];
+  const transformedCards = cards?.map((card) => {
+    // Build prices object using stored availableVariants
+    let prices: Record<string, { market: number }> | undefined;
+    if (card.priceMarket !== undefined) {
+      // Use the first available variant as the key, or fallback to 'normal'
+      const variantKey = card.availableVariants?.[0] || 'normal';
+      prices = { [variantKey]: { market: card.priceMarket } };
+    }
+
+    return {
+      id: card.cardId,
+      name: card.name,
+      supertype: card.supertype,
+      subtypes: card.subtypes,
+      types: card.types,
+      number: card.number,
+      rarity: card.rarity,
+      images: {
+        small: card.imageSmall,
+        large: card.imageLarge,
+      },
+      tcgplayer: card.tcgPlayerUrl
+        ? {
+            url: card.tcgPlayerUrl,
+            prices,
+          }
+        : undefined,
+      set: {
+        id: card.setId,
+        name: currentSet?.name || card.setId,
+      },
+      // Include availableVariants for downstream components that may need it
+      availableVariants: card.availableVariants,
+    };
+  }) || [];
 
   // Transform set to match expected format
   const transformedSet = currentSet
