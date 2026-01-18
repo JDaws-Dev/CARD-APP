@@ -825,3 +825,14 @@
 **Files:** src/lib/pokemon-tcg.ts, src/components/collection/VirtualCardGrid.tsx, src/components/collection/CardGrid.tsx
 **Commit:** (pending)
 ---
+## CD-30a - Evaluate pricing model - tiers, trial, AI features, competitor research
+**Status:** Completed
+**Changes:** Comprehensive pricing model evaluation with competitor research (8 apps), feature gating analysis, and final recommendations
+**Research Findings:**
+- Analyzed TCGPlayer, Pokellector, Moxfield, Dragon Shield, CollX, BigAR, ABCMouse, Duolingo
+- CardDex's $4.99/month is already competitively priced (cheaper than most competitors)
+- Recommended: Keep $4.99/month, add 7-day free trial (no CC), gate AI features behind paywall
+- Simple two-tier (Free/Pro) structure recommended
+**Files:** No code changes (research task)
+**Commit:** N/A (research/documentation only)
+---
