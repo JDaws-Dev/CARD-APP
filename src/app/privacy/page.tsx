@@ -155,11 +155,6 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          {/* Footer note */}
-          <p className="text-center text-sm text-gray-500 dark:text-slate-500">
-            This is a placeholder privacy policy. Please consult with a legal professional to create
-            a comprehensive privacy policy for your specific needs.
-          </p>
         </div>
       </div>
     </main>

@@ -198,11 +198,6 @@ export default function TermsPage() {
             </p>
           </section>
 
-          {/* Footer note */}
-          <p className="text-center text-sm text-gray-500 dark:text-slate-500">
-            This is a placeholder terms of service. Please consult with a legal professional to
-            create comprehensive terms of service for your specific needs.
-          </p>
         </div>
       </div>
     </main>
