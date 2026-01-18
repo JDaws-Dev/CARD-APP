@@ -1054,6 +1054,10 @@ export const getRandomCards = query({
     variant: v.optional(cardVariant),
     allowDuplicates: v.optional(v.boolean()),
     gameSlug: v.optional(gameSlugValidator),
+    // Seed parameter to force cache invalidation on refresh
+    // This doesn't affect randomness (Math.random is still used), but changing the seed
+    // causes Convex to treat this as a new query and return fresh random results
+    seed: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const count = args.count ?? 3;

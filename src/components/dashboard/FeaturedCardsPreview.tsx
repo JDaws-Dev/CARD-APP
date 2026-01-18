@@ -161,6 +161,8 @@ export function FeaturedCardsPreview({
           profileId: profileId as Id<'profiles'>,
           count,
           gameSlug: gameSlug as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' | undefined,
+          // Use refreshKey as seed to force cache invalidation when refresh is clicked
+          seed: refreshKey,
         }
       : 'skip'
   );
@@ -223,16 +225,18 @@ export function FeaturedCardsPreview({
           <StarIcon className="h-5 w-5 text-amber-500" />
           <h3 className="font-semibold text-gray-800">Collection Spotlight</h3>
         </div>
-        {/* Larger touch target for refresh button */}
+        {/* Refresh button with visible label for better affordance */}
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600 transition-all hover:bg-amber-200 active:scale-95 disabled:opacity-50"
+          className="group flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-2 text-amber-600 transition-all hover:bg-amber-200 active:scale-95 disabled:opacity-50"
           aria-label="Show different cards"
+          title="Show different cards"
         >
           <ArrowPathIcon
-            className={cn('h-5 w-5', isRefreshing && 'animate-spin')}
+            className={cn('h-4 w-4', isRefreshing && 'animate-spin')}
           />
+          <span className="text-xs font-medium">Shuffle</span>
         </button>
       </div>
 
