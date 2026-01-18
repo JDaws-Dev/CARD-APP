@@ -694,3 +694,18 @@
 **Files:** src/app/globals.css, src/components/layout/AppHeader.tsx
 **Commit:** 175bd40
 ---
+
+# Ralph Session 2026-01-18 05:28:52
+# Scope: Working on: **all open issues**
+
+## CD-7o8 - Audit and fix Wishlist system - images not showing, full evaluation
+**Status:** Completed
+**Changes:** Fixed API response parsing bug where `/api/cards` endpoint returns `{ data: [...cards...] }` but components were treating response as raw array. Fixed 5 files total (2 were already fixed in previous commit).
+**Files:** 
+- src/app/my-wishlist/page.tsx (already fixed in 75c3416)
+- src/app/wishlist/[token]/page.tsx (already fixed in 75c3416)
+- src/components/wishlist/ExportWishlist.tsx
+- src/components/collection/ExportChecklist.tsx
+- src/components/family/TradeSuggestionEngine.tsx
+**Commit:** 9d5435b
+---
