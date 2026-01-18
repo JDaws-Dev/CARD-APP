@@ -714,6 +714,7 @@ export const findDuplicateCards = query({
   args: {
     profileId1: v.id('profiles'),
     profileId2: v.id('profiles'),
+    gameSlug: v.optional(gameSlugValidator),
   },
   handler: async (ctx, args) => {
     // Prevent comparing a profile with itself
@@ -722,7 +723,7 @@ export const findDuplicateCards = query({
     }
 
     // Get all cards for both profiles
-    const [profile1Cards, profile2Cards] = await Promise.all([
+    let [profile1Cards, profile2Cards] = await Promise.all([
       ctx.db
         .query('collectionCards')
         .withIndex('by_profile', (q) => q.eq('profileId', args.profileId1))
@@ -732,6 +733,41 @@ export const findDuplicateCards = query({
         .withIndex('by_profile', (q) => q.eq('profileId', args.profileId2))
         .collect(),
     ]);
+
+    // If gameSlug is specified, filter cards by game
+    if (args.gameSlug) {
+      const allCardIds = new Set([
+        ...profile1Cards.map((c) => c.cardId),
+        ...profile2Cards.map((c) => c.cardId),
+      ]);
+
+      // Batch fetch card data to get game slugs
+      const CHUNK_SIZE = 50;
+      const cardGameMap = new Map<string, string>();
+      const uniqueCardIds = [...allCardIds];
+
+      for (let i = 0; i < uniqueCardIds.length; i += CHUNK_SIZE) {
+        const chunk = uniqueCardIds.slice(i, i + CHUNK_SIZE);
+        const chunkResults = await Promise.all(
+          chunk.map((cardId) =>
+            ctx.db
+              .query('cachedCards')
+              .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+              .first()
+          )
+        );
+
+        for (const cachedCard of chunkResults) {
+          if (cachedCard) {
+            cardGameMap.set(cachedCard.cardId, cachedCard.gameSlug);
+          }
+        }
+      }
+
+      // Filter cards by game slug
+      profile1Cards = profile1Cards.filter((card) => cardGameMap.get(card.cardId) === args.gameSlug);
+      profile2Cards = profile2Cards.filter((card) => cardGameMap.get(card.cardId) === args.gameSlug);
+    }
 
     // Create a map of cardId -> card data for profile2 for O(1) lookups
     const profile2CardMap = new Map<string, { quantity: number; variant: string }[]>();
@@ -800,6 +836,7 @@ export const findTradeableCards = query({
   args: {
     fromProfileId: v.id('profiles'),
     toProfileId: v.id('profiles'),
+    gameSlug: v.optional(gameSlugValidator),
   },
   handler: async (ctx, args) => {
     // Prevent comparing a profile with itself
@@ -812,7 +849,7 @@ export const findTradeableCards = query({
     }
 
     // Get all cards for both profiles
-    const [fromProfileCards, toProfileCards] = await Promise.all([
+    let [fromProfileCards, toProfileCards] = await Promise.all([
       ctx.db
         .query('collectionCards')
         .withIndex('by_profile', (q) => q.eq('profileId', args.fromProfileId))
@@ -822,6 +859,41 @@ export const findTradeableCards = query({
         .withIndex('by_profile', (q) => q.eq('profileId', args.toProfileId))
         .collect(),
     ]);
+
+    // If gameSlug is specified, filter cards by game
+    if (args.gameSlug) {
+      const allCardIds = new Set([
+        ...fromProfileCards.map((c) => c.cardId),
+        ...toProfileCards.map((c) => c.cardId),
+      ]);
+
+      // Batch fetch card data to get game slugs
+      const CHUNK_SIZE = 50;
+      const cardGameMap = new Map<string, string>();
+      const uniqueCardIds = [...allCardIds];
+
+      for (let i = 0; i < uniqueCardIds.length; i += CHUNK_SIZE) {
+        const chunk = uniqueCardIds.slice(i, i + CHUNK_SIZE);
+        const chunkResults = await Promise.all(
+          chunk.map((cardId) =>
+            ctx.db
+              .query('cachedCards')
+              .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+              .first()
+          )
+        );
+
+        for (const cachedCard of chunkResults) {
+          if (cachedCard) {
+            cardGameMap.set(cachedCard.cardId, cachedCard.gameSlug);
+          }
+        }
+      }
+
+      // Filter cards by game slug
+      fromProfileCards = fromProfileCards.filter((card) => cardGameMap.get(card.cardId) === args.gameSlug);
+      toProfileCards = toProfileCards.filter((card) => cardGameMap.get(card.cardId) === args.gameSlug);
+    }
 
     // Create a set of cardIds that toProfile already has
     const toProfileCardIds = new Set(toProfileCards.map((card) => card.cardId));
@@ -1613,6 +1685,7 @@ export const getCollectionComparison = query({
   args: {
     profileId1: v.id('profiles'),
     profileId2: v.id('profiles'),
+    gameSlug: v.optional(gameSlugValidator),
   },
   handler: async (ctx, args) => {
     // Prevent comparing a profile with itself
@@ -1621,7 +1694,7 @@ export const getCollectionComparison = query({
     }
 
     // Get all cards for both profiles
-    const [profile1Cards, profile2Cards] = await Promise.all([
+    let [profile1Cards, profile2Cards] = await Promise.all([
       ctx.db
         .query('collectionCards')
         .withIndex('by_profile', (q) => q.eq('profileId', args.profileId1))
@@ -1631,6 +1704,41 @@ export const getCollectionComparison = query({
         .withIndex('by_profile', (q) => q.eq('profileId', args.profileId2))
         .collect(),
     ]);
+
+    // If gameSlug is specified, filter cards by game
+    if (args.gameSlug) {
+      const allCardIds = new Set([
+        ...profile1Cards.map((c) => c.cardId),
+        ...profile2Cards.map((c) => c.cardId),
+      ]);
+
+      // Batch fetch card data to get game slugs
+      const CHUNK_SIZE = 50;
+      const cardGameMap = new Map<string, string>();
+      const uniqueCardIds = [...allCardIds];
+
+      for (let i = 0; i < uniqueCardIds.length; i += CHUNK_SIZE) {
+        const chunk = uniqueCardIds.slice(i, i + CHUNK_SIZE);
+        const chunkResults = await Promise.all(
+          chunk.map((cardId) =>
+            ctx.db
+              .query('cachedCards')
+              .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+              .first()
+          )
+        );
+
+        for (const cachedCard of chunkResults) {
+          if (cachedCard) {
+            cardGameMap.set(cachedCard.cardId, cachedCard.gameSlug);
+          }
+        }
+      }
+
+      // Filter cards by game slug
+      profile1Cards = profile1Cards.filter((card) => cardGameMap.get(card.cardId) === args.gameSlug);
+      profile2Cards = profile2Cards.filter((card) => cardGameMap.get(card.cardId) === args.gameSlug);
+    }
 
     // Get unique cardIds for each profile
     const profile1CardIds = new Set(profile1Cards.map((c) => c.cardId));
