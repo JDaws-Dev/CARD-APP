@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useMutation, useConvexAuth } from 'convex/react';
+import { useQuery, useMutation, useAction, useConvexAuth } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { useEffect, useState, useCallback, useMemo } from 'react';
@@ -19,6 +19,7 @@ import {
   SparklesIcon,
   CurrencyDollarIcon,
   ShoppingCartIcon,
+  LightBulbIcon,
 } from '@heroicons/react/24/solid';
 import { BackLink } from '@/components/ui/BackLink';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -28,6 +29,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type { Id } from '../../../convex/_generated/dataModel';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
+import type { CardRecommendation, RecommendationResult } from '../../../convex/ai/recommendations';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ExportWishlistButton } from '@/components/wishlist/ExportWishlist';
 import {
@@ -261,6 +263,178 @@ function ShareLinkSection({ profileId }: { profileId: Id<'profiles'> }) {
 }
 
 /**
+ * AI Suggestions section component
+ */
+function AISuggestionsSection({
+  profileId,
+  familyId,
+  gameSlug,
+  wishlistedCardIds,
+  onAddToWishlist,
+}: {
+  profileId: Id<'profiles'>;
+  familyId: Id<'families'>;
+  gameSlug: 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
+  wishlistedCardIds: Set<string>;
+  onAddToWishlist: (cardId: string) => Promise<void>;
+}) {
+  const getRecommendations = useAction(api.ai.recommendations.getRecommendations);
+  const [suggestions, setSuggestions] = useState<RecommendationResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [addingCards, setAddingCards] = useState<Set<string>>(new Set());
+
+  const handleGetSuggestions = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await getRecommendations({
+        profileId,
+        familyId,
+        gameSlug,
+        recommendationTypes: ['wishlist_similar', 'type_based', 'similar_cards'],
+        limit: 6,
+      });
+      setSuggestions(result);
+      if (result.error) {
+        setError(result.error);
+      }
+    } catch (err) {
+      console.error('Failed to get suggestions:', err);
+      setError('Could not get suggestions. Try again later!');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddToWishlist = async (cardId: string) => {
+    setAddingCards((prev) => new Set([...prev, cardId]));
+    try {
+      await onAddToWishlist(cardId);
+    } finally {
+      setAddingCards((prev) => {
+        const next = new Set(prev);
+        next.delete(cardId);
+        return next;
+      });
+    }
+  };
+
+  return (
+    <div className="mx-auto mb-8 max-w-4xl">
+      <div className="rounded-xl bg-gradient-to-r from-purple-50 to-indigo-50 p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-center gap-2 text-purple-700">
+          <LightBulbIcon className="h-5 w-5" aria-hidden="true" />
+          <span className="font-medium">AI Card Suggestions</span>
+        </div>
+
+        {!suggestions && !isLoading && (
+          <div className="text-center">
+            <p className="mb-3 text-sm text-gray-600">
+              Get personalized card recommendations based on your collection!
+            </p>
+            <button
+              onClick={handleGetSuggestions}
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 px-6 py-3 font-semibold text-white transition hover:from-purple-600 hover:to-indigo-600 disabled:opacity-50"
+            >
+              <SparklesIcon className="h-5 w-5" aria-hidden="true" />
+              Get Suggestions
+            </button>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="text-center">
+            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-purple-400 border-t-transparent" />
+            <p className="text-sm text-gray-600">Finding cards you might like...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-lg bg-amber-50 p-3 text-center text-sm text-amber-700">
+            {error}
+          </div>
+        )}
+
+        {suggestions && !error && suggestions.recommendations.length > 0 && (
+          <div>
+            <p className="mb-4 text-center text-sm text-gray-600">{suggestions.summary}</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+              {suggestions.recommendations.map((rec) => {
+                const isInWishlist = wishlistedCardIds.has(rec.cardId);
+                const isAdding = addingCards.has(rec.cardId);
+
+                return (
+                  <div
+                    key={rec.cardId}
+                    className="rounded-lg bg-white p-2 shadow-sm"
+                  >
+                    <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-md">
+                      <CardImage
+                        src={rec.imageUrl}
+                        alt={rec.name}
+                        fill
+                        sizes="(max-width: 640px) 25vw, 15vw"
+                      />
+                    </div>
+                    <div className="mt-2">
+                      <p className="truncate text-xs font-medium text-gray-800">{rec.name}</p>
+                      <p className="truncate text-xs text-gray-500">{rec.setName}</p>
+                    </div>
+                    <Tooltip content={rec.reason} position="top">
+                      <button
+                        onClick={() => handleAddToWishlist(rec.cardId)}
+                        disabled={isInWishlist || isAdding}
+                        className={cn(
+                          'mt-2 flex w-full items-center justify-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium transition',
+                          isInWishlist
+                            ? 'bg-rose-100 text-rose-600'
+                            : 'bg-gray-100 text-gray-600 hover:bg-rose-100 hover:text-rose-600'
+                        )}
+                      >
+                        {isAdding ? (
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+                        ) : isInWishlist ? (
+                          <>
+                            <HeartIcon className="h-3.5 w-3.5" />
+                            Added
+                          </>
+                        ) : (
+                          <>
+                            <HeartIconOutline className="h-3.5 w-3.5" />
+                            Add
+                          </>
+                        )}
+                      </button>
+                    </Tooltip>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 text-center">
+              <button
+                onClick={handleGetSuggestions}
+                disabled={isLoading}
+                className="text-sm text-purple-600 hover:text-purple-700 hover:underline"
+              >
+                Get more suggestions
+              </button>
+            </div>
+          </div>
+        )}
+
+        {suggestions && !error && suggestions.recommendations.length === 0 && (
+          <div className="text-center text-sm text-gray-600">
+            <p>{suggestions.summary}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
  * Wishlist card component with management actions
  */
 function WishlistCard({
@@ -449,7 +623,7 @@ function WishlistCard({
 export default function MyWishlistPage() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const router = useRouter();
-  const { profileId, isLoading: profileLoading } = useCurrentProfile();
+  const { profileId, family, isLoading: profileLoading } = useCurrentProfile();
   const { primaryGame, isLoading: gameLoading } = useGameSelector();
 
   // Redirect unauthenticated users to login
@@ -668,6 +842,17 @@ export default function MyWishlistPage() {
         {/* Share Link Section */}
         {profileId && totalCount > 0 && (
           <ShareLinkSection profileId={profileId as Id<'profiles'>} />
+        )}
+
+        {/* AI Suggestions Section */}
+        {profileId && family?.id && totalCount > 0 && (
+          <AISuggestionsSection
+            profileId={profileId as Id<'profiles'>}
+            familyId={family.id as Id<'families'>}
+            gameSlug={primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana'}
+            wishlistedCardIds={wishlistedCardIds}
+            onAddToWishlist={handleAddAlternativeToWishlist}
+          />
         )}
 
         {/* Wishlist Grid */}
