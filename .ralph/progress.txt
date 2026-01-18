@@ -1035,3 +1035,9 @@
 **Files:** convex/dataPopulation.ts, src/components/ui/VariantBadge.tsx
 **Commit:** 84046cd
 ---
+## CD-5yk.10 - Add variant badges to card thumbnail display
+**Status:** Completed
+**Changes:** Added variant badges directly on card thumbnails showing all available variants with owned/unowned visual distinction. Owned variants display with colorful gradients, unowned show as dim outline. Includes mobile touch targets and accessibility labels.
+**Files:** src/components/collection/CardGrid.tsx
+**Commit:** 6ca456e
+---
