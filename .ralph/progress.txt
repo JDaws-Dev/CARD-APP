@@ -1282,3 +1282,9 @@
 - src/components/family/SharedWishlistViewer.tsx (added buy icon to WishlistCardItem)
 **Commit:** e9af843
 ---
+## CD-5yk.1 - Add variant badges to card thumbnails in CardGrid
+**Status:** Completed
+**Changes:** Verified existing implementation - variant badges were already fully implemented in CardGrid.tsx lines 901-949. Feature shows variant badges (N/H/R/etc.) on card thumbnails with owned/unowned styling, mobile-friendly touch targets, and proper positioning.
+**Files:** src/components/collection/CardGrid.tsx (existing), src/components/ui/VariantBadge.tsx (existing)
+**Commit:** N/A - no code changes needed, feature already existed
+---
