@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
@@ -64,11 +64,12 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess }: TradeLoggingMo
   const { primaryGame } = useGameSelector();
   const logTrade = useMutation(api.trades.logTrade);
 
-  // Collection data for "cards to give" selection
-  const collection = useQuery(
-    api.collections.getCollection,
-    profileId ? { profileId: profileId as Id<'profiles'>, gameSlug: primaryGame.id } : 'skip'
+  // Collection data for "cards to give" selection (enriched with card details)
+  const collectionData = useQuery(
+    api.collections.getCollectionWithDetails,
+    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
+  const collection = collectionData?.cards;
 
   // Form state
   const [flowState, setFlowState] = useState<FlowState>('form');
@@ -283,28 +284,42 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess }: TradeLoggingMo
     }
   }, [profileId, cardsGiven, cardsReceived, tradingPartner, logTrade, onSuccess]);
 
-  // Get collection cards grouped by card ID for selection
-  const collectionCardsMap = new Map<
-    string,
-    { cardId: string; variants: Map<string, number>; totalQuantity: number }
-  >();
+  // Get collection cards grouped by card ID for selection (with enriched data)
+  const collectionCardsMap = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        cardId: string;
+        name: string;
+        imageSmall: string;
+        setId: string;
+        variants: Map<string, number>;
+        totalQuantity: number;
+      }
+    >();
 
-  if (collection) {
-    for (const card of collection) {
-      const existing = collectionCardsMap.get(card.cardId);
-      const variant = card.variant ?? 'normal';
-      if (existing) {
-        existing.variants.set(variant, (existing.variants.get(variant) ?? 0) + card.quantity);
-        existing.totalQuantity += card.quantity;
-      } else {
-        collectionCardsMap.set(card.cardId, {
-          cardId: card.cardId,
-          variants: new Map([[variant, card.quantity]]),
-          totalQuantity: card.quantity,
-        });
+    if (collection) {
+      for (const card of collection) {
+        const existing = map.get(card.cardId);
+        const variant = card.variant ?? 'normal';
+        if (existing) {
+          existing.variants.set(variant, (existing.variants.get(variant) ?? 0) + card.quantity);
+          existing.totalQuantity += card.quantity;
+        } else {
+          map.set(card.cardId, {
+            cardId: card.cardId,
+            name: card.name ?? card.cardId,
+            imageSmall: card.imageSmall ?? '',
+            setId: card.setId ?? card.cardId.split('-')[0],
+            variants: new Map([[variant, card.quantity]]),
+            totalQuantity: card.quantity,
+          });
+        }
       }
     }
-  }
+
+    return map;
+  }, [collection]);
 
   // Calculate available quantity for a card (excluding already selected)
   const getAvailableQuantity = useCallback(
@@ -323,7 +338,7 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess }: TradeLoggingMo
 
   if (!isOpen) return null;
 
-  // Render collection cards for "give" selection
+  // Render collection cards for "give" selection - visual grid with images
   const renderCollectionSelector = () => (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -349,47 +364,88 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess }: TradeLoggingMo
           <p className="text-gray-500">No cards in your collection yet.</p>
         </div>
       ) : (
-        <div className="max-h-64 space-y-2 overflow-y-auto">
-          {Array.from(collectionCardsMap.values()).map((cardGroup) => {
-            const variants = Array.from(cardGroup.variants.entries());
-            return variants.map(([variant, quantity]) => {
-              const available = getAvailableQuantity(cardGroup.cardId, variant as CardVariant);
-              const isDisabled = available <= 0;
+        <div className="max-h-80 overflow-y-auto">
+          <div className="grid grid-cols-3 gap-2">
+            {Array.from(collectionCardsMap.values()).map((cardGroup) => {
+              const variants = Array.from(cardGroup.variants.entries());
+              return variants.map(([variant, quantity]) => {
+                const available = getAvailableQuantity(cardGroup.cardId, variant as CardVariant);
+                const isDisabled = available <= 0;
+                const isSelected = cardsGiven.some(
+                  (c) => c.cardId === cardGroup.cardId && c.variant === variant
+                );
 
-              return (
-                <button
-                  key={`${cardGroup.cardId}-${variant}`}
-                  onClick={() => {
-                    if (isDisabled) return;
-                    handleAddCardToGive({
-                      cardId: cardGroup.cardId,
-                      cardName: cardGroup.cardId.split('-').slice(1).join('-'),
-                      setName: cardGroup.cardId.split('-')[0],
-                      imageSmall: '',
-                      quantity: 1,
-                      variant: variant as CardVariant,
-                      maxQuantity: quantity,
-                    });
-                  }}
-                  disabled={isDisabled}
-                  className={cn(
-                    'flex w-full items-center gap-3 rounded-lg border p-3 text-left transition',
-                    isDisabled
-                      ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-50'
-                      : 'border-gray-200 hover:border-kid-primary hover:bg-kid-primary/5'
-                  )}
-                >
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{cardGroup.cardId}</p>
-                    <p className="text-sm text-gray-500">
-                      {VARIANT_OPTIONS.find((v) => v.value === variant)?.label ?? variant} - {available} available
+                return (
+                  <button
+                    key={`${cardGroup.cardId}-${variant}`}
+                    onClick={() => {
+                      if (isDisabled) return;
+                      handleAddCardToGive({
+                        cardId: cardGroup.cardId,
+                        cardName: cardGroup.name,
+                        setName: cardGroup.setId,
+                        imageSmall: cardGroup.imageSmall,
+                        quantity: 1,
+                        variant: variant as CardVariant,
+                        maxQuantity: quantity,
+                      });
+                    }}
+                    disabled={isDisabled}
+                    className={cn(
+                      'group relative flex flex-col items-center rounded-lg border p-2 text-center transition',
+                      isDisabled
+                        ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-50'
+                        : isSelected
+                          ? 'border-kid-primary bg-kid-primary/10 ring-2 ring-kid-primary'
+                          : 'border-gray-200 hover:border-kid-primary hover:bg-kid-primary/5'
+                    )}
+                  >
+                    {/* Card Image */}
+                    <div className="relative mb-1 h-20 w-14 overflow-hidden rounded">
+                      {cardGroup.imageSmall ? (
+                        <CardImage
+                          src={cardGroup.imageSmall}
+                          alt={cardGroup.name}
+                          fill
+                          sizes="56px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gray-200 text-xs text-gray-400">
+                          No img
+                        </div>
+                      )}
+                      {/* Selected checkmark overlay */}
+                      {isSelected && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-kid-primary/30">
+                          <CheckIcon className="h-6 w-6 text-white drop-shadow" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card Name */}
+                    <p className="line-clamp-2 text-xs font-medium leading-tight text-gray-900">
+                      {cardGroup.name}
                     </p>
-                  </div>
-                  {!isDisabled && <PlusIcon className="h-5 w-5 text-kid-primary" />}
-                </button>
-              );
-            });
-          })}
+
+                    {/* Variant & Availability */}
+                    <p className="mt-0.5 text-[10px] text-gray-500">
+                      {VARIANT_OPTIONS.find((v) => v.value === variant)?.shortLabel ?? variant}
+                      {' · '}
+                      {available} left
+                    </p>
+
+                    {/* Add indicator */}
+                    {!isDisabled && !isSelected && (
+                      <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-kid-primary text-white opacity-0 transition group-hover:opacity-100">
+                        <PlusIcon className="h-3 w-3" />
+                      </div>
+                    )}
+                  </button>
+                );
+              });
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -487,20 +543,41 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess }: TradeLoggingMo
     </div>
   );
 
-  // Render card list
+  // Render card list with images
   const renderCardList = (cards: TradeCard[], listType: 'give' | 'receive') => (
     <div className="space-y-2">
       {cards.map((card) => (
         <div
           key={`${card.cardId}-${card.variant}`}
-          className="flex items-center gap-2 rounded-lg bg-gray-50 p-2"
+          className="flex items-center gap-3 rounded-lg bg-gray-50 p-2"
         >
+          {/* Card Image */}
+          <div className="relative h-14 w-10 flex-shrink-0 overflow-hidden rounded">
+            {card.imageSmall ? (
+              <CardImage
+                src={card.imageSmall}
+                alt={card.cardName || card.cardId}
+                fill
+                sizes="40px"
+                className="object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gray-200 text-[8px] text-gray-400">
+                No img
+              </div>
+            )}
+          </div>
+
+          {/* Card Info */}
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-gray-900">{card.cardName || card.cardId}</p>
             <p className="text-xs text-gray-500">
+              {card.setName && <span className="mr-1">{card.setName}</span>}
               {VARIANT_OPTIONS.find((v) => v.value === card.variant)?.shortLabel ?? card.variant}
             </p>
           </div>
+
+          {/* Quantity Controls */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => handleUpdateQuantity(listType, card.cardId, card.variant, -1)}
