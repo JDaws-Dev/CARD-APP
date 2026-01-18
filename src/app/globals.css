@@ -499,6 +499,34 @@ body {
   animation: new-card-shimmer 2s ease-in-out infinite;
 }
 
+/* AI Demo Animation - Scan line effect */
+@keyframes scan-line {
+  0%,
+  100% {
+    top: 0%;
+  }
+  50% {
+    top: 100%;
+  }
+}
+
+/* AI Demo Animation - Flash effect */
+@keyframes flash {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-flash {
+  animation: flash 0.4s ease-out forwards;
+}
+
 /* Accessibility: Focus styles for keyboard navigation */
 @layer base {
   /* Focus-visible ring for interactive elements */

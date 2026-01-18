@@ -40,6 +40,7 @@ import {
   LorcanaIcon,
 } from '@/components/icons/tcg';
 import { GameCardShowcase, GameCardGrid } from '@/components/landing/GameCardShowcase';
+import { AIDemoAnimation } from '@/components/landing/AIDemoAnimation';
 import type { GameId } from '@/lib/gameSelector';
 
 // Map game IDs to icon components
@@ -428,47 +429,73 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-3 md:gap-8">
-            {/* Snap to Add Feature */}
-            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-50 to-blue-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
-              <div className="mb-3 inline-flex rounded-xl bg-cyan-500/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
-                <CameraIcon className="h-6 w-6 text-cyan-500 sm:h-8 sm:w-8" />
+          {/* Two-column layout: Demo animation + Feature cards */}
+          <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
+            {/* AI Demo Animation - shows Snap to Add in action */}
+            <div className="order-2 flex justify-center lg:order-1">
+              <div className="relative rounded-3xl bg-gradient-to-br from-violet-50 via-purple-50 to-cyan-50 p-6 sm:p-8">
+                <AIDemoAnimation />
+                <p className="mt-4 text-center text-xs text-gray-500 sm:text-sm">
+                  Watch AI identify cards instantly
+                </p>
               </div>
-              <h3 className="mb-2 text-lg font-bold text-gray-900 sm:mb-3 sm:text-xl">
-                Snap to Add
-              </h3>
-              <p className="text-sm text-gray-600 sm:text-base">
-                Take a photo of any card and watch it get added to your collection instantly!
-              </p>
-              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-cyan-500/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
             </div>
 
-            {/* Ask Your Collection Feature */}
-            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
-              <div className="mb-3 inline-flex rounded-xl bg-purple-500/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
-                <ChatBubbleLeftRightIcon className="h-6 w-6 text-purple-500 sm:h-8 sm:w-8" />
+            {/* Feature cards stack */}
+            <div className="order-1 space-y-4 lg:order-2">
+              {/* Snap to Add Feature */}
+              <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-50 to-blue-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-6">
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 rounded-xl bg-cyan-500/10 p-2 sm:rounded-2xl sm:p-3">
+                    <CameraIcon className="h-6 w-6 text-cyan-500 sm:h-7 sm:w-7" />
+                  </div>
+                  <div>
+                    <h3 className="mb-1 text-lg font-bold text-gray-900 sm:text-xl">
+                      Snap to Add
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Take a photo of any card and watch it get added to your collection instantly!
+                    </p>
+                  </div>
+                </div>
+                <div className="absolute -bottom-2 -right-2 h-16 w-16 rounded-full bg-cyan-500/5 transition-all group-hover:scale-150" />
               </div>
-              <h3 className="mb-2 text-lg font-bold text-gray-900 sm:mb-3 sm:text-xl">
-                Ask Your Collection
-              </h3>
-              <p className="text-sm text-gray-600 sm:text-base">
-                Chat with your collection! Ask about your rarest cards, total value, and more.
-              </p>
-              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-purple-500/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
-            </div>
 
-            {/* Card Stories Feature */}
-            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-50 to-yellow-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
-              <div className="mb-3 inline-flex rounded-xl bg-orange-500/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
-                <BookOpenIcon className="h-6 w-6 text-orange-500 sm:h-8 sm:w-8" />
+              {/* Ask Your Collection Feature */}
+              <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-6">
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 rounded-xl bg-purple-500/10 p-2 sm:rounded-2xl sm:p-3">
+                    <ChatBubbleLeftRightIcon className="h-6 w-6 text-purple-500 sm:h-7 sm:w-7" />
+                  </div>
+                  <div>
+                    <h3 className="mb-1 text-lg font-bold text-gray-900 sm:text-xl">
+                      Ask Your Collection
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Chat with your collection! Ask about your rarest cards, total value, and more.
+                    </p>
+                  </div>
+                </div>
+                <div className="absolute -bottom-2 -right-2 h-16 w-16 rounded-full bg-purple-500/5 transition-all group-hover:scale-150" />
               </div>
-              <h3 className="mb-2 text-lg font-bold text-gray-900 sm:mb-3 sm:text-xl">
-                Card Stories
-              </h3>
-              <p className="text-sm text-gray-600 sm:text-base">
-                Learn the lore behind your favorite cards with AI-powered stories and fun facts!
-              </p>
-              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-orange-500/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
+
+              {/* Card Stories Feature */}
+              <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-50 to-yellow-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-6">
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 rounded-xl bg-orange-500/10 p-2 sm:rounded-2xl sm:p-3">
+                    <BookOpenIcon className="h-6 w-6 text-orange-500 sm:h-7 sm:w-7" />
+                  </div>
+                  <div>
+                    <h3 className="mb-1 text-lg font-bold text-gray-900 sm:text-xl">
+                      Card Stories
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Learn the lore behind your favorite cards with AI-powered stories and fun facts!
+                    </p>
+                  </div>
+                </div>
+                <div className="absolute -bottom-2 -right-2 h-16 w-16 rounded-full bg-orange-500/5 transition-all group-hover:scale-150" />
+              </div>
             </div>
           </div>
         </div>
