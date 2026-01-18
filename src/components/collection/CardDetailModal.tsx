@@ -16,7 +16,9 @@ import {
   PlusIcon,
   CheckCircleIcon,
   CurrencyDollarIcon,
+  ArrowsRightLeftIcon,
 } from '@heroicons/react/24/solid';
+import { TradeLoggingModal } from '@/components/trades/TradeLoggingModal';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import {
@@ -117,6 +119,9 @@ export function CardDetailModal({
 
   // State for CardStoryModal
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+
+  // State for TradeLoggingModal (Trade Away feature)
+  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
 
   // State for selected variant tab
   const [selectedVariant, setSelectedVariant] = useState<CardVariant | null>(null);
@@ -564,6 +569,21 @@ export function CardDetailModal({
                 Tell me about this card!
               </button>
 
+              {/* Trade Away - only show if user owns the selected variant */}
+              {selectedVariant && currentVariantQty > 0 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsTradeModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-medium text-white transition hover:from-amber-600 hover:to-orange-600"
+                  aria-label="Trade this card away"
+                >
+                  <ArrowsRightLeftIcon className="h-4 w-4" />
+                  Trade Away
+                </button>
+              )}
+
               {/* Add to Wishlist */}
               {onAddToWishlist && (
                 <button
@@ -620,6 +640,24 @@ export function CardDetailModal({
         isOpen={isStoryModalOpen}
         onClose={() => setIsStoryModalOpen(false)}
         gameSlug={primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana'}
+      />
+
+      {/* Trade Logging Modal (Trade Away feature) */}
+      <TradeLoggingModal
+        isOpen={isTradeModalOpen}
+        onClose={() => setIsTradeModalOpen(false)}
+        prefilledGiveCard={
+          selectedVariant
+            ? {
+                cardId: card.id,
+                cardName: card.name,
+                setName: card.set.name,
+                imageSmall: card.images.small || '',
+                variant: selectedVariant,
+                maxQuantity: currentVariantQty,
+              }
+            : undefined
+        }
       />
     </div>
   );

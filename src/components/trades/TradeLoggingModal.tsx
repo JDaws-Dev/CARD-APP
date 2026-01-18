@@ -34,10 +34,21 @@ interface TradeCard {
   maxQuantity?: number; // For cards being given (from collection)
 }
 
+interface PrefilledCard {
+  cardId: string;
+  cardName: string;
+  setName: string;
+  imageSmall: string;
+  variant: string; // Accepts any variant string (will be cast to CardVariant internally)
+  maxQuantity?: number;
+}
+
 interface TradeLoggingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  /** Pre-fill "Cards I Gave" with this card (e.g., from CardDetailModal "Trade Away") */
+  prefilledGiveCard?: PrefilledCard;
 }
 
 type FlowState = 'form' | 'submitting' | 'success' | 'error';
@@ -59,7 +70,7 @@ interface SearchResult {
   images: { small: string; large: string };
 }
 
-export function TradeLoggingModal({ isOpen, onClose, onSuccess }: TradeLoggingModalProps) {
+export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCard }: TradeLoggingModalProps) {
   const { profileId } = useCurrentProfile();
   const { primaryGame } = useGameSelector();
   const logTrade = useMutation(api.trades.logTrade);
@@ -91,11 +102,10 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess }: TradeLoggingMo
     cardsReceivedCount: number;
   } | null>(null);
 
-  // Reset state when modal opens
+  // Reset state when modal opens (and pre-fill if provided)
   useEffect(() => {
     if (isOpen) {
       setFlowState('form');
-      setCardsGiven([]);
       setCardsReceived([]);
       setTradingPartner('');
       setErrorMessage(null);
@@ -104,8 +114,25 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess }: TradeLoggingMo
       setSearchResults([]);
       setSelectedVariant('normal');
       setTradeSummary(null);
+
+      // Pre-fill the "Cards I Gave" if a prefilled card was provided
+      if (prefilledGiveCard) {
+        setCardsGiven([
+          {
+            cardId: prefilledGiveCard.cardId,
+            cardName: prefilledGiveCard.cardName,
+            setName: prefilledGiveCard.setName,
+            imageSmall: prefilledGiveCard.imageSmall,
+            quantity: 1,
+            variant: (prefilledGiveCard.variant as CardVariant) || 'normal',
+            maxQuantity: prefilledGiveCard.maxQuantity,
+          },
+        ]);
+      } else {
+        setCardsGiven([]);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, prefilledGiveCard]);
 
   // Handle escape key
   useEffect(() => {
