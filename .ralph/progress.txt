@@ -309,3 +309,9 @@
 **Files:** src/components/ui/VariantBadge.tsx, src/components/collection/VirtualCardGrid.tsx
 **Commit:** 0bdf117
 ---
+## CD-6zb - Sets Page - Sorting options
+**Status:** Completed
+**Changes:** Added sorting dropdown to set detail page with options for card number, type, owned first, wanted first, recently added, and price (high to low)
+**Files:** src/components/collection/SetDetailClient.tsx
+**Commit:** 5e5876c
+---
