@@ -946,3 +946,9 @@
 **Files:** src/components/sets/AvailabilityFilter.tsx, src/app/sets/page.tsx
 **Commit:** Feature was already implemented - verification only
 ---
+## CD-m1f - Add set availability/recency filter to Browse Sets
+**Status:** Completed
+**Changes:** Added availability toggle filter to Browse Sets page allowing users to filter between "Available Sets" (recently released, still in print) and "All Sets" (complete collection). Implemented per-game availability windows: Pokemon 2yr, Yu-Gi-Oh 3yr, One Piece 2.5yr, Lorcana 3yr. Default shows available sets for simpler browsing experience.
+**Files:** src/components/sets/AvailabilityFilter.tsx (new), src/app/sets/page.tsx (modified)
+**Commit:** 37eb57d
+---
