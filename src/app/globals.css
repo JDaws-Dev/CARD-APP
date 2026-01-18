@@ -47,13 +47,6 @@
   --game-onepiece-text: #991b1b;
   --game-onepiece-border: #fca5a5;
 
-  /* Dragon Ball */
-  --game-dragonball-primary: #f97316;
-  --game-dragonball-secondary: #eab308;
-  --game-dragonball-accent: #fff7ed;
-  --game-dragonball-text: #9a3412;
-  --game-dragonball-border: #fdba74;
-
   /* Lorcana */
   --game-lorcana-primary: #3b82f6;
   --game-lorcana-secondary: #06b6d4;
@@ -61,19 +54,6 @@
   --game-lorcana-text: #1e40af;
   --game-lorcana-border: #93c5fd;
 
-  /* Digimon */
-  --game-digimon-primary: #06b6d4;
-  --game-digimon-secondary: #2563eb;
-  --game-digimon-accent: #ecfeff;
-  --game-digimon-text: #155e75;
-  --game-digimon-border: #67e8f9;
-
-  /* Magic: The Gathering */
-  --game-mtg-primary: #d97706;
-  --game-mtg-secondary: #ca8a04;
-  --game-mtg-accent: #fffbeb;
-  --game-mtg-text: #78350f;
-  --game-mtg-border: #fbbf24;
 }
 
 /* Dark mode styles - applied when .dark class is on html element */
@@ -105,29 +85,12 @@
   --game-onepiece-text: #fef2f2;
   --game-onepiece-border: #fca5a5;
 
-  --game-dragonball-primary: #fb923c;
-  --game-dragonball-secondary: #facc15;
-  --game-dragonball-accent: #431407;
-  --game-dragonball-text: #fff7ed;
-  --game-dragonball-border: #fdba74;
-
   --game-lorcana-primary: #60a5fa;
   --game-lorcana-secondary: #22d3ee;
   --game-lorcana-accent: #172554;
   --game-lorcana-text: #eff6ff;
   --game-lorcana-border: #93c5fd;
 
-  --game-digimon-primary: #22d3ee;
-  --game-digimon-secondary: #3b82f6;
-  --game-digimon-accent: #083344;
-  --game-digimon-text: #ecfeff;
-  --game-digimon-border: #67e8f9;
-
-  --game-mtg-primary: #fbbf24;
-  --game-mtg-secondary: #eab308;
-  --game-mtg-accent: #451a03;
-  --game-mtg-text: #fffbeb;
-  --game-mtg-border: #fbbf24;
 }
 
 /* System preference fallback - only applies if no .dark class and system prefers dark */

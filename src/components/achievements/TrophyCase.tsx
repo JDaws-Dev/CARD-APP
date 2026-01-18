@@ -1258,14 +1258,12 @@ function GameSpecificAchievementsWrapper({
   const earnedGameAchievementKeys = new Set(achievements.map((a) => a.achievementKey));
 
   // Calculate card counts per game (for now, only Pokemon has real data)
+  // Only includes the 4 supported games: pokemon, yugioh, onepiece, lorcana
   const cardCountsByGame: Record<GameId, number> = {
     pokemon: milestoneProgress?.totalUniqueCards ?? 0,
     yugioh: 0,
     onepiece: 0,
-    dragonball: 0,
     lorcana: 0,
-    digimon: 0,
-    mtg: 0,
   };
 
   // Determine which games have cards

@@ -71,16 +71,14 @@ export function SetsList({ sets }: SetsListProps) {
   }, [sets, selectedGame]);
 
   // Calculate counts for game filter
+  // Only include the 4 supported games (pokemon, yugioh, onepiece, lorcana)
   const gameCounts = useMemo(() => {
     const counts: Record<GameFilterValue, number> = {
       all: sets.length, // Total of all available sets
       pokemon: sets.length, // Currently all sets are Pokemon
-      yugioh: 0, // Coming soon
-      onepiece: 0, // Coming soon
-      dragonball: 0, // Coming soon
-      lorcana: 0, // Coming soon
-      digimon: 0, // Coming soon
-      mtg: 0, // Coming soon
+      yugioh: 0, // API data loading
+      onepiece: 0, // API data loading
+      lorcana: 0, // API data loading
     };
     return counts;
   }, [sets]);
