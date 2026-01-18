@@ -414,3 +414,9 @@
 - Deleted: src/components/virtual/__tests__/PackOpeningSimulator.test.tsx
 **Commit:** 402dd7c
 ---
+## CD-fzv.2 - Update Collection page to use gameSlug filtering
+**Status:** Completed
+**Changes:** Added gameSlug parameter to getCollection and getCollectionStats queries using primaryGame.id from useGameSelector hook
+**Files:** src/app/collection/page.tsx
+**Commit:** 9fad028
+---

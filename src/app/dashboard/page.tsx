@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { KidDashboard } from '@/components/dashboard/KidDashboard';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
-import Link from 'next/link';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { KidDashboardSkeleton } from '@/components/dashboard/KidDashboard';
 import { ChatButton } from '@/components/ai/ChatButton';
 
@@ -54,15 +52,6 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50 px-4 py-8">
       <div className="mx-auto max-w-6xl">
-        {/* Back link */}
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ArrowLeftIcon className="h-4 w-4" />
-          Back to Home
-        </Link>
-
         {/* Dashboard */}
         <KidDashboard />
       </div>
