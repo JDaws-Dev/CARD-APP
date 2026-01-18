@@ -468,3 +468,9 @@
 **Files:** src/app/page.tsx
 **Commit:** (pending)
 ---
+## CD-qq4 - Landing Page - Update pricing for multi-TCG
+**Status:** Completed (work already done in CD-pt9)
+**Changes:** Verified that pricing text was already updated from "500+ Pokemon sets" to "All 4 TCGs with full set coverage" as part of earlier multi-TCG landing page update (CD-pt9). No additional code changes needed.
+**Files:** src/app/page.tsx (verified, not modified)
+**Commit:** N/A (no changes needed)
+---
