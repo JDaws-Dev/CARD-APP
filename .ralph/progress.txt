@@ -1333,3 +1333,16 @@
 **Files:** src/lib/displayName.ts, src/lib/__tests__/displayName.test.ts
 **Commit:** 8ad3f25
 ---
+## CD-yex - Evaluate and improve Collection Spotlight engagement feature
+**Status:** Completed
+**Changes:** 
+- Fixed refresh button functionality by adding seed parameter to getRandomCards query
+- Added visible "Shuffle" label and tooltip to refresh button for better affordance
+- Documented current spotlight behavior and proposed 3 engagement improvements:
+  1. Smart Spotlight Modes (recommended first)
+  2. Card of the Day
+  3. Collection Achievements Tie-In
+- Listed A/B testable variations and confirmed multi-TCG compatibility
+**Files:** convex/collections.ts, src/components/dashboard/FeaturedCardsPreview.tsx
+**Commit:** 6b70c8b
+---
