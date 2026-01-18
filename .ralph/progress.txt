@@ -384,3 +384,9 @@
 **Files:** convex/collections.ts
 **Commit:** fac632b
 ---
+## CD-2i4 - Profile switcher for families
+**Status:** Completed
+**Changes:** Implementation was already complete - verified and closed. Added ProfileSwitcher component to header for family profile switching with localStorage persistence.
+**Files:** src/components/header/ProfileSwitcher.tsx (new), src/components/layout/AppHeader.tsx (updated)
+**Commit:** Previously committed
+---
