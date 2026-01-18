@@ -360,3 +360,9 @@
 - src/components/collection/CardGrid.tsx
 **Commit:** 99ed9a2
 ---
+## CD-efi - Game-wide theming: Apply game-specific color theme across entire site
+**Status:** Completed
+**Changes:** Added dark mode support for game CSS variables, updated GameThemeProvider to set data-game attribute on html, added smooth CSS transitions for theme changes, updated AppHeader, ScannerButton, and ChatButton to use game-themed colors
+**Files:** src/lib/gameSelector.ts, src/components/providers/GameThemeProvider.tsx, src/app/globals.css, src/components/layout/AppHeader.tsx, src/components/ai/ScannerButton.tsx, src/components/ai/ChatButton.tsx
+**Commit:** f8404aa
+---
