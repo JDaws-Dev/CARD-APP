@@ -38,6 +38,7 @@ import { IconLegend } from './IconLegend';
 import { useLevelUp } from '@/components/gamification/LevelSystem';
 import { useKidMode } from '@/components/providers/KidModeProvider';
 import { useSetCompletionTracker } from '@/components/gamification/SetCompletionCelebration';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 
 // Get available variants from a card's tcgplayer prices
 function getAvailableVariants(card: PokemonCard): CardVariant[] {
@@ -450,6 +451,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { showXPGain } = useLevelUp();
   const { features } = useKidMode();
+  const { primaryGame } = useGameSelector();
   const parentRef = useRef<HTMLDivElement>(null);
   const [viewportWidth, setViewportWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 0
@@ -710,7 +712,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
       await addToWishlist({
         profileId: profileId as Id<'profiles'>,
         cardId: card.id,
-        gameSlug: 'pokemon',
+        gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana',
       });
     }
   };

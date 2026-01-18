@@ -32,6 +32,7 @@ import { IconLegend } from './IconLegend';
 import { useLevelUp } from '@/components/gamification/LevelSystem';
 import { useKidMode } from '@/components/providers/KidModeProvider';
 import { useSetCompletionTracker } from '@/components/gamification/SetCompletionCelebration';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import { CardFlipModal } from './FlippableCard';
 
 // Variant type definition
@@ -373,6 +374,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { showXPGain } = useLevelUp();
   const { features, isKidMode } = useKidMode();
+  const { primaryGame } = useGameSelector();
 
   // State for variant selector popup
   const [selectedCard, setSelectedCard] = useState<PokemonCard | null>(null);
@@ -573,7 +575,11 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
     if (wishlistedCards.has(cardId)) {
       await removeFromWishlist({ profileId: profileId as Id<'profiles'>, cardId });
     } else {
-      await addToWishlist({ profileId: profileId as Id<'profiles'>, cardId });
+      await addToWishlist({
+        profileId: profileId as Id<'profiles'>,
+        cardId,
+        gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana',
+      });
     }
   };
 
