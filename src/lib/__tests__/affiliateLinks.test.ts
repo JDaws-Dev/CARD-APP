@@ -8,6 +8,7 @@ import {
   TCGPLAYER_DOMAINS,
   CARDMARKET_DOMAINS,
   EBAY_DOMAINS,
+  TCGPLAYER_GAME_CATEGORIES,
   // Validation
   isTCGPlayerUrl,
   isCardmarketUrl,
@@ -38,6 +39,10 @@ import {
   shouldShowAffiliateLinks,
   getAffiliateDisclosure,
   getShortAffiliateDisclosure,
+  // TCGPlayer search URL generation
+  generateTCGPlayerSearchUrl,
+  getCardPurchaseUrl,
+  getCardPurchaseUrlWithAffiliate,
   // Types
   AffiliatePlatform,
   AffiliateConfig,
@@ -749,5 +754,181 @@ describe('Affiliate Link Integration', () => {
       // Child should not see links
       expect(shouldShowAffiliateLinks('child')).toBe(false);
     });
+  });
+});
+
+// ============================================================================
+// TCGPLAYER SEARCH URL GENERATION TESTS
+// ============================================================================
+
+describe('TCGPLAYER_GAME_CATEGORIES', () => {
+  it('should have correct category slugs for all 4 games', () => {
+    expect(TCGPLAYER_GAME_CATEGORIES.pokemon).toBe('pokemon');
+    expect(TCGPLAYER_GAME_CATEGORIES.yugioh).toBe('yugioh');
+    expect(TCGPLAYER_GAME_CATEGORIES.onepiece).toBe('one-piece-card-game');
+    expect(TCGPLAYER_GAME_CATEGORIES.lorcana).toBe('lorcana-tcg');
+  });
+});
+
+describe('generateTCGPlayerSearchUrl', () => {
+  describe('Pokemon cards', () => {
+    it('should generate correct URL for Pokemon card', () => {
+      const url = generateTCGPlayerSearchUrl('Pikachu', 'Scarlet & Violet', 'pokemon');
+      expect(url).toBe(
+        'https://www.tcgplayer.com/search/pokemon/product?q=Pikachu%20Scarlet%20%26%20Violet'
+      );
+    });
+
+    it('should generate correct URL without set name', () => {
+      const url = generateTCGPlayerSearchUrl('Charizard', undefined, 'pokemon');
+      expect(url).toBe('https://www.tcgplayer.com/search/pokemon/product?q=Charizard');
+    });
+  });
+
+  describe('Yu-Gi-Oh cards', () => {
+    it('should generate correct URL for Yu-Gi-Oh card', () => {
+      const url = generateTCGPlayerSearchUrl('Blue-Eyes White Dragon', 'Legend of Blue Eyes', 'yugioh');
+      expect(url).toBe(
+        'https://www.tcgplayer.com/search/yugioh/product?q=Blue-Eyes%20White%20Dragon%20Legend%20of%20Blue%20Eyes'
+      );
+    });
+
+    it('should generate correct URL without set name', () => {
+      const url = generateTCGPlayerSearchUrl('Dark Magician', undefined, 'yugioh');
+      expect(url).toBe('https://www.tcgplayer.com/search/yugioh/product?q=Dark%20Magician');
+    });
+  });
+
+  describe('One Piece cards', () => {
+    it('should generate correct URL for One Piece card', () => {
+      const url = generateTCGPlayerSearchUrl('Monkey D. Luffy', 'Romance Dawn', 'onepiece');
+      expect(url).toBe(
+        'https://www.tcgplayer.com/search/one-piece-card-game/product?q=Monkey%20D.%20Luffy%20Romance%20Dawn'
+      );
+    });
+
+    it('should generate correct URL without set name', () => {
+      const url = generateTCGPlayerSearchUrl('Roronoa Zoro', undefined, 'onepiece');
+      expect(url).toBe('https://www.tcgplayer.com/search/one-piece-card-game/product?q=Roronoa%20Zoro');
+    });
+  });
+
+  describe('Lorcana cards', () => {
+    it('should generate correct URL for Lorcana card', () => {
+      const url = generateTCGPlayerSearchUrl('Elsa', 'The First Chapter', 'lorcana');
+      expect(url).toBe(
+        'https://www.tcgplayer.com/search/lorcana-tcg/product?q=Elsa%20The%20First%20Chapter'
+      );
+    });
+
+    it('should generate correct URL without set name', () => {
+      const url = generateTCGPlayerSearchUrl('Mickey Mouse', undefined, 'lorcana');
+      expect(url).toBe('https://www.tcgplayer.com/search/lorcana-tcg/product?q=Mickey%20Mouse');
+    });
+  });
+
+  describe('without game specified', () => {
+    it('should generate all-category search URL', () => {
+      const url = generateTCGPlayerSearchUrl('Pikachu');
+      expect(url).toBe('https://www.tcgplayer.com/search/all/product?q=Pikachu');
+    });
+
+    it('should include set name in search', () => {
+      const url = generateTCGPlayerSearchUrl('Charizard', 'Base Set');
+      expect(url).toBe('https://www.tcgplayer.com/search/all/product?q=Charizard%20Base%20Set');
+    });
+  });
+
+  describe('special characters', () => {
+    it('should properly encode card names with special characters', () => {
+      const url = generateTCGPlayerSearchUrl("Pikachu V-UNION", undefined, 'pokemon');
+      expect(url).toContain('Pikachu%20V-UNION');
+    });
+
+    it('should properly encode ampersands', () => {
+      const url = generateTCGPlayerSearchUrl('Sword & Shield', undefined, 'pokemon');
+      expect(url).toContain('Sword%20%26%20Shield');
+    });
+  });
+});
+
+describe('getCardPurchaseUrl', () => {
+  it('should return direct TCGPlayer URL if available', () => {
+    const card = {
+      name: 'Pikachu',
+      tcgplayer: { url: 'https://www.tcgplayer.com/product/12345' },
+    };
+
+    const url = getCardPurchaseUrl(card);
+    expect(url).toBe('https://www.tcgplayer.com/product/12345');
+  });
+
+  it('should generate search URL if no direct URL', () => {
+    const card = {
+      name: 'Pikachu',
+      set: { name: 'Scarlet & Violet' },
+    };
+
+    const url = getCardPurchaseUrl(card, 'pokemon');
+    expect(url).toContain('https://www.tcgplayer.com/search/pokemon/product');
+    expect(url).toContain('Pikachu');
+  });
+
+  it('should generate search URL without set info', () => {
+    const card = { name: 'Charizard' };
+
+    const url = getCardPurchaseUrl(card, 'pokemon');
+    expect(url).toBe('https://www.tcgplayer.com/search/pokemon/product?q=Charizard');
+  });
+});
+
+describe('getCardPurchaseUrlWithAffiliate', () => {
+  it('should return affiliate link with direct TCGPlayer URL', () => {
+    const card = {
+      name: 'Pikachu',
+      tcgplayer: { url: 'https://www.tcgplayer.com/product/12345' },
+    };
+
+    const result = getCardPurchaseUrlWithAffiliate(card);
+    expect(result.hasAffiliateTracking).toBe(true);
+    expect(result.affiliateUrl).toContain('partner=carddex');
+    expect(result.affiliateUrl).toContain('product/12345');
+  });
+
+  it('should return affiliate link with generated search URL', () => {
+    const card = {
+      name: 'Elsa',
+      set: { name: 'The First Chapter' },
+    };
+
+    const result = getCardPurchaseUrlWithAffiliate(card, 'lorcana');
+    expect(result.hasAffiliateTracking).toBe(true);
+    expect(result.affiliateUrl).toContain('partner=carddex');
+    expect(result.affiliateUrl).toContain('lorcana-tcg');
+    expect(result.affiliateUrl).toContain('Elsa');
+  });
+
+  it('should use custom affiliate ID', () => {
+    const card = { name: 'Dark Magician' };
+
+    const result = getCardPurchaseUrlWithAffiliate(card, 'yugioh', { affiliateId: 'customid' });
+    expect(result.affiliateId).toBe('customid');
+    expect(result.affiliateUrl).toContain('partner=customid');
+  });
+
+  it('should work for all 4 games', () => {
+    const games = [
+      { name: 'Pikachu', game: 'pokemon' },
+      { name: 'Dark Magician', game: 'yugioh' },
+      { name: 'Luffy', game: 'onepiece' },
+      { name: 'Elsa', game: 'lorcana' },
+    ];
+
+    for (const { name, game } of games) {
+      const result = getCardPurchaseUrlWithAffiliate({ name }, game);
+      expect(result.hasAffiliateTracking).toBe(true);
+      expect(result.affiliateUrl).toContain('partner=carddex');
+      expect(result.platform).toBe('tcgplayer');
+    }
   });
 });

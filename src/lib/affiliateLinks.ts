@@ -525,7 +525,7 @@ export const TCGPLAYER_GAME_CATEGORIES: Record<string, string> = {
   pokemon: 'pokemon',
   yugioh: 'yugioh',
   onepiece: 'one-piece-card-game',
-  lorcana: 'lorcana',
+  lorcana: 'lorcana-tcg',
 };
 
 /**
