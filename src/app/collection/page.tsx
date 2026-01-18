@@ -32,12 +32,12 @@ export default function MyCollectionPage() {
 
   const collection = useQuery(
     api.collections.getCollection,
-    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+    profileId ? { profileId: profileId as Id<'profiles'>, gameSlug: primaryGame.id } : 'skip'
   );
 
   const stats = useQuery(
     api.collections.getCollectionStats,
-    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+    profileId ? { profileId: profileId as Id<'profiles'>, gameSlug: primaryGame.id } : 'skip'
   );
 
   // Redirect unauthenticated users to login
