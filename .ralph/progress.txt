@@ -804,3 +804,18 @@
 **Files:** convex/collections.ts
 **Commit:** d276c39 (included with previous commit during convex codegen)
 ---
+## CD-5yk - Support card variations (holos, reverses, etc.) with visual indicators and selection
+**Status:** Decomposed (blocked until children complete)
+**Changes:** Evaluated issue scope, found it to be L/XL size requiring decomposition. Created 5 new sub-issues to break down the work:
+- CD-5yk.1: Add variant badges to card thumbnails in CardGrid
+- CD-5yk.2: Add variant picker when clicking card to add to collection  
+- CD-5yk.4: Add game-specific variant types and mapping
+- CD-5yk.7: Update set completion to optionally account for variants
+- CD-5yk.9: Ensure API adapters fetch and cache available variants per card
+
+(Note: 5 existing P1 sub-issues also exist for game-specific API work)
+
+**Key Finding:** Extensive variant support ALREADY exists in codebase - schema, mutations, CardDetailModal all support variants. Main gaps are: variant badges on thumbnails, improved picker UX, game-specific variant types, and variant-aware set completion.
+**Files:** None modified - decomposition only
+**Commit:** N/A - no code changes
+---
