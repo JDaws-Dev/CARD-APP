@@ -1393,3 +1393,9 @@
 - src/app/my-wishlist/page.tsx
 **Commit:** 3de4b64
 ---
+## CD-x0g - Update placeholder legal pages (Terms and Privacy)
+**Status:** Completed
+**Changes:** Removed placeholder disclaimer footer text from both Terms of Service and Privacy Policy pages. Both pages already contained comprehensive legal content - only the "this is a placeholder" notices were removed.
+**Files:** src/app/terms/page.tsx, src/app/privacy/page.tsx
+**Commit:** b927920
+---
