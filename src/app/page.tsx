@@ -32,6 +32,22 @@ import {
   CameraIcon,
   BookOpenIcon,
 } from '@heroicons/react/24/solid';
+import { GAMES } from '@/lib/gameSelector';
+import {
+  PokemonIcon,
+  YugiohIcon,
+  OnePieceIcon,
+  LorcanaIcon,
+} from '@/components/icons/tcg';
+import type { GameId } from '@/lib/gameSelector';
+
+// Map game IDs to icon components
+const GAME_ICONS: Record<GameId, React.ComponentType<{ className?: string }>> = {
+  pokemon: PokemonIcon,
+  yugioh: YugiohIcon,
+  onepiece: OnePieceIcon,
+  lorcana: LorcanaIcon,
+};
 
 // Decorative floating card component (purely decorative, hidden from screen readers)
 function FloatingCard({ className, delay = '0s' }: { className?: string; delay?: string }) {
@@ -192,8 +208,67 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* Supported Games Section */}
       <section className="bg-white px-3 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-8 text-center sm:mb-12">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-2">
+              <RectangleStackIcon className="h-5 w-5 text-indigo-600" />
+              <span className="text-sm font-semibold text-indigo-700">Supported Games</span>
+            </div>
+            <h2 className="mb-3 text-2xl font-bold text-gray-900 sm:mb-4 sm:text-3xl md:text-4xl">
+              Track All Your <span className="text-kid-primary">Favorite</span> Card Games
+            </h2>
+            <p className="mx-auto max-w-2xl text-sm text-gray-600 sm:text-base">
+              One app for all your trading card collections. Add cards from any of these popular TCGs!
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
+            {GAMES.map((game) => {
+              const IconComponent = GAME_ICONS[game.id];
+              return (
+                <div
+                  key={game.id}
+                  className="group relative overflow-hidden rounded-2xl border-2 border-gray-100 bg-white p-5 text-center transition-all hover:-translate-y-1 hover:border-transparent hover:shadow-xl sm:rounded-3xl sm:p-6"
+                >
+                  {/* Gradient background on hover */}
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${game.gradientFrom} ${game.gradientTo} opacity-0 transition-opacity group-hover:opacity-5`}
+                  />
+
+                  {/* Game icon */}
+                  <div
+                    className={`relative mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg transition-transform group-hover:scale-110 sm:h-20 sm:w-20 ${game.gradientFrom} ${game.gradientTo}`}
+                  >
+                    <IconComponent className="h-8 w-8 text-white sm:h-10 sm:w-10" />
+                  </div>
+
+                  {/* Game name */}
+                  <h3 className={`relative mb-1 text-base font-bold sm:text-lg ${game.textColor}`}>
+                    {game.shortName}
+                  </h3>
+
+                  {/* Tagline */}
+                  <p className="relative text-xs text-gray-500 sm:text-sm">{game.tagline}</p>
+
+                  {/* Decorative corner element */}
+                  <div
+                    className={`absolute -bottom-2 -right-2 h-16 w-16 rounded-full bg-gradient-to-br ${game.gradientFrom} ${game.gradientTo} opacity-0 transition-all group-hover:scale-150 group-hover:opacity-10`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="mt-8 text-center text-sm text-gray-500">
+            More games coming soon! We&apos;re always adding new TCGs.
+          </p>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="bg-gradient-to-b from-white to-gray-50 px-3 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20">
         <div className="mx-auto max-w-5xl">
           <div className="mb-8 text-center sm:mb-12">
             <h2 className="mb-3 text-2xl font-bold text-gray-900 sm:mb-4 sm:text-3xl md:text-4xl">
