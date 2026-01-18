@@ -345,3 +345,18 @@
 **Files:** src/app/browse/page.tsx, src/app/search/page.tsx, src/app/my-wishlist/page.tsx, src/app/wishlist/[token]/page.tsx
 **Commit:** 290bb42
 ---
+## CD-f97 - Fix Badges/Achievements not showing
+**Status:** Completed
+**Changes:** 
+- Added `checkAllAchievements` mutation in convex/achievements.ts that checks all achievement types at once
+- Updated MilestoneCelebration to use new unified check mutation
+- Updated SetCompletionCelebration hook to check set completion achievements when cards added
+- Updated VirtualCardGrid and CardGrid to pass profileId for set achievement tracking
+**Files:** 
+- convex/achievements.ts
+- src/components/gamification/MilestoneCelebration.tsx
+- src/components/gamification/SetCompletionCelebration.tsx
+- src/components/collection/VirtualCardGrid.tsx
+- src/components/collection/CardGrid.tsx
+**Commit:** 99ed9a2
+---
