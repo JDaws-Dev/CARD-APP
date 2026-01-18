@@ -344,12 +344,19 @@ export function KidDashboardSkeleton() {
 // KID DASHBOARD COMPONENT
 // ============================================================================
 
-export function KidDashboard() {
+interface KidDashboardProps {
+  /** Game slug to filter stats by */
+  gameSlug: string;
+  /** Display name of the active game */
+  gameName: string;
+}
+
+export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
 
   const stats = useQuery(
     api.collections.getCollectionStats,
-    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+    profileId ? { profileId: profileId as Id<'profiles'>, gameSlug: gameSlug as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' } : 'skip'
   );
 
   const streakProgress = useQuery(
@@ -518,7 +525,7 @@ export function KidDashboard() {
             href="/search"
             icon={MagnifyingGlassIcon}
             title="Search Cards"
-            description="Find any Pokemon card"
+            description={`Find any ${gameName} card`}
             gradient="bg-gradient-to-r from-amber-50 to-orange-50"
             iconGradient="from-amber-400 to-orange-500"
           />

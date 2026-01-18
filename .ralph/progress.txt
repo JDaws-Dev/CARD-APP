@@ -90,13 +90,13 @@
 **Status:** Completed
 **Changes:** Added AI Magic section to landing page with three feature cards: Snap to Add (camera-based card addition), Ask Your Collection (chat with collection), and Card Stories (fun card stories). Added new icon imports and followed existing responsive design patterns.
 **Files:** src/app/page.tsx
-**Commit:** (pending)
+**Commit:** 1959058
 ---
 ## CD-c53 - Landing Page - AI features in pricing tiers
 **Status:** Completed
 **Changes:** Added AI Magic feature listings to both Free and Family pricing tiers. Free tier shows Snap to Add and Card Stories; Family tier shows all three AI features (Snap to Add, Ask Your Collection, Card Stories).
 **Files:** src/app/page.tsx
-**Commit:** (pending)
+**Commit:** 1959058
 ---
 ## CD-blj - Landing Page - Kid-Safe AI trust badges
 **Status:** Completed
@@ -180,7 +180,7 @@
 **Status:** Completed
 **Changes:** Updated the Ask Your Collection feature card in the AI Magic section to use purple-pink gradient, ChatBubbleLeftRightIcon, and specified description text.
 **Files:** src/app/page.tsx
-**Commit:** (pending)
+**Commit:** 1959058
 ---
 ## CD-edn - Landing: Card Stories feature card
 **Status:** Completed
@@ -331,7 +331,7 @@
 **Status:** Completed
 **Changes:** Added GameSwitcher component to the mobile menu in AppHeader, ensuring the game indicator is visible on both desktop (already present) and mobile views. The indicator shows the active game with game-specific icons and gradient colors.
 **Files:** src/components/layout/AppHeader.tsx
-**Commit:** (pending)
+**Commit:** 1959058
 ---
 ## CD-ah7 - Quick game switcher in header
 **Status:** Completed
@@ -419,4 +419,10 @@
 **Changes:** Added gameSlug parameter to getCollection and getCollectionStats queries using primaryGame.id from useGameSelector hook
 **Files:** src/app/collection/page.tsx
 **Commit:** 9fad028
+---
+## CD-fzv.3 - Update Dashboard page to use game selector
+**Status:** Completed
+**Changes:** Added useGameSelector hook to Dashboard page, updated ChatButton and KidDashboard to use dynamic gameSlug, updated KidDashboard to filter stats by active game and display game name in labels
+**Files:** src/app/dashboard/page.tsx, src/components/dashboard/KidDashboard.tsx
+**Commit:** 1959058
 ---

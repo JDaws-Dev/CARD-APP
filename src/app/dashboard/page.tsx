@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { KidDashboard } from '@/components/dashboard/KidDashboard';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import { KidDashboardSkeleton } from '@/components/dashboard/KidDashboard';
 import { ChatButton } from '@/components/ai/ChatButton';
 
@@ -12,6 +13,7 @@ export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const router = useRouter();
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
+  const { primaryGame } = useGameSelector();
 
   // Redirect unauthenticated users to login
   useEffect(() => {
@@ -53,11 +55,11 @@ export default function DashboardPage() {
     <main className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50 px-4 py-8">
       <div className="mx-auto max-w-6xl">
         {/* Dashboard */}
-        <KidDashboard />
+        <KidDashboard gameSlug={primaryGame.id} gameName={primaryGame.shortName} />
       </div>
 
       {/* Floating Chat Button */}
-      <ChatButton gameSlug="pokemon" />
+      <ChatButton gameSlug={primaryGame.id} />
     </main>
   );
 }
