@@ -187,7 +187,7 @@ export const generateQuiz = action({
       const cardsList = collectionCards
         .slice(0, questionCount)
         .map(
-          (card, i) =>
+          (card: { name: string; supertype?: string; rarity?: string; types?: string[]; setId: string }, i: number) =>
             `${i + 1}. ${card.name} (${card.supertype || 'Unknown'}, ${card.rarity || 'Unknown'}, Types: ${card.types?.join(', ') || 'None'}, Set: ${card.setId})`
         )
         .join('\n');
@@ -281,8 +281,8 @@ Respond in JSON format:
       const quizId = `quiz_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
       // Match card names to cardIds and imageUrls
-      const cardByName = new Map(
-        collectionCards.map((c) => [
+      const cardByName = new Map<string, { cardId: string; imageUrl: string }>(
+        collectionCards.map((c: { name: string; cardId: string; imageSmall: string }) => [
           c.name.toLowerCase(),
           { cardId: c.cardId, imageUrl: c.imageSmall },
         ])
@@ -454,7 +454,7 @@ export const getRemainingQuizzes = action({
   args: {
     profileId: v.id('profiles'),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{ remaining: number; resetAt: number; limit: number }> => {
     const status = await ctx.runQuery(internal.ai.rateLimit.getRateLimitStatus, {
       profileId: args.profileId,
       featureType: 'quiz',

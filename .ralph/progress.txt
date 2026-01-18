@@ -188,3 +188,9 @@
 **Files:** src/app/page.tsx
 **Commit:** a118512
 ---
+## CD-qxt - Landing: Kid-Safe AI trust badge
+**Status:** Completed
+**Changes:** Updated Kid-Safe AI trust badge icon from SparklesIcon to ShieldCheckIcon in the Trust Signals section
+**Files:** src/app/page.tsx
+**Commit:** b79d336
+---
