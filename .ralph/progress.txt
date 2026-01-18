@@ -204,3 +204,9 @@
 **Files:** src/app/page.tsx
 **Commit:** 2d20333
 ---
+## CD-5nl - Landing: AI features in pricing tiers
+**Status:** Completed
+**Changes:** Added AI feature limits to pricing tiers (Free: 5 scans/day, 10 questions/day; Family: 20 scans/day, unlimited questions, Quiz Me!, Fair Trade Helper) and feature comparison table with AI Features row
+**Files:** src/app/page.tsx
+**Commit:** ef9afac
+---
