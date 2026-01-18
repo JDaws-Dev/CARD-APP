@@ -347,7 +347,23 @@ function WishlistCard({
       {/* Card Info */}
       <div className="mt-3 text-center">
         <p className="truncate text-sm font-medium text-gray-800">{cardData.name}</p>
-        <p className="truncate text-xs text-gray-500">{cardData.set.name}</p>
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
+          <span className="truncate text-xs text-gray-500">{cardData.set.name}</span>
+          {price !== null && (
+            <span
+              className={cn(
+                'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold',
+                price >= 10
+                  ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-white'
+                  : 'bg-emerald-100 text-emerald-700'
+              )}
+              title={`TCGPlayer market price: $${price.toFixed(2)}`}
+            >
+              <CurrencyDollarIcon className="h-3 w-3" />
+              {formatPrice(price).replace('$', '')}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Financial Tools */}
