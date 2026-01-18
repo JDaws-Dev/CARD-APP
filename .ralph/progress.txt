@@ -1367,3 +1367,9 @@
 **Files:** src/app/collection/page.tsx
 **Commit:** 80f2ed5
 ---
+## CD-8la - Fix Share Snapshot useState/useEffect bug causing canvas to not render
+**Status:** Completed
+**Changes:** Fixed incorrect React hook usage where useState was used for side effects instead of useEffect. Changed snapshot generation trigger and keyboard listener to use proper useEffect hooks with correct dependencies.
+**Files:** src/components/collection/CollectionSnapshotShare.tsx
+**Commit:** 5a7f5d7
+---
