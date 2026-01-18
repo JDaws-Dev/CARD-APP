@@ -303,3 +303,9 @@
 - src/components/collection/VirtualCardGrid.tsx (updated)
 **Commit:** b33f2bb
 ---
+## CD-gsq - Sets Page - Badge click interactions
+**Status:** Completed
+**Changes:** Added click handlers to variant badges - gray badges add variants directly, lit badges open the variant selector popup
+**Files:** src/components/ui/VariantBadge.tsx, src/components/collection/VirtualCardGrid.tsx
+**Commit:** 0bdf117
+---
