@@ -1081,3 +1081,9 @@
 **Files:** src/lib/tutorialContent.ts
 **Commit:** (see below)
 ---
+## CD-ej7.3 - Update RarityTooltip to use game-specific content
+**Status:** Completed
+**Changes:** Updated RarityTooltip and RarityBadge components to use useGameSelector hook and pass gameId to rarity lookup functions for game-specific rarity info
+**Files:** src/components/ui/RarityTooltip.tsx
+**Commit:** 4cb1548
+---
