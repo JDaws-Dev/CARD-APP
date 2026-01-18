@@ -1059,3 +1059,9 @@
 **Files:** src/app/sets/[setId]/page.tsx, src/components/collection/SetDetailClient.tsx, src/components/collection/VirtualCardGrid.tsx
 **Commit:** 3be29da
 ---
+## CD-ej7.1 - Create game-specific rarity data structure and content
+**Status:** Completed
+**Changes:** Added comprehensive rarity definitions for Yu-Gi-Oh! (8 rarities), One Piece TCG (9 rarities), and Disney Lorcana (9 rarities). Created GAME_RARITY_EXPLAINERS registry and getRarityExplainersForGame() function. Updated core lookup functions with optional gameId parameter. Added game-specific educational content (explanations, fun facts, collecting advice).
+**Files:** src/lib/rarityExplainer.ts
+**Commit:** 2a6bfca
+---
