@@ -1242,3 +1242,9 @@
 **Files:** src/components/ai/ConditionGrader.tsx (new)
 **Commit:** 4ca3999
 ---
+## CD-2i5 - Add official game logos to picker and header
+**Status:** Completed
+**Changes:** Enhanced game icon prominence in GameSwitcher and dashboard header. Researched trademark guidelines (confirmed stylized icons is correct approach). Added accessibility attributes (aria-label, sr-only, role="img"). Increased icon sizes and touch targets.
+**Files:** src/components/icons/tcg/index.tsx, src/components/header/GameSwitcher.tsx, src/components/dashboard/KidDashboard.tsx
+**Commit:** 7294665
+---
