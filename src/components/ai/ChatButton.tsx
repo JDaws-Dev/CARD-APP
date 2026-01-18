@@ -4,17 +4,15 @@ import { useState, useCallback } from 'react';
 import { ChatBubbleLeftRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { CollectionChat } from './CollectionChat';
 import { cn } from '@/lib/utils';
-
-type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 
 interface ChatButtonProps {
-  /** The game context for the chat */
-  gameSlug?: GameSlug;
   /** Additional className for the button */
   className?: string;
 }
 
-export function ChatButton({ gameSlug = 'pokemon', className }: ChatButtonProps) {
+export function ChatButton({ className }: ChatButtonProps) {
+  const { primaryGame } = useGameSelector();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleOpen = useCallback(() => {
@@ -65,7 +63,7 @@ export function ChatButton({ gameSlug = 'pokemon', className }: ChatButtonProps)
             aria-label="Collection Chat"
           >
             <CollectionChat
-              gameSlug={gameSlug}
+              gameSlug={primaryGame.id}
               onClose={handleClose}
               className="h-full"
             />

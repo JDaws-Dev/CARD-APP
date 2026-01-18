@@ -529,3 +529,9 @@
 - src/components/search/SearchResults.tsx (no changes needed - presentational component)
 **Commit:** No new commits needed - work was already done
 ---
+## CD-4d7.4 - Update ScannerButton and ChatButton to use game selector
+**Status:** Completed
+**Changes:** Verified that both ScannerButton and ChatButton already use the game selector via useGameSelector hook. Both pass primaryGame.id to their child components (CardScanner and CollectionChat). No code changes required.
+**Files:** src/components/ai/ScannerButton.tsx, src/components/ai/ChatButton.tsx (both already correct)
+**Commit:** No changes needed - work was already complete
+---
