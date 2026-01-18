@@ -324,15 +324,18 @@ export default function Home() {
       <section className="bg-white px-3 py-12 sm:px-6 sm:py-16 md:px-8 md:py-24">
         <div className="mx-auto max-w-6xl">
           <div className="mb-8 text-center sm:mb-12">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-100 to-purple-100 px-4 py-2">
-              <SparklesIcon className="h-5 w-5 text-violet-600" />
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-100 via-purple-100 to-pink-100 px-4 py-2">
+              <div className="relative">
+                <SparklesIcon className="h-5 w-5 text-violet-500" />
+                <SparklesIcon className="absolute inset-0 h-5 w-5 text-pink-500 opacity-50" style={{ clipPath: 'inset(0 0 0 50%)' }} />
+              </div>
               <span className="text-sm font-semibold text-violet-700">AI Magic</span>
             </div>
             <h2 className="mb-3 text-2xl font-bold text-gray-900 sm:mb-4 sm:text-3xl md:text-4xl">
-              Supercharge Your Collection with <span className="text-violet-600">AI</span>
+              Powered by AI Magic <span className="inline-block">✨</span>
             </h2>
             <p className="mx-auto max-w-2xl text-sm text-gray-600 sm:text-base">
-              Our kid-friendly AI makes collecting even more fun and magical!
+              CardDex uses smart technology to make collecting easier and more fun
             </p>
           </div>
 
