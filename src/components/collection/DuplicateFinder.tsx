@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import type { Id } from '../../../convex/_generated/dataModel';
 import {
   ArrowsRightLeftIcon,
@@ -31,6 +32,7 @@ interface CardData {
     small: string;
     large: string;
   };
+  gameSlug?: string;
 }
 
 interface DuplicateFinderProps {
@@ -260,6 +262,7 @@ function SectionHeader({
  */
 export function DuplicateFinder({ className }: DuplicateFinderProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
+  const { primaryGame, isLoading: gameLoading } = useGameSelector();
   const [profile1Id, setProfile1Id] = useState<Id<'profiles'> | null>(null);
   const [profile2Id, setProfile2Id] = useState<Id<'profiles'> | null>(null);
   const [cardDataMap, setCardDataMap] = useState<Map<string, CardData>>(new Map());
@@ -277,28 +280,36 @@ export function DuplicateFinder({ className }: DuplicateFinderProps) {
     currentProfile?.familyId ? { familyId: currentProfile.familyId } : 'skip'
   );
 
-  // Get comparison data
+  // Get comparison data filtered by game
   const comparison = useQuery(
     api.collections.getCollectionComparison,
-    profile1Id && profile2Id ? { profileId1: profile1Id, profileId2: profile2Id } : 'skip'
+    profile1Id && profile2Id && !gameLoading
+      ? { profileId1: profile1Id, profileId2: profile2Id, gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' }
+      : 'skip'
   );
 
-  // Get duplicate cards
+  // Get duplicate cards filtered by game
   const duplicates = useQuery(
     api.collections.findDuplicateCards,
-    profile1Id && profile2Id ? { profileId1: profile1Id, profileId2: profile2Id } : 'skip'
+    profile1Id && profile2Id && !gameLoading
+      ? { profileId1: profile1Id, profileId2: profile2Id, gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' }
+      : 'skip'
   );
 
-  // Get tradeable cards (profile1 has, profile2 doesn't)
+  // Get tradeable cards (profile1 has, profile2 doesn't) filtered by game
   const tradeableToProfile2 = useQuery(
     api.collections.findTradeableCards,
-    profile1Id && profile2Id ? { fromProfileId: profile1Id, toProfileId: profile2Id } : 'skip'
+    profile1Id && profile2Id && !gameLoading
+      ? { fromProfileId: profile1Id, toProfileId: profile2Id, gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' }
+      : 'skip'
   );
 
-  // Get tradeable cards (profile2 has, profile1 doesn't)
+  // Get tradeable cards (profile2 has, profile1 doesn't) filtered by game
   const tradeableToProfile1 = useQuery(
     api.collections.findTradeableCards,
-    profile1Id && profile2Id ? { fromProfileId: profile2Id, toProfileId: profile1Id } : 'skip'
+    profile1Id && profile2Id && !gameLoading
+      ? { fromProfileId: profile2Id, toProfileId: profile1Id, gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' }
+      : 'skip'
   );
 
   // Set initial profiles when family profiles load
@@ -341,7 +352,9 @@ export function DuplicateFinder({ className }: DuplicateFinderProps) {
       });
 
       if (response.ok) {
-        const cards: CardData[] = await response.json();
+        const responseData = await response.json();
+        // API returns { data: cards[], ... }
+        const cards: CardData[] = responseData.data || responseData;
         setCardDataMap((prev) => {
           const newMap = new Map(prev);
           cards.forEach((card) => newMap.set(card.id, card));
@@ -365,8 +378,18 @@ export function DuplicateFinder({ className }: DuplicateFinderProps) {
   const profile1Name = profile1?.displayName ?? 'Profile 1';
   const profile2Name = profile2?.displayName ?? 'Profile 2';
 
+  // Backend already filters by gameSlug, so we just use the data directly
+  const filteredDuplicates = duplicates?.duplicates ?? [];
+  const filteredTradeableToProfile2 = tradeableToProfile2?.tradeableCards ?? [];
+  const filteredTradeableToProfile1 = tradeableToProfile1?.tradeableCards ?? [];
+
+  // Stats for the selected game
+  const filteredSharedCount = filteredDuplicates.length;
+  const filteredOnlyProfile1Count = filteredTradeableToProfile2.length;
+  const filteredOnlyProfile2Count = filteredTradeableToProfile1.length;
+
   // Loading state
-  if (profileLoading || currentProfile === undefined || familyProfiles === undefined) {
+  if (profileLoading || gameLoading || currentProfile === undefined || familyProfiles === undefined) {
     return (
       <div className={cn('', className)}>
         <DuplicateFinderSkeleton />
@@ -459,19 +482,19 @@ export function DuplicateFinder({ className }: DuplicateFinderProps) {
       {/* Stats Overview */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
-          value={comparison.shared.count}
-          label="Cards Both Own"
+          value={filteredSharedCount}
+          label={`${primaryGame.shortName} Cards Both Own`}
           colorClass="text-kid-success"
           icon={CheckCircleIcon}
         />
         <StatCard
-          value={comparison.onlyInProfile1.count}
+          value={filteredOnlyProfile1Count}
           label={`Only ${profile1Name} Has`}
           colorClass="text-kid-primary"
           icon={ArrowRightIcon}
         />
         <StatCard
-          value={comparison.onlyInProfile2.count}
+          value={filteredOnlyProfile2Count}
           label={`Only ${profile2Name} Has`}
           colorClass="text-kid-secondary"
           icon={ArrowLeftIcon}
@@ -491,16 +514,16 @@ export function DuplicateFinder({ className }: DuplicateFinderProps) {
       </div>
 
       {/* Duplicate Cards Section */}
-      {duplicates.duplicates && duplicates.duplicates.length > 0 && (
+      {filteredDuplicates.length > 0 && (
         <div className="rounded-xl bg-white p-6 shadow-sm">
           <SectionHeader
-            title="Duplicate Cards (Both Own)"
-            count={duplicates.duplicates.length}
+            title={`${primaryGame.shortName} Cards Both Own`}
+            count={filteredDuplicates.length}
             icon={CheckCircleIcon}
             colorClass="bg-kid-success/10 text-kid-success"
           />
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-            {duplicates.duplicates.slice(0, 24).map((dup) => (
+            {filteredDuplicates.slice(0, 24).map((dup) => (
               <ComparisonCard
                 key={dup.cardId}
                 cardId={dup.cardId}
@@ -512,20 +535,20 @@ export function DuplicateFinder({ className }: DuplicateFinderProps) {
               />
             ))}
           </div>
-          {duplicates.duplicates.length > 24 && (
+          {filteredDuplicates.length > 24 && (
             <p className="mt-4 text-center text-sm text-gray-500">
-              + {duplicates.duplicates.length - 24} more duplicate cards
+              + {filteredDuplicates.length - 24} more duplicate cards
             </p>
           )}
         </div>
       )}
 
       {/* Cards Only Profile 1 Has */}
-      {tradeableToProfile2?.tradeableCards && tradeableToProfile2.tradeableCards.length > 0 && (
+      {filteredTradeableToProfile2.length > 0 && (
         <div className="rounded-xl bg-white p-6 shadow-sm">
           <SectionHeader
-            title={`Cards Only ${profile1Name} Has`}
-            count={tradeableToProfile2.tradeableCards.length}
+            title={`${primaryGame.shortName} Cards Only ${profile1Name} Has`}
+            count={filteredTradeableToProfile2.length}
             icon={ArrowRightIcon}
             colorClass="bg-kid-primary/10 text-kid-primary"
           />
@@ -533,7 +556,7 @@ export function DuplicateFinder({ className }: DuplicateFinderProps) {
             These cards could be traded to {profile2Name}
           </p>
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-            {tradeableToProfile2.tradeableCards.slice(0, 16).map((card) => (
+            {filteredTradeableToProfile2.slice(0, 16).map((card) => (
               <ComparisonCard
                 key={card.cardId}
                 cardId={card.cardId}
@@ -545,20 +568,20 @@ export function DuplicateFinder({ className }: DuplicateFinderProps) {
               />
             ))}
           </div>
-          {tradeableToProfile2.tradeableCards.length > 16 && (
+          {filteredTradeableToProfile2.length > 16 && (
             <p className="mt-4 text-center text-sm text-gray-500">
-              + {tradeableToProfile2.tradeableCards.length - 16} more unique cards
+              + {filteredTradeableToProfile2.length - 16} more unique cards
             </p>
           )}
         </div>
       )}
 
       {/* Cards Only Profile 2 Has */}
-      {tradeableToProfile1?.tradeableCards && tradeableToProfile1.tradeableCards.length > 0 && (
+      {filteredTradeableToProfile1.length > 0 && (
         <div className="rounded-xl bg-white p-6 shadow-sm">
           <SectionHeader
-            title={`Cards Only ${profile2Name} Has`}
-            count={tradeableToProfile1.tradeableCards.length}
+            title={`${primaryGame.shortName} Cards Only ${profile2Name} Has`}
+            count={filteredTradeableToProfile1.length}
             icon={ArrowLeftIcon}
             colorClass="bg-kid-secondary/10 text-kid-secondary"
           />
@@ -566,7 +589,7 @@ export function DuplicateFinder({ className }: DuplicateFinderProps) {
             These cards could be traded to {profile1Name}
           </p>
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-            {tradeableToProfile1.tradeableCards.slice(0, 16).map((card) => (
+            {filteredTradeableToProfile1.slice(0, 16).map((card) => (
               <ComparisonCard
                 key={card.cardId}
                 cardId={card.cardId}
@@ -578,24 +601,23 @@ export function DuplicateFinder({ className }: DuplicateFinderProps) {
               />
             ))}
           </div>
-          {tradeableToProfile1.tradeableCards.length > 16 && (
+          {filteredTradeableToProfile1.length > 16 && (
             <p className="mt-4 text-center text-sm text-gray-500">
-              + {tradeableToProfile1.tradeableCards.length - 16} more unique cards
+              + {filteredTradeableToProfile1.length - 16} more unique cards
             </p>
           )}
         </div>
       )}
 
-      {/* Empty state when no cards to compare */}
-      {(!duplicates.duplicates || duplicates.duplicates.length === 0) &&
-        (!tradeableToProfile2?.tradeableCards || tradeableToProfile2.tradeableCards.length === 0) &&
-        (!tradeableToProfile1?.tradeableCards ||
-          tradeableToProfile1.tradeableCards.length === 0) && (
+      {/* Empty state when no cards to compare for selected game */}
+      {filteredDuplicates.length === 0 &&
+        filteredTradeableToProfile2.length === 0 &&
+        filteredTradeableToProfile1.length === 0 && (
           <div className="rounded-xl bg-white p-8 text-center shadow-sm">
             <UserGroupIcon className="mx-auto mb-4 h-16 w-16 text-gray-300" />
-            <h2 className="mb-2 text-xl font-bold text-gray-800">No Cards to Compare</h2>
+            <h2 className="mb-2 text-xl font-bold text-gray-800">No {primaryGame.shortName} Cards to Compare</h2>
             <p className="text-gray-500">
-              Neither profile has cards in their collection yet. Start adding cards to see
+              Neither profile has {primaryGame.shortName} cards in their collection yet. Start adding cards to see
               comparisons!
             </p>
           </div>
