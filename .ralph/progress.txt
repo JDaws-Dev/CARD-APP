@@ -1288,3 +1288,14 @@
 **Files:** src/components/collection/CardGrid.tsx (existing), src/components/ui/VariantBadge.tsx (existing)
 **Commit:** N/A - no code changes needed, feature already existed
 ---
+## CD-5yk.2 - Add variant picker when clicking card to add to collection
+**Status:** Completed
+**Changes:** No code changes required - feature was already fully implemented
+**Implementation Summary:** 
+- VariantSelector component in CardGrid.tsx:186-350 shows picker popup
+- handleCardClick (lines 469-534) triggers variant selector for multi-variant cards
+- handleAddVariant passes specific variant to addCard mutation
+- Kid mode integration via features.showVariantSelector flag
+**Files:** N/A (no modifications)
+**Commit:** N/A (verification only)
+---
