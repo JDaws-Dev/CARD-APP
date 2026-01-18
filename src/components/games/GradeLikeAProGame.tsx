@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getAllConditionGrades, type ConditionInfo } from '@/lib/conditionGuide';
+import { GRADING_CHALLENGES, type GradingChallenge } from '@/lib/miniGamesConfig';
 import {
   SparklesIcon,
   HandThumbUpIcon,
@@ -27,24 +28,16 @@ import {
 // TYPES
 // ============================================================================
 
-interface CardChallenge {
-  id: string;
-  imageUrl: string;
-  correctCondition: string;
-  hints: string[];
-  explanation: string;
-}
-
 interface GameState {
   phase: 'intro' | 'playing' | 'feedback' | 'results';
   currentRound: number;
   totalRounds: number;
   score: number;
   xpEarned: number;
-  currentChallenge: CardChallenge | null;
+  currentChallenge: GradingChallenge | null;
   selectedAnswer: string | null;
   isCorrect: boolean | null;
-  roundResults: { challenge: CardChallenge; selected: string; isCorrect: boolean }[];
+  roundResults: { challenge: GradingChallenge; selected: string; isCorrect: boolean }[];
 }
 
 // ============================================================================
@@ -66,73 +59,6 @@ const CONDITION_GRADIENTS: Record<string, { from: string; to: string; bg: string
   hp: { from: 'from-orange-500', to: 'to-red-500', bg: 'bg-orange-50' },
   dmg: { from: 'from-red-500', to: 'to-rose-600', bg: 'bg-red-50' },
 };
-
-// ============================================================================
-// MOCK CHALLENGES - Real images would come from API
-// ============================================================================
-
-const MOCK_CHALLENGES: CardChallenge[] = [
-  {
-    id: '1',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/1.png',
-    correctCondition: 'nm',
-    hints: ['Look at the corners carefully', 'Check the edges for whitening'],
-    explanation:
-      'This card has sharp corners, no whitening on edges, and a clean surface - classic Near Mint!',
-  },
-  {
-    id: '2',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/25.png',
-    correctCondition: 'lp',
-    hints: ['Notice the corner condition', 'Is there any slight wear?'],
-    explanation:
-      'This card shows tiny edge wear that is barely visible - typical Lightly Played condition.',
-  },
-  {
-    id: '3',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/50.png',
-    correctCondition: 'mp',
-    hints: ['Check the edges', 'Look at the surface'],
-    explanation:
-      'Visible edge whitening and minor scratches on the surface make this Moderately Played.',
-  },
-  {
-    id: '4',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/75.png',
-    correctCondition: 'hp',
-    hints: ['Are there any creases?', 'Check the corners closely'],
-    explanation: 'Heavy corner wear and visible creasing indicate this card is Heavily Played.',
-  },
-  {
-    id: '5',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/100.png',
-    correctCondition: 'nm',
-    hints: ['Fresh from the pack look?', 'Any damage at all?'],
-    explanation: 'Perfect corners, pristine edges, flawless surface - this card is Near Mint!',
-  },
-  {
-    id: '6',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/136.png',
-    correctCondition: 'lp',
-    hints: ['Inspect the holo surface', 'Barely noticeable wear'],
-    explanation: 'Light surface scratches only visible under direct light - Lightly Played grade.',
-  },
-  {
-    id: '7',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/150.png',
-    correctCondition: 'mp',
-    hints: ['Multiple signs of play', 'Check all edges'],
-    explanation:
-      'Edge wear on all sides with noticeable scratches - Moderately Played is accurate.',
-  },
-  {
-    id: '8',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/175.png',
-    correctCondition: 'nm',
-    hints: ['Pack fresh quality', 'Examine every detail'],
-    explanation: 'No flaws whatsoever - sharp corners, clean edges, perfect surface. Near Mint!',
-  },
-];
 
 // ============================================================================
 // XP CALCULATIONS
@@ -615,7 +541,7 @@ export function GradeLikeAProGame({ isOpen, onClose, onXPEarned }: GradeLikeAPro
 
   // Shuffle and select challenges
   const challenges = useMemo(() => {
-    const shuffled = [...MOCK_CHALLENGES].sort(() => Math.random() - 0.5);
+    const shuffled = [...GRADING_CHALLENGES].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, ROUNDS_PER_GAME);
   }, []);
 

@@ -9,6 +9,7 @@ import {
   getRarityColor,
   type RarityTier,
 } from '@/lib/rarity';
+import { RARITY_CHALLENGES, type RarityChallenge } from '@/lib/miniGamesConfig';
 import {
   SparklesIcon,
   TrophyIcon,
@@ -27,25 +28,16 @@ import {
 // TYPES
 // ============================================================================
 
-interface CardChallenge {
-  id: string;
-  imageUrl: string;
-  cardName: string;
-  correctRarity: string;
-  hints: string[];
-  explanation: string;
-}
-
 interface GameState {
   phase: 'intro' | 'playing' | 'feedback' | 'results';
   currentRound: number;
   totalRounds: number;
   score: number;
   xpEarned: number;
-  currentChallenge: CardChallenge | null;
+  currentChallenge: RarityChallenge | null;
   selectedAnswer: string | null;
   isCorrect: boolean | null;
-  roundResults: { challenge: CardChallenge; selected: string; isCorrect: boolean }[];
+  roundResults: { challenge: RarityChallenge; selected: string; isCorrect: boolean }[];
 }
 
 // ============================================================================
@@ -70,83 +62,6 @@ const RARITY_GRADIENTS: Record<string, { from: string; to: string; bg: string }>
   'Ultra Rare': { from: 'from-pink-400', to: 'to-rose-500', bg: 'bg-pink-50' },
   'Secret Rare': { from: 'from-amber-400', to: 'to-orange-500', bg: 'bg-amber-50' },
 };
-
-// ============================================================================
-// MOCK CHALLENGES - Real images from Pokemon TCG API
-// ============================================================================
-
-const MOCK_CHALLENGES: CardChallenge[] = [
-  {
-    id: '1',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/1.png',
-    cardName: 'Celebi V',
-    correctRarity: 'Ultra Rare',
-    hints: ['Look at the card style', 'V cards are special!'],
-    explanation:
-      'V cards like Celebi V are Ultra Rare! They have the big "V" in the name and special artwork.',
-  },
-  {
-    id: '2',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/6.png',
-    cardName: 'Caterpie',
-    correctRarity: 'Common',
-    hints: ['Basic Pokemon', 'Simple border design'],
-    explanation:
-      'Basic Pokemon like Caterpie with simple artwork and no special effects are usually Common.',
-  },
-  {
-    id: '3',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/25.png',
-    cardName: 'Cinderace',
-    correctRarity: 'Rare Holo',
-    hints: ['Stage 2 evolution', 'Notice the shiny effect'],
-    explanation: 'Cinderace is a Rare Holo - a rare card with a holographic shine on the artwork!',
-  },
-  {
-    id: '4',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/50.png',
-    cardName: 'Galarian Sirfetchd',
-    correctRarity: 'Rare',
-    hints: ['Stage 1 evolution', 'No holographic effect'],
-    explanation:
-      "This is a Rare card - not common, but doesn't have the holographic shine of a Rare Holo.",
-  },
-  {
-    id: '5',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/56.png',
-    cardName: 'Lapras',
-    correctRarity: 'Uncommon',
-    hints: ['Basic Pokemon', 'Slightly better than common'],
-    explanation:
-      'Lapras here is Uncommon - more valuable than Common but not quite Rare. Look for the diamond symbol!',
-  },
-  {
-    id: '6',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/136.png',
-    cardName: 'Zacian V',
-    correctRarity: 'Ultra Rare',
-    hints: ['Legendary Pokemon V', 'Full art style'],
-    explanation: 'Zacian V is an Ultra Rare! V Pokemon are always special and valuable.',
-  },
-  {
-    id: '7',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/192.png',
-    cardName: 'Marnie',
-    correctRarity: 'Secret Rare',
-    hints: ['Full art trainer', 'Special alternate art'],
-    explanation:
-      'Full art trainer cards with special artwork like this Marnie are Secret Rare - the rarest!',
-  },
-  {
-    id: '8',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/95.png',
-    cardName: 'Snorlax',
-    correctRarity: 'Rare Holo',
-    hints: ['Popular Pokemon', 'Holographic shine'],
-    explanation:
-      "Snorlax with holographic artwork is a Rare Holo - you can tell by the sparkle when you tilt it!",
-  },
-];
 
 // ============================================================================
 // XP CALCULATIONS
@@ -568,7 +483,7 @@ export function RarityGuessingGame({ isOpen, onClose }: RarityGuessingGameProps)
 
   // Shuffle and pick challenges
   const challenges = useMemo(() => {
-    const shuffled = [...MOCK_CHALLENGES].sort(() => Math.random() - 0.5);
+    const shuffled = [...RARITY_CHALLENGES].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, state.totalRounds);
   }, [state.totalRounds]);
 

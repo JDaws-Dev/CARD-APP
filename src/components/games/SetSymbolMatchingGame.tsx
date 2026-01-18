@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { SET_SYMBOL_DATA, type SetSymbolData } from '@/lib/miniGamesConfig';
 import {
   SparklesIcon,
   TrophyIcon,
@@ -21,130 +22,18 @@ import {
 // TYPES
 // ============================================================================
 
-interface SetChallenge {
-  id: string;
-  symbolUrl: string;
-  setName: string;
-  setId: string;
-  releaseYear: string;
-  hint: string;
-}
-
 interface GameState {
   phase: 'intro' | 'playing' | 'feedback' | 'results';
   currentRound: number;
   totalRounds: number;
   score: number;
   xpEarned: number;
-  currentChallenge: SetChallenge | null;
+  currentChallenge: SetSymbolData | null;
   options: string[];
   selectedAnswer: string | null;
   isCorrect: boolean | null;
-  roundResults: { challenge: SetChallenge; selected: string; isCorrect: boolean }[];
+  roundResults: { challenge: SetSymbolData; selected: string; isCorrect: boolean }[];
 }
-
-// ============================================================================
-// SET DATA - Popular Pokemon TCG Sets
-// ============================================================================
-
-const POKEMON_SETS: SetChallenge[] = [
-  {
-    id: 'swsh1',
-    symbolUrl: 'https://images.pokemontcg.io/swsh1/symbol.png',
-    setName: 'Sword & Shield',
-    setId: 'swsh1',
-    releaseYear: '2020',
-    hint: 'The first set of the Sword & Shield era!',
-  },
-  {
-    id: 'swsh12pt5',
-    symbolUrl: 'https://images.pokemontcg.io/swsh12pt5/symbol.png',
-    setName: 'Crown Zenith',
-    setId: 'swsh12pt5',
-    releaseYear: '2023',
-    hint: 'The final special set of the Sword & Shield era.',
-  },
-  {
-    id: 'sv1',
-    symbolUrl: 'https://images.pokemontcg.io/sv1/symbol.png',
-    setName: 'Scarlet & Violet',
-    setId: 'sv1',
-    releaseYear: '2023',
-    hint: 'The first set of the Scarlet & Violet era!',
-  },
-  {
-    id: 'sv2',
-    symbolUrl: 'https://images.pokemontcg.io/sv2/symbol.png',
-    setName: 'Paldea Evolved',
-    setId: 'sv2',
-    releaseYear: '2023',
-    hint: 'The second main set of Scarlet & Violet.',
-  },
-  {
-    id: 'sv3',
-    symbolUrl: 'https://images.pokemontcg.io/sv3/symbol.png',
-    setName: 'Obsidian Flames',
-    setId: 'sv3',
-    releaseYear: '2023',
-    hint: 'Features Charizard ex on the cover!',
-  },
-  {
-    id: 'sv4',
-    symbolUrl: 'https://images.pokemontcg.io/sv4/symbol.png',
-    setName: 'Paradox Rift',
-    setId: 'sv4',
-    releaseYear: '2023',
-    hint: 'Features ancient and future Pokemon!',
-  },
-  {
-    id: 'sv5',
-    symbolUrl: 'https://images.pokemontcg.io/sv5/symbol.png',
-    setName: 'Temporal Forces',
-    setId: 'sv5',
-    releaseYear: '2024',
-    hint: 'Features walking wake and iron leaves!',
-  },
-  {
-    id: 'swsh9',
-    symbolUrl: 'https://images.pokemontcg.io/swsh9/symbol.png',
-    setName: 'Brilliant Stars',
-    setId: 'swsh9',
-    releaseYear: '2022',
-    hint: 'Introduced the Trainer Gallery subset!',
-  },
-  {
-    id: 'swsh10',
-    symbolUrl: 'https://images.pokemontcg.io/swsh10/symbol.png',
-    setName: 'Astral Radiance',
-    setId: 'swsh10',
-    releaseYear: '2022',
-    hint: 'Features Dialga and Palkia origin forms!',
-  },
-  {
-    id: 'swsh11',
-    symbolUrl: 'https://images.pokemontcg.io/swsh11/symbol.png',
-    setName: 'Lost Origin',
-    setId: 'swsh11',
-    releaseYear: '2022',
-    hint: 'Brought back the Lost Zone mechanic!',
-  },
-  {
-    id: 'swsh12',
-    symbolUrl: 'https://images.pokemontcg.io/swsh12/symbol.png',
-    setName: 'Silver Tempest',
-    setId: 'swsh12',
-    releaseYear: '2022',
-    hint: 'Features Lugia VSTAR!',
-  },
-  {
-    id: 'swsh7',
-    symbolUrl: 'https://images.pokemontcg.io/swsh7/symbol.png',
-    setName: 'Evolving Skies',
-    setId: 'swsh7',
-    releaseYear: '2021',
-    hint: 'Famous for its Eeveelution alt arts!',
-  },
-];
 
 // ============================================================================
 // XP CALCULATIONS
@@ -520,7 +409,7 @@ function ResultsScreen({ state, onPlayAgain, onClose }: ResultsScreenProps) {
 // HELPER: Generate wrong options
 // ============================================================================
 
-function generateOptions(correctSet: SetChallenge, allSets: SetChallenge[]): string[] {
+function generateOptions(correctSet: SetSymbolData, allSets: SetSymbolData[]): string[] {
   const options = [correctSet.setName];
   const otherSets = allSets.filter((s) => s.id !== correctSet.id);
 
@@ -559,7 +448,7 @@ export function SetSymbolMatchingGame({ isOpen, onClose }: SetSymbolMatchingGame
 
   // Shuffle and pick challenges
   const challenges = useMemo(() => {
-    const shuffled = [...POKEMON_SETS].sort(() => Math.random() - 0.5);
+    const shuffled = [...SET_SYMBOL_DATA].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, state.totalRounds);
   }, [state.totalRounds]);
 
@@ -572,7 +461,7 @@ export function SetSymbolMatchingGame({ isOpen, onClose }: SetSymbolMatchingGame
       score: 0,
       xpEarned: 0,
       currentChallenge: firstChallenge,
-      options: generateOptions(firstChallenge, POKEMON_SETS),
+      options: generateOptions(firstChallenge, SET_SYMBOL_DATA),
       selectedAnswer: null,
       isCorrect: null,
       roundResults: [],
@@ -617,7 +506,7 @@ export function SetSymbolMatchingGame({ isOpen, onClose }: SetSymbolMatchingGame
         phase: 'playing',
         currentRound: nextRound,
         currentChallenge: nextChallenge,
-        options: generateOptions(nextChallenge, POKEMON_SETS),
+        options: generateOptions(nextChallenge, SET_SYMBOL_DATA),
         selectedAnswer: null,
         isCorrect: null,
       }));

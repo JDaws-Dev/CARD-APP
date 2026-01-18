@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { PRICE_CHALLENGES, type PriceChallenge } from '@/lib/miniGamesConfig';
 import {
   SparklesIcon,
   TrophyIcon,
@@ -23,155 +24,17 @@ import {
 // TYPES
 // ============================================================================
 
-interface CardChallenge {
-  id: string;
-  imageUrl: string;
-  cardName: string;
-  setName: string;
-  actualPrice: number;
-  askPrice: number;
-  hints: string[];
-  explanation: string;
-}
-
 interface GameState {
   phase: 'intro' | 'playing' | 'feedback' | 'results';
   currentRound: number;
   totalRounds: number;
   score: number;
   xpEarned: number;
-  currentChallenge: CardChallenge | null;
+  currentChallenge: PriceChallenge | null;
   selectedAnswer: 'higher' | 'lower' | null;
   isCorrect: boolean | null;
-  roundResults: { challenge: CardChallenge; selected: 'higher' | 'lower'; isCorrect: boolean }[];
+  roundResults: { challenge: PriceChallenge; selected: 'higher' | 'lower'; isCorrect: boolean }[];
 }
-
-// ============================================================================
-// MOCK CHALLENGES - Cards with varied prices
-// ============================================================================
-
-const MOCK_CHALLENGES: CardChallenge[] = [
-  {
-    id: '1',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/25.png',
-    cardName: 'Cinderace',
-    setName: 'Sword & Shield Base',
-    actualPrice: 0.85,
-    askPrice: 2.0,
-    hints: ['This is a regular rare card', 'Base set cards are widely available'],
-    explanation: 'Regular rare cards from base sets typically sell for under $2. This Cinderace is worth about $0.85.',
-  },
-  {
-    id: '2',
-    imageUrl: 'https://images.pokemontcg.io/swsh35/73.png',
-    cardName: 'Pikachu VMAX',
-    setName: 'Champion\'s Path',
-    actualPrice: 8.50,
-    askPrice: 5.0,
-    hints: ['VMAX cards are usually valuable', 'Pikachu is a very popular Pokemon'],
-    explanation: 'Pikachu VMAX from Champion\'s Path is worth around $8.50. Pikachu cards and VMAX cards both hold value well!',
-  },
-  {
-    id: '3',
-    imageUrl: 'https://images.pokemontcg.io/swsh45sv/SV122.png',
-    cardName: 'Charizard VMAX',
-    setName: 'Shining Fates',
-    actualPrice: 85.0,
-    askPrice: 50.0,
-    hints: ['Shiny Charizard cards are extremely sought after', 'This is from a special shiny vault set'],
-    explanation: 'Shiny Charizard VMAX is one of the most valuable modern cards at around $85! Charizard cards are always in high demand.',
-  },
-  {
-    id: '4',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/136.png',
-    cardName: 'Marnie',
-    setName: 'Sword & Shield Base',
-    actualPrice: 3.50,
-    askPrice: 5.0,
-    hints: ['Trainer cards are usually less valuable than Pokemon', 'This is a regular rare version'],
-    explanation: 'Regular rare trainer cards like Marnie are typically worth $2-5. The full art versions are worth much more!',
-  },
-  {
-    id: '5',
-    imageUrl: 'https://images.pokemontcg.io/swsh4/188.png',
-    cardName: 'Pikachu V Full Art',
-    setName: 'Vivid Voltage',
-    actualPrice: 12.0,
-    askPrice: 8.0,
-    hints: ['Full art cards have special artwork', 'Pikachu is the most iconic Pokemon'],
-    explanation: 'Pikachu V Full Art is worth about $12. Full art cards with popular Pokemon tend to hold their value.',
-  },
-  {
-    id: '6',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/56.png',
-    cardName: 'Lapras',
-    setName: 'Sword & Shield Base',
-    actualPrice: 0.25,
-    askPrice: 1.0,
-    hints: ['Common and uncommon cards have low value', 'Base set cards were printed in huge quantities'],
-    explanation: 'Regular uncommon cards like this Lapras are only worth about $0.25. Most common cards are worth even less!',
-  },
-  {
-    id: '7',
-    imageUrl: 'https://images.pokemontcg.io/swsh7/215.png',
-    cardName: 'Umbreon VMAX Alt Art',
-    setName: 'Evolving Skies',
-    actualPrice: 280.0,
-    askPrice: 150.0,
-    hints: ['Alternate art cards are the rarest', 'Umbreon is one of the most popular Eeveelutions'],
-    explanation: 'Umbreon VMAX Alternate Art is worth around $280! Alt art cards from Evolving Skies are extremely valuable.',
-  },
-  {
-    id: '8',
-    imageUrl: 'https://images.pokemontcg.io/swsh35/50.png',
-    cardName: 'Alcremie V',
-    setName: 'Champion\'s Path',
-    actualPrice: 1.50,
-    askPrice: 3.0,
-    hints: ['Not all V cards are valuable', 'Lesser-known Pokemon hold less value'],
-    explanation: 'Alcremie V is only worth about $1.50. V cards of less popular Pokemon don\'t hold as much value.',
-  },
-  {
-    id: '9',
-    imageUrl: 'https://images.pokemontcg.io/swsh9/172.png',
-    cardName: 'Arceus VSTAR Rainbow',
-    setName: 'Brilliant Stars',
-    actualPrice: 45.0,
-    askPrice: 30.0,
-    hints: ['Rainbow rare cards are very special', 'Arceus is a legendary Pokemon'],
-    explanation: 'Arceus VSTAR Rainbow is worth about $45. Rainbow rares of popular Pokemon are always sought after!',
-  },
-  {
-    id: '10',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/128.png',
-    cardName: 'Copperajah',
-    setName: 'Sword & Shield Base',
-    actualPrice: 0.50,
-    askPrice: 2.0,
-    hints: ['Holo rare cards are a step above regular rares', 'Newer Pokemon are less popular with collectors'],
-    explanation: 'Copperajah holo is worth about $0.50. Even holo cards of less popular Pokemon aren\'t very valuable.',
-  },
-  {
-    id: '11',
-    imageUrl: 'https://images.pokemontcg.io/swsh45/107.png',
-    cardName: 'Eevee',
-    setName: 'Shiny Star V',
-    actualPrice: 4.0,
-    askPrice: 2.0,
-    hints: ['Shiny Pokemon cards are more valuable', 'Eevee is beloved by collectors'],
-    explanation: 'Shiny Eevee cards are worth around $4. Even common Pokemon are more valuable as shinies!',
-  },
-  {
-    id: '12',
-    imageUrl: 'https://images.pokemontcg.io/swsh6/166.png',
-    cardName: 'Moltres V Full Art',
-    setName: 'Chilling Reign',
-    actualPrice: 7.0,
-    askPrice: 10.0,
-    hints: ['Legendary birds are popular', 'Full art V cards vary in value'],
-    explanation: 'Moltres V Full Art is worth about $7. Not all legendary Pokemon hold premium value.',
-  },
-];
 
 // ============================================================================
 // XP CALCULATIONS
@@ -618,7 +481,7 @@ export function PriceEstimationGame({ isOpen, onClose }: PriceEstimationGameProp
 
   // Shuffle and pick challenges
   const challenges = useMemo(() => {
-    const shuffled = [...MOCK_CHALLENGES].sort(() => Math.random() - 0.5);
+    const shuffled = [...PRICE_CHALLENGES].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, state.totalRounds);
   }, [state.totalRounds]);
 

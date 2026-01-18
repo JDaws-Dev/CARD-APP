@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { TYPE_QUIZ_CHALLENGES, type TypeQuizChallenge } from '@/lib/miniGamesConfig';
 import {
   SparklesIcon,
   TrophyIcon,
@@ -21,26 +22,16 @@ import {
 // TYPES
 // ============================================================================
 
-interface PokemonChallenge {
-  id: string;
-  imageUrl: string;
-  pokemonName: string;
-  correctType: string;
-  secondaryType?: string;
-  hints: string[];
-  explanation: string;
-}
-
 interface GameState {
   phase: 'intro' | 'playing' | 'feedback' | 'results';
   currentRound: number;
   totalRounds: number;
   score: number;
   xpEarned: number;
-  currentChallenge: PokemonChallenge | null;
+  currentChallenge: TypeQuizChallenge | null;
   selectedAnswer: string | null;
   isCorrect: boolean | null;
-  roundResults: { challenge: PokemonChallenge; selected: string; isCorrect: boolean }[];
+  roundResults: { challenge: TypeQuizChallenge; selected: string; isCorrect: boolean }[];
 }
 
 // ============================================================================
@@ -61,109 +52,6 @@ const POKEMON_TYPES = [
 ] as const;
 
 type PokemonType = (typeof POKEMON_TYPES)[number]['value'];
-
-// ============================================================================
-// MOCK CHALLENGES - Cards from Pokemon TCG API
-// ============================================================================
-
-const MOCK_CHALLENGES: PokemonChallenge[] = [
-  {
-    id: '1',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/25.png',
-    pokemonName: 'Cinderace',
-    correctType: 'Fire',
-    hints: ['This Pokemon evolves from Scorbunny', 'It has a flame on its feet'],
-    explanation: 'Cinderace is a Fire-type Pokemon! It uses its powerful legs to kick flaming soccer balls at opponents.',
-  },
-  {
-    id: '2',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/56.png',
-    pokemonName: 'Lapras',
-    correctType: 'Water',
-    hints: ['Known as the Transport Pokemon', 'Lives in the ocean'],
-    explanation: 'Lapras is a Water-type Pokemon! Its gentle nature makes it perfect for carrying people across the sea.',
-  },
-  {
-    id: '3',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/11.png',
-    pokemonName: 'Rillaboom',
-    correctType: 'Grass',
-    hints: ['Plays a drum made from a tree stump', 'Final evolution of Grookey'],
-    explanation: 'Rillaboom is a Grass-type Pokemon! It uses its drum to control the roots of its tree and attack.',
-  },
-  {
-    id: '4',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/67.png',
-    pokemonName: 'Boltund',
-    correctType: 'Electric',
-    hints: ['Evolves from Yamper', 'Can run at incredible speeds'],
-    explanation: 'Boltund is an Electric-type Pokemon! It generates electricity by running and stores it in its legs.',
-  },
-  {
-    id: '5',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/83.png',
-    pokemonName: 'Hatterene',
-    correctType: 'Psychic',
-    hints: ['Known as the Silent Pokemon', 'Has a witch-like appearance'],
-    explanation: 'Hatterene is a Psychic-type Pokemon! It can sense emotions and attacks anything that emits hostility.',
-  },
-  {
-    id: '6',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/99.png',
-    pokemonName: 'Machamp',
-    correctType: 'Fighting',
-    hints: ['Has four powerful arms', 'Master of all martial arts'],
-    explanation: 'Machamp is a Fighting-type Pokemon! With four arms, it can throw 500 punches per second.',
-  },
-  {
-    id: '7',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/117.png',
-    pokemonName: 'Grimmsnarl',
-    correctType: 'Darkness',
-    hints: ['Uses its hair like muscles', 'Has a mischievous nature'],
-    explanation: 'Grimmsnarl is a Darkness-type Pokemon! It wraps its body in hair that it can control like extra limbs.',
-  },
-  {
-    id: '8',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/128.png',
-    pokemonName: 'Copperajah',
-    correctType: 'Metal',
-    hints: ['Based on an elephant', 'Its body is made of oxidized copper'],
-    explanation: 'Copperajah is a Metal-type Pokemon! Its green color comes from oxidized copper like the Statue of Liberty.',
-  },
-  {
-    id: '9',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/138.png',
-    pokemonName: 'Duraludon',
-    correctType: 'Dragon',
-    hints: ['Looks like a skyscraper', 'Lives in caves and mountains'],
-    explanation: 'Duraludon is a Dragon-type Pokemon! Its body is made of light but sturdy metal alloy.',
-  },
-  {
-    id: '10',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/150.png',
-    pokemonName: 'Indeedee',
-    correctType: 'Colorless',
-    hints: ['Works as a butler Pokemon', 'Has psychic powers but normal typing on this card'],
-    explanation: 'This Indeedee card is Colorless type! In the TCG, some Pokemon have different types than in the video games.',
-  },
-  {
-    id: '11',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/2.png',
-    pokemonName: 'Celebi V',
-    correctType: 'Grass',
-    hints: ['A mythical Pokemon', 'Guardian of the forest'],
-    explanation: 'Celebi V is a Grass-type Pokemon! This time-traveling Pokemon protects forests across time.',
-  },
-  {
-    id: '12',
-    imageUrl: 'https://images.pokemontcg.io/swsh1/41.png',
-    pokemonName: 'Inteleon',
-    correctType: 'Water',
-    hints: ['Evolves from Sobble', 'A secret agent Pokemon'],
-    explanation: 'Inteleon is a Water-type Pokemon! It uses water hidden in its fingers like a sniper.',
-  },
-];
 
 // ============================================================================
 // XP CALCULATIONS
@@ -571,7 +459,7 @@ export function PokemonTypeQuiz({ isOpen, onClose }: PokemonTypeQuizProps) {
 
   // Shuffle and pick challenges
   const challenges = useMemo(() => {
-    const shuffled = [...MOCK_CHALLENGES].sort(() => Math.random() - 0.5);
+    const shuffled = [...TYPE_QUIZ_CHALLENGES].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, state.totalRounds);
   }, [state.totalRounds]);
 
