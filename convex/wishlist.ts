@@ -92,9 +92,16 @@ export const getWishlistByToken = query({
       .withIndex('by_profile', (q) => q.eq('profileId', share.profileId))
       .collect();
 
+    // Get profile settings to check hidePrices preference
+    const profileSettings = await ctx.db
+      .query('profileSettings')
+      .withIndex('by_profile', (q) => q.eq('profileId', share.profileId))
+      .unique();
+
     return {
       profileName: profile.displayName,
       wishlist,
+      hidePrices: profileSettings?.hidePrices ?? false,
     };
   },
 });

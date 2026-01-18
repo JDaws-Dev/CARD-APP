@@ -24,6 +24,7 @@ import {
 } from '@heroicons/react/24/solid';
 import { BackLink } from '@/components/ui/BackLink';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { useHidePrices } from '@/hooks/useHidePrices';
 import {
   HeartIcon as HeartIconOutline,
   StarIcon as StarIconOutline,
@@ -446,6 +447,7 @@ function WishlistCard({
   maxPriority,
   onShowAlternatives,
   gameSlug,
+  hidePrices,
 }: {
   item: WishlistItem;
   cardData?: PokemonCard;
@@ -454,6 +456,7 @@ function WishlistCard({
   maxPriority: number;
   onShowAlternatives?: (card: PokemonCard) => void;
   gameSlug?: string;
+  hidePrices?: boolean;
 }) {
   const removeFromWishlist = useMutation(api.wishlist.removeFromWishlist);
   const togglePriority = useMutation(api.wishlist.togglePriority);
@@ -494,7 +497,8 @@ function WishlistCard({
     cardData.tcgplayer?.prices?.holofoil?.market ??
     cardData.tcgplayer?.prices?.reverseHolofoil?.market ??
     null;
-  const showBudgetBadge = price !== null && price >= 5;
+  // Hide budget badge and price display when hidePrices is enabled
+  const showBudgetBadge = !hidePrices && price !== null && price >= 5;
 
   return (
     <div
@@ -525,7 +529,7 @@ function WishlistCard({
         <p className="truncate text-sm font-medium text-gray-800">{cardData.name}</p>
         <div className="flex flex-wrap items-center justify-center gap-1.5">
           <span className="truncate text-xs text-gray-500">{cardData.set.name}</span>
-          {price !== null && (
+          {!hidePrices && price !== null && (
             <span
               className={cn(
                 'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold',
@@ -591,17 +595,19 @@ function WishlistCard({
             )}
           </button>
         </Tooltip>
-        <Tooltip content="Buy on TCGPlayer" position="top">
-          <a
-            href={getCardPurchaseUrlWithAffiliate(cardData, gameSlug).affiliateUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition hover:bg-emerald-100 hover:text-emerald-600"
-            aria-label="Buy on TCGPlayer"
-          >
-            <ShoppingCartIcon className="h-5 w-5" aria-hidden="true" />
-          </a>
-        </Tooltip>
+        {!hidePrices && (
+          <Tooltip content="Buy on TCGPlayer" position="top">
+            <a
+              href={getCardPurchaseUrlWithAffiliate(cardData, gameSlug).affiliateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition hover:bg-emerald-100 hover:text-emerald-600"
+              aria-label="Buy on TCGPlayer"
+            >
+              <ShoppingCartIcon className="h-5 w-5" aria-hidden="true" />
+            </a>
+          </Tooltip>
+        )}
         <Tooltip content="Remove from wishlist" position="top">
           <button
             onClick={handleRemove}
@@ -626,6 +632,7 @@ export default function MyWishlistPage() {
   const router = useRouter();
   const { profileId, family, isLoading: profileLoading } = useCurrentProfile();
   const { primaryGame, isLoading: gameLoading } = useGameSelector();
+  const { hidePrices } = useHidePrices();
 
   // Redirect unauthenticated users to login
   useEffect(() => {
@@ -794,20 +801,24 @@ export default function MyWishlistPage() {
             </div>
             <p className="text-xs text-gray-500 sm:text-sm">Most Wanted</p>
           </div>
-          <div className="hidden w-px bg-gray-200 sm:block" aria-hidden="true" />
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1">
-              <CurrencyDollarIcon className="h-5 w-5 text-emerald-500" aria-hidden="true" />
-              <span className="text-2xl font-bold text-gray-800">
-                {isLoadingCards ? (
-                  <span className="inline-block h-6 w-12 animate-pulse rounded bg-gray-200" />
-                ) : (
-                  formatPrice(calculateWishlistTotal(cardData))
-                )}
-              </span>
-            </div>
-            <p className="text-xs text-gray-500 sm:text-sm">Est. Total Value</p>
-          </div>
+          {!hidePrices && (
+            <>
+              <div className="hidden w-px bg-gray-200 sm:block" aria-hidden="true" />
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <CurrencyDollarIcon className="h-5 w-5 text-emerald-500" aria-hidden="true" />
+                  <span className="text-2xl font-bold text-gray-800">
+                    {isLoadingCards ? (
+                      <span className="inline-block h-6 w-12 animate-pulse rounded bg-gray-200" />
+                    ) : (
+                      formatPrice(calculateWishlistTotal(cardData))
+                    )}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 sm:text-sm">Est. Total Value</p>
+              </div>
+            </>
+          )}
           <div className="hidden w-px bg-gray-200 sm:block" aria-hidden="true" />
           <div className="text-center">
             <div className="flex items-center justify-center gap-1">
@@ -842,6 +853,9 @@ export default function MyWishlistPage() {
 
         {/* Budget Alternatives Call-out - Show when there are expensive cards */}
         {(() => {
+          // Hide budget alternatives section when prices are hidden
+          if (hidePrices) return null;
+
           // Calculate how many cards have budget alternatives (price >= $5)
           const expensiveCards = Array.from(cardData.values()).filter((card) => {
             const price = getCardMarketPrice(card);
@@ -918,8 +932,9 @@ export default function MyWishlistPage() {
                         profileId={profileId as Id<'profiles'>}
                         priorityCount={priorityCount}
                         maxPriority={priorityData?.max || 5}
-                        onShowAlternatives={setAlternativesCard}
+                        onShowAlternatives={hidePrices ? undefined : setAlternativesCard}
                         gameSlug={primaryGame.id}
+                        hidePrices={hidePrices}
                       />
                     ))}
                 </div>
@@ -944,8 +959,9 @@ export default function MyWishlistPage() {
                         profileId={profileId as Id<'profiles'>}
                         priorityCount={priorityCount}
                         maxPriority={priorityData?.max || 5}
-                        onShowAlternatives={setAlternativesCard}
+                        onShowAlternatives={hidePrices ? undefined : setAlternativesCard}
                         gameSlug={primaryGame.id}
+                        hidePrices={hidePrices}
                       />
                     ))}
                 </div>
@@ -954,8 +970,8 @@ export default function MyWishlistPage() {
           </>
         )}
 
-        {/* Budget Alternatives Modal */}
-        {alternativesCard && (
+        {/* Budget Alternatives Modal - hidden when prices are hidden */}
+        {!hidePrices && alternativesCard && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
             onClick={() => setAlternativesCard(null)}

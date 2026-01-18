@@ -24,6 +24,7 @@ interface WishlistItem {
 interface WishlistData {
   profileName: string;
   wishlist: WishlistItem[];
+  hidePrices?: boolean;
 }
 
 /**
@@ -121,7 +122,7 @@ function InvalidLink() {
 /**
  * Wishlist card component with card image fetched from API
  */
-function WishlistCard({ item, cardData, showGame }: { item: WishlistItem; cardData?: PokemonCard; showGame?: boolean }) {
+function WishlistCard({ item, cardData, showGame, hidePrices }: { item: WishlistItem; cardData?: PokemonCard; showGame?: boolean; hidePrices?: boolean }) {
   if (!cardData) {
     return <WishlistCardSkeleton />;
   }
@@ -165,19 +166,21 @@ function WishlistCard({ item, cardData, showGame }: { item: WishlistItem; cardDa
         )}
       </div>
 
-      {/* Buy Button */}
-      <div className="mt-3 flex justify-center">
-        <a
-          href={purchaseUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100"
-          aria-label={`Buy ${cardData.name} on TCGPlayer`}
-        >
-          <ShoppingCartIcon className="h-3.5 w-3.5" aria-hidden="true" />
-          Buy
-        </a>
-      </div>
+      {/* Buy Button - hidden when prices are hidden */}
+      {!hidePrices && (
+        <div className="mt-3 flex justify-center">
+          <a
+            href={purchaseUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100"
+            aria-label={`Buy ${cardData.name} on TCGPlayer`}
+          >
+            <ShoppingCartIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            Buy
+          </a>
+        </div>
+      )}
     </div>
   );
 }
@@ -290,7 +293,7 @@ export default function PublicWishlistPage() {
     return <InvalidLink />;
   }
 
-  const { profileName, wishlist } = wishlistData as WishlistData;
+  const { profileName, wishlist, hidePrices } = wishlistData as WishlistData;
 
   // Sort wishlist: priority items first, then by card ID
   const sortedWishlist = [...wishlist].sort((a, b) => {
@@ -358,6 +361,7 @@ export default function PublicWishlistPage() {
                         item={item}
                         cardData={cardData.get(item.cardId)}
                         showGame={isMultiGame}
+                        hidePrices={hidePrices}
                       />
                     ))}
                 </div>
@@ -380,6 +384,7 @@ export default function PublicWishlistPage() {
                         item={item}
                         cardData={isLoadingCards ? undefined : cardData.get(item.cardId)}
                         showGame={isMultiGame}
+                        hidePrices={hidePrices}
                       />
                     ))}
                 </div>
@@ -388,12 +393,14 @@ export default function PublicWishlistPage() {
           </>
         )}
 
-        {/* Purchase Disclaimer */}
-        <div className="mx-auto mt-8 max-w-lg rounded-lg bg-gray-50 px-4 py-3 text-center">
-          <p className="text-xs text-gray-500">
-            Buy links connect to TCGPlayer, a third-party marketplace. Prices and availability may vary.
-          </p>
-        </div>
+        {/* Purchase Disclaimer - hidden when prices are hidden */}
+        {!hidePrices && (
+          <div className="mx-auto mt-8 max-w-lg rounded-lg bg-gray-50 px-4 py-3 text-center">
+            <p className="text-xs text-gray-500">
+              Buy links connect to TCGPlayer, a third-party marketplace. Prices and availability may vary.
+            </p>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="mt-8 text-center">
