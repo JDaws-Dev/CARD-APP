@@ -67,7 +67,7 @@ vi.mock('@/lib/gameSelector', () => ({
     title: 'What do you collect?',
     subtitle: "Pick the card games you're into!",
     description: 'Choose the trading card games you want to track.',
-    tip: "Don't see your favorite? More games coming soon!",
+    tip: 'Pick your favorites from 4 popular TCGs!',
     gradientFrom: 'from-indigo-500',
     gradientTo: 'to-purple-500',
   }),

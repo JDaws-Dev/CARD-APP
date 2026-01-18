@@ -225,7 +225,7 @@ export const GAME_SELECTOR_ONBOARDING = {
   subtitle: "Pick the card games you're into!",
   description:
     'Choose the trading card games you want to track. You can always add or remove games later in settings. Pick at least one to get started!',
-  tip: "Don't see your favorite? More games coming soon!",
+  tip: 'Pick your favorites from 4 popular TCGs!',
   gradientFrom: 'from-indigo-500',
   gradientTo: 'to-purple-500',
 } as const;

@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MagnifyingGlassIcon, RocketLaunchIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { SeriesFilter, type SeriesFilterValue } from './SeriesFilter';
 import { GameFilter, type GameFilterValue, useEnabledGames } from './GameFilter';
 import type { PokemonSet, PokemonSeries } from '@/lib/pokemon-tcg';
@@ -30,8 +30,8 @@ export function SetsList({ sets }: SetsListProps) {
         // All current sets are Pokemon - keep them all
         filtered = filtered;
       } else {
-        // Other TCG sets not yet available - filter to empty
-        // This shows an appropriate "no sets" message for coming soon games
+        // Other TCG sets not yet loaded - filter to empty
+        // This shows an appropriate "no sets" message for games without data
         filtered = [];
       }
     }
@@ -169,12 +169,12 @@ export function SetsList({ sets }: SetsListProps) {
         ))}
       </div>
 
-      {/* Empty State - Coming Soon for non-Pokemon games */}
+      {/* Empty State - No sets for non-Pokemon games */}
       {filteredSets.length === 0 &&
         sets.length > 0 &&
         selectedGame !== 'all' &&
         selectedGame !== 'pokemon' && (
-          <ComingSoonState
+          <NoSetsState
             gameName={enabledGames.find((g) => g.id === selectedGame)?.name ?? selectedGame}
           />
         )}
@@ -203,15 +203,15 @@ export function SetsList({ sets }: SetsListProps) {
 }
 
 /**
- * Coming Soon state for games that don't have sets yet
+ * Empty state for games that don't have sets loaded yet
  */
-function ComingSoonState({ gameName }: { gameName: string }) {
+function NoSetsState({ gameName }: { gameName: string }) {
   return (
     <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 p-8 text-center shadow-md sm:p-12">
       {/* Icon container with decorative elements */}
       <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center">
         <div className="absolute inset-0 rounded-full bg-gradient-to-br from-kid-primary/20 to-kid-secondary/20" />
-        <RocketLaunchIcon className="h-10 w-10 text-kid-primary" aria-hidden="true" />
+        <MagnifyingGlassIcon className="h-10 w-10 text-kid-primary" aria-hidden="true" />
         {/* Decorative sparkles */}
         <SparklesIcon
           className="absolute -right-1 -top-1 h-5 w-5 text-yellow-500"
@@ -223,16 +223,15 @@ function ComingSoonState({ gameName }: { gameName: string }) {
         />
       </div>
 
-      <h2 className="text-xl font-bold text-gray-800 sm:text-2xl">{gameName} Coming Soon!</h2>
+      <h2 className="text-xl font-bold text-gray-800 sm:text-2xl">No {gameName} Sets Available</h2>
 
       <p className="mx-auto mt-3 max-w-md text-sm text-gray-600 sm:text-base">
-        We&apos;re working hard to add {gameName} sets to CardDex. Check back soon to start
-        tracking your collection!
+        {gameName} sets aren&apos;t loaded yet. Try browsing Pok&eacute;mon sets in the meantime!
       </p>
 
       <div className="mt-6 flex flex-wrap justify-center gap-3">
         <div className="rounded-full bg-white/80 px-4 py-2 text-sm font-medium text-kid-primary shadow-sm">
-          Browse Pok&eacute;mon sets for now
+          Browse Pok&eacute;mon sets
         </div>
       </div>
     </div>

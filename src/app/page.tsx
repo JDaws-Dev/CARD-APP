@@ -273,9 +273,6 @@ export default function Home() {
             })}
           </div>
 
-          <p className="mt-8 text-center text-sm text-gray-500">
-            More games coming soon! We&apos;re always adding new TCGs.
-          </p>
         </div>
       </section>
 
