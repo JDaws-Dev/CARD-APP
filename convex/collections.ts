@@ -11,17 +11,61 @@ const cardVariant = v.union(
   v.literal('1stEditionNormal')
 );
 
+// Game slug type for multi-TCG filtering
+const gameSlugValidator = v.union(
+  v.literal('pokemon'),
+  v.literal('yugioh'),
+  v.literal('onepiece'),
+  v.literal('lorcana')
+);
+
 // ============================================================================
 // QUERIES
 // ============================================================================
 
 export const getCollection = query({
-  args: { profileId: v.id('profiles') },
+  args: {
+    profileId: v.id('profiles'),
+    gameSlug: v.optional(gameSlugValidator),
+  },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const cards = await ctx.db
       .query('collectionCards')
       .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
       .collect();
+
+    // If no game filter, return all cards
+    if (!args.gameSlug) {
+      return cards;
+    }
+
+    // Get unique card IDs to look up their game slugs
+    const uniqueCardIds = [...new Set(cards.map((c) => c.cardId))];
+
+    // Batch fetch card data to get game slugs
+    const CHUNK_SIZE = 50;
+    const cardGameMap = new Map<string, string>();
+
+    for (let i = 0; i < uniqueCardIds.length; i += CHUNK_SIZE) {
+      const chunk = uniqueCardIds.slice(i, i + CHUNK_SIZE);
+      const chunkResults = await Promise.all(
+        chunk.map((cardId) =>
+          ctx.db
+            .query('cachedCards')
+            .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+            .first()
+        )
+      );
+
+      for (const cachedCard of chunkResults) {
+        if (cachedCard) {
+          cardGameMap.set(cachedCard.cardId, cachedCard.gameSlug);
+        }
+      }
+    }
+
+    // Filter cards by game slug
+    return cards.filter((card) => cardGameMap.get(card.cardId) === args.gameSlug);
   },
 });
 
@@ -127,8 +171,25 @@ export const getCollectionPaginated = query({
 });
 
 export const getCollectionBySet = query({
-  args: { profileId: v.id('profiles'), setId: v.string() },
+  args: {
+    profileId: v.id('profiles'),
+    setId: v.string(),
+    gameSlug: v.optional(gameSlugValidator),
+  },
   handler: async (ctx, args) => {
+    // If gameSlug is provided, verify the set belongs to that game
+    if (args.gameSlug) {
+      const cachedSet = await ctx.db
+        .query('cachedSets')
+        .withIndex('by_set_id', (q) => q.eq('setId', args.setId))
+        .first();
+
+      // If set doesn't exist or belongs to a different game, return empty
+      if (!cachedSet || cachedSet.gameSlug !== args.gameSlug) {
+        return [];
+      }
+    }
+
     const allCards = await ctx.db
       .query('collectionCards')
       .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
@@ -140,12 +201,42 @@ export const getCollectionBySet = query({
 });
 
 export const getCollectionStats = query({
-  args: { profileId: v.id('profiles') },
+  args: {
+    profileId: v.id('profiles'),
+    gameSlug: v.optional(gameSlugValidator),
+  },
   handler: async (ctx, args) => {
-    const cards = await ctx.db
+    let cards = await ctx.db
       .query('collectionCards')
       .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
       .collect();
+
+    // Filter by game if specified
+    if (args.gameSlug) {
+      const uniqueCardIds = [...new Set(cards.map((c) => c.cardId))];
+      const CHUNK_SIZE = 50;
+      const cardGameMap = new Map<string, string>();
+
+      for (let i = 0; i < uniqueCardIds.length; i += CHUNK_SIZE) {
+        const chunk = uniqueCardIds.slice(i, i + CHUNK_SIZE);
+        const chunkResults = await Promise.all(
+          chunk.map((cardId) =>
+            ctx.db
+              .query('cachedCards')
+              .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+              .first()
+          )
+        );
+
+        for (const cachedCard of chunkResults) {
+          if (cachedCard) {
+            cardGameMap.set(cachedCard.cardId, cachedCard.gameSlug);
+          }
+        }
+      }
+
+      cards = cards.filter((card) => cardGameMap.get(card.cardId) === args.gameSlug);
+    }
 
     const totalCards = cards.reduce((sum, card) => sum + card.quantity, 0);
     const uniqueCards = cards.length;
@@ -167,12 +258,42 @@ export const getCollectionStats = query({
  * reducing redundant database queries and improving page load performance.
  */
 export const getCollectionWithStats = query({
-  args: { profileId: v.id('profiles') },
+  args: {
+    profileId: v.id('profiles'),
+    gameSlug: v.optional(gameSlugValidator),
+  },
   handler: async (ctx, args) => {
-    const cards = await ctx.db
+    let cards = await ctx.db
       .query('collectionCards')
       .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
       .collect();
+
+    // Filter by game if specified
+    if (args.gameSlug) {
+      const uniqueCardIds = [...new Set(cards.map((c) => c.cardId))];
+      const CHUNK_SIZE = 50;
+      const cardGameMap = new Map<string, string>();
+
+      for (let i = 0; i < uniqueCardIds.length; i += CHUNK_SIZE) {
+        const chunk = uniqueCardIds.slice(i, i + CHUNK_SIZE);
+        const chunkResults = await Promise.all(
+          chunk.map((cardId) =>
+            ctx.db
+              .query('cachedCards')
+              .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+              .first()
+          )
+        );
+
+        for (const cachedCard of chunkResults) {
+          if (cachedCard) {
+            cardGameMap.set(cachedCard.cardId, cachedCard.gameSlug);
+          }
+        }
+      }
+
+      cards = cards.filter((card) => cardGameMap.get(card.cardId) === args.gameSlug);
+    }
 
     // Calculate stats in a single pass over the data
     let totalCards = 0;
