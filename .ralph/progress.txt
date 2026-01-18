@@ -1170,3 +1170,9 @@
 - src/components/trades/TradeLoggingModal.tsx (modified)
 **Commit:** 9ab80f5
 ---
+## CD-cxz.5 - Trade UX: Improve TradeHistory to show card images and names
+**Status:** Completed
+**Changes:** Added card image display to TradeHistory component - both "Gave" and "Received" sections now show card images alongside names using the /api/cards endpoint for image fetching
+**Files:** src/components/trades/TradeHistory.tsx
+**Commit:** 2e6a92b
+---
