@@ -115,11 +115,11 @@ export async function GET(request: NextRequest) {
         supertype: string;
         subtypes: string[];
         types: string[];
-        rarity: string | undefined;
+        rarity?: string;
         imageSmall: string;
         imageLarge: string;
-        tcgPlayerUrl: string | undefined;
-        priceMarket: number | undefined;
+        tcgPlayerUrl?: string;
+        priceMarket?: number;
       }) => ({
         id: card.cardId,
         name: card.name,

@@ -492,7 +492,7 @@ export function getTradeSummaryFromMetadata(
   if (tradeSummary) return tradeSummary;
 
   // Build summary from cards
-  const tradeMetadata = metadata as TradeLoggedMetadata;
+  const tradeMetadata = metadata as unknown as TradeLoggedMetadata;
   if (!tradeMetadata.cardsGiven && !tradeMetadata.cardsReceived) {
     return null;
   }
