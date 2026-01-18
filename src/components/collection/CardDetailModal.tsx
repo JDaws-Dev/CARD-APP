@@ -18,6 +18,7 @@ import {
   CheckCircleIcon,
   CurrencyDollarIcon,
   ArrowsRightLeftIcon,
+  ShoppingCartIcon,
 } from '@heroicons/react/24/solid';
 import { TradeLoggingModal } from '@/components/trades/TradeLoggingModal';
 import Link from 'next/link';
@@ -96,6 +97,8 @@ interface CardDetailModalProps {
   isOnWishlist?: boolean;
   isRemoving?: boolean;
   isAddingToWishlist?: boolean;
+  // Buy button support
+  buyUrl?: string | null;
 }
 
 export function CardDetailModal({
@@ -114,6 +117,7 @@ export function CardDetailModal({
   isOnWishlist = false,
   isRemoving = false,
   isAddingToWishlist = false,
+  buyUrl,
 }: CardDetailModalProps) {
   // Get game context
   const { primaryGame } = useGameSelector();
@@ -586,6 +590,21 @@ export function CardDetailModal({
                   <ArrowsRightLeftIcon className="h-4 w-4" />
                   Trade Away
                 </button>
+              )}
+
+              {/* Buy This Card - only show if buyUrl is available */}
+              {buyUrl && (
+                <a
+                  href={buyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-medium text-white transition hover:from-emerald-600 hover:to-teal-600"
+                  aria-label="Buy this card on TCGPlayer"
+                >
+                  <ShoppingCartIcon className="h-4 w-4" />
+                  Buy This Card
+                </a>
               )}
 
               {/* Add to Wishlist */}
