@@ -1303,5 +1303,5 @@
 **Status:** Completed
 **Changes:** Consolidated CardGrid.tsx to use shared getVariantConfig() from VariantBadge.tsx, removed redundant local VARIANT_CONFIG and CardVariant type, removed unused SparklesIcon import. Verified existing architecture already supports all game-specific variants (Pokemon, Yu-Gi-Oh, One Piece, Lorcana) through flexible schema and comprehensive variant configs.
 **Files:** src/components/collection/CardGrid.tsx
-**Commit:** ce513fe
+**Commit:** a4d4843
 ---
