@@ -198,18 +198,37 @@ export function CardStoryModal({
             </h2>
           </div>
 
-          {/* Loading state */}
+          {/* Loading state with skeleton */}
           {isLoading && (
-            <div className="flex flex-1 flex-col items-center justify-center py-8">
-              <div className="mb-4 flex items-center gap-2">
-                <SparklesIcon className="h-8 w-8 animate-spin text-yellow-400" />
+            <div className="space-y-4">
+              {/* Skeleton for main story */}
+              <div className="rounded-xl bg-white/10 p-4">
+                <div className="space-y-3">
+                  <div className="h-4 w-full animate-pulse rounded bg-white/20" />
+                  <div className="h-4 w-11/12 animate-pulse rounded bg-white/20" />
+                  <div className="h-4 w-4/5 animate-pulse rounded bg-white/20" />
+                  <div className="h-4 w-full animate-pulse rounded bg-white/20" />
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-white/20" />
+                </div>
               </div>
-              <p className="text-center text-white/80">
-                Creating your story...
-              </p>
-              <p className="mt-2 text-center text-sm text-white/60">
-                The magic is happening!
-              </p>
+
+              {/* Skeleton for fun facts */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-pulse rounded bg-yellow-400/40" />
+                  <div className="h-4 w-20 animate-pulse rounded bg-yellow-400/40" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-12 w-full animate-pulse rounded-lg bg-gradient-to-r from-yellow-500/10 to-orange-500/10" />
+                  <div className="h-12 w-full animate-pulse rounded-lg bg-gradient-to-r from-yellow-500/10 to-orange-500/10" />
+                </div>
+              </div>
+
+              {/* Loading message */}
+              <div className="flex items-center justify-center gap-2 pt-4">
+                <SparklesIcon className="h-5 w-5 animate-spin text-yellow-400" />
+                <p className="text-sm text-white/70">Creating your story...</p>
+              </div>
             </div>
           )}
 

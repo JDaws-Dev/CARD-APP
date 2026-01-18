@@ -33,6 +33,7 @@ const config: Config = {
         'bounce-slow': 'bounce 2s infinite',
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
         celebrate: 'celebrate 0.5s ease-out',
+        progress: 'progress 2s ease-in-out infinite',
       },
       keyframes: {
         'pulse-glow': {
@@ -43,6 +44,10 @@ const config: Config = {
           '0%': { transform: 'scale(1)' },
           '50%': { transform: 'scale(1.2)' },
           '100%': { transform: 'scale(1)' },
+        },
+        progress: {
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
         },
       },
     },

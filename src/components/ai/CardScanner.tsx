@@ -276,17 +276,26 @@ export function CardScanner({
             />
           )}
 
-        {/* Scanning Overlay */}
+        {/* Scanning Overlay with Progress Indicator */}
         {state === 'scanning' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60">
-            <div className="relative">
-              <SparklesIcon className="h-16 w-16 animate-pulse text-yellow-400" />
-              <div className="absolute inset-0 animate-spin">
-                <ArrowPathIcon className="h-16 w-16 text-white/30" />
+            {/* Animated scanning icon */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 animate-ping">
+                <div className="h-20 w-20 rounded-full bg-yellow-400/20" />
+              </div>
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-orange-500">
+                <SparklesIcon className="h-10 w-10 animate-pulse text-white" />
               </div>
             </div>
-            <p className="mt-4 text-lg font-medium text-white">Scanning your card...</p>
-            <p className="mt-1 text-sm text-white/70">This might take a moment</p>
+
+            {/* Progress bar */}
+            <div className="mb-4 w-48 overflow-hidden rounded-full bg-white/20">
+              <div className="h-2 animate-progress rounded-full bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 bg-[length:200%_100%]" />
+            </div>
+
+            <p className="text-lg font-medium text-white">Scanning your card...</p>
+            <p className="mt-1 text-sm text-white/70">Identifying card details</p>
           </div>
         )}
 
