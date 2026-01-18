@@ -369,27 +369,765 @@ Header: [Logo] [Collection] [Sets] [Search] [👤 {Name}]
 
 ## 6. Migration Strategy
 
-### 6.1 Determine Account Type for Existing Users
+This section provides a comprehensive plan for migrating existing users to the new parent-child account architecture.
 
-```typescript
-// Migration logic
-const hasParent = profiles.some(p => p.profileType === 'parent');
-const hasChildren = profiles.some(p => p.profileType === 'child');
+### 6.1 Migration Overview
 
-// If has parent + children, it's a family account
-// If single profile or no parent, it's individual
-const accountType = (hasParent && profiles.length > 1) ? 'family' : 'individual';
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         MIGRATION OVERVIEW                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  CURRENT STATE                          TARGET STATE                         │
+│  ─────────────────                      ────────────────                     │
+│  • accountType NOT persisted            • accountType in families table      │
+│  • No kid PIN login                     • childLoginPins table               │
+│  • No device authorization              • deviceSessions table               │
+│  • Single auth flow for all             • Dual auth (email/PIN)              │
+│  • Mixed UI for all users               • Account-type-specific UI           │
+│                                                                              │
+│  MIGRATION APPROACH                                                          │
+│  ──────────────────                                                          │
+│  1. Additive schema changes (non-breaking)                                   │
+│  2. One-time data migration script                                           │
+│  3. Progressive feature rollout                                              │
+│  4. Soft launch with monitoring                                              │
+│  5. User communication at each phase                                         │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 6.2 Existing User Handling
+### 6.2 Determine Account Type for Existing Users
 
-**For Individual Users:**
-- Set `accountType = 'individual'`
-- Hide family features permanently
+The migration must infer `accountType` from existing data patterns:
 
-**For Family Users:**
-- Set `accountType = 'family'`
-- Prompt to set up kid PINs on next parent login
+```typescript
+// Migration Classification Logic
+interface MigrationClassification {
+  familyId: Id<'families'>;
+  currentProfiles: Profile[];
+  inferredAccountType: 'individual' | 'family';
+  confidence: 'high' | 'medium' | 'low';
+  reason: string;
+}
+
+function classifyFamily(family: Family, profiles: Profile[]): MigrationClassification {
+  const hasParentProfile = profiles.some(p => p.profileType === 'parent');
+  const hasChildProfiles = profiles.some(p => p.profileType === 'child');
+  const profileCount = profiles.length;
+
+  // Case 1: Clear family pattern - parent + children
+  if (hasParentProfile && hasChildProfiles) {
+    return {
+      familyId: family._id,
+      currentProfiles: profiles,
+      inferredAccountType: 'family',
+      confidence: 'high',
+      reason: 'Has parent profile with child profiles'
+    };
+  }
+
+  // Case 2: Parent profile but no children yet (family in setup)
+  if (hasParentProfile && profileCount === 1) {
+    return {
+      familyId: family._id,
+      currentProfiles: profiles,
+      inferredAccountType: 'family',
+      confidence: 'medium',
+      reason: 'Has parent profile, may add children later'
+    };
+  }
+
+  // Case 3: Single profile, no parent type - individual collector
+  if (profileCount === 1 && !hasParentProfile) {
+    return {
+      familyId: family._id,
+      currentProfiles: profiles,
+      inferredAccountType: 'individual',
+      confidence: 'high',
+      reason: 'Single profile without parent designation'
+    };
+  }
+
+  // Case 4: Multiple profiles without clear parent (legacy data)
+  if (profileCount > 1 && !hasParentProfile) {
+    return {
+      familyId: family._id,
+      currentProfiles: profiles,
+      inferredAccountType: 'family',
+      confidence: 'low',
+      reason: 'Multiple profiles but no parent - needs user confirmation'
+    };
+  }
+
+  // Fallback
+  return {
+    familyId: family._id,
+    currentProfiles: profiles,
+    inferredAccountType: 'individual',
+    confidence: 'low',
+    reason: 'Could not determine - defaulting to individual'
+  };
+}
+```
+
+**Classification Decision Tree:**
+
+```
+                           ┌─────────────────────┐
+                           │   Load all profiles  │
+                           │   for this family    │
+                           └──────────┬──────────┘
+                                      │
+                           ┌──────────▼──────────┐
+                           │  Has profileType =   │
+                           │     'parent'?        │
+                           └──────────┬──────────┘
+                                      │
+                      ┌───────────────┴───────────────┐
+                      ▼                               ▼
+                    [YES]                           [NO]
+                      │                               │
+           ┌──────────▼──────────┐         ┌──────────▼──────────┐
+           │  Has child profiles? │         │   Profile count?    │
+           └──────────┬──────────┘         └──────────┬──────────┘
+                      │                               │
+           ┌──────────┴──────────┐         ┌──────────┴──────────┐
+           ▼                     ▼         ▼                     ▼
+         [YES]                 [NO]      [= 1]                 [> 1]
+           │                     │         │                     │
+           ▼                     ▼         ▼                     ▼
+    ┌───────────────┐   ┌───────────────┐ ┌───────────────┐ ┌───────────────┐
+    │   FAMILY      │   │   FAMILY      │ │  INDIVIDUAL   │ │   FAMILY      │
+    │  (high conf)  │   │ (medium conf) │ │  (high conf)  │ │  (low conf)   │
+    │               │   │               │ │               │ │ needs confirm │
+    └───────────────┘   └───────────────┘ └───────────────┘ └───────────────┘
+```
+
+### 6.3 Existing User Handling
+
+#### 6.3.1 Individual Users
+
+Users classified as `individual` will receive:
+
+| Aspect | Handling |
+|--------|----------|
+| **Data Migration** | Set `families.accountType = 'individual'` |
+| **UI Changes** | Hide profile switcher, parent dashboard, family features |
+| **First Login** | Brief notification about "streamlined experience" |
+| **No Action Required** | Experience continues unchanged with cleaner UI |
+
+```typescript
+// Individual migration script
+async function migrateIndividualUser(familyId: Id<'families'>) {
+  await ctx.db.patch(familyId, {
+    accountType: 'individual'
+  });
+
+  // Set localStorage flags on next login via client
+  // kidcollect_account_type = 'individual'
+  // kidcollect_session_type = 'individual'
+}
+```
+
+#### 6.3.2 Family Users
+
+Users classified as `family` will receive:
+
+| Aspect | Handling |
+|--------|----------|
+| **Data Migration** | Set `families.accountType = 'family'` |
+| **New Feature Access** | Parent dashboard, kid PIN setup, device management |
+| **First Login (Parent)** | Guided tour of new features + PIN setup wizard |
+| **Child Profiles** | Exist but cannot use PIN login until parent sets PIN |
+| **Optional** | Parent can skip PIN setup (reverts to current shared login) |
+
+```typescript
+// Family migration script
+async function migrateFamilyUser(familyId: Id<'families'>) {
+  await ctx.db.patch(familyId, {
+    accountType: 'family'
+  });
+
+  // Flag for first-login experience
+  await ctx.db.patch(familyId, {
+    needsNewFeatureOnboarding: true
+  });
+
+  // Child profiles exist but NO childLoginPins entries yet
+  // Parent must explicitly create PINs
+}
+```
+
+#### 6.3.3 Low-Confidence Classifications
+
+For users where `confidence === 'low'`:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     FIRST LOGIN: CONFIRM ACCOUNT TYPE                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   👋 Welcome back! We've added new features to CardDex.                     │
+│                                                                              │
+│   To give you the best experience, please confirm:                          │
+│                                                                              │
+│   ┌─────────────────────────────┐  ┌─────────────────────────────┐          │
+│   │                             │  │                             │          │
+│   │    👨‍👩‍👧‍👦 This is a Family    │  │       👤 Just Me            │          │
+│   │        Account              │  │                             │          │
+│   │                             │  │   I'm the only one using    │          │
+│   │   Multiple people use       │  │   this account.             │          │
+│   │   this account (parents     │  │                             │          │
+│   │   and/or kids).             │  │   (Hides family features)   │          │
+│   │                             │  │                             │          │
+│   └─────────────────────────────┘  └─────────────────────────────┘          │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 6.4 Migration Script Design
+
+#### 6.4.1 Pre-Migration Validation
+
+```typescript
+// Run BEFORE migration to identify issues
+async function preMigrationValidation() {
+  const results = {
+    totalFamilies: 0,
+    highConfidence: 0,
+    mediumConfidence: 0,
+    lowConfidence: 0,
+    dataIssues: [] as string[],
+    estimatedIndividual: 0,
+    estimatedFamily: 0
+  };
+
+  const families = await ctx.db.query('families').collect();
+
+  for (const family of families) {
+    results.totalFamilies++;
+
+    const profiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', q => q.eq('familyId', family._id))
+      .collect();
+
+    // Check for data issues
+    if (profiles.length === 0) {
+      results.dataIssues.push(`Family ${family._id} has no profiles`);
+    }
+
+    const parentCount = profiles.filter(p => p.profileType === 'parent').length;
+    if (parentCount > 1) {
+      results.dataIssues.push(`Family ${family._id} has ${parentCount} parents`);
+    }
+
+    const classification = classifyFamily(family, profiles);
+
+    if (classification.confidence === 'high') results.highConfidence++;
+    if (classification.confidence === 'medium') results.mediumConfidence++;
+    if (classification.confidence === 'low') results.lowConfidence++;
+
+    if (classification.inferredAccountType === 'individual') {
+      results.estimatedIndividual++;
+    } else {
+      results.estimatedFamily++;
+    }
+  }
+
+  return results;
+}
+```
+
+#### 6.4.2 Migration Execution
+
+```typescript
+// Main migration function - run in batches
+async function executeMigration(options: {
+  dryRun: boolean;
+  batchSize: number;
+  startAfter?: Id<'families'>;
+}) {
+  const { dryRun, batchSize, startAfter } = options;
+
+  let query = ctx.db.query('families');
+  if (startAfter) {
+    query = query.filter(q => q.gt(q.field('_id'), startAfter));
+  }
+
+  const families = await query.take(batchSize);
+  const results: MigrationResult[] = [];
+
+  for (const family of families) {
+    const profiles = await ctx.db
+      .query('profiles')
+      .withIndex('by_family', q => q.eq('familyId', family._id))
+      .collect();
+
+    const classification = classifyFamily(family, profiles);
+
+    if (!dryRun) {
+      await ctx.db.patch(family._id, {
+        accountType: classification.inferredAccountType,
+        migrationConfidence: classification.confidence,
+        migratedAt: Date.now()
+      });
+
+      // Log for audit
+      await ctx.db.insert('migrationLog', {
+        familyId: family._id,
+        fromState: 'legacy',
+        toState: classification.inferredAccountType,
+        confidence: classification.confidence,
+        reason: classification.reason,
+        timestamp: Date.now()
+      });
+    }
+
+    results.push({
+      familyId: family._id,
+      classification,
+      applied: !dryRun
+    });
+  }
+
+  return {
+    processed: results.length,
+    lastProcessedId: families[families.length - 1]?._id,
+    hasMore: families.length === batchSize,
+    results
+  };
+}
+```
+
+### 6.5 Rollback Strategy
+
+#### 6.5.1 Rollback Levels
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         ROLLBACK CAPABILITIES                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  LEVEL 1: Feature Flag Rollback (Instant)                                   │
+│  ─────────────────────────────────────────                                   │
+│  • Disable kid PIN login via feature flag                                   │
+│  • Disable new onboarding flows                                             │
+│  • Revert to single login form                                              │
+│  • Data remains migrated but features hidden                                │
+│  • Recovery time: < 1 minute                                                │
+│                                                                              │
+│  LEVEL 2: UI Rollback (Deploy)                                              │
+│  ─────────────────────────────                                               │
+│  • Deploy previous UI version                                               │
+│  • accountType field ignored in code                                        │
+│  • All users see family features (current behavior)                         │
+│  • Recovery time: ~10 minutes (deploy cycle)                                │
+│                                                                              │
+│  LEVEL 3: Data Rollback (Scripted)                                          │
+│  ─────────────────────────────────                                           │
+│  • Run reverse migration script                                             │
+│  • Remove accountType values                                                │
+│  • Delete childLoginPins entries                                            │
+│  • Delete deviceSessions entries                                            │
+│  • Recovery time: ~30 minutes                                               │
+│                                                                              │
+│  LEVEL 4: Full Restore (Last Resort)                                        │
+│  ───────────────────────────────────                                         │
+│  • Restore from pre-migration database backup                               │
+│  • Loss of data created post-migration                                      │
+│  • Recovery time: ~2 hours                                                  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 6.5.2 Rollback Scripts
+
+```typescript
+// Level 1: Feature Flag Rollback
+async function rollbackFeatureFlags() {
+  await setFeatureFlag('kidPinLogin', false);
+  await setFeatureFlag('accountTypeSeparation', false);
+  await setFeatureFlag('deviceAuthorization', false);
+  // Users will see old UI immediately on next page load
+}
+
+// Level 3: Data Rollback
+async function rollbackMigrationData() {
+  // Remove accountType from all families
+  const families = await ctx.db.query('families').collect();
+  for (const family of families) {
+    await ctx.db.patch(family._id, {
+      accountType: undefined,
+      migrationConfidence: undefined,
+      migratedAt: undefined,
+      needsNewFeatureOnboarding: undefined
+    });
+  }
+
+  // Delete new tables
+  const pins = await ctx.db.query('childLoginPins').collect();
+  for (const pin of pins) {
+    await ctx.db.delete(pin._id);
+  }
+
+  const devices = await ctx.db.query('deviceSessions').collect();
+  for (const device of devices) {
+    await ctx.db.delete(device._id);
+  }
+
+  // Clear migration log
+  const logs = await ctx.db.query('migrationLog').collect();
+  for (const log of logs) {
+    await ctx.db.delete(log._id);
+  }
+}
+```
+
+#### 6.5.3 Rollback Decision Matrix
+
+| Issue | Severity | Rollback Level | Decision Maker |
+|-------|----------|----------------|----------------|
+| Kid PIN login broken | High | Level 1 | On-call engineer |
+| Account type misclassified (<1%) | Low | None | Product team |
+| Account type misclassified (>5%) | High | Level 3 | Engineering lead |
+| Data corruption detected | Critical | Level 4 | Engineering lead + PM |
+| Performance degradation (>50%) | High | Level 2 | On-call engineer |
+| User complaints about UX | Medium | Level 1 | Product team |
+
+### 6.6 User Communication Plan
+
+#### 6.6.1 Communication Timeline
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     USER COMMUNICATION TIMELINE                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  T-2 WEEKS: Pre-Announcement                                                │
+│  ────────────────────────────                                                │
+│  • Blog post: "Exciting Updates Coming to CardDex"                          │
+│  • In-app banner: "New features coming soon!"                               │
+│  • Email to all registered users with preview                               │
+│                                                                              │
+│  T-1 WEEK: Feature Preview                                                  │
+│  ─────────────────────────                                                   │
+│  • Detailed feature documentation published                                 │
+│  • FAQ page live                                                            │
+│  • Beta opt-in for interested users                                         │
+│                                                                              │
+│  T-0: Launch Day                                                            │
+│  ───────────────                                                             │
+│  • Email announcement with what's new                                       │
+│  • In-app guided tour for first login                                       │
+│  • Support team briefed and ready                                           │
+│                                                                              │
+│  T+1 WEEK: Follow-up                                                        │
+│  ──────────────────                                                          │
+│  • "How to set up kid PINs" email to family accounts                        │
+│  • Collect user feedback                                                    │
+│  • Address common issues in FAQ                                             │
+│                                                                              │
+│  T+1 MONTH: Retrospective                                                   │
+│  ────────────────────────                                                    │
+│  • Analyze adoption metrics                                                 │
+│  • Send follow-up to users who haven't set up PINs                          │
+│  • Consider removing old UI code paths                                      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 6.6.2 Email Templates
+
+**Pre-Announcement Email:**
+```
+Subject: 🎉 Big Updates Coming to CardDex!
+
+Hi {display_name},
+
+We're excited to announce new features coming to CardDex that will make
+managing your collection even better!
+
+Coming Soon:
+• Separate experiences for parents and kids
+• Quick PIN login for kids (no more typing passwords!)
+• Device management for family tablets
+• Cleaner, simpler UI based on how you use the app
+
+We'll send you more details next week. In the meantime, keep collecting!
+
+Happy collecting,
+The CardDex Team
+```
+
+**Launch Day Email (Family Accounts):**
+```
+Subject: 🆕 Your CardDex is now even better for families!
+
+Hi {display_name},
+
+Great news! CardDex now has features designed specifically for families.
+
+What's new for you:
+✨ Kid PIN Login - Set up 5-digit PINs for your kids so they can log in
+   without needing your password
+🔒 Device Authorization - Approve trusted devices like family tablets
+👨‍👩‍👧‍👦 Separate Views - Parents see management tools, kids see just their cards
+
+Get started:
+1. Log in to CardDex
+2. Go to Parent Dashboard
+3. Click "Set Up Kid PINs"
+
+Your existing profiles and collections are exactly where you left them.
+
+Need help? Check out our guide: [link]
+
+Happy collecting,
+The CardDex Team
+```
+
+**Launch Day Email (Individual Accounts):**
+```
+Subject: ✨ CardDex just got simpler!
+
+Hi {display_name},
+
+We've made some updates to CardDex to give you a cleaner experience.
+
+What's changed:
+• Streamlined navigation - no more family features you weren't using
+• Faster performance - optimized for solo collectors
+• Same great collection tracking you love
+
+Your collection is exactly where you left it. Just log in and enjoy!
+
+Happy collecting,
+The CardDex Team
+```
+
+#### 6.6.3 In-App Notifications
+
+**First Login After Migration (Family Account):**
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│   🎉 Welcome to the new CardDex!                                            │
+│                                                                              │
+│   We've added features just for families:                                   │
+│                                                                              │
+│   👶 Kid PIN Login     Kids can log in with a simple 5-digit PIN            │
+│   📱 Device Control    Manage which devices kids can use                    │
+│   🎯 Parent Dashboard  New hub for managing your family                     │
+│                                                                              │
+│         [Take a Quick Tour]        [Maybe Later]                            │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**First Login After Migration (Individual Account):**
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│   ✨ We've streamlined your experience!                                     │
+│                                                                              │
+│   CardDex is now optimized for solo collectors like you.                    │
+│   We've removed clutter you weren't using.                                  │
+│                                                                              │
+│   Your collection? Exactly where you left it. 👍                            │
+│                                                                              │
+│                          [Got it!]                                          │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 6.7 Migration Monitoring
+
+#### 6.7.1 Key Metrics to Track
+
+| Metric | Target | Alert Threshold |
+|--------|--------|-----------------|
+| Migration script completion rate | 100% | <95% |
+| Error rate during migration | <0.1% | >1% |
+| Post-migration login success rate | >99% | <95% |
+| Kid PIN setup rate (family accounts) | >30% (week 1) | <10% |
+| User-reported classification errors | <1% | >5% |
+| Support ticket increase | <20% | >50% |
+| Performance impact (p95 latency) | <10% increase | >25% increase |
+
+#### 6.7.2 Monitoring Dashboard
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     MIGRATION MONITORING DASHBOARD                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  Migration Progress                                                          │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100%                    │
+│  Families: 15,234 / 15,234                                                   │
+│                                                                              │
+│  Classification Breakdown                                                    │
+│  ┌────────────┬─────────┬───────────────────────────────────┐              │
+│  │ Type       │ Count   │                                   │              │
+│  ├────────────┼─────────┼───────────────────────────────────┤              │
+│  │ Individual │  8,432  │ ████████████████████              │              │
+│  │ Family     │  6,802  │ ████████████████                  │              │
+│  └────────────┴─────────┴───────────────────────────────────┘              │
+│                                                                              │
+│  Confidence Distribution                                                     │
+│  ┌────────────┬─────────┬───────────────────────────────────┐              │
+│  │ Level      │ Count   │                                   │              │
+│  ├────────────┼─────────┼───────────────────────────────────┤              │
+│  │ High       │ 14,521  │ ████████████████████████████████  │              │
+│  │ Medium     │    482  │ █                                 │              │
+│  │ Low        │    231  │                                   │              │
+│  └────────────┴─────────┴───────────────────────────────────┘              │
+│                                                                              │
+│  Post-Migration Health                                                       │
+│  • Login success rate:     99.7%  ✓                                         │
+│  • Error rate:              0.02% ✓                                         │
+│  • Support tickets (24h):   12    ✓                                         │
+│  • Performance impact:      +3%   ✓                                         │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 6.8 Migration Timeline
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         MIGRATION TIMELINE                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  PHASE 1: Preparation                                                        │
+│  ────────────────────                                                        │
+│  Day 1-3:                                                                    │
+│    • Deploy schema additions (non-breaking)                                 │
+│    • Create migrationLog table                                              │
+│    • Deploy feature flags (all OFF)                                         │
+│    • Set up monitoring dashboard                                            │
+│                                                                              │
+│  PHASE 2: Dry Run                                                           │
+│  ───────────────────                                                         │
+│  Day 4-5:                                                                    │
+│    • Run migration script in dry-run mode                                   │
+│    • Analyze classification results                                         │
+│    • Review low-confidence cases                                            │
+│    • Adjust classification logic if needed                                  │
+│    • Take database backup                                                   │
+│                                                                              │
+│  PHASE 3: Migration Execution                                               │
+│  ──────────────────────────────                                              │
+│  Day 6:                                                                      │
+│    • Final database backup                                                  │
+│    • Execute migration script (batched)                                     │
+│    • Verify completion                                                      │
+│    • Validate sample of migrated accounts                                   │
+│                                                                              │
+│  PHASE 4: Feature Rollout                                                   │
+│  ─────────────────────────                                                   │
+│  Day 7:                                                                      │
+│    • Enable accountTypeSeparation flag (10% of users)                       │
+│    • Monitor for issues                                                     │
+│  Day 8:                                                                      │
+│    • Increase to 50% if healthy                                             │
+│  Day 9:                                                                      │
+│    • Increase to 100%                                                       │
+│    • Enable kidPinLogin flag (10%)                                          │
+│  Day 10:                                                                     │
+│    • Increase kidPinLogin to 50%                                            │
+│  Day 11:                                                                     │
+│    • Full rollout                                                           │
+│                                                                              │
+│  PHASE 5: Post-Migration                                                    │
+│  ──────────────────────────                                                  │
+│  Week 2-4:                                                                   │
+│    • Monitor adoption metrics                                               │
+│    • Address user-reported issues                                           │
+│    • Follow-up communications                                               │
+│    • Consider removing feature flags                                        │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 6.9 Edge Cases and Special Handling
+
+#### 6.9.1 Identified Edge Cases
+
+| Edge Case | Handling |
+|-----------|----------|
+| **Family with 0 profiles** | Mark as data issue, assign `individual` by default |
+| **Family with >1 parent** | Flag for manual review, use first parent for migration |
+| **Child profile with no parent** | Classify as `family`, prompt user to designate parent |
+| **Very old inactive accounts** | Migrate normally, no special treatment |
+| **Accounts mid-onboarding** | Complete onboarding first, then apply migration |
+| **Beta testers with mixed state** | Reset to clean migrated state |
+
+#### 6.9.2 Data Integrity Checks
+
+```typescript
+// Post-migration validation
+async function validateMigration() {
+  const issues: ValidationIssue[] = [];
+
+  const families = await ctx.db.query('families').collect();
+
+  for (const family of families) {
+    // Check accountType is set
+    if (!family.accountType) {
+      issues.push({
+        familyId: family._id,
+        issue: 'accountType not set',
+        severity: 'high'
+      });
+    }
+
+    // Check family accounts have at least one profile
+    if (family.accountType === 'family') {
+      const profiles = await ctx.db
+        .query('profiles')
+        .withIndex('by_family', q => q.eq('familyId', family._id))
+        .collect();
+
+      if (profiles.length === 0) {
+        issues.push({
+          familyId: family._id,
+          issue: 'Family account with no profiles',
+          severity: 'high'
+        });
+      }
+
+      const parentProfiles = profiles.filter(p => p.profileType === 'parent');
+      if (parentProfiles.length === 0) {
+        issues.push({
+          familyId: family._id,
+          issue: 'Family account with no parent profile',
+          severity: 'medium'
+        });
+      }
+    }
+
+    // Check individual accounts have exactly one profile
+    if (family.accountType === 'individual') {
+      const profiles = await ctx.db
+        .query('profiles')
+        .withIndex('by_family', q => q.eq('familyId', family._id))
+        .collect();
+
+      if (profiles.length !== 1) {
+        issues.push({
+          familyId: family._id,
+          issue: `Individual account with ${profiles.length} profiles`,
+          severity: 'medium'
+        });
+      }
+    }
+  }
+
+  return issues;
+}
+```
 
 ---
 
