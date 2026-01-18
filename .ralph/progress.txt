@@ -456,3 +456,9 @@
 **Files:** src/app/page.tsx
 **Commit:** (pending)
 ---
+## CD-9wu - Landing Page - Add Supported Games section
+**Status:** Completed
+**Changes:** Added "Supported Games" section to landing page displaying all 4 TCGs (Pokemon, Yu-Gi-Oh!, One Piece, Lorcana) in a responsive feature grid with stylized icons, names, and taglines
+**Files:** src/app/page.tsx
+**Commit:** f092955
+---
