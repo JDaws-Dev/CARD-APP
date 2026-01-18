@@ -11,6 +11,7 @@ import {
   XMarkIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline';
+import { ChatAvatar, ChatTypingIndicator } from './ChatAvatar';
 import type { Id } from '../../../convex/_generated/dataModel';
 
 type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
@@ -211,11 +212,11 @@ export function CollectionChat({
         {/* Welcome message when no messages */}
         {messages.length === 0 && !isTyping && (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-kid-primary/10">
-              <SparklesIcon className="h-8 w-8 text-kid-primary" />
+            <div className="mb-4">
+              <ChatAvatar size="lg" />
             </div>
             <h3 className="mb-2 text-lg font-semibold text-gray-900">
-              Hi there! I&apos;m your collection helper!
+              Hi there! I&apos;m Dexy, your collection helper!
             </h3>
             <p className="mb-6 max-w-sm text-sm text-gray-600">
               Ask me anything about your card collection. I can tell you about your rarest cards,
@@ -252,9 +253,14 @@ export function CollectionChat({
                 message.role === 'user' ? 'justify-end' : 'justify-start'
               )}
             >
+              {message.role === 'assistant' && (
+                <div className="mr-2 flex-shrink-0">
+                  <ChatAvatar size="sm" />
+                </div>
+              )}
               <div
                 className={cn(
-                  'max-w-[80%] rounded-2xl px-4 py-2',
+                  'max-w-[75%] rounded-2xl px-4 py-2',
                   message.role === 'user'
                     ? 'bg-kid-primary text-white'
                     : 'bg-gray-100 text-gray-900'
@@ -263,7 +269,7 @@ export function CollectionChat({
                 {message.role === 'assistant' && (
                   <div className="mb-1 flex items-center gap-1">
                     <SparklesIcon className="h-3 w-3 text-kid-primary" />
-                    <span className="text-xs font-medium text-kid-primary">Collection Helper</span>
+                    <span className="text-xs font-medium text-kid-primary">Dexy</span>
                   </div>
                 )}
                 <p className="whitespace-pre-wrap text-sm">{message.content}</p>
@@ -272,17 +278,7 @@ export function CollectionChat({
           ))}
 
           {/* Typing indicator */}
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="rounded-2xl bg-gray-100 px-4 py-3">
-                <div className="flex items-center gap-1">
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '0ms' }} />
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '150ms' }} />
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '300ms' }} />
-                </div>
-              </div>
-            </div>
-          )}
+          {isTyping && <ChatTypingIndicator />}
 
           {/* Scroll anchor */}
           <div ref={messagesEndRef} />
