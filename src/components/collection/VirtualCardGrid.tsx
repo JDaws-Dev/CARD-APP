@@ -39,6 +39,7 @@ import { useLevelUp } from '@/components/gamification/LevelSystem';
 import { useKidMode } from '@/components/providers/KidModeProvider';
 import { useSetCompletionTracker } from '@/components/gamification/SetCompletionCelebration';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
+import { useHidePrices } from '@/hooks/useHidePrices';
 
 // Get available variants from a card's availableVariants field or tcgplayer prices
 // Now supports all game types (Pokemon, Yu-Gi-Oh, etc.)
@@ -257,6 +258,7 @@ interface VariantSelectorProps {
   onRemoveVariant: (cardId: string, cardName: string, variant: CardVariant) => Promise<void>;
   onClose: () => void;
   position: { top: number; left: number };
+  showPrices?: boolean;
 }
 
 function VariantSelector({
@@ -267,6 +269,7 @@ function VariantSelector({
   onRemoveVariant,
   onClose,
   position,
+  showPrices = true,
 }: VariantSelectorProps) {
   const popupRef = useRef<HTMLDivElement>(null);
   const availableVariants = getAvailableVariants(card);
@@ -371,7 +374,7 @@ function VariantSelector({
                 </div>
                 <div>
                   <p className="text-xs font-medium text-gray-800">{config.label}</p>
-                  {price !== null && <p className="text-xs text-gray-600">${price.toFixed(2)}</p>}
+                  {showPrices && price !== null && <p className="text-xs text-gray-600">${price.toFixed(2)}</p>}
                 </div>
               </div>
 
@@ -460,7 +463,11 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
   const { showXPGain } = useLevelUp();
   const { features } = useKidMode();
   const { primaryGame } = useGameSelector();
+  const { hidePrices } = useHidePrices();
   const parentRef = useRef<HTMLDivElement>(null);
+
+  // Determine if prices should be shown (both kid mode setting AND parent hide prices setting)
+  const shouldShowPrices = features.showPricing && !hidePrices;
   const [viewportWidth, setViewportWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 0
   );
@@ -932,8 +939,8 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
                 <span>Promo</span>
               </span>
             )}
-            {/* Only show price if pricing is enabled in kid mode settings */}
-            {features.showPricing && marketPrice !== null && (
+            {/* Only show price if pricing is enabled (kid mode setting AND parent hide prices setting) */}
+            {shouldShowPrices && marketPrice !== null && (
               <span
                 className={cn(
                   'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold',
@@ -1171,6 +1178,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
             onRemoveVariant={handleRemoveVariant}
             onClose={handleCloseSelector}
             position={selectorPosition}
+            showPrices={shouldShowPrices}
           />
         </>
       )}
