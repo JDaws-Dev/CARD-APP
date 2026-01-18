@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import type { PokemonCard, PokemonSet } from '@/lib/pokemon-tcg';
 import { VirtualCardGrid } from './VirtualCardGrid';
 import {
@@ -9,6 +12,46 @@ import {
   RARITY_CATEGORIES,
   type RarityCategoryId,
 } from '@/components/filter/RarityFilter';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { cn } from '@/lib/utils';
+import type { Id } from '../../../convex/_generated/dataModel';
+
+// Sort options for the set detail view
+type SortOption = 'number' | 'type' | 'owned' | 'wanted' | 'recentlyAdded' | 'price';
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'number', label: 'Card Number' },
+  { value: 'type', label: 'Card Type' },
+  { value: 'owned', label: 'Owned First' },
+  { value: 'wanted', label: 'Wanted First' },
+  { value: 'recentlyAdded', label: 'Recently Added' },
+  { value: 'price', label: 'Price (High to Low)' },
+];
+
+// Card type sort order (for grouping/sorting by supertype)
+const TYPE_SORT_ORDER: Record<string, number> = {
+  'Pokémon': 1,
+  'Pokemon': 1,
+  'Trainer': 2,
+  'Energy': 3,
+};
+
+// Helper function to get the best market price from a card's TCGPlayer prices
+function getCardMarketPrice(card: PokemonCard): number | null {
+  const prices = card.tcgplayer?.prices;
+  if (!prices) return null;
+
+  return (
+    prices.normal?.market ?? prices.holofoil?.market ?? prices.reverseHolofoil?.market ?? null
+  );
+}
+
+// Helper to parse card number for numeric sorting
+function parseCardNumber(number: string): number {
+  // Handle formats like "1", "001", "TG01", "SWSH001", etc.
+  const match = number.match(/(\d+)/);
+  return match ? parseInt(match[1], 10) : 0;
+}
 
 interface SetDetailClientProps {
   set: PokemonSet;
@@ -17,6 +60,57 @@ interface SetDetailClientProps {
 
 export function SetDetailClient({ set, cards }: SetDetailClientProps) {
   const [selectedRarity, setSelectedRarity] = useState<RarityCategoryId | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('number');
+
+  const { profileId } = useCurrentProfile();
+
+  // Get collection data for this set
+  const collection = useQuery(
+    api.collections.getCollectionBySet,
+    profileId ? { profileId: profileId as Id<'profiles'>, setId: set.id } : 'skip'
+  );
+
+  // Get wishlist data
+  const wishlist = useQuery(
+    api.wishlist.getWishlist,
+    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+  );
+
+  // Get recently added cards
+  const newlyAddedCardsData = useQuery(
+    api.collections.getNewlyAddedCards,
+    profileId ? { profileId: profileId as Id<'profiles'>, days: 7 } : 'skip'
+  );
+
+  // Build lookup maps for sorting
+  const { ownedCardIds, wishlistCardIds, recentlyAddedCardIds, recentlyAddedTimes } = useMemo(() => {
+    const owned = new Set<string>();
+    const wishlisted = new Set<string>();
+    const recent = new Set<string>();
+    const recentTimes = new Map<string, number>();
+
+    if (collection) {
+      collection.forEach((item) => owned.add(item.cardId));
+    }
+
+    if (wishlist) {
+      wishlist.forEach((item) => wishlisted.add(item.cardId));
+    }
+
+    if (newlyAddedCardsData?.cards) {
+      newlyAddedCardsData.cards.forEach((item) => {
+        recent.add(item.cardId);
+        recentTimes.set(item.cardId, item.addedAt);
+      });
+    }
+
+    return {
+      ownedCardIds: owned,
+      wishlistCardIds: wishlisted,
+      recentlyAddedCardIds: recent,
+      recentlyAddedTimes: recentTimes,
+    };
+  }, [collection, wishlist, newlyAddedCardsData]);
 
   // Calculate rarity counts for the filter badges
   const rarityCounts = useMemo(() => {
@@ -36,30 +130,132 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
     return counts;
   }, [cards]);
 
-  // Filter cards based on selected rarity
-  const filteredCards = useMemo(() => {
-    if (!selectedRarity) return cards;
+  // Filter and sort cards
+  const filteredAndSortedCards = useMemo(() => {
+    // First filter by rarity
+    let result = cards;
+    if (selectedRarity) {
+      result = cards.filter((card) => {
+        const category = getRarityCategory(card.rarity);
+        return category === selectedRarity;
+      });
+    }
 
-    return cards.filter((card) => {
-      const category = getRarityCategory(card.rarity);
-      return category === selectedRarity;
-    });
-  }, [cards, selectedRarity]);
+    // Then sort
+    const sorted = [...result];
+
+    switch (sortBy) {
+      case 'number':
+        sorted.sort((a, b) => parseCardNumber(a.number) - parseCardNumber(b.number));
+        break;
+
+      case 'type':
+        sorted.sort((a, b) => {
+          const typeA = TYPE_SORT_ORDER[a.supertype] ?? 99;
+          const typeB = TYPE_SORT_ORDER[b.supertype] ?? 99;
+          if (typeA !== typeB) return typeA - typeB;
+          // Secondary sort by card number within type
+          return parseCardNumber(a.number) - parseCardNumber(b.number);
+        });
+        break;
+
+      case 'owned':
+        sorted.sort((a, b) => {
+          const aOwned = ownedCardIds.has(a.id) ? 0 : 1;
+          const bOwned = ownedCardIds.has(b.id) ? 0 : 1;
+          if (aOwned !== bOwned) return aOwned - bOwned;
+          // Secondary sort by card number
+          return parseCardNumber(a.number) - parseCardNumber(b.number);
+        });
+        break;
+
+      case 'wanted':
+        // Wanted = on wishlist but not owned
+        sorted.sort((a, b) => {
+          const aWanted = wishlistCardIds.has(a.id) && !ownedCardIds.has(a.id) ? 0 : 1;
+          const bWanted = wishlistCardIds.has(b.id) && !ownedCardIds.has(b.id) ? 0 : 1;
+          if (aWanted !== bWanted) return aWanted - bWanted;
+          // Secondary: wishlisted (even if owned) comes next
+          const aWishlisted = wishlistCardIds.has(a.id) ? 0 : 1;
+          const bWishlisted = wishlistCardIds.has(b.id) ? 0 : 1;
+          if (aWishlisted !== bWishlisted) return aWishlisted - bWishlisted;
+          return parseCardNumber(a.number) - parseCardNumber(b.number);
+        });
+        break;
+
+      case 'recentlyAdded':
+        sorted.sort((a, b) => {
+          const aTime = recentlyAddedTimes.get(a.id) ?? 0;
+          const bTime = recentlyAddedTimes.get(b.id) ?? 0;
+          // More recent first (higher timestamp)
+          if (aTime !== bTime) return bTime - aTime;
+          // Non-recent cards sorted by card number
+          return parseCardNumber(a.number) - parseCardNumber(b.number);
+        });
+        break;
+
+      case 'price':
+        sorted.sort((a, b) => {
+          const priceA = getCardMarketPrice(a);
+          const priceB = getCardMarketPrice(b);
+          // Cards with price come first, sorted high to low
+          if (priceA === null && priceB === null) {
+            return parseCardNumber(a.number) - parseCardNumber(b.number);
+          }
+          if (priceA === null) return 1;
+          if (priceB === null) return -1;
+          return priceB - priceA;
+        });
+        break;
+    }
+
+    return sorted;
+  }, [cards, selectedRarity, sortBy, ownedCardIds, wishlistCardIds, recentlyAddedTimes]);
 
   return (
     <div className="space-y-6">
-      {/* Rarity Filter */}
-      <RarityFilter
-        selectedRarity={selectedRarity}
-        onRarityChange={setSelectedRarity}
-        rarityCounts={rarityCounts}
-      />
+      {/* Filter and Sort Controls */}
+      <div className="flex flex-wrap items-start gap-4">
+        {/* Rarity Filter */}
+        <div className="flex-1 min-w-0">
+          <RarityFilter
+            selectedRarity={selectedRarity}
+            onRarityChange={setSelectedRarity}
+            rarityCounts={rarityCounts}
+          />
+        </div>
+
+        {/* Sort Dropdown */}
+        <div className="flex-shrink-0">
+          <label htmlFor="sort-select" className="mb-1 block text-xs font-medium text-gray-500">
+            Sort by
+          </label>
+          <div className="relative">
+            <select
+              id="sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className={cn(
+                'appearance-none rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 text-sm font-medium text-gray-700 shadow-sm transition',
+                'hover:border-gray-300 focus:border-kid-primary focus:outline-none focus:ring-2 focus:ring-kid-primary/20'
+              )}
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          </div>
+        </div>
+      </div>
 
       {/* Filtered Card Count Indicator */}
       {selectedRarity && (
         <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-3">
           <p className="text-sm text-gray-600">
-            Showing <span className="font-semibold text-kid-primary">{filteredCards.length}</span>{' '}
+            Showing <span className="font-semibold text-kid-primary">{filteredAndSortedCards.length}</span>{' '}
             of <span className="font-semibold">{cards.length}</span> cards
             {selectedRarity && (
               <>
@@ -75,7 +271,7 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
       )}
 
       {/* Card Grid with Virtual Scrolling */}
-      <VirtualCardGrid cards={filteredCards} setId={set.id} setName={set.name} />
+      <VirtualCardGrid cards={filteredAndSortedCards} setId={set.id} setName={set.name} />
     </div>
   );
 }
