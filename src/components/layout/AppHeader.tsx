@@ -14,6 +14,7 @@ import {
   UserGroupIcon,
   Cog6ToothIcon,
   ArrowRightIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
@@ -24,37 +25,67 @@ import { DarkModeToggle } from './DarkModeToggle';
 import { KidModeToggle } from './KidModeToggle';
 import { GameSwitcher } from '@/components/header/GameSwitcher';
 import { ProfileSwitcher } from '@/components/header/ProfileSwitcher';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 
-// Custom card stack icon for logo (shared across all headers)
-// Uses game-themed colors via CSS custom properties
-function CardStackIcon({ className }: { className?: string }) {
+/**
+ * Modern CardDex logo with layered card stack effect.
+ * Features gradient fill, shine effects, and animated sparkle accent.
+ * Colors dynamically change with the selected game theme.
+ */
+function CardDexLogo({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Back card - uses secondary color with lower opacity */}
-      <rect
-        x="12"
-        y="8"
-        width="36"
-        height="48"
-        rx="4"
-        style={{ fill: 'rgba(var(--game-secondary-rgb), 0.4)' }}
-      />
-      {/* Middle card - uses secondary color */}
-      <rect
-        x="16"
-        y="12"
-        width="36"
-        height="48"
-        rx="4"
-        style={{ fill: 'rgba(var(--game-secondary-rgb), 0.7)' }}
-      />
-      {/* Front card - uses primary game color */}
-      <rect x="20" y="16" width="36" height="48" rx="4" className="fill-game-primary" />
-      {/* Card detail lines */}
-      <rect x="26" y="24" width="24" height="4" rx="1" className="fill-white/60" />
-      <rect x="26" y="32" width="18" height="3" rx="1" className="fill-white/40" />
-      <circle cx="38" cy="48" r="8" className="fill-white/30" />
-    </svg>
+    <div className={`relative ${className}`}>
+      <svg
+        viewBox="0 0 44 44"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-full w-full drop-shadow-lg"
+      >
+        {/* Back card - subtle shadow layer */}
+        <rect
+          x="4"
+          y="2"
+          width="24"
+          height="32"
+          rx="4"
+          style={{ fill: 'rgba(var(--game-secondary-rgb), 0.3)' }}
+          className="transition-all duration-500"
+        />
+        {/* Middle card */}
+        <rect
+          x="9"
+          y="5"
+          width="24"
+          height="32"
+          rx="4"
+          style={{ fill: 'rgba(var(--game-secondary-rgb), 0.55)' }}
+          className="transition-all duration-500"
+        />
+        {/* Front card - gradient from primary to secondary */}
+        <defs>
+          <linearGradient id="cardLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style={{ stopColor: 'var(--game-primary)' }} />
+            <stop offset="100%" style={{ stopColor: 'var(--game-secondary)' }} />
+          </linearGradient>
+        </defs>
+        <rect
+          x="14"
+          y="8"
+          width="24"
+          height="32"
+          rx="4"
+          fill="url(#cardLogoGradient)"
+          className="transition-all duration-500"
+        />
+        {/* Card shine/glare effects */}
+        <rect x="18" y="13" width="16" height="2.5" rx="1.25" className="fill-white/60" />
+        <rect x="18" y="18" width="10" height="1.5" rx="0.75" className="fill-white/35" />
+        {/* Corner highlight */}
+        <circle cx="33" cy="35" r="3.5" className="fill-white/45" />
+      </svg>
+      {/* Animated sparkle accent */}
+      <SparklesIcon className="absolute -right-0.5 -top-0.5 h-4 w-4 animate-pulse text-game-primary drop-shadow" />
+    </div>
   );
 }
 
@@ -69,9 +100,8 @@ const appNavLinks = [
 
 /**
  * AppHeader component for logged-in users.
- * Simplified header with: Logo, main nav, settings gear icon, and profile menu.
- * Settings gear provides quick access to /settings page.
- * Does NOT show Login/Signup buttons - use MarketingHeader for that.
+ * Modern, sleek header with glass-morphism effect and game theming.
+ * Features: Logo with game branding, main nav, game switcher, settings, and profile.
  */
 export function AppHeader() {
   const pathname = usePathname();
@@ -79,6 +109,7 @@ export function AppHeader() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [quickSettingsOpen, setQuickSettingsOpen] = useState(false);
   const { signOut } = useAuthActions();
+  const { primaryGame } = useGameSelector();
 
   // Fetch current user's profile to check if they're a parent
   const currentUserProfile = useQuery(api.profiles.getCurrentUserProfile, {});
@@ -107,27 +138,38 @@ export function AppHeader() {
 
   return (
     <header
-      className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95"
+      className="sticky top-0 z-50 border-b border-gray-200/50 bg-white/90 backdrop-blur-xl transition-all duration-300 dark:border-slate-700/50 dark:bg-slate-900/90"
       role="banner"
     >
+      {/* Sleek gradient accent line at the top - game themed */}
+      <div className="absolute inset-x-0 top-0 h-[3px] bg-game-gradient shadow-sm" />
+
       <nav
         className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
         aria-label="App navigation"
       >
-        {/* Logo */}
+        {/* Logo with game branding - prominent and sleek */}
         <Link
           href="/"
-          className="flex items-center gap-1.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-game sm:gap-2"
+          className="group flex items-center gap-2.5 rounded-2xl px-2 py-1.5 transition-all duration-300 hover:bg-game-gradient-subtle focus-visible:outline-none focus-visible:ring-2 focus-game sm:gap-3"
           aria-label="CardDex - Go to home page"
         >
-          <CardStackIcon className="h-8 w-8 sm:h-10 sm:w-10" aria-hidden="true" />
-          <span className="bg-game-gradient bg-clip-text text-lg font-bold text-transparent sm:text-xl">
-            CardDex
-          </span>
+          <CardDexLogo
+            className="h-10 w-10 transition-transform duration-300 group-hover:scale-110 sm:h-11 sm:w-11"
+            aria-hidden="true"
+          />
+          <div className="flex flex-col">
+            <span className="bg-game-gradient bg-clip-text text-xl font-black tracking-tight text-transparent transition-all duration-300 sm:text-2xl">
+              CardDex
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-game-text/80 transition-colors duration-300 sm:text-[11px]">
+              {primaryGame?.shortName || 'TCG'} Collection
+            </span>
+          </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden items-center gap-1 lg:flex" role="menubar">
+        {/* Desktop Navigation - sleek pill-style nav */}
+        <div className="hidden items-center gap-0.5 rounded-2xl bg-gray-100/80 p-1 dark:bg-slate-800/80 lg:flex" role="menubar">
           {appNavLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
@@ -135,37 +177,40 @@ export function AppHeader() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:hover:bg-slate-800 ${
+                className={`relative flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary focus-visible:ring-offset-2 ${
                   isActive
-                    ? 'bg-kid-primary/10 text-kid-primary'
-                    : 'text-gray-600 dark:text-slate-300'
+                    ? 'bg-white text-game-primary shadow-sm dark:bg-slate-700 dark:text-game-primary'
+                    : 'text-gray-600 hover:bg-white/50 hover:text-game-primary dark:text-slate-300 dark:hover:bg-slate-700/50'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
                 role="menuitem"
               >
-                <Icon className="h-4 w-4" aria-hidden="true" />
-                {link.label}
+                <Icon className={`h-4 w-4 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} aria-hidden="true" />
+                <span className="hidden xl:inline">{link.label}</span>
               </Link>
             );
           })}
         </div>
 
         {/* Right side: Profile Switcher, Game Switcher, Quick Settings popover, Profile Menu */}
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-1.5 lg:flex">
           {/* Profile Switcher - only shows for families with multiple profiles */}
           <ProfileSwitcher />
 
-          {/* Game Switcher */}
+          {/* Game Switcher - prominent and colorful */}
           <GameSwitcher />
+
+          {/* Divider */}
+          <div className="mx-1 h-6 w-px bg-gray-200/60 dark:bg-slate-600/60" aria-hidden="true" />
 
           {/* Quick Settings popover */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setQuickSettingsOpen(!quickSettingsOpen)}
-              className={`flex items-center justify-center rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800 ${
+              className={`flex h-9 w-9 items-center justify-center rounded-xl text-gray-500 transition-all duration-200 hover:bg-gray-100 hover:text-game-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary focus-visible:ring-offset-2 dark:text-slate-400 dark:hover:bg-slate-800 ${
                 pathname === '/settings' || quickSettingsOpen
-                  ? 'bg-kid-primary/10 text-kid-primary'
+                  ? 'bg-game-gradient-subtle text-game-primary'
                   : ''
               }`}
               aria-label="Quick settings"
@@ -174,7 +219,7 @@ export function AppHeader() {
               aria-controls="quick-settings-menu"
               title="Quick settings"
             >
-              <Cog6ToothIcon className="h-5 w-5" aria-hidden="true" />
+              <Cog6ToothIcon className={`h-5 w-5 transition-transform duration-300 ${quickSettingsOpen ? 'rotate-90' : ''}`} aria-hidden="true" />
             </button>
 
             {quickSettingsOpen && (
@@ -187,18 +232,19 @@ export function AppHeader() {
                 />
                 <div
                   id="quick-settings-menu"
-                  className="absolute right-0 top-full z-20 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-lg dark:border-slate-700 dark:bg-slate-800"
+                  className="absolute right-0 top-full z-20 mt-2 w-64 overflow-hidden rounded-2xl border border-gray-200/80 bg-white/95 p-3 shadow-xl backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-800/95"
                   role="dialog"
                   aria-label="Quick settings"
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">
                       Quick Settings
                     </span>
+                    <SparklesIcon className="h-4 w-4 text-game-primary" />
                   </div>
 
                   {/* Dark Mode toggle */}
-                  <div className="mb-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-slate-700/50">
+                  <div className="mb-2 flex items-center justify-between rounded-xl bg-gray-50/80 px-3 py-2.5 dark:bg-slate-700/50">
                     <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
                       Dark Mode
                     </span>
@@ -206,7 +252,7 @@ export function AppHeader() {
                   </div>
 
                   {/* Kid Mode toggle */}
-                  <div className="mb-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-slate-700/50">
+                  <div className="mb-3 flex items-center justify-between rounded-xl bg-gray-50/80 px-3 py-2.5 dark:bg-slate-700/50">
                     <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
                       Kid Mode
                     </span>
@@ -217,7 +263,7 @@ export function AppHeader() {
                   <Link
                     href="/settings"
                     onClick={() => setQuickSettingsOpen(false)}
-                    className="flex items-center justify-center gap-1.5 rounded-lg bg-game-gradient px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-game"
+                    className="flex items-center justify-center gap-1.5 rounded-xl bg-game-gradient px-3 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:shadow-lg hover:brightness-105 focus-game"
                   >
                     All Settings
                     <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
@@ -226,14 +272,15 @@ export function AppHeader() {
               </>
             )}
           </div>
-          <div className="h-6 w-px bg-gray-200 dark:bg-slate-600" aria-hidden="true" />
 
           {/* Profile Menu Dropdown */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-kid-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800"
+              className={`flex h-9 w-9 items-center justify-center rounded-xl text-gray-500 transition-all duration-200 hover:bg-gray-100 hover:text-game-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary focus-visible:ring-offset-2 dark:text-slate-400 dark:hover:bg-slate-800 ${
+                profileMenuOpen ? 'bg-game-gradient-subtle text-game-primary' : ''
+              }`}
               aria-label="Profile menu"
               aria-expanded={profileMenuOpen}
               aria-haspopup="true"
@@ -253,15 +300,15 @@ export function AppHeader() {
                 />
                 <div
                   id="profile-menu"
-                  className="absolute right-0 top-full z-20 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
+                  className="absolute right-0 top-full z-20 mt-2 w-52 overflow-hidden rounded-2xl border border-gray-200/80 bg-white/95 py-1.5 shadow-xl backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-800/95"
                   role="menu"
                   aria-label="Profile options"
                 >
                   <Link
                     href="/profile"
                     onClick={() => setProfileMenuOpen(false)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary dark:text-slate-200 dark:hover:bg-slate-700 ${
-                      pathname === '/profile' ? 'bg-kid-primary/10 text-kid-primary' : ''
+                    className={`flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-game-primary dark:text-slate-200 dark:hover:bg-slate-700/50 ${
+                      pathname === '/profile' ? 'bg-game-gradient-subtle text-game-primary' : ''
                     }`}
                     role="menuitem"
                   >
@@ -271,8 +318,8 @@ export function AppHeader() {
                   <Link
                     href="/learn"
                     onClick={() => setProfileMenuOpen(false)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary dark:text-slate-200 dark:hover:bg-slate-700 ${
-                      pathname === '/learn' ? 'bg-kid-primary/10 text-kid-primary' : ''
+                    className={`flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-game-primary dark:text-slate-200 dark:hover:bg-slate-700/50 ${
+                      pathname === '/learn' ? 'bg-game-gradient-subtle text-game-primary' : ''
                     }`}
                     role="menuitem"
                   >
@@ -283,16 +330,16 @@ export function AppHeader() {
                     <Link
                       href="/parent-dashboard"
                       onClick={() => setProfileMenuOpen(false)}
-                      className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary dark:text-slate-200 dark:hover:bg-slate-700 ${
-                        pathname === '/parent-dashboard' ? 'bg-kid-primary/10 text-kid-primary' : ''
+                      className={`flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-game-primary dark:text-slate-200 dark:hover:bg-slate-700/50 ${
+                        pathname === '/parent-dashboard' ? 'bg-game-gradient-subtle text-game-primary' : ''
                       }`}
                       role="menuitem"
                     >
                       <UserGroupIcon className="h-4 w-4" aria-hidden="true" />
                       <span className="flex flex-col">
                         <span>Parent Dashboard</span>
-                        <span className="text-xs text-purple-600 dark:text-purple-400">
-                          Parent features available
+                        <span className="text-[10px] font-normal text-purple-600 dark:text-purple-400">
+                          Parent features
                         </span>
                       </span>
                     </Link>
@@ -300,8 +347,8 @@ export function AppHeader() {
                   <Link
                     href="/settings"
                     onClick={() => setProfileMenuOpen(false)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary dark:text-slate-200 dark:hover:bg-slate-700 ${
-                      pathname === '/settings' ? 'bg-kid-primary/10 text-kid-primary' : ''
+                    className={`flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-game-primary dark:text-slate-200 dark:hover:bg-slate-700/50 ${
+                      pathname === '/settings' ? 'bg-game-gradient-subtle text-game-primary' : ''
                     }`}
                     role="menuitem"
                   >
@@ -309,12 +356,12 @@ export function AppHeader() {
                     Settings
                   </Link>
                   <div
-                    className="my-1 border-t border-gray-100 dark:border-slate-700"
+                    className="my-1.5 border-t border-gray-100/80 dark:border-slate-700/80"
                     aria-hidden="true"
                   />
                   <button
                     onClick={handleSignOut}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kid-primary dark:text-slate-200 dark:hover:bg-slate-700"
+                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-600 transition-all duration-150 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-game-primary dark:text-slate-300 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                     role="menuitem"
                   >
                     <ArrowRightOnRectangleIcon className="h-4 w-4" aria-hidden="true" />
@@ -329,50 +376,57 @@ export function AppHeader() {
         {/* Mobile Menu Button */}
         <button
           type="button"
-          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
+          className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary focus-visible:ring-offset-2 lg:hidden ${
+            mobileMenuOpen
+              ? 'bg-game-gradient text-white shadow-md'
+              : 'text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800'
+          }`}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           aria-expanded={mobileMenuOpen}
           aria-controls="app-mobile-menu"
         >
           {mobileMenuOpen ? (
-            <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+            <XMarkIcon className="h-5 w-5" aria-hidden="true" />
           ) : (
-            <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+            <Bars3Icon className="h-5 w-5" aria-hidden="true" />
           )}
         </button>
       </nav>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - sleek slide-down design */}
       {mobileMenuOpen && (
         <div
           id="app-mobile-menu"
-          className="border-t border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900 lg:hidden"
+          className="border-t border-game-border/20 bg-white/95 backdrop-blur-lg dark:border-slate-700/50 dark:bg-slate-900/95 lg:hidden"
           role="menu"
           aria-label="Mobile app navigation"
         >
-          <div className="space-y-1 px-4 py-3">
-            {appNavLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
-                    isActive
-                      ? 'bg-kid-primary/10 text-kid-primary'
-                      : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800'
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  aria-current={isActive ? 'page' : undefined}
-                  role="menuitem"
-                >
-                  <Icon className="h-5 w-5" aria-hidden="true" />
-                  {link.label}
-                </Link>
-              );
-            })}
+          {/* Navigation links */}
+          <div className="px-3 py-3">
+            <div className="grid grid-cols-5 gap-1 rounded-2xl bg-gray-100/80 p-1 dark:bg-slate-800/80">
+              {appNavLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
+                      isActive
+                        ? 'bg-white text-game-primary shadow-sm dark:bg-slate-700'
+                        : 'text-gray-600 hover:bg-white/50 dark:text-slate-300 dark:hover:bg-slate-700/50'
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    aria-current={isActive ? 'page' : undefined}
+                    role="menuitem"
+                  >
+                    <Icon className={`h-5 w-5 ${isActive ? 'scale-110' : ''}`} aria-hidden="true" />
+                    <span className="text-[10px] font-medium leading-tight">{link.label.split(' ').pop()}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
           {/* Mobile Profile Switcher - for families with multiple profiles */}
