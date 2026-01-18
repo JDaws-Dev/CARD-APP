@@ -146,3 +146,9 @@
 **Files:** src/components/collection/CardDetailModal.tsx
 **Commit:** 9e5aa09
 ---
+## CD-ml3 - AI-026: Add loading states and error handling for AI features
+**Status:** Completed
+**Changes:** Enhanced skeleton loading for CardStoryModal with content-mimicking skeleton UI; enhanced CardScanner progress overlay with animated ping effect and animated progress bar; verified existing typing indicator in CollectionChat; verified friendly error messages and retry functionality across all AI components
+**Files:** src/components/ai/CardStoryModal.tsx, src/components/ai/CardScanner.tsx, tailwind.config.ts
+**Commit:** 41ec25a
+---
