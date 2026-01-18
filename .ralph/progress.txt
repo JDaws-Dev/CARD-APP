@@ -903,3 +903,9 @@
 **Files:** No changes - code was already correct
 **Commit:** N/A (no changes made)
 ---
+## CD-549 - Remove unsupported games from profileGames.ts
+**Status:** Completed (No changes needed)
+**Changes:** Investigation revealed files were already clean. profileGames.ts only contains supported games (pokemon, yugioh, onepiece, lorcana). Test file references to mtg/digimon/dragonball are appropriate - they verify validation correctly rejects unsupported games.
+**Files:** Verified: src/lib/profileGames.ts, src/lib/__tests__/profileGames.test.ts
+**Commit:** N/A - no changes needed
+---

@@ -34,6 +34,7 @@ import { RecentCardsPreview, RecentCardsPreviewSkeleton } from '@/components/das
 import { FeaturedCardsPreview, FeaturedCardsPreviewSkeleton } from '@/components/dashboard/FeaturedCardsPreview';
 import { getDisplayName } from '@/lib/displayName';
 import { getGameInfo, type GameId } from '@/lib/gameSelector';
+import { getGameIcon } from '@/components/icons/tcg';
 
 // ============================================================================
 // QUICK ACTION CARDS
@@ -399,6 +400,9 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
   // Get game info for theming
   const gameInfo = getGameInfo(gameSlug as GameId);
 
+  // Get game icon component - updates when gameSlug changes
+  const GameIcon = useMemo(() => getGameIcon(gameSlug as GameId), [gameSlug]);
+
   return (
     <div className="space-y-6">
       {/* Welcome Header - uses game-specific gradient */}
@@ -431,9 +435,7 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
           <div className="flex items-center gap-4">
             {/* Game Logo Badge */}
             <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-white/20 shadow-lg backdrop-blur-sm sm:h-16 sm:w-16">
-              <span className="text-2xl font-black drop-shadow sm:text-3xl">
-                {gameInfo?.shortName.charAt(0) || gameName.charAt(0)}
-              </span>
+              <GameIcon className="h-8 w-8 text-white drop-shadow sm:h-10 sm:w-10" />
             </div>
             <div>
               <p className="text-sm font-medium text-white/70">{gameInfo?.shortName || gameName}</p>
