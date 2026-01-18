@@ -798,3 +798,9 @@
 **Files:** src/components/collection/SetDetailClient.tsx
 **Commit:** c02da69
 ---
+## CD-owm - Fix Trophy Room to filter by selected game
+**Status:** Completed
+**Changes:** Made gameSlug required in getMostValuableCards query and removed conditional check so filtering always happens. The VirtualTrophyRoom component already correctly passes gameSlug from the GameSelectorProvider context.
+**Files:** convex/collections.ts
+**Commit:** d276c39 (included with previous commit during convex codegen)
+---
