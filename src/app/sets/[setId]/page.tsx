@@ -214,30 +214,6 @@ export default function SetDetailPage({ params }: SetDetailPageProps) {
               <ScannerButton variant="primary" label="Scan Card" />
             </div>
           </div>
-
-          {/* Progress Bar */}
-          <div className="mt-6 rounded-2xl bg-white p-4 shadow-md dark:bg-slate-800">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600 dark:text-slate-400">
-                Collection Progress
-              </span>
-              <span
-                className={cn(
-                  'text-lg font-bold bg-gradient-to-r bg-clip-text text-transparent',
-                  game?.gradientFrom || 'from-indigo-500',
-                  game?.gradientTo || 'to-purple-500'
-                )}
-              >
-                0 / {transformedCards.length || currentSet.totalCards} cards
-              </span>
-            </div>
-            <div className="progress-bar mt-2">
-              <div className="progress-bar-fill" style={{ width: '0%' }} />
-            </div>
-            <p className="mt-2 text-center text-sm text-gray-500 dark:text-slate-400">
-              Start tapping cards below to add them to your collection!
-            </p>
-          </div>
         </div>
 
         {/* Empty state if no cards */}

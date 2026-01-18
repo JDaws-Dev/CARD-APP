@@ -8,7 +8,7 @@ import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { cn } from '@/lib/utils';
 import { isPromoCard, getPromoSetLabel, type PokemonCard } from '@/lib/pokemon-tcg';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual';
 import {
   HeartIcon,
   StarIcon as StarIconOutline,
@@ -540,12 +540,12 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
     return CARD_DIMENSIONS.BASE_HEIGHT + CARD_DIMENSIONS.GAP;
   }, []);
 
-  // Set up virtualizer
-  const virtualizer = useVirtualizer({
+  // Set up virtualizer with window-based scrolling for natural page scroll
+  const virtualizer = useWindowVirtualizer({
     count: rows.length,
-    getScrollElement: () => parentRef.current,
     estimateSize: estimateRowHeight,
     overscan: overscanCount, // Render extra rows above and below viewport (5 on mobile, 3 on desktop)
+    scrollMargin: parentRef.current?.offsetTop ?? 0, // Account for elements above the grid
   });
 
   // Build a map of owned cards for quick lookup
@@ -1106,10 +1106,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
       {/* Card Grid Container */}
       <div
         ref={parentRef}
-        className={cn(
-          'relative w-full min-w-0',
-          useVirtualScrolling && 'h-[600px] overflow-auto rounded-xl'
-        )}
+        className="relative w-full min-w-0"
         role="grid"
         aria-label={`Card collection grid with ${cards.length} cards`}
       >
