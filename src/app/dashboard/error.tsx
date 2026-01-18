@@ -3,11 +3,8 @@
 import {
   ExclamationTriangleIcon,
   ArrowPathIcon,
-  HomeIcon,
-  ArrowLeftIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline';
-import Link from 'next/link';
 
 export default function DashboardError({
   reset,
@@ -18,15 +15,6 @@ export default function DashboardError({
   return (
     <main className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50 px-4 py-8">
       <div className="mx-auto max-w-6xl">
-        {/* Back link */}
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ArrowLeftIcon className="h-4 w-4" />
-          Back to Home
-        </Link>
-
         {/* Header */}
         <div className="mb-8 flex items-center gap-4">
           <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 shadow-lg">
@@ -49,22 +37,13 @@ export default function DashboardError({
             We couldn&apos;t load your dashboard. This might be a temporary issue.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <button
-              onClick={reset}
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-kid-primary to-purple-500 px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg"
-            >
-              <ArrowPathIcon className="h-5 w-5" />
-              Try Again
-            </button>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-200"
-            >
-              <HomeIcon className="h-5 w-5" />
-              Go Home
-            </Link>
-          </div>
+          <button
+            onClick={reset}
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-kid-primary to-purple-500 px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg"
+          >
+            <ArrowPathIcon className="h-5 w-5" />
+            Try Again
+          </button>
         </div>
       </div>
     </main>

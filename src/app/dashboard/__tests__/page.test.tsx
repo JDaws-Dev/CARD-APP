@@ -159,14 +159,6 @@ describe('DashboardPage', () => {
       expect(screen.getByTestId('kid-dashboard')).toBeInTheDocument();
     });
 
-    it('renders back link to home', () => {
-      render(<DashboardPage />);
-
-      const backLink = screen.getByRole('link', { name: /Back to Home/i });
-      expect(backLink).toBeInTheDocument();
-      expect(backLink).toHaveAttribute('href', '/');
-    });
-
     it('has proper page structure with main element', () => {
       render(<DashboardPage />);
 
