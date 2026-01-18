@@ -1093,3 +1093,9 @@
 **Files:** src/lib/conditionGuide.ts, src/components/guide/ConditionGuide.tsx (reviewed, no changes needed)
 **Commit:** No code changes required - verification-only task
 ---
+## CD-ej7.5 - Update LearnToCollect tutorials to be game-specific
+**Status:** Completed
+**Changes:** Made LearnToCollect component game-aware by adding useGameSelector hook, displaying game-specific card types and set symbol info, and updating fun facts to show game-specific content
+**Files:** src/components/tutorials/LearnToCollect.tsx
+**Commit:** bf9e90c
+---
