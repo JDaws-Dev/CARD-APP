@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
+import { CardStoryModal } from '@/components/ai/CardStoryModal';
 import { CardImage } from '@/components/ui/CardImage';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import {
@@ -107,6 +108,9 @@ export function CardDetailModal({
   isRemoving = false,
   isAddingToWishlist = false,
 }: CardDetailModalProps) {
+  // State for CardStoryModal
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -344,6 +348,19 @@ export function CardDetailModal({
                 <ArrowRightIcon className="h-4 w-4" />
               </Link>
 
+              {/* Tell me about this card - AI Story */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsStoryModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 px-4 py-2 text-sm font-medium text-white transition hover:from-purple-600 hover:to-indigo-600"
+                aria-label="Tell me about this card"
+              >
+                <SparklesIcon className="h-4 w-4" />
+                Tell me about this card!
+              </button>
+
               {/* Add to Wishlist */}
               {onAddToWishlist && (
                 <button
@@ -424,6 +441,14 @@ export function CardDetailModal({
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-4 py-2 text-xs text-white/50">
         Use arrow keys to navigate, ESC to close
       </div>
+
+      {/* Card Story Modal */}
+      <CardStoryModal
+        card={card}
+        isOpen={isStoryModalOpen}
+        onClose={() => setIsStoryModalOpen(false)}
+        gameSlug="pokemon"
+      />
     </div>
   );
 }
