@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
+import { mutation, query, QueryCtx } from './_generated/server';
 
 // ============================================================================
 // ACHIEVEMENT TYPE DEFINITIONS
@@ -371,17 +371,94 @@ export function getTypesWithBadges(): string[] {
   ];
 }
 
+// Game slug type for filtering
+type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
+
+/**
+ * Determine if an achievement belongs to a specific game.
+ * - set_completion: Check if the set's gameSlug matches
+ * - type_specialist: Pokemon-specific (fire, water, etc. are Pokemon types)
+ * - pokemon_fan: Pokemon-specific (Pikachu, Charizard, etc.)
+ * - collector_milestone: Global achievements (shown for all games)
+ * - streak: Global achievements (shown for all games)
+ */
+async function achievementBelongsToGame(
+  ctx: QueryCtx,
+  achievement: { achievementType: string; achievementData?: unknown },
+  gameSlug: GameSlug
+): Promise<boolean> {
+  switch (achievement.achievementType) {
+    case 'set_completion': {
+      // For set completion achievements, check if the set belongs to the target game
+      const achievementData = achievement.achievementData as { setId?: string } | undefined;
+      const setId = achievementData?.setId;
+      if (!setId) {
+        return false;
+      }
+      const cachedSet = await ctx.db
+        .query('cachedSets')
+        .withIndex('by_set_id', (q) => q.eq('setId', setId))
+        .first();
+      return cachedSet?.gameSlug === gameSlug;
+    }
+
+    case 'type_specialist':
+    case 'pokemon_fan':
+      // These achievement types are Pokemon-specific
+      return gameSlug === 'pokemon';
+
+    case 'collector_milestone':
+    case 'streak':
+      // These are global achievements shown for all games
+      return true;
+
+    default:
+      // Unknown achievement type - show for all games
+      return true;
+  }
+}
+
 // ============================================================================
 // QUERIES
 // ============================================================================
 
 export const getAchievements = query({
-  args: { profileId: v.id('profiles') },
+  args: {
+    profileId: v.id('profiles'),
+    gameSlug: v.optional(
+      v.union(
+        v.literal('pokemon'),
+        v.literal('yugioh'),
+        v.literal('onepiece'),
+        v.literal('lorcana')
+      )
+    ),
+  },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const achievements = await ctx.db
       .query('achievements')
       .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
       .collect();
+
+    // If no gameSlug filter, return all achievements
+    if (!args.gameSlug) {
+      return achievements;
+    }
+
+    // Filter achievements by game
+    const filteredAchievements = [];
+    for (const achievement of achievements) {
+      const belongsToGame = await achievementBelongsToGame(
+        ctx,
+        achievement,
+        args.gameSlug
+      );
+      if (belongsToGame) {
+        filteredAchievements.push(achievement);
+      }
+    }
+
+    return filteredAchievements;
   },
 });
 
@@ -1728,12 +1805,38 @@ export const getStreakProgress = query({
  * Returns achievements sorted by earned date (newest first) with formatted dates.
  */
 export const getAchievementsWithDates = query({
-  args: { profileId: v.id('profiles') },
+  args: {
+    profileId: v.id('profiles'),
+    gameSlug: v.optional(
+      v.union(
+        v.literal('pokemon'),
+        v.literal('yugioh'),
+        v.literal('onepiece'),
+        v.literal('lorcana')
+      )
+    ),
+  },
   handler: async (ctx, args) => {
-    const achievements = await ctx.db
+    let achievements = await ctx.db
       .query('achievements')
       .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
       .collect();
+
+    // Filter by game if specified
+    if (args.gameSlug) {
+      const filteredAchievements = [];
+      for (const achievement of achievements) {
+        const belongsToGame = await achievementBelongsToGame(
+          ctx,
+          achievement,
+          args.gameSlug
+        );
+        if (belongsToGame) {
+          filteredAchievements.push(achievement);
+        }
+      }
+      achievements = filteredAchievements;
+    }
 
     // Sort by earned date descending (newest first)
     const sorted = achievements.sort((a, b) => b.earnedAt - a.earnedAt);
