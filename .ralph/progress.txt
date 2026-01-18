@@ -378,3 +378,9 @@
 **Files:** src/components/header/ProfileSwitcher.tsx (new), src/components/layout/AppHeader.tsx (updated)
 **Commit:** (implementation committed previously, closing issue now)
 ---
+## CD-fzv.1 - Add gameSlug filtering to collection backend queries
+**Status:** Completed
+**Changes:** Added optional gameSlug parameter to 4 collection queries (getCollection, getCollectionStats, getCollectionWithStats, getCollectionBySet) to filter cards by TCG game
+**Files:** convex/collections.ts
+**Commit:** fac632b
+---
