@@ -633,3 +633,9 @@
 **Files:** src/app/badges/page.tsx, src/components/achievements/TrophyCase.tsx, convex/achievements.ts (all verified, no changes needed)
 **Commit:** N/A - implementation was already complete
 ---
+## CD-fzv.5 - Update Badges page to use game-filtered achievements
+**Status:** Completed
+**Changes:** Added useGameSelector hook to badges page, updated TrophyCase component to accept gameSlug prop and pass it to getAchievements query for game-specific achievement filtering
+**Files:** src/app/badges/page.tsx, src/components/achievements/TrophyCase.tsx
+**Commit:** (pending)
+---
