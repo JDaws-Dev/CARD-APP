@@ -74,3 +74,19 @@ export function getDisplayName(dbDisplayName: string | undefined | null): string
   // Final fallback
   return 'Collector';
 }
+
+/**
+ * Extract the first name from a display name.
+ * Useful for greetings where "Hi, Jeremy!" is friendlier than "Hi, Jeremy Daws!".
+ *
+ * @param displayName - Full display name (e.g., "Jeremy Daws")
+ * @returns First name only (e.g., "Jeremy")
+ */
+export function getFirstName(displayName: string): string {
+  const trimmed = displayName.trim();
+  if (!trimmed) return 'Collector';
+
+  // Split on whitespace and take the first part
+  const parts = trimmed.split(/\s+/);
+  return parts[0] || 'Collector';
+}

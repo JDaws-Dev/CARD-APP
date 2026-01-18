@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { looksLikeEmailPrefix, getDisplayName } from '../displayName';
+import { looksLikeEmailPrefix, getDisplayName, getFirstName } from '../displayName';
 
 // Mock the localStorage and loadOnboardingProgress
 vi.mock('../onboardingFlow', () => ({
@@ -231,5 +231,32 @@ describe('getDisplayName', () => {
       // Database name looks like OAuth-derived "JE Dawes", should fall back to "Jeremiah"
       expect(getDisplayName('JE Dawes')).toBe('Jeremiah');
     });
+  });
+});
+
+describe('getFirstName', () => {
+  it('extracts first name from full name', () => {
+    expect(getFirstName('Jeremy Daws')).toBe('Jeremy');
+    expect(getFirstName('Mary Jane Watson')).toBe('Mary');
+    expect(getFirstName('John')).toBe('John');
+  });
+
+  it('handles single names', () => {
+    expect(getFirstName('Alice')).toBe('Alice');
+    expect(getFirstName('Collector')).toBe('Collector');
+  });
+
+  it('trims whitespace', () => {
+    expect(getFirstName('  Jeremy  ')).toBe('Jeremy');
+    expect(getFirstName('  Mary Jane  ')).toBe('Mary');
+  });
+
+  it('handles multiple spaces between names', () => {
+    expect(getFirstName('Jeremy    Daws')).toBe('Jeremy');
+  });
+
+  it('returns Collector for empty strings', () => {
+    expect(getFirstName('')).toBe('Collector');
+    expect(getFirstName('   ')).toBe('Collector');
   });
 });

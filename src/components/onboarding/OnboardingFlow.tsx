@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { getFirstName } from '@/lib/displayName';
 import {
   type OnboardingStepId,
   type OnboardingProgress,
@@ -569,7 +570,7 @@ function CompletionStep({ profileName, onGoToCollection, onGoToSets }: Completio
       <div className="space-y-3">
         <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">You&apos;re all set!</h2>
         <p className="text-lg text-gray-600">
-          {profileName ? `Welcome to CardDex, ${profileName}!` : 'Welcome to CardDex!'}
+          {profileName ? `Welcome to CardDex, ${getFirstName(profileName)}!` : 'Welcome to CardDex!'}
         </p>
         <p className="text-gray-500">Your collection journey begins now</p>
       </div>

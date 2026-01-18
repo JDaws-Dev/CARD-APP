@@ -32,7 +32,7 @@ import { FamilyLeaderboard } from '@/components/family/FamilyLeaderboard';
 import { WhatsNextCard } from '@/components/dashboard/WhatsNextCard';
 import { RecentCardsPreview, RecentCardsPreviewSkeleton } from '@/components/dashboard/RecentCardsPreview';
 import { FeaturedCardsPreview, FeaturedCardsPreviewSkeleton } from '@/components/dashboard/FeaturedCardsPreview';
-import { getDisplayName } from '@/lib/displayName';
+import { getDisplayName, getFirstName } from '@/lib/displayName';
 import { getGameInfo, type GameId } from '@/lib/gameSelector';
 import { getGameIcon } from '@/components/icons/tcg';
 
@@ -653,7 +653,7 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
     return <KidDashboardSkeleton />;
   }
 
-  const profileName = getDisplayName(profile?.displayName);
+  const profileName = getFirstName(getDisplayName(profile?.displayName));
   const currentStreak = streakProgress.currentStreak ?? 0;
   const isActiveToday = streakProgress.isActiveToday ?? false;
 
