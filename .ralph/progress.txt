@@ -1047,3 +1047,9 @@
 **Files:** src/components/ai/CardScanner.tsx
 **Commit:** ae4b9c4
 ---
+## CD-5dv - Audit and fix onboarding flow - broken links and navigation
+**Status:** Completed
+**Changes:** Fixed 'Browse Sets' button in FirstCardsStep to navigate to /sets instead of just advancing to next step. Renamed onContinue prop to onBrowseSets and added handleBrowseSets callback with proper navigation logic.
+**Files:** src/components/onboarding/OnboardingFlow.tsx
+**Commit:** d851d29
+---
