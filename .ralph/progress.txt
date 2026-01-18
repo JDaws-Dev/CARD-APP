@@ -1417,3 +1417,9 @@
 - src/app/settings/page.tsx (modified)
 **Commit:** 7a6abb2
 ---
+## CD-0mz.3 - Sub-task 3: Create useHidePrices hook and hide prices in card detail modal
+**Status:** Completed
+**Changes:** Created useHidePrices hook to check profile's hidePrices setting. Updated CardDetailModal to hide variant price display and Market Prices section when hidePrices is true.
+**Files:** src/hooks/useHidePrices.ts (new), src/components/collection/CardDetailModal.tsx (modified)
+**Commit:** a4e7863
+---
