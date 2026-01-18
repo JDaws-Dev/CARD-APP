@@ -11,6 +11,17 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline';
 import type { Id } from '../../../convex/_generated/dataModel';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+
+interface CardData {
+  id: string;
+  name: string;
+  images: {
+    small: string;
+    large: string;
+  };
+}
 
 interface TradeHistoryProps {
   limit?: number;
@@ -49,6 +60,8 @@ function formatDate(timestamp: number): string {
 
 export function TradeHistory({ limit = 10, className, showHeader = true }: TradeHistoryProps) {
   const { profileId } = useCurrentProfile();
+  const [cardDataMap, setCardDataMap] = useState<Map<string, CardData>>(new Map());
+  const [isLoadingCards, setIsLoadingCards] = useState(false);
 
   const tradeHistory = useQuery(
     api.trades.getTradeHistory,
@@ -59,6 +72,48 @@ export function TradeHistory({ limit = 10, className, showHeader = true }: Trade
     api.trades.getTradeStats,
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
+
+  // Fetch card data with images for all cards in trade history
+  const fetchCardData = useCallback(async () => {
+    if (!tradeHistory || tradeHistory.length === 0) return;
+
+    const allCardIds = new Set<string>();
+    tradeHistory.forEach((trade) => {
+      trade.cardsGiven.forEach((card) => allCardIds.add(card.cardId));
+      trade.cardsReceived.forEach((card) => allCardIds.add(card.cardId));
+    });
+
+    // Filter out cards we already have
+    const newCardIds = [...allCardIds].filter((id) => !cardDataMap.has(id));
+    if (newCardIds.length === 0) return;
+
+    try {
+      setIsLoadingCards(true);
+      const response = await fetch('/api/cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardIds: newCardIds }),
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        const cards: CardData[] = responseData.data || responseData;
+        setCardDataMap((prev) => {
+          const newMap = new Map(prev);
+          cards.forEach((card) => newMap.set(card.id, card));
+          return newMap;
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching card data:', err);
+    } finally {
+      setIsLoadingCards(false);
+    }
+  }, [tradeHistory, cardDataMap]);
+
+  useEffect(() => {
+    fetchCardData();
+  }, [fetchCardData]);
 
   if (tradeHistory === undefined || tradeStats === undefined) {
     return (
@@ -152,30 +207,55 @@ export function TradeHistory({ limit = 10, className, showHeader = true }: Trade
             </div>
 
             {/* Cards exchanged */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               {/* Cards given */}
               {trade.cardsGiven.length > 0 && (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <div className="flex items-center gap-1">
                     <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-100 text-[10px] font-bold text-red-600">
                       -
                     </span>
                     <span className="text-xs font-medium text-gray-600">Gave</span>
                   </div>
-                  <div className="flex flex-wrap gap-1 pl-5">
-                    {trade.cardsGiven.slice(0, 3).map((card, idx) => (
-                      <span
-                        key={`${card.cardId}-${idx}`}
-                        className="rounded bg-red-50 px-1.5 py-0.5 text-xs text-red-700"
-                        title={`${card.cardName} (${VARIANT_LABELS[card.variant] ?? card.variant}) x${card.quantity}`}
-                      >
-                        {card.cardName} x{card.quantity}
-                      </span>
-                    ))}
-                    {trade.cardsGiven.length > 3 && (
-                      <span className="rounded bg-red-50 px-1.5 py-0.5 text-xs text-red-600">
-                        +{trade.cardsGiven.length - 3} more
-                      </span>
+                  <div className="flex flex-wrap gap-2 pl-5">
+                    {trade.cardsGiven.slice(0, 4).map((card, idx) => {
+                      const cardData = cardDataMap.get(card.cardId);
+                      return (
+                        <div
+                          key={`${card.cardId}-${idx}`}
+                          className="flex items-center gap-2 rounded-lg bg-red-50 p-1.5 pr-2"
+                          title={`${card.cardName} (${VARIANT_LABELS[card.variant] ?? card.variant}) x${card.quantity}`}
+                        >
+                          {cardData?.images?.small ? (
+                            <Image
+                              src={cardData.images.small}
+                              alt={card.cardName}
+                              width={32}
+                              height={44}
+                              className="rounded shadow-sm"
+                            />
+                          ) : (
+                            <div className="flex h-[44px] w-[32px] items-center justify-center rounded bg-red-100">
+                              <span className="text-[8px] text-red-400">?</span>
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="truncate text-xs font-medium text-red-800">
+                              {card.cardName}
+                            </div>
+                            {card.quantity > 1 && (
+                              <div className="text-[10px] text-red-600">x{card.quantity}</div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {trade.cardsGiven.length > 4 && (
+                      <div className="flex items-center rounded-lg bg-red-50 px-2 py-1">
+                        <span className="text-xs text-red-600">
+                          +{trade.cardsGiven.length - 4} more
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -183,27 +263,52 @@ export function TradeHistory({ limit = 10, className, showHeader = true }: Trade
 
               {/* Cards received */}
               {trade.cardsReceived.length > 0 && (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <div className="flex items-center gap-1">
                     <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-[10px] font-bold text-green-600">
                       +
                     </span>
                     <span className="text-xs font-medium text-gray-600">Received</span>
                   </div>
-                  <div className="flex flex-wrap gap-1 pl-5">
-                    {trade.cardsReceived.slice(0, 3).map((card, idx) => (
-                      <span
-                        key={`${card.cardId}-${idx}`}
-                        className="rounded bg-green-50 px-1.5 py-0.5 text-xs text-green-700"
-                        title={`${card.cardName} (${VARIANT_LABELS[card.variant] ?? card.variant}) x${card.quantity}`}
-                      >
-                        {card.cardName} x{card.quantity}
-                      </span>
-                    ))}
-                    {trade.cardsReceived.length > 3 && (
-                      <span className="rounded bg-green-50 px-1.5 py-0.5 text-xs text-green-600">
-                        +{trade.cardsReceived.length - 3} more
-                      </span>
+                  <div className="flex flex-wrap gap-2 pl-5">
+                    {trade.cardsReceived.slice(0, 4).map((card, idx) => {
+                      const cardData = cardDataMap.get(card.cardId);
+                      return (
+                        <div
+                          key={`${card.cardId}-${idx}`}
+                          className="flex items-center gap-2 rounded-lg bg-green-50 p-1.5 pr-2"
+                          title={`${card.cardName} (${VARIANT_LABELS[card.variant] ?? card.variant}) x${card.quantity}`}
+                        >
+                          {cardData?.images?.small ? (
+                            <Image
+                              src={cardData.images.small}
+                              alt={card.cardName}
+                              width={32}
+                              height={44}
+                              className="rounded shadow-sm"
+                            />
+                          ) : (
+                            <div className="flex h-[44px] w-[32px] items-center justify-center rounded bg-green-100">
+                              <span className="text-[8px] text-green-400">?</span>
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="truncate text-xs font-medium text-green-800">
+                              {card.cardName}
+                            </div>
+                            {card.quantity > 1 && (
+                              <div className="text-[10px] text-green-600">x{card.quantity}</div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {trade.cardsReceived.length > 4 && (
+                      <div className="flex items-center rounded-lg bg-green-50 px-2 py-1">
+                        <span className="text-xs text-green-600">
+                          +{trade.cardsReceived.length - 4} more
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
