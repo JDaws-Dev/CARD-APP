@@ -1135,3 +1135,18 @@
 **Files:** src/components/trades/TradeLoggingModal.tsx
 **Commit:** e6d33df
 ---
+## CD-qjt - Card Detail Modal - Add variant toggle, improve UX/UI design
+**Status:** Completed
+**Changes:** 
+- Redesigned CardDetailModal with variant selector tabs
+- Added per-variant quantity +/- controls
+- Showed price per variant when available
+- Added visual indicators for owned variants (checkmarks, quantity badges)
+- Improved UI with gradient styling and better visual hierarchy
+- Made mobile-friendly with large touch targets
+- Added variant-specific handlers in CollectionView
+**Files:** 
+- src/components/collection/CardDetailModal.tsx (major redesign)
+- src/components/collection/CollectionView.tsx (added variant callbacks)
+**Commit:** See below
+---

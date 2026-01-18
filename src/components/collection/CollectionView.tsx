@@ -162,6 +162,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
   const removeCardMutation = useMutation(api.collections.removeCard);
   const addToWishlistMutation = useMutation(api.wishlist.addToWishlist);
   const updateQuantityMutation = useMutation(api.collections.updateQuantity);
+  const addCardMutation = useMutation(api.collections.addCard);
 
   // Check if selected card is on wishlist
   const wishlistStatus = useQuery(
@@ -547,6 +548,66 @@ export function CollectionView({ collection }: CollectionViewProps) {
     [profileId, selectedCard, updateQuantityMutation]
   );
 
+  // Variant-specific add handler
+  const handleAddVariant = useCallback(
+    async (cardId: string, variant: string) => {
+      if (!profileId || !selectedCard) return;
+      try {
+        await addCardMutation({
+          profileId: profileId as Id<'profiles'>,
+          cardId,
+          cardName: selectedCard.name,
+          setName: selectedCard.set.name,
+          variant,
+          quantity: 1,
+        });
+        // Update local state immediately
+        setSelectedCard((prev) => {
+          if (!prev) return null;
+          const ownedVariants = { ...prev.ownedVariants };
+          ownedVariants[variant] = (ownedVariants[variant] ?? 0) + 1;
+          const newQuantity = Object.values(ownedVariants).reduce((sum, qty) => sum + qty, 0);
+          return { ...prev, ownedVariants, quantity: newQuantity };
+        });
+      } catch (err) {
+        console.error('Failed to add variant:', err);
+      }
+    },
+    [profileId, selectedCard, addCardMutation]
+  );
+
+  // Variant-specific remove handler
+  const handleRemoveVariant = useCallback(
+    async (cardId: string, variant: string) => {
+      if (!profileId || !selectedCard) return;
+      try {
+        await removeCardMutation({
+          profileId: profileId as Id<'profiles'>,
+          cardId,
+          cardName: selectedCard.name,
+          setName: selectedCard.set.name,
+          variant,
+        });
+        // Update local state immediately
+        setSelectedCard((prev) => {
+          if (!prev) return null;
+          const ownedVariants = { ...prev.ownedVariants };
+          if (ownedVariants[variant] && ownedVariants[variant] > 0) {
+            ownedVariants[variant] = ownedVariants[variant] - 1;
+            if (ownedVariants[variant] === 0) {
+              delete ownedVariants[variant];
+            }
+          }
+          const newQuantity = Object.values(ownedVariants).reduce((sum, qty) => sum + qty, 0);
+          return { ...prev, ownedVariants, quantity: newQuantity };
+        });
+      } catch (err) {
+        console.error('Failed to remove variant:', err);
+      }
+    },
+    [profileId, selectedCard, removeCardMutation]
+  );
+
   if (isLoading) {
     // Show skeleton for estimated number of groups based on collection size
     const estimatedGroups = Math.min(Math.ceil(collection.length / 5), 3);
@@ -805,6 +866,8 @@ export function CollectionView({ collection }: CollectionViewProps) {
         onRemoveCard={handleRemoveCard}
         onAddToWishlist={handleAddToWishlist}
         onEditQuantity={handleEditQuantity}
+        onAddVariant={handleAddVariant}
+        onRemoveVariant={handleRemoveVariant}
         isOnWishlist={wishlistStatus?.onWishlist ?? false}
         isRemoving={isRemoving}
         isAddingToWishlist={isAddingToWishlist}

@@ -14,16 +14,15 @@ import {
   HeartIcon,
   MinusIcon,
   PlusIcon,
+  CheckCircleIcon,
+  CurrencyDollarIcon,
 } from '@heroicons/react/24/solid';
 import Link from 'next/link';
-
-// Variant type definition (matches CardGrid.tsx)
-type CardVariant =
-  | 'normal'
-  | 'holofoil'
-  | 'reverseHolofoil'
-  | '1stEditionHolofoil'
-  | '1stEditionNormal';
+import { cn } from '@/lib/utils';
+import {
+  getVariantConfig,
+  type CardVariant,
+} from '@/components/ui/VariantBadge';
 
 // Game-specific label mapping for the "types" field
 // Different TCGs use different terminology for what's stored in the types array
@@ -34,51 +33,41 @@ const TYPES_LABEL_BY_GAME: Record<string, string> = {
   lorcana: 'Ink',
 };
 
-// Variant display configuration
-const VARIANT_CONFIG: Record<
-  CardVariant,
-  {
-    label: string;
-    shortLabel: string;
-    gradient: string;
-    textColor: string;
-    icon?: React.ComponentType<{ className?: string }>;
+// Get available variants from a card's availableVariants field or tcgplayer prices
+function getAvailableVariants(card: PokemonCard): CardVariant[] {
+  // First check availableVariants field (from cachedCards)
+  if (card.availableVariants && card.availableVariants.length > 0) {
+    return card.availableVariants as CardVariant[];
   }
-> = {
-  normal: {
-    label: 'Normal',
-    shortLabel: 'N',
-    gradient: 'from-gray-400 to-gray-500',
-    textColor: 'text-gray-300',
-  },
-  holofoil: {
-    label: 'Holofoil',
-    shortLabel: 'H',
-    gradient: 'from-purple-400 to-indigo-500',
-    textColor: 'text-purple-300',
-    icon: SparklesIcon,
-  },
-  reverseHolofoil: {
-    label: 'Reverse Holo',
-    shortLabel: 'R',
-    gradient: 'from-cyan-400 to-blue-500',
-    textColor: 'text-cyan-300',
-    icon: SparklesIcon,
-  },
-  '1stEditionHolofoil': {
-    label: '1st Ed. Holo',
-    shortLabel: '1H',
-    gradient: 'from-amber-400 to-yellow-500',
-    textColor: 'text-amber-300',
-    icon: SparklesIcon,
-  },
-  '1stEditionNormal': {
-    label: '1st Edition',
-    shortLabel: '1N',
-    gradient: 'from-amber-400 to-orange-500',
-    textColor: 'text-orange-300',
-  },
-};
+
+  // Fallback to tcgplayer prices (for Pokemon direct API calls)
+  const prices = card.tcgplayer?.prices;
+  if (!prices) return ['normal'];
+
+  const variants: CardVariant[] = [];
+  if (prices.normal) variants.push('normal');
+  if (prices.holofoil) variants.push('holofoil');
+  if (prices.reverseHolofoil) variants.push('reverseHolofoil');
+
+  return variants.length > 0 ? variants : ['normal'];
+}
+
+// Get price for a specific variant
+function getVariantPrice(card: PokemonCard, variant: CardVariant): number | null {
+  const prices = card.tcgplayer?.prices;
+  if (!prices) return null;
+
+  switch (variant) {
+    case 'normal':
+      return prices.normal?.market ?? null;
+    case 'holofoil':
+      return prices.holofoil?.market ?? null;
+    case 'reverseHolofoil':
+      return prices.reverseHolofoil?.market ?? null;
+    default:
+      return null;
+  }
+}
 
 interface CardWithQuantity extends PokemonCard {
   quantity: number;
@@ -98,6 +87,9 @@ interface CardDetailModalProps {
   onRemoveCard?: (cardId: string) => void;
   onAddToWishlist?: (cardId: string) => void;
   onEditQuantity?: (cardId: string, newQuantity: number) => void;
+  // New: variant-specific callbacks
+  onAddVariant?: (cardId: string, variant: CardVariant) => void;
+  onRemoveVariant?: (cardId: string, variant: CardVariant) => void;
   isOnWishlist?: boolean;
   isRemoving?: boolean;
   isAddingToWishlist?: boolean;
@@ -114,6 +106,8 @@ export function CardDetailModal({
   onRemoveCard,
   onAddToWishlist,
   onEditQuantity,
+  onAddVariant,
+  onRemoveVariant,
   isOnWishlist = false,
   isRemoving = false,
   isAddingToWishlist = false,
@@ -124,11 +118,27 @@ export function CardDetailModal({
   // State for CardStoryModal
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
 
+  // State for selected variant tab
+  const [selectedVariant, setSelectedVariant] = useState<CardVariant | null>(null);
+
   // Touch/swipe handling refs
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const SWIPE_THRESHOLD = 50; // Minimum swipe distance in pixels
   const SWIPE_ANGLE_THRESHOLD = 30; // Max vertical deviation in degrees
+
+  // Get available variants for this card
+  const availableVariants = card ? getAvailableVariants(card) : [];
+
+  // Reset selected variant when card changes
+  useEffect(() => {
+    if (card && availableVariants.length > 0) {
+      // Default to first owned variant, or first available
+      const ownedVariants = Object.keys(card.ownedVariants || {});
+      const firstOwned = availableVariants.find(v => ownedVariants.includes(v));
+      setSelectedVariant(firstOwned || availableVariants[0]);
+    }
+  }, [card?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle touch start
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -215,6 +225,35 @@ export function CardDetailModal({
   // Get the high-res image (large or fall back to small)
   const largeImage = card.images.large || card.images.small;
 
+  // Get current variant info
+  const currentVariantQty = selectedVariant ? (card.ownedVariants?.[selectedVariant] ?? 0) : 0;
+  const currentVariantPrice = selectedVariant ? getVariantPrice(card, selectedVariant) : null;
+  const currentVariantConfig = selectedVariant ? getVariantConfig(selectedVariant) : null;
+
+  // Calculate total owned across all variants
+  const totalOwned = Object.values(card.ownedVariants || {}).reduce((sum, qty) => sum + qty, 0);
+
+  // Handle variant quantity changes
+  const handleAddVariantQty = () => {
+    if (!selectedVariant) return;
+    if (onAddVariant) {
+      onAddVariant(card.id, selectedVariant);
+    } else if (onEditQuantity) {
+      // Fallback to old method if new callbacks not provided
+      onEditQuantity(card.id, card.quantity + 1);
+    }
+  };
+
+  const handleRemoveVariantQty = () => {
+    if (!selectedVariant || currentVariantQty <= 0) return;
+    if (onRemoveVariant) {
+      onRemoveVariant(card.id, selectedVariant);
+    } else if (onEditQuantity && card.quantity > 1) {
+      // Fallback to old method if new callbacks not provided
+      onEditQuantity(card.id, card.quantity - 1);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
@@ -232,10 +271,10 @@ export function CardDetailModal({
             e.stopPropagation();
             onPrevious();
           }}
-          className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/20 p-2 text-white transition hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 sm:left-4 sm:p-3"
           aria-label="Previous card"
         >
-          <ArrowLeftIcon className="h-6 w-6" />
+          <ArrowLeftIcon className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
       )}
 
@@ -245,100 +284,227 @@ export function CardDetailModal({
             e.stopPropagation();
             onNext();
           }}
-          className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/20 p-3 text-white transition hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/20 p-2 text-white transition hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 sm:right-4 sm:p-3"
           aria-label="Next card"
         >
-          <ArrowRightIcon className="h-6 w-6" />
+          <ArrowRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
       )}
 
       {/* Modal content */}
       <div
-        className="relative mx-4 flex max-h-[90vh] max-w-4xl flex-col items-center gap-6 overflow-auto rounded-2xl bg-gradient-to-b from-gray-900 to-gray-800 p-6 shadow-2xl md:flex-row md:items-start"
+        className="relative mx-2 flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-gradient-to-b from-gray-900 to-gray-800 shadow-2xl sm:mx-4 md:flex-row"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white/80 transition hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="absolute right-3 top-3 z-10 rounded-full bg-white/10 p-2 text-white/80 transition hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50"
           aria-label="Close modal"
         >
           <XMarkIcon className="h-5 w-5" />
         </button>
 
-        {/* Large card image */}
-        <div className="relative w-full max-w-sm shrink-0">
-          <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-xl shadow-2xl">
+        {/* Left: Card Image */}
+        <div className="relative flex-shrink-0 p-4 pb-0 md:p-6 md:pb-6">
+          <div className="relative mx-auto aspect-[2.5/3.5] w-48 overflow-hidden rounded-xl shadow-2xl sm:w-64 md:w-72">
             <CardImage
               key={card.id}
               src={largeImage}
               alt={card.name}
               fill
-              sizes="(max-width: 768px) 90vw, 400px"
+              sizes="(max-width: 768px) 256px, 288px"
               priority
             />
           </div>
 
-          {/* Quantity badge */}
-          {card.quantity > 1 && (
-            <div className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-kid-primary text-lg font-bold text-white shadow-lg">
-              x{card.quantity}
+          {/* Total quantity badge */}
+          {totalOwned > 0 && (
+            <div className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full bg-kid-success text-lg font-bold text-white shadow-lg sm:right-4 sm:top-4">
+              x{totalOwned}
             </div>
           )}
         </div>
 
-        {/* Card details */}
-        <div className="w-full text-white">
-          <h2 className="mb-2 text-2xl font-bold">{card.name}</h2>
-
-          {/* Set info */}
+        {/* Right: Card details - scrollable */}
+        <div className="flex-1 overflow-y-auto p-4 pt-2 text-white md:p-6">
+          {/* Card name and set */}
+          <h2 className="mb-1 pr-8 text-xl font-bold sm:text-2xl">{card.name}</h2>
           <Link
             href={`/sets/${card.set.id}`}
             className="mb-4 inline-flex items-center gap-2 text-sm text-white/70 transition hover:text-white"
           >
-            {card.set.images?.symbol && (
-              <img
-                src={card.set.images.symbol}
-                alt={card.set.name}
-                className="h-5 w-5"
-              />
-            )}
             <span>{card.set.name}</span>
             <span className="text-white/50">#{card.number}</span>
           </Link>
 
-          {/* Owned variants section */}
-          {card.ownedVariants && Object.keys(card.ownedVariants).length > 0 && (
-            <div className="mb-4 rounded-lg bg-white/10 p-3">
-              <span className="text-sm text-white/50">You Own:</span>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {Object.entries(card.ownedVariants).map(([variant, qty]) => {
-                  const config = VARIANT_CONFIG[variant as CardVariant];
-                  if (!config || qty <= 0) return null;
+          {/* Variant Selector Tabs */}
+          {availableVariants.length > 0 && (
+            <div className="mb-4">
+              <div className="mb-2 text-xs font-medium uppercase tracking-wide text-white/50">
+                Variants
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {availableVariants.map((variant) => {
+                  const config = getVariantConfig(variant);
+                  const qty = card.ownedVariants?.[variant] ?? 0;
+                  const isSelected = selectedVariant === variant;
+                  const isOwned = qty > 0;
                   const Icon = config.icon;
+
                   return (
-                    <span
+                    <button
                       key={variant}
-                      className={`inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r ${config.gradient} px-3 py-1.5 text-sm font-medium text-white shadow-sm`}
+                      onClick={() => setSelectedVariant(variant)}
+                      className={cn(
+                        'relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                        isSelected
+                          ? `bg-gradient-to-r ${config.gradient} text-white shadow-lg ring-2 ring-white/30`
+                          : isOwned
+                            ? 'bg-white/15 text-white hover:bg-white/25'
+                            : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70'
+                      )}
                     >
                       {Icon && <Icon className="h-4 w-4" />}
                       <span>{config.label}</span>
-                      <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-xs font-bold">
-                        x{qty}
-                      </span>
-                    </span>
+                      {isOwned && (
+                        <span className={cn(
+                          'ml-1 rounded-full px-1.5 py-0.5 text-xs font-bold',
+                          isSelected ? 'bg-white/25' : 'bg-kid-success/80'
+                        )}>
+                          x{qty}
+                        </span>
+                      )}
+                      {isOwned && (
+                        <CheckCircleIcon
+                          className="absolute -right-1 -top-1 h-4 w-4 text-kid-success"
+                          aria-label="Owned"
+                        />
+                      )}
+                    </button>
                   );
                 })}
               </div>
             </div>
           )}
 
+          {/* Selected Variant Details */}
+          {selectedVariant && currentVariantConfig && (
+            <div className="mb-4 rounded-xl bg-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br text-white',
+                    currentVariantConfig.gradient
+                  )}>
+                    {currentVariantConfig.icon ? (
+                      <currentVariantConfig.icon className="h-5 w-5" />
+                    ) : (
+                      <span className="text-sm font-bold">{currentVariantConfig.shortLabel}</span>
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-semibold">{currentVariantConfig.label}</div>
+                    {currentVariantPrice !== null && (
+                      <div className="flex items-center gap-1 text-sm text-emerald-400">
+                        <CurrencyDollarIcon className="h-4 w-4" />
+                        <span>${currentVariantPrice.toFixed(2)} market</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Per-variant quantity controls */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveVariantQty();
+                    }}
+                    disabled={currentVariantQty <= 0}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"
+                    aria-label={`Remove one ${currentVariantConfig.label}`}
+                  >
+                    <MinusIcon className="h-5 w-5" />
+                  </button>
+                  <span className="min-w-[2.5rem] text-center text-xl font-bold">
+                    {currentVariantQty}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddVariantQty();
+                    }}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-kid-success text-white shadow-md transition hover:bg-kid-success/90"
+                    aria-label={`Add one ${currentVariantConfig.label}`}
+                  >
+                    <PlusIcon className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Status indicator */}
+              <div className={cn(
+                'mt-3 flex items-center gap-2 rounded-lg px-3 py-2',
+                currentVariantQty > 0 ? 'bg-kid-success/20' : 'bg-white/5'
+              )}>
+                {currentVariantQty > 0 ? (
+                  <>
+                    <CheckCircleIcon className="h-5 w-5 text-kid-success" />
+                    <span className="text-sm font-medium text-kid-success">
+                      You own {currentVariantQty} {currentVariantConfig.label} cop{currentVariantQty === 1 ? 'y' : 'ies'}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-sm text-white/50">
+                    You don&apos;t own this variant yet
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* All Prices Summary */}
+          {card.tcgplayer?.prices && (
+            <div className="mb-4 rounded-xl bg-white/5 p-3">
+              <div className="mb-2 text-xs font-medium uppercase tracking-wide text-white/50">
+                Market Prices
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {card.tcgplayer.prices.normal?.market && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-gray-500/30 px-2.5 py-1 text-sm">
+                    <span className="text-white/70">Normal:</span>
+                    <span className="font-medium text-emerald-400">
+                      ${card.tcgplayer.prices.normal.market.toFixed(2)}
+                    </span>
+                  </span>
+                )}
+                {card.tcgplayer.prices.holofoil?.market && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/30 px-2.5 py-1 text-sm">
+                    <span className="text-white/70">Holo:</span>
+                    <span className="font-medium text-purple-300">
+                      ${card.tcgplayer.prices.holofoil.market.toFixed(2)}
+                    </span>
+                  </span>
+                )}
+                {card.tcgplayer.prices.reverseHolofoil?.market && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/30 px-2.5 py-1 text-sm">
+                    <span className="text-white/70">Reverse:</span>
+                    <span className="font-medium text-cyan-300">
+                      ${card.tcgplayer.prices.reverseHolofoil.market.toFixed(2)}
+                    </span>
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Card metadata */}
-          <div className="space-y-3">
+          <div className="mb-4 space-y-2">
             {card.rarity && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-white/50">Rarity:</span>
-                <span className="rounded-full bg-white/10 px-3 py-1 text-sm font-medium">
+                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-sm font-medium">
                   {card.rarity}
                 </span>
               </div>
@@ -347,7 +513,7 @@ export function CardDetailModal({
             {card.supertype && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-white/50">Type:</span>
-                <span className="rounded-full bg-white/10 px-3 py-1 text-sm font-medium">
+                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-sm font-medium">
                   {card.supertype}
                 </span>
               </div>
@@ -362,7 +528,7 @@ export function CardDetailModal({
                   {card.types.map((type) => (
                     <span
                       key={type}
-                      className="rounded-full bg-white/10 px-3 py-1 text-sm font-medium"
+                      className="rounded-full bg-white/10 px-2.5 py-0.5 text-sm font-medium"
                     >
                       {type}
                     </span>
@@ -370,35 +536,11 @@ export function CardDetailModal({
                 </div>
               </div>
             )}
-
-            {/* Market price */}
-            {card.tcgplayer?.prices && (
-              <div className="mt-4 rounded-lg bg-white/10 p-3">
-                <span className="text-sm text-white/50">Market Value:</span>
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {card.tcgplayer.prices.normal?.market && (
-                    <span className="rounded bg-emerald-500/20 px-2 py-1 text-sm text-emerald-300">
-                      Normal: ${card.tcgplayer.prices.normal.market.toFixed(2)}
-                    </span>
-                  )}
-                  {card.tcgplayer.prices.holofoil?.market && (
-                    <span className="rounded bg-purple-500/20 px-2 py-1 text-sm text-purple-300">
-                      Holo: ${card.tcgplayer.prices.holofoil.market.toFixed(2)}
-                    </span>
-                  )}
-                  {card.tcgplayer.prices.reverseHolofoil?.market && (
-                    <span className="rounded bg-cyan-500/20 px-2 py-1 text-sm text-cyan-300">
-                      Reverse: ${card.tcgplayer.prices.reverseHolofoil.market.toFixed(2)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Quick Actions */}
-          <div className="mt-6 space-y-3">
-            <span className="text-sm text-white/50">Quick Actions:</span>
+          <div className="space-y-3 border-t border-white/10 pt-4">
+            <span className="text-xs font-medium uppercase tracking-wide text-white/50">Quick Actions</span>
             <div className="flex flex-wrap gap-2">
               {/* View in Set */}
               <Link
@@ -446,38 +588,6 @@ export function CardDetailModal({
                 </button>
               )}
 
-              {/* Edit Quantity */}
-              {onEditQuantity && (
-                <div className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-2 py-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (card.quantity > 1) {
-                        onEditQuantity(card.id, card.quantity - 1);
-                      }
-                    }}
-                    disabled={card.quantity <= 1}
-                    className="rounded p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent"
-                    aria-label="Decrease quantity"
-                  >
-                    <MinusIcon className="h-4 w-4" />
-                  </button>
-                  <span className="min-w-[2rem] text-center text-sm font-medium text-white">
-                    x{card.quantity}
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditQuantity(card.id, card.quantity + 1);
-                    }}
-                    className="rounded p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white"
-                    aria-label="Increase quantity"
-                  >
-                    <PlusIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
-
               {/* Remove Card */}
               {onRemoveCard && (
                 <button
@@ -490,7 +600,7 @@ export function CardDetailModal({
                   aria-label="Remove card from collection"
                 >
                   <TrashIcon className="h-4 w-4" />
-                  {isRemoving ? 'Removing...' : 'Remove'}
+                  {isRemoving ? 'Removing...' : 'Remove All'}
                 </button>
               )}
             </div>
