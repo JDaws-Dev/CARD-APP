@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { PhotoIcon } from '@heroicons/react/24/outline';
@@ -90,13 +90,20 @@ export function CardImage({
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Sync state when src prop changes (e.g., when card data loads asynchronously)
+  // Track the previous src prop to detect when it actually changes
+  const prevSrcRef = useRef(src);
+
+  // Sync state when src prop changes (e.g., when navigating between cards)
+  // Reset error state when src changes to allow new image to load
   useEffect(() => {
-    if (src && src !== imageSrc && !hasError) {
+    // Only reset when the src prop itself changes, not when imageSrc changes internally
+    if (src && src !== prevSrcRef.current) {
+      prevSrcRef.current = src;
       setImageSrc(src);
+      setHasError(false);
       setIsLoading(true);
     }
-  }, [src, imageSrc, hasError]);
+  }, [src]);
 
   const handleError = useCallback(() => {
     if (!hasError) {

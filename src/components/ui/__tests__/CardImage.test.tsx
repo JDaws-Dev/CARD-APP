@@ -156,6 +156,48 @@ describe('CardImage', () => {
     rerender(<CardImage src={testSrc} alt={testAlt} draggable={true} />);
     expect(screen.getByRole('img')).toHaveAttribute('draggable', 'true');
   });
+
+  it('updates image when src prop changes (navigation between cards)', async () => {
+    const firstSrc = 'https://example.com/card1.png';
+    const secondSrc = 'https://example.com/card2.png';
+
+    const { rerender } = render(<CardImage src={firstSrc} alt="First Card" />);
+    expect(screen.getByRole('img')).toHaveAttribute('src', firstSrc);
+
+    // Simulate navigating to a different card
+    rerender(<CardImage src={secondSrc} alt="Second Card" />);
+
+    await waitFor(() => {
+      const img = screen.getByRole('img');
+      expect(img).toHaveAttribute('src', secondSrc);
+      expect(img).toHaveAttribute('alt', 'Second Card');
+    });
+  });
+
+  it('resets error state when src prop changes to new value', async () => {
+    const firstSrc = 'https://example.com/card1.png';
+    const secondSrc = 'https://example.com/card2.png';
+
+    const { rerender } = render(<CardImage src={firstSrc} alt="First Card" />);
+
+    // Trigger error on first card
+    fireEvent.error(screen.getByRole('img'));
+
+    await waitFor(() => {
+      // Image should now be showing fallback
+      expect(screen.getByRole('img').getAttribute('src')).toContain('data:image/svg+xml');
+    });
+
+    // Navigate to a different card
+    rerender(<CardImage src={secondSrc} alt="Second Card" />);
+
+    await waitFor(() => {
+      // Error state should be reset and new image should load
+      const img = screen.getByRole('img');
+      expect(img).toHaveAttribute('src', secondSrc);
+      expect(img).toHaveAttribute('alt', 'Second Card');
+    });
+  });
 });
 
 describe('CardBack', () => {
