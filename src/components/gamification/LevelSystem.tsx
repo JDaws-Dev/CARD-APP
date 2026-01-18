@@ -323,20 +323,36 @@ function LevelDisplaySkeleton({ variant = 'compact' }: { variant?: 'compact' | '
 export function LevelDisplay({ variant = 'compact', className }: LevelDisplayProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
 
+  // Use backend XP progress query for accurate level data
+  const xpProgress = useQuery(
+    api.levelSystem.getXPProgress,
+    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+  );
+
   const milestoneProgress = useQuery(
     api.achievements.getMilestoneProgress,
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
 
-  // Calculate XP from unique cards (each unique card = 2 XP as base)
-  const totalXP = milestoneProgress
+  // Use backend XP data if available, otherwise fall back to calculated XP
+  const totalXP = xpProgress?.totalXP ?? (milestoneProgress
     ? milestoneProgress.totalUniqueCards * XP_VALUES.unique_card
-    : 0;
-  const levelInfo = getLevelFromXP(totalXP);
+    : 0);
+
+  // Use backend level info if available, otherwise calculate locally
+  const levelInfo = xpProgress ? {
+    level: xpProgress.currentLevel,
+    title: xpProgress.currentTitle,
+    currentXP: xpProgress.xpInCurrentLevel,
+    xpForNextLevel: xpProgress.xpInCurrentLevel + xpProgress.xpToNextLevel, // Total XP needed for this level span
+    progress: xpProgress.percentToNextLevel,
+    isMaxLevel: xpProgress.isMaxLevel,
+  } : getLevelFromXP(totalXP);
+
   const tier = getLevelTier(levelInfo.level);
 
   // Loading state
-  if (profileLoading || milestoneProgress === undefined) {
+  if (profileLoading || (xpProgress === undefined && milestoneProgress === undefined)) {
     return <LevelDisplaySkeleton variant={variant} />;
   }
 
@@ -410,7 +426,7 @@ export function LevelDisplay({ variant = 'compact', className }: LevelDisplayPro
             <BoltIcon className="h-4 w-4" aria-hidden="true" />
             {totalXP} Total XP
           </span>
-          <span>{milestoneProgress.totalUniqueCards} cards collected</span>
+          <span>{milestoneProgress?.totalUniqueCards ?? 0} cards collected</span>
         </div>
       </div>
     );
@@ -519,24 +535,40 @@ export function LevelUpProvider({ children }: { children: ReactNode }) {
   const notificationIdRef = useRef(0);
   const hasInitializedRef = useRef(false);
 
+  // Use backend XP progress for accurate level tracking
+  const xpProgress = useQuery(
+    api.levelSystem.getXPProgress,
+    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+  );
+
   const milestoneProgress = useQuery(
     api.achievements.getMilestoneProgress,
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
 
-  const totalXP = milestoneProgress
+  // Use backend XP data if available, otherwise fall back to calculated XP
+  const totalXP = xpProgress?.totalXP ?? (milestoneProgress
     ? milestoneProgress.totalUniqueCards * XP_VALUES.unique_card
-    : 0;
-  const levelInfo = getLevelFromXP(totalXP);
+    : 0);
+
+  // Use backend level info if available, otherwise calculate locally
+  const levelInfo = xpProgress ? {
+    level: xpProgress.currentLevel,
+    title: xpProgress.currentTitle,
+    currentXP: xpProgress.xpInCurrentLevel,
+    xpForNextLevel: xpProgress.xpInCurrentLevel + xpProgress.xpToNextLevel,
+    progress: xpProgress.percentToNextLevel,
+    isMaxLevel: xpProgress.isMaxLevel,
+  } : getLevelFromXP(totalXP);
 
   // Check for level up - only celebrate levels we haven't celebrated before
   // Only runs for authenticated users with a valid profile
   useEffect(() => {
     // Don't run for unauthenticated users or when data isn't loaded
-    if (!profileId || milestoneProgress === undefined || milestoneProgress === null) return;
+    if (!profileId || (xpProgress === undefined && milestoneProgress === undefined)) return;
 
-    // Don't run if user has no cards (not really playing yet)
-    if (milestoneProgress.totalUniqueCards === 0) return;
+    // Don't run if user has no XP (not really playing yet)
+    if (totalXP === 0) return;
 
     const lastCelebrated = getLastCelebratedLevel(profileId);
 
@@ -555,7 +587,7 @@ export function LevelUpProvider({ children }: { children: ReactNode }) {
       }
       hasInitializedRef.current = true;
     }
-  }, [profileId, levelInfo.level, levelInfo.title, milestoneProgress]);
+  }, [profileId, levelInfo.level, levelInfo.title, xpProgress, milestoneProgress, totalXP]);
 
   const showXPGain = useCallback((amount: number, reason: string = 'Card added') => {
     const id = ++notificationIdRef.current;

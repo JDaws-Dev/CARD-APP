@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { paginationOptsValidator } from 'convex/server';
+import { api } from './_generated/api';
 
 // Card variant type for consistent typing across queries and mutations
 const cardVariant = v.union(
@@ -579,23 +580,26 @@ export const addCard = mutation({
       )
       .first();
 
+    const isDuplicate = !!existing;
+    let cardEntryId;
+
     if (existing) {
       // Update quantity for this variant
       await ctx.db.patch(existing._id, {
         quantity: existing.quantity + quantity,
       });
-      return existing._id;
+      cardEntryId = existing._id;
+    } else {
+      // Create new card entry with variant
+      cardEntryId = await ctx.db.insert('collectionCards', {
+        profileId: args.profileId,
+        cardId: args.cardId,
+        variant,
+        quantity,
+      });
     }
 
-    // Create new card entry with variant
-    const cardEntryId = await ctx.db.insert('collectionCards', {
-      profileId: args.profileId,
-      cardId: args.cardId,
-      variant,
-      quantity,
-    });
-
-    // Log activity with card name and set name for display
+    // Log activity for ALL card additions (new and duplicates) for streak tracking
     // Include timestamp for database-level time filtering in queries
     await ctx.db.insert('activityLogs', {
       profileId: args.profileId,
@@ -606,11 +610,60 @@ export const addCard = mutation({
         setName: args.setName,
         variant,
         quantity,
+        isDuplicate,
       },
       timestamp: Date.now(),
     });
 
-    return cardEntryId;
+    // ========================================================================
+    // GAMIFICATION: Award XP and check achievements
+    // ========================================================================
+
+    // Award XP for adding the card
+    const xpResult: {
+      xpGained: number;
+      newXP: number;
+      leveledUp: boolean;
+      previousLevel: number;
+      newLevel: number;
+      newTitle: string;
+      action: string;
+    } = await ctx.runMutation(api.levelSystem.awardCardXP, {
+      profileId: args.profileId,
+      cardId: args.cardId,
+      variant,
+      isDuplicate,
+      cardName: args.cardName,
+    });
+
+    // Extract setId from cardId (format is "setId-number")
+    const setId = args.cardId.split('-')[0];
+
+    // Check all achievements (including set completion)
+    const achievementResult: {
+      awarded: Array<{ key: string; type: string; name: string }>;
+      totalAwarded: number;
+      totalUniqueCards: number;
+      currentStreak: number;
+      nextMilestone: { key: string; name: string; threshold: number; cardsNeeded: number } | null;
+    } = await ctx.runMutation(api.achievements.checkAllAchievements, {
+      profileId: args.profileId,
+      setId,
+    });
+
+    return {
+      cardEntryId,
+      isDuplicate,
+      gamification: {
+        xpGained: xpResult.xpGained,
+        newXP: xpResult.newXP,
+        leveledUp: xpResult.leveledUp,
+        previousLevel: xpResult.previousLevel,
+        newLevel: xpResult.newLevel,
+        newTitle: xpResult.newTitle,
+        achievementsEarned: achievementResult.awarded,
+      },
+    };
   },
 });
 
