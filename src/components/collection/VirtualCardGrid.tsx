@@ -29,58 +29,15 @@ import {
 } from '@heroicons/react/24/solid';
 import { MapIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { CardGridSkeleton, StatsBarSkeleton } from '@/components/ui/Skeleton';
+import {
+  VariantBadgeGroup,
+  VARIANT_CONFIG,
+  type CardVariant,
+} from '@/components/ui/VariantBadge';
 import { IconLegend } from './IconLegend';
 import { useLevelUp } from '@/components/gamification/LevelSystem';
 import { useKidMode } from '@/components/providers/KidModeProvider';
 import { useSetCompletionTracker } from '@/components/gamification/SetCompletionCelebration';
-
-// Variant type definition
-type CardVariant =
-  | 'normal'
-  | 'holofoil'
-  | 'reverseHolofoil'
-  | '1stEditionHolofoil'
-  | '1stEditionNormal';
-
-// Variant display configuration
-const VARIANT_CONFIG: Record<
-  CardVariant,
-  {
-    label: string;
-    shortLabel: string;
-    gradient: string;
-    icon?: React.ComponentType<{ className?: string }>;
-  }
-> = {
-  normal: {
-    label: 'Normal',
-    shortLabel: 'N',
-    gradient: 'from-gray-400 to-gray-500',
-  },
-  holofoil: {
-    label: 'Holofoil',
-    shortLabel: 'H',
-    gradient: 'from-purple-400 to-indigo-500',
-    icon: SparklesIcon,
-  },
-  reverseHolofoil: {
-    label: 'Reverse Holo',
-    shortLabel: 'R',
-    gradient: 'from-cyan-400 to-blue-500',
-    icon: SparklesIcon,
-  },
-  '1stEditionHolofoil': {
-    label: '1st Ed. Holo',
-    shortLabel: '1H',
-    gradient: 'from-amber-400 to-yellow-500',
-    icon: SparklesIcon,
-  },
-  '1stEditionNormal': {
-    label: '1st Edition',
-    shortLabel: '1N',
-    gradient: 'from-amber-400 to-orange-500',
-  },
-};
 
 // Get available variants from a card's tcgplayer prices
 function getAvailableVariants(card: PokemonCard): CardVariant[] {
@@ -983,34 +940,11 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
 
         {/* Variant Indicator Badges - Show all available variants, colored if owned, grayed if not */}
         {features.showVariantSelector && (
-          <div className="mt-1 flex items-center justify-center gap-1">
-            {(() => {
-              const availableVariants = getAvailableVariants(card);
-              const ownedVariants = ownedVariantsMap.get(card.id);
-
-              return availableVariants.map((variant) => {
-                const config = VARIANT_CONFIG[variant];
-                const qty = ownedVariants?.get(variant) ?? 0;
-                const isVariantOwned = qty > 0;
-
-                return (
-                  <span
-                    key={variant}
-                    className={cn(
-                      'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium transition-all',
-                      isVariantOwned
-                        ? `bg-gradient-to-r ${config.gradient} text-white`
-                        : 'bg-gray-200 text-gray-400'
-                    )}
-                    title={isVariantOwned ? `${config.label} x${qty}` : `${config.label} - Not owned`}
-                  >
-                    {config.shortLabel}
-                    {qty > 1 && <span className="text-white/80">x{qty}</span>}
-                  </span>
-                );
-              });
-            })()}
-          </div>
+          <VariantBadgeGroup
+            availableVariants={getAvailableVariants(card)}
+            ownedVariants={ownedVariantsMap.get(card.id) ?? new Map()}
+            className="mt-1"
+          />
         )}
       </div>
     );
