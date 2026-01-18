@@ -1041,3 +1041,9 @@
 **Files:** src/components/collection/CardGrid.tsx
 **Commit:** 6ca456e
 ---
+## CD-ef9 - Fix camera scanner - NotAllowedError even when permission granted
+**Status:** Completed
+**Changes:** Implemented progressive fallback constraints for camera initialization - tries facingMode: environment first, then resolution-only, then minimal video: true. Added detailed error logging and specific handling for NotReadableError and OverconstrainedError.
+**Files:** src/components/ai/CardScanner.tsx
+**Commit:** ae4b9c4
+---
