@@ -159,16 +159,7 @@ export function AppHeader() {
             aria-hidden="true"
           />
           <div className="flex flex-col">
-            <span
-              className="text-xl font-black tracking-tight transition-all duration-300 sm:text-2xl"
-              style={{
-                background: 'linear-gradient(to right, var(--game-primary, #eab308), var(--game-secondary, #f97316))',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                color: 'transparent', // Ensures cross-browser gradient text
-              }}
-            >
+            <span className="text-game-gradient text-xl font-black tracking-tight transition-all duration-300 sm:text-2xl">
               CardDex
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-widest text-game-text/80 transition-colors duration-300 sm:text-[11px]">

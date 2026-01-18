@@ -487,6 +487,22 @@ body {
     );
   }
 
+  /* Gradient text with fallback for older browsers */
+  .text-game-gradient {
+    /* Fallback: solid primary color for browsers that don't support gradient text */
+    color: var(--game-primary);
+  }
+
+  @supports (-webkit-background-clip: text) or (background-clip: text) {
+    .text-game-gradient {
+      background: linear-gradient(to right, var(--game-primary), var(--game-secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+  }
+
   /* Game-themed shadow */
   .shadow-game {
     box-shadow: 0 4px 14px 0 rgba(var(--game-primary-rgb), 0.25);
