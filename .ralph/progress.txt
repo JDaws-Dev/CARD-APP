@@ -774,3 +774,9 @@
 **Files:** src/components/collection/CardDetailModal.tsx, src/components/collection/SetDetailClient.tsx
 **Commit:** a01d1f6
 ---
+## CD-4f0 - Make AI Chat game-specific with relevant suggestions
+**Status:** Completed
+**Changes:** Added game-specific suggested questions for all 4 TCGs with both "Your Collection" and "Building Your Collection" suggestions. Enhanced AI prompts with game-specific concepts, characters, and terminology to prevent cross-game term mixing.
+**Files:** src/components/ai/CollectionChat.tsx, convex/ai/openai.ts
+**Commit:** bfb4902
+---
