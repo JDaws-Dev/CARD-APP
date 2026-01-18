@@ -27,11 +27,11 @@ export function ChatButton({ gameSlug = 'pokemon', className }: ChatButtonProps)
 
   return (
     <>
-      {/* Floating Chat Button */}
+      {/* Floating Chat Button - uses game theme colors */}
       <button
         onClick={handleOpen}
         className={cn(
-          'fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-kid-primary to-kid-secondary text-white shadow-lg transition hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-kid-primary focus:ring-offset-2',
+          'fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-game-gradient text-white shadow-lg shadow-game transition hover:scale-105 hover:shadow-xl focus-game',
           'md:h-16 md:w-16',
           isOpen && 'hidden',
           className

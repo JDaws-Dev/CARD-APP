@@ -409,7 +409,7 @@ export interface GameCssVariables {
 }
 
 /**
- * CSS variable values for all supported games.
+ * CSS variable values for all supported games (light mode).
  * Colors are chosen to be vibrant but accessible for kids.
  */
 export const GAME_CSS_VARIABLES: Record<GameId, GameCssVariables> = {
@@ -464,18 +464,74 @@ export const GAME_CSS_VARIABLES: Record<GameId, GameCssVariables> = {
 };
 
 /**
+ * CSS variable values for all supported games (dark mode).
+ * Colors are adjusted for visibility on dark backgrounds.
+ */
+export const GAME_CSS_VARIABLES_DARK: Record<GameId, GameCssVariables> = {
+  pokemon: {
+    primary: '#facc15', // Yellow-400 (brighter for dark bg)
+    primaryRgb: '250, 204, 21',
+    secondary: '#f87171', // Red-400
+    secondaryRgb: '248, 113, 113',
+    accent: '#422006', // Amber-950 (dark accent bg)
+    accentRgb: '66, 32, 6',
+    text: '#fef3c7', // Amber-100
+    textRgb: '254, 243, 199',
+    border: '#fcd34d', // Yellow-300
+    borderRgb: '252, 211, 77',
+  },
+  yugioh: {
+    primary: '#a78bfa', // Violet-400 (brighter)
+    primaryRgb: '167, 139, 250',
+    secondary: '#818cf8', // Indigo-400
+    secondaryRgb: '129, 140, 248',
+    accent: '#1e1b4b', // Indigo-950
+    accentRgb: '30, 27, 75',
+    text: '#ede9fe', // Violet-100
+    textRgb: '237, 233, 254',
+    border: '#a78bfa', // Violet-400
+    borderRgb: '167, 139, 250',
+  },
+  onepiece: {
+    primary: '#f87171', // Red-400 (brighter)
+    primaryRgb: '248, 113, 113',
+    secondary: '#fb923c', // Orange-400
+    secondaryRgb: '251, 146, 60',
+    accent: '#450a0a', // Red-950
+    accentRgb: '69, 10, 10',
+    text: '#fef2f2', // Red-50
+    textRgb: '254, 242, 242',
+    border: '#fca5a5', // Red-300
+    borderRgb: '252, 165, 165',
+  },
+  lorcana: {
+    primary: '#60a5fa', // Blue-400 (brighter)
+    primaryRgb: '96, 165, 250',
+    secondary: '#22d3ee', // Cyan-400
+    secondaryRgb: '34, 211, 238',
+    accent: '#172554', // Blue-950
+    accentRgb: '23, 37, 84',
+    text: '#eff6ff', // Blue-50
+    textRgb: '239, 246, 255',
+    border: '#93c5fd', // Blue-300
+    borderRgb: '147, 197, 253',
+  },
+};
+
+/**
  * Get CSS variables for a specific game.
  */
-export function getGameCssVariables(gameId: GameId): GameCssVariables {
-  return GAME_CSS_VARIABLES[gameId] ?? GAME_CSS_VARIABLES.pokemon;
+export function getGameCssVariables(gameId: GameId, darkMode = false): GameCssVariables {
+  const vars = darkMode ? GAME_CSS_VARIABLES_DARK : GAME_CSS_VARIABLES;
+  return vars[gameId] ?? vars.pokemon;
 }
 
 /**
  * Generate CSS variable assignments as a style object.
  * Use this to set inline styles on a container element to theme its children.
  */
-export function getGameThemeStyles(gameId: GameId): Record<string, string> {
-  const vars = getGameCssVariables(gameId);
+export function getGameThemeStyles(gameId: GameId, darkMode = false): Record<string, string> {
+  const vars = getGameCssVariables(gameId, darkMode);
   return {
     '--game-primary': vars.primary,
     '--game-primary-rgb': vars.primaryRgb,

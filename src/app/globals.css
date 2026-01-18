@@ -82,19 +82,11 @@
   --background-start-rgb: 15, 23, 42;
   --background-end-rgb: 30, 41, 59;
 
-  /* Dark mode game theming - slightly muted for dark backgrounds */
-  --game-primary: #facc15;
-  --game-primary-rgb: 250, 204, 21;
-  --game-secondary: #f87171;
-  --game-secondary-rgb: 248, 113, 113;
-  --game-accent: #422006;
-  --game-accent-rgb: 66, 32, 6;
-  --game-text: #fef3c7;
-  --game-text-rgb: 254, 243, 199;
-  --game-border: #fcd34d;
-  --game-border-rgb: 252, 211, 77;
+  /* Note: Game theme colors (--game-*) are now dynamically set by GameThemeProvider
+     based on the selected game and dark mode state. The static per-game colors below
+     are for multi-game displays where you need to show all game colors at once. */
 
-  /* Dark mode static game colors */
+  /* Dark mode static game colors (for multi-game displays) */
   --game-pokemon-primary: #facc15;
   --game-pokemon-secondary: #f87171;
   --game-pokemon-accent: #422006;
@@ -145,6 +137,30 @@
     --background-start-rgb: 15, 23, 42;
     --background-end-rgb: 30, 41, 59;
   }
+}
+
+/* Smooth transitions for game theme switching */
+:root {
+  --game-theme-transition: 200ms ease-out;
+}
+
+/* Apply transitions to game-themed elements for smooth color changes */
+.bg-game-primary,
+.bg-game-secondary,
+.bg-game-accent,
+.text-game-primary,
+.text-game-secondary,
+.text-game-text,
+.border-game-primary,
+.border-game-secondary,
+.border-game-border,
+.bg-game-gradient,
+.bg-game-gradient-subtle {
+  transition:
+    background-color var(--game-theme-transition),
+    color var(--game-theme-transition),
+    border-color var(--game-theme-transition),
+    box-shadow var(--game-theme-transition);
 }
 
 body {
@@ -456,6 +472,14 @@ body {
   }
   .bg-game-accent {
     background-color: var(--game-accent);
+  }
+
+  /* Game-themed fill colors (for SVGs) */
+  .fill-game-primary {
+    fill: var(--game-primary);
+  }
+  .fill-game-secondary {
+    fill: var(--game-secondary);
   }
 
   /* Game-themed text colors */

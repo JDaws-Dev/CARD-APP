@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode, type CSSProperties } from 'react';
 import { useGameSelector } from './GameSelectorProvider';
+import { useDarkMode } from './DarkModeProvider';
 import { getGameThemeStyles, type GameId } from '@/lib/gameSelector';
 
 // ============================================================================
@@ -32,21 +33,24 @@ interface GameThemeProviderProps {
 
 /**
  * Hook to get the current game theme styles.
- * Returns CSS variable assignments based on the primary game.
+ * Returns CSS variable assignments based on the primary game and dark mode.
  */
 export function useGameTheme(gameOverride?: GameId): {
   themeStyles: CSSProperties;
   gameId: GameId;
+  isDark: boolean;
 } {
   const { selectedGames, isLoading } = useGameSelector();
+  const { isDark } = useDarkMode();
 
   // Use override if provided, otherwise use primary game
   const gameId = gameOverride ?? selectedGames.primary;
-  const themeStyles = getGameThemeStyles(gameId) as unknown as CSSProperties;
+  const themeStyles = getGameThemeStyles(gameId, isDark) as unknown as CSSProperties;
 
   return {
     themeStyles: isLoading ? {} : themeStyles,
     gameId,
+    isDark,
   };
 }
 
@@ -94,7 +98,7 @@ export function GameThemeProvider({
   scopedTheme = false,
   className = '',
 }: GameThemeProviderProps) {
-  const { themeStyles, gameId } = useGameTheme(gameOverride);
+  const { themeStyles, gameId, isDark } = useGameTheme(gameOverride);
 
   // Apply to document root for global theming
   useEffect(() => {
@@ -102,19 +106,23 @@ export function GameThemeProvider({
 
     // Apply CSS variables to the document root
     const root = document.documentElement;
-    const styles = getGameThemeStyles(gameId);
+    const styles = getGameThemeStyles(gameId, isDark);
 
     Object.entries(styles).forEach(([property, value]) => {
       root.style.setProperty(property, value);
     });
+
+    // Set data-game attribute for CSS targeting
+    root.setAttribute('data-game', gameId);
 
     // Cleanup function to reset variables when unmounting
     return () => {
       Object.keys(styles).forEach((property) => {
         root.style.removeProperty(property);
       });
+      root.removeAttribute('data-game');
     };
-  }, [gameId, scopedTheme]);
+  }, [gameId, isDark, scopedTheme]);
 
   // For scoped theming, wrap children in a styled div
   if (scopedTheme) {
@@ -168,7 +176,8 @@ export function GameThemed({
   className = '',
   as: Component = 'div',
 }: GameThemedProps) {
-  const themeStyles = getGameThemeStyles(game) as unknown as CSSProperties;
+  const { isDark } = useDarkMode();
+  const themeStyles = getGameThemeStyles(game, isDark) as unknown as CSSProperties;
 
   return (
     <Component

@@ -26,15 +26,30 @@ import { GameSwitcher } from '@/components/header/GameSwitcher';
 import { ProfileSwitcher } from '@/components/header/ProfileSwitcher';
 
 // Custom card stack icon for logo (shared across all headers)
+// Uses game-themed colors via CSS custom properties
 function CardStackIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Back card */}
-      <rect x="12" y="8" width="36" height="48" rx="4" className="fill-indigo-300" />
-      {/* Middle card */}
-      <rect x="16" y="12" width="36" height="48" rx="4" className="fill-purple-400" />
-      {/* Front card */}
-      <rect x="20" y="16" width="36" height="48" rx="4" className="fill-kid-primary" />
+      {/* Back card - uses secondary color with lower opacity */}
+      <rect
+        x="12"
+        y="8"
+        width="36"
+        height="48"
+        rx="4"
+        style={{ fill: 'rgba(var(--game-secondary-rgb), 0.4)' }}
+      />
+      {/* Middle card - uses secondary color */}
+      <rect
+        x="16"
+        y="12"
+        width="36"
+        height="48"
+        rx="4"
+        style={{ fill: 'rgba(var(--game-secondary-rgb), 0.7)' }}
+      />
+      {/* Front card - uses primary game color */}
+      <rect x="20" y="16" width="36" height="48" rx="4" className="fill-game-primary" />
       {/* Card detail lines */}
       <rect x="26" y="24" width="24" height="4" rx="1" className="fill-white/60" />
       <rect x="26" y="32" width="18" height="3" rx="1" className="fill-white/40" />
@@ -102,11 +117,11 @@ export function AppHeader() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-1.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 sm:gap-2"
+          className="flex items-center gap-1.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-game sm:gap-2"
           aria-label="CardDex - Go to home page"
         >
           <CardStackIcon className="h-8 w-8 sm:h-10 sm:w-10" aria-hidden="true" />
-          <span className="bg-gradient-to-r from-kid-primary to-kid-secondary bg-clip-text text-lg font-bold text-transparent sm:text-xl">
+          <span className="bg-game-gradient bg-clip-text text-lg font-bold text-transparent sm:text-xl">
             CardDex
           </span>
         </Link>
@@ -202,7 +217,7 @@ export function AppHeader() {
                   <Link
                     href="/settings"
                     onClick={() => setQuickSettingsOpen(false)}
-                    className="flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-kid-primary to-kid-secondary px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2"
+                    className="flex items-center justify-center gap-1.5 rounded-lg bg-game-gradient px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-game"
                   >
                     All Settings
                     <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />

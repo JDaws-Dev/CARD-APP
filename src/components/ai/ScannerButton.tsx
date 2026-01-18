@@ -73,12 +73,12 @@ export function ScannerButton({
 
   return (
     <>
-      {/* Scanner Button */}
+      {/* Scanner Button - uses game theme colors */}
       {variant === 'primary' ? (
         <button
           onClick={handleOpenScanner}
           className={cn(
-            'inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-cyan-500 hover:to-blue-600',
+            'inline-flex items-center gap-2 rounded-lg bg-game-gradient px-4 py-2 text-sm font-medium text-white shadow-sm shadow-game transition hover:opacity-90',
             className
           )}
           aria-label={label}
@@ -90,7 +90,7 @@ export function ScannerButton({
         <button
           onClick={handleOpenScanner}
           className={cn(
-            'flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-lg transition hover:from-cyan-500 hover:to-blue-600 hover:shadow-xl',
+            'flex h-12 w-12 items-center justify-center rounded-full bg-game-gradient text-white shadow-lg shadow-game transition hover:opacity-90 hover:shadow-xl',
             className
           )}
           aria-label={label}
