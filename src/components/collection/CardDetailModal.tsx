@@ -4,6 +4,7 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import { CardStoryModal } from '@/components/ai/CardStoryModal';
 import { CardImage } from '@/components/ui/CardImage';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
+import { useHidePrices } from '@/hooks/useHidePrices';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import {
   XMarkIcon,
@@ -116,6 +117,9 @@ export function CardDetailModal({
 }: CardDetailModalProps) {
   // Get game context
   const { primaryGame } = useGameSelector();
+
+  // Get hide prices setting
+  const { hidePrices } = useHidePrices();
 
   // State for CardStoryModal
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
@@ -410,7 +414,7 @@ export function CardDetailModal({
                   </div>
                   <div>
                     <div className="font-semibold">{currentVariantConfig.label}</div>
-                    {currentVariantPrice !== null && (
+                    {!hidePrices && currentVariantPrice !== null && (
                       <div className="flex items-center gap-1 text-sm text-emerald-400">
                         <CurrencyDollarIcon className="h-4 w-4" />
                         <span>${currentVariantPrice.toFixed(2)} market</span>
@@ -469,8 +473,8 @@ export function CardDetailModal({
             </div>
           )}
 
-          {/* All Prices Summary */}
-          {card.tcgplayer?.prices && (
+          {/* All Prices Summary - hidden when hidePrices is enabled */}
+          {!hidePrices && card.tcgplayer?.prices && (
             <div className="mb-4 rounded-xl bg-white/5 p-3">
               <div className="mb-2 text-xs font-medium uppercase tracking-wide text-white/50">
                 Market Prices
