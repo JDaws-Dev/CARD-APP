@@ -1206,3 +1206,9 @@
 **Files:** src/lib/structured-data.ts (new), src/components/JsonLD.tsx (new), src/app/layout.tsx, src/app/learn/layout.tsx, src/app/sets/[setId]/page.tsx
 **Commit:** 076d7d9
 ---
+## CD-1k0 - AI-017: Create friendly assistant avatar and personality
+**Status:** Completed
+**Changes:** Created ChatAvatar component with kid-friendly mascot face design featuring animated eyes, smile, and sparkle decorations. Integrated avatar into CollectionChat with welcome screen and message bubbles. Named assistant "Dexy" with encouraging personality.
+**Files:** src/components/ai/ChatAvatar.tsx (new), src/components/ai/CollectionChat.tsx (updated)
+**Commit:** 41316a0
+---
