@@ -366,3 +366,9 @@
 **Files:** src/lib/gameSelector.ts, src/components/providers/GameThemeProvider.tsx, src/app/globals.css, src/components/layout/AppHeader.tsx, src/components/ai/ScannerButton.tsx, src/components/ai/ChatButton.tsx
 **Commit:** f8404aa
 ---
+## CD-2i4 - Profile switcher for families
+**Status:** Completed
+**Changes:** Issue was already fully implemented. Verified existing ProfileSwitcher component functionality and closed issue.
+**Files:** src/components/header/ProfileSwitcher.tsx, src/components/layout/AppHeader.tsx
+**Commit:** 6f2190a (original implementation), f34ae8a (previous close attempt)
+---
