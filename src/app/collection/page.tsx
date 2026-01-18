@@ -1,6 +1,6 @@
 'use client';
 
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useQuery, useConvexAuth } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../convex/_generated/api';
@@ -14,12 +14,14 @@ import {
   Square3Stack3DIcon,
   ArrowRightIcon,
   CalendarDaysIcon,
+  ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline';
 import { ScannerButton } from '@/components/ai/ScannerButton';
 import { ChatButton } from '@/components/ai/ChatButton';
 import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
 import { TrophyRoomSkeleton } from '@/components/virtual/VirtualTrophyRoom';
+import { TradeLoggingModal, TradeHistory } from '@/components/trades';
 
 // Lazy load VirtualTrophyRoom - it's not critical for initial page render
 const VirtualTrophyRoom = lazy(() => import('@/components/virtual/VirtualTrophyRoom'));
@@ -29,6 +31,9 @@ export default function MyCollectionPage() {
   const router = useRouter();
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { primaryGame } = useGameSelector();
+
+  // Trade modal state
+  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
 
   const collection = useQuery(
     api.collections.getCollection,
@@ -120,6 +125,15 @@ export default function MyCollectionPage() {
             {/* Primary actions - Scanner is most important */}
             <div className="flex items-center gap-2 sm:gap-3">
               <ScannerButton variant="primary" label="Scan Card" />
+              {/* Trade button - visible on all sizes */}
+              <button
+                onClick={() => setIsTradeModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
+                title="Log a Trade"
+              >
+                <ArrowsRightLeftIcon className="h-5 w-5" />
+                <span className="hidden sm:inline">Trade</span>
+              </button>
               {/* Secondary actions hidden on mobile, shown on desktop */}
               <div className="hidden items-center gap-2 sm:flex">
                 <Link
@@ -197,14 +211,23 @@ export default function MyCollectionPage() {
             )}
           </div>
 
-          {/* Activity Feed Sidebar */}
+          {/* Sidebar: Trade History + Activity Feed */}
           <div className="lg:col-span-1">
-            <div className="lg:sticky lg:top-4">
+            <div className="space-y-4 lg:sticky lg:top-4">
+              {/* Trade History */}
+              <TradeHistory limit={5} />
+              {/* Activity Feed */}
               <ActivityFeed limit={10} />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Trade Logging Modal */}
+      <TradeLoggingModal
+        isOpen={isTradeModalOpen}
+        onClose={() => setIsTradeModalOpen(false)}
+      />
 
       {/* Floating Chat Button */}
       <ChatButton />
