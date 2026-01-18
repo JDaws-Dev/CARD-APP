@@ -1090,7 +1090,7 @@ export default function Home() {
               data-testid="trust-signal-kid-safe-ai"
             >
               <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30">
-                <SparklesIcon className="h-10 w-10 text-white" />
+                <ShieldCheckIcon className="h-10 w-10 text-white" />
               </div>
               <h3 className="mb-2 text-xl font-bold text-gray-900">Kid-Safe AI</h3>
               <p className="text-sm text-gray-600">
