@@ -289,7 +289,12 @@ export function AppHeader() {
                       role="menuitem"
                     >
                       <UserGroupIcon className="h-4 w-4" aria-hidden="true" />
-                      Parent Dashboard
+                      <span className="flex flex-col">
+                        <span>Parent Dashboard</span>
+                        <span className="text-xs text-purple-600 dark:text-purple-400">
+                          Parent features available
+                        </span>
+                      </span>
                     </Link>
                   )}
                   <Link
@@ -426,7 +431,12 @@ export function AppHeader() {
                 role="menuitem"
               >
                 <UserGroupIcon className="h-5 w-5" aria-hidden="true" />
-                Parent Dashboard
+                <span className="flex flex-col">
+                  <span>Parent Dashboard</span>
+                  <span className="text-xs font-normal text-purple-600 dark:text-purple-400">
+                    Parent features available
+                  </span>
+                </span>
               </Link>
             )}
           </div>
