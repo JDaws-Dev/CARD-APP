@@ -1490,3 +1490,9 @@
 **Files:** src/components/collection/CardDetailModal.tsx
 **Commit:** 5c1eedd
 ---
+## CD-fuj.3 - Implement TCGPlayer affiliate URL builder
+**Status:** Completed
+**Changes:** Fixed Lorcana category slug from 'lorcana' to 'lorcana-tcg'. Added 27 comprehensive tests for TCGPlayer search URL generation covering all 4 games (Pokemon, Yu-Gi-Oh, One Piece, Lorcana).
+**Files:** src/lib/affiliateLinks.ts, src/lib/__tests__/affiliateLinks.test.ts
+**Commit:** 099d2d9
+---
