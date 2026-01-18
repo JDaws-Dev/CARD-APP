@@ -513,3 +513,78 @@ export function getAffiliateDisclosure(): string {
 export function getShortAffiliateDisclosure(): string {
   return 'Affiliate links';
 }
+
+// ============================================================================
+// TCGPLAYER SEARCH URL GENERATION
+// ============================================================================
+
+/**
+ * TCGPlayer category slugs for each supported game
+ */
+export const TCGPLAYER_GAME_CATEGORIES: Record<string, string> = {
+  pokemon: 'pokemon',
+  yugioh: 'yugioh',
+  onepiece: 'one-piece-card-game',
+  lorcana: 'lorcana',
+};
+
+/**
+ * Generate a TCGPlayer search URL for a card
+ * Used when direct product URL is not available
+ */
+export function generateTCGPlayerSearchUrl(
+  cardName: string,
+  setName?: string,
+  game?: string
+): string {
+  // Build search query: "cardName setName"
+  const searchQuery = setName ? `${cardName} ${setName}` : cardName;
+  const encodedQuery = encodeURIComponent(searchQuery);
+
+  // Get game category if available
+  const category = game ? TCGPLAYER_GAME_CATEGORIES[game] : null;
+
+  // Build URL with or without category
+  if (category) {
+    return `https://www.tcgplayer.com/search/${category}/product?q=${encodedQuery}`;
+  }
+
+  return `https://www.tcgplayer.com/search/all/product?q=${encodedQuery}`;
+}
+
+/**
+ * Get the best available purchase URL for a card
+ * Prefers direct TCGPlayer URL if available, otherwise generates a search URL
+ */
+export function getCardPurchaseUrl(
+  card: {
+    name: string;
+    tcgplayer?: { url?: string };
+    set?: { name?: string };
+  },
+  game?: string
+): string {
+  // If card has a direct TCGPlayer URL, use it
+  if (card.tcgplayer?.url) {
+    return card.tcgplayer.url;
+  }
+
+  // Otherwise generate a search URL
+  return generateTCGPlayerSearchUrl(card.name, card.set?.name, game);
+}
+
+/**
+ * Get purchase URL with affiliate tracking
+ */
+export function getCardPurchaseUrlWithAffiliate(
+  card: {
+    name: string;
+    tcgplayer?: { url?: string };
+    set?: { name?: string };
+  },
+  game?: string,
+  config?: Partial<AffiliateConfig>
+): AffiliateLink {
+  const baseUrl = getCardPurchaseUrl(card, game);
+  return generateTCGPlayerAffiliateLink(baseUrl, config);
+}

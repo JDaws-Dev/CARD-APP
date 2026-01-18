@@ -1272,3 +1272,13 @@
 **Files:** Code review of src/components/collection/CollectionSnapshotShare.tsx
 **Commit:** N/A (evaluation task - no code changes)
 ---
+## CD-3zy - Add purchase links to wishlist cards
+**Status:** Completed
+**Changes:** Added "Buy" buttons to wishlist cards across 3 pages (my-wishlist, public shared wishlist, family wishlist viewer). Integrated TCGPlayer search URL generation with game-specific categories (Pokemon, Yu-Gi-Oh, One Piece, Lorcana) and affiliate tracking. Added disclaimer on public wishlist page.
+**Files:** 
+- src/lib/affiliateLinks.ts (added URL generation functions)
+- src/app/my-wishlist/page.tsx (added buy button to WishlistCard)
+- src/app/wishlist/[token]/page.tsx (added buy button + disclaimer)
+- src/components/family/SharedWishlistViewer.tsx (added buy icon to WishlistCardItem)
+**Commit:** e9af843
+---

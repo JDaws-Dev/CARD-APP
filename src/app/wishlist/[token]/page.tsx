@@ -6,12 +6,13 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { CardImage } from '@/components/ui/CardImage';
 import { api } from '../../../../convex/_generated/api';
-import { HeartIcon, StarIcon, GiftIcon, LinkIcon, CheckIcon } from '@heroicons/react/24/solid';
+import { HeartIcon, StarIcon, GiftIcon, LinkIcon, CheckIcon, ShoppingCartIcon } from '@heroicons/react/24/solid';
 import { HeartIcon as HeartIconOutline } from '@heroicons/react/24/outline';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/utils';
 import { getGameInfo, type GameId } from '@/lib/gameSelector';
+import { getCardPurchaseUrlWithAffiliate } from '@/lib/affiliateLinks';
 
 interface WishlistItem {
   _id: string;
@@ -128,6 +129,9 @@ function WishlistCard({ item, cardData, showGame }: { item: WishlistItem; cardDa
   // Get game info for display if showing multi-game wishlist
   const gameInfo = showGame && item.gameSlug ? getGameInfo(item.gameSlug as GameId) : null;
 
+  // Get purchase URL with affiliate tracking
+  const purchaseUrl = getCardPurchaseUrlWithAffiliate(cardData, item.gameSlug).affiliateUrl;
+
   return (
     <div
       className={cn(
@@ -159,6 +163,20 @@ function WishlistCard({ item, cardData, showGame }: { item: WishlistItem; cardDa
         {gameInfo && (
           <p className="mt-1 text-xs font-medium text-gray-400">{gameInfo.shortName}</p>
         )}
+      </div>
+
+      {/* Buy Button */}
+      <div className="mt-3 flex justify-center">
+        <a
+          href={purchaseUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100"
+          aria-label={`Buy ${cardData.name} on TCGPlayer`}
+        >
+          <ShoppingCartIcon className="h-3.5 w-3.5" aria-hidden="true" />
+          Buy
+        </a>
       </div>
     </div>
   );
@@ -370,8 +388,15 @@ export default function PublicWishlistPage() {
           </>
         )}
 
+        {/* Purchase Disclaimer */}
+        <div className="mx-auto mt-8 max-w-lg rounded-lg bg-gray-50 px-4 py-3 text-center">
+          <p className="text-xs text-gray-500">
+            Buy links connect to TCGPlayer, a third-party marketplace. Prices and availability may vary.
+          </p>
+        </div>
+
         {/* Footer */}
-        <div className="mt-12 text-center">
+        <div className="mt-8 text-center">
           <p className="mb-2 text-sm text-gray-400">Shared via</p>
           <Link
             href="/"

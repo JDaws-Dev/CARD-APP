@@ -17,8 +17,10 @@ import {
   SparklesIcon,
   ShoppingBagIcon,
   MagnifyingGlassIcon,
+  ShoppingCartIcon,
 } from '@heroicons/react/24/solid';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { generateTCGPlayerSearchUrl } from '@/lib/affiliateLinks';
 
 // ============================================================================
 // TYPES
@@ -100,6 +102,11 @@ function WishlistCardItem({ cardId, isPriority }: WishlistCardItemProps) {
     return <Skeleton className="h-32 rounded-lg" />;
   }
 
+  // Generate purchase URL - use card name for search
+  const purchaseUrl = cardData?.name
+    ? generateTCGPlayerSearchUrl(cardData.name)
+    : null;
+
   return (
     <div
       className={cn(
@@ -136,12 +143,27 @@ function WishlistCardItem({ cardId, isPriority }: WishlistCardItemProps) {
         <p className="line-clamp-2 text-xs font-medium text-gray-700">
           {cardData?.name || cardId}
         </p>
-        {cardData?.priceMarket && (
-          <div className="flex items-center gap-1 text-xs text-emerald-600">
-            <CurrencyDollarIcon className="h-3 w-3" />
-            <span>${cardData.priceMarket.toFixed(2)}</span>
-          </div>
-        )}
+        <div className="flex items-center justify-between">
+          {cardData?.priceMarket && (
+            <div className="flex items-center gap-1 text-xs text-emerald-600">
+              <CurrencyDollarIcon className="h-3 w-3" />
+              <span>${cardData.priceMarket.toFixed(2)}</span>
+            </div>
+          )}
+          {purchaseUrl && (
+            <a
+              href={purchaseUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition hover:bg-emerald-100 hover:text-emerald-600"
+              aria-label="Buy on TCGPlayer"
+              title="Buy on TCGPlayer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ShoppingCartIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );

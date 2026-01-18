@@ -18,6 +18,7 @@ import {
   ShareIcon,
   SparklesIcon,
   CurrencyDollarIcon,
+  ShoppingCartIcon,
 } from '@heroicons/react/24/solid';
 import { BackLink } from '@/components/ui/BackLink';
 import {
@@ -34,6 +35,7 @@ import {
 } from '@/components/financial/BudgetAlternatives';
 import { IsItWorthItButton } from '@/components/financial/IsItWorthIt';
 import { cn } from '@/lib/utils';
+import { getCardPurchaseUrlWithAffiliate } from '@/lib/affiliateLinks';
 
 interface WishlistItem {
   _id: Id<'wishlistCards'>;
@@ -267,6 +269,7 @@ function WishlistCard({
   priorityCount,
   maxPriority,
   onShowAlternatives,
+  gameSlug,
 }: {
   item: WishlistItem;
   cardData?: PokemonCard;
@@ -274,6 +277,7 @@ function WishlistCard({
   priorityCount: number;
   maxPriority: number;
   onShowAlternatives?: (card: PokemonCard) => void;
+  gameSlug?: string;
 }) {
   const removeFromWishlist = useMutation(api.wishlist.removeFromWishlist);
   const togglePriority = useMutation(api.wishlist.togglePriority);
@@ -384,6 +388,16 @@ function WishlistCard({
             <StarIconOutline className="h-5 w-5" aria-hidden="true" />
           )}
         </button>
+        <a
+          href={getCardPurchaseUrlWithAffiliate(cardData, gameSlug).affiliateUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition hover:bg-emerald-100 hover:text-emerald-600"
+          aria-label="Buy on TCGPlayer"
+          title="Buy on TCGPlayer"
+        >
+          <ShoppingCartIcon className="h-5 w-5" aria-hidden="true" />
+        </a>
         <button
           onClick={handleRemove}
           disabled={isRemoving}
@@ -629,6 +643,7 @@ export default function MyWishlistPage() {
                         priorityCount={priorityCount}
                         maxPriority={priorityData?.max || 5}
                         onShowAlternatives={setAlternativesCard}
+                        gameSlug={primaryGame.id}
                       />
                     ))}
                 </div>
@@ -654,6 +669,7 @@ export default function MyWishlistPage() {
                         priorityCount={priorityCount}
                         maxPriority={priorityData?.max || 5}
                         onShowAlternatives={setAlternativesCard}
+                        gameSlug={primaryGame.id}
                       />
                     ))}
                 </div>
