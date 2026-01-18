@@ -438,3 +438,9 @@
 **Files:** src/lib/miniGamesConfig.ts (new), src/components/games/*.tsx (5 files updated)
 **Commit:** c9bbdfb
 ---
+## CD-7vv - Add parent features indicator to profile menu
+**Status:** Completed
+**Changes:** Added "Parent features available" indicator text below the Parent Dashboard menu item in both desktop and mobile navigation menus
+**Files:** src/components/layout/AppHeader.tsx
+**Commit:** e271784
+---
