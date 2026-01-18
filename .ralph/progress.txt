@@ -871,3 +871,9 @@
 - convex/achievements.ts
 **Commit:** 0333a4d
 ---
+## CD-12j - Redesign color scheme - reduce gradients, differentiate game colors
+**Status:** Completed
+**Changes:** Updated One Piece colors to deep crimson/slate for differentiation from Pokemon's yellow. Replaced gradient usage with solid colors and borders in GameSwitcher, GameFilter, and GameSelectorOnboarding components.
+**Files:** src/lib/gameSelector.ts, src/app/globals.css, src/components/header/GameSwitcher.tsx, src/components/sets/GameFilter.tsx, src/components/onboarding/GameSelectorOnboarding.tsx
+**Commit:** 3e17eec
+---
