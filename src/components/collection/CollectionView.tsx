@@ -17,6 +17,8 @@ import {
   FireIcon,
   ArrowRightIcon,
   MagnifyingGlassPlusIcon,
+  Squares2X2Icon,
+  ViewColumnsIcon,
 } from '@heroicons/react/24/solid';
 import { RandomCardButton } from './RandomCardButton';
 import { DigitalBinder, DigitalBinderButton } from '@/components/virtual/DigitalBinder';
@@ -32,6 +34,22 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'dateAdded', label: 'Recently Added' },
   { value: 'value', label: 'By Value' },
 ];
+
+// Grid size options for the collection
+type GridSize = 'compact' | 'expanded';
+
+const GRID_SIZE_CONFIG: Record<GridSize, { label: string; gridClasses: string; gap: string }> = {
+  compact: {
+    label: 'Compact',
+    gridClasses: 'grid-cols-4 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10',
+    gap: 'gap-2',
+  },
+  expanded: {
+    label: 'Expanded',
+    gridClasses: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6',
+    gap: 'gap-4',
+  },
+};
 
 // Variant types and display configuration
 type CardVariant =
@@ -136,6 +154,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<VariantCategoryId | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('set');
+  const [gridSize, setGridSize] = useState<GridSize>('compact');
 
   // Get current profile for mutations
   const { profileId } = useCurrentProfile();
@@ -624,6 +643,38 @@ export function CollectionView({ collection }: CollectionViewProps) {
             variantCounts={variantCounts}
           />
 
+          {/* Grid Size Toggle */}
+          <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setGridSize('compact')}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                gridSize === 'compact'
+                  ? 'bg-kid-primary text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+              aria-label="Compact view"
+              aria-pressed={gridSize === 'compact'}
+            >
+              <Squares2X2Icon className="h-4 w-4" />
+              <span className="hidden sm:inline">Compact</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setGridSize('expanded')}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                gridSize === 'expanded'
+                  ? 'bg-kid-primary text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+              aria-label="Expanded view"
+              aria-pressed={gridSize === 'expanded'}
+            >
+              <ViewColumnsIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">Expanded</span>
+            </button>
+          </div>
+
           {/* Sort Dropdown */}
           <div className="relative">
             <label htmlFor="sort-select" className="sr-only">Sort by</label>
@@ -783,7 +834,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
           </div>
 
           {/* Cards Grid */}
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+          <div className={`grid ${GRID_SIZE_CONFIG[gridSize].gridClasses} ${GRID_SIZE_CONFIG[gridSize].gap}`}>
             {group.cards.map((card) => (
               <button
                 key={card.collectionId}
