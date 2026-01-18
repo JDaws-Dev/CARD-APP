@@ -6,8 +6,11 @@ import { SearchResults } from '@/components/search/SearchResults';
 import { InlineError } from '@/components/ui/ErrorBoundary';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import { MagnifyingGlassIcon, ArrowLeftIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 
 export default function SearchPage() {
+  // Game selector
+  const { primaryGame } = useGameSelector();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [results, setResults] = useState<PokemonCard[]>([]);
@@ -39,7 +42,7 @@ export default function SearchPage() {
 
       try {
         const response = await fetch(
-          `/api/search?q=${encodeURIComponent(debouncedQuery)}&limit=30`
+          `/api/search?q=${encodeURIComponent(debouncedQuery)}&game=${primaryGame.id}&limit=30`
         );
 
         if (!response.ok) {
@@ -59,7 +62,7 @@ export default function SearchPage() {
     };
 
     searchCards();
-  }, [debouncedQuery]);
+  }, [debouncedQuery, primaryGame.id]);
 
   const handleClear = useCallback(() => {
     setQuery('');
@@ -82,7 +85,7 @@ export default function SearchPage() {
           </Link>
 
           <h1 className="text-3xl font-bold text-gray-800">Search Cards</h1>
-          <p className="text-gray-500">Find any Pokemon card by name</p>
+          <p className="text-gray-500">Find any {primaryGame.shortName} card by name</p>
         </div>
 
         {/* Search Input */}
@@ -95,7 +98,7 @@ export default function SearchPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for Pokemon (e.g., Pikachu, Charizard)"
+              placeholder={`Search for ${primaryGame.shortName} cards...`}
               className="w-full rounded-xl border-2 border-gray-200 bg-white py-4 pl-12 pr-12 text-lg shadow-sm transition focus:border-kid-primary focus:outline-none focus:ring-2 focus:ring-kid-primary/20"
               autoFocus
             />
@@ -134,21 +137,23 @@ export default function SearchPage() {
             <div className="mb-4 flex justify-center">
               <MagnifyingGlassIcon className="h-16 w-16 text-kid-primary" />
             </div>
-            <h2 className="mb-2 text-xl font-bold text-gray-800">Search for Pokemon Cards</h2>
+            <h2 className="mb-2 text-xl font-bold text-gray-800">Search for {primaryGame.shortName} Cards</h2>
             <p className="mb-4 text-gray-500">
-              Enter a Pokemon name to find cards across all sets.
+              Enter a card name to find cards across all sets.
             </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {['Pikachu', 'Charizard', 'Mewtwo', 'Eevee'].map((suggestion) => (
-                <button
-                  key={suggestion}
-                  onClick={() => setQuery(suggestion)}
-                  className="rounded-full bg-kid-primary/10 px-4 py-2 text-sm font-medium text-kid-primary transition hover:bg-kid-primary/20"
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </div>
+            {primaryGame.id === 'pokemon' && (
+              <div className="flex flex-wrap justify-center gap-2">
+                {['Pikachu', 'Charizard', 'Mewtwo', 'Eevee'].map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    onClick={() => setQuery(suggestion)}
+                    className="rounded-full bg-kid-primary/10 px-4 py-2 text-sm font-medium text-kid-primary transition hover:bg-kid-primary/20"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

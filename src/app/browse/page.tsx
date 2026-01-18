@@ -8,8 +8,12 @@ import { InlineError } from '@/components/ui/ErrorBoundary';
 import { FunnelIcon } from '@heroicons/react/24/outline';
 import type { PokemonCard, PokemonSet } from '@/lib/pokemon-tcg';
 import { BackLink } from '@/components/ui/BackLink';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 
 export default function BrowsePage() {
+  // Game selector
+  const { primaryGame, isLoading: gameLoading } = useGameSelector();
+
   // Filter state
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -24,12 +28,18 @@ export default function BrowsePage() {
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Fetch sets on mount
+  // Fetch sets when game changes
   useEffect(() => {
+    if (gameLoading) return;
+
     async function fetchSets() {
       setSetsLoading(true);
+      // Clear filters when game changes
+      setSelectedSetId(null);
+      setSelectedType(null);
+      setNameFilter('');
       try {
-        const response = await fetch('/api/sets');
+        const response = await fetch(`/api/sets?game=${primaryGame.id}`);
         if (response.ok) {
           const data = await response.json();
           setSets(data);
@@ -41,7 +51,7 @@ export default function BrowsePage() {
       }
     }
     fetchSets();
-  }, []);
+  }, [primaryGame.id, gameLoading]);
 
   // Debounce name filter
   useEffect(() => {
@@ -70,6 +80,7 @@ export default function BrowsePage() {
 
       try {
         const params = new URLSearchParams();
+        params.set('game', primaryGame.id);
         if (selectedSetId) params.set('setId', selectedSetId);
         if (selectedType) params.set('type', selectedType);
         if (hasValidNameFilter) params.set('name', debouncedName.trim());
@@ -94,7 +105,7 @@ export default function BrowsePage() {
     };
 
     fetchResults();
-  }, [selectedSetId, selectedType, debouncedName]);
+  }, [selectedSetId, selectedType, debouncedName, primaryGame.id]);
 
   // Get selected set name for display
   const selectedSetName = selectedSetId
@@ -123,7 +134,7 @@ export default function BrowsePage() {
 
           <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">Browse Cards</h1>
           <p className="text-sm text-gray-500 sm:text-base">
-            Filter cards by set, type, or Pokemon name
+            Filter {primaryGame.shortName} cards by set, type, or name
           </p>
         </div>
 
@@ -181,9 +192,9 @@ export default function BrowsePage() {
                 <div className="mb-4 flex justify-center">
                   <FunnelIcon className="h-16 w-16 text-kid-primary" />
                 </div>
-                <h2 className="mb-2 text-xl font-bold text-gray-800">Browse Pokemon Cards</h2>
+                <h2 className="mb-2 text-xl font-bold text-gray-800">Browse {primaryGame.shortName} Cards</h2>
                 <p className="mb-6 text-gray-500">
-                  Use the filters to find cards by set, type, or Pokemon name.
+                  Use the filters to find cards by set, type, or name.
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   <button

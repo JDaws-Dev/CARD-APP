@@ -2,7 +2,7 @@
 
 import { useQuery } from 'convex/react';
 import { useParams } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { api } from '../../../../convex/_generated/api';
@@ -11,11 +11,13 @@ import { HeartIcon as HeartIconOutline } from '@heroicons/react/24/outline';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/utils';
+import { getGameInfo, type GameId } from '@/lib/gameSelector';
 
 interface WishlistItem {
   _id: string;
   cardId: string;
   isPriority: boolean;
+  gameSlug?: string;
 }
 
 interface WishlistData {
@@ -118,10 +120,13 @@ function InvalidLink() {
 /**
  * Wishlist card component with card image fetched from API
  */
-function WishlistCard({ item, cardData }: { item: WishlistItem; cardData?: PokemonCard }) {
+function WishlistCard({ item, cardData, showGame }: { item: WishlistItem; cardData?: PokemonCard; showGame?: boolean }) {
   if (!cardData) {
     return <WishlistCardSkeleton />;
   }
+
+  // Get game info for display if showing multi-game wishlist
+  const gameInfo = showGame && item.gameSlug ? getGameInfo(item.gameSlug as GameId) : null;
 
   return (
     <div
@@ -152,6 +157,9 @@ function WishlistCard({ item, cardData }: { item: WishlistItem; cardData?: Pokem
       <div className="mt-3 text-center">
         <p className="truncate text-sm font-medium text-gray-800">{cardData.name}</p>
         <p className="text-xs text-gray-500">{cardData.set.name}</p>
+        {gameInfo && (
+          <p className="mt-1 text-xs font-medium text-gray-400">{gameInfo.shortName}</p>
+        )}
       </div>
     </div>
   );
@@ -210,6 +218,18 @@ export default function PublicWishlistPage() {
   // State for fetched card data
   const [cardData, setCardData] = useState<Map<string, PokemonCard>>(new Map());
   const [isLoadingCards, setIsLoadingCards] = useState(false);
+
+  // Determine if this is a multi-game wishlist (show game labels on cards)
+  // This must be called before any early returns to follow React hooks rules
+  const uniqueGames = useMemo(() => {
+    if (!wishlistData?.wishlist) return new Set<string>();
+    const games = new Set<string>();
+    wishlistData.wishlist.forEach((item: WishlistItem) => {
+      if (item.gameSlug) games.add(item.gameSlug);
+    });
+    return games;
+  }, [wishlistData?.wishlist]);
+  const isMultiGame = uniqueGames.size > 1;
 
   // Fetch card details from API when wishlist loads
   useEffect(() => {
@@ -318,6 +338,7 @@ export default function PublicWishlistPage() {
                         key={item._id}
                         item={item}
                         cardData={cardData.get(item.cardId)}
+                        showGame={isMultiGame}
                       />
                     ))}
                 </div>
@@ -339,6 +360,7 @@ export default function PublicWishlistPage() {
                         key={item._id}
                         item={item}
                         cardData={isLoadingCards ? undefined : cardData.get(item.cardId)}
+                        showGame={isMultiGame}
                       />
                     ))}
                 </div>

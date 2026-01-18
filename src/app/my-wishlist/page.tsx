@@ -7,6 +7,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { api } from '../../../convex/_generated/api';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import {
   HeartIcon,
   StarIcon,
@@ -405,6 +406,7 @@ export default function MyWishlistPage() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const router = useRouter();
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
+  const { primaryGame, isLoading: gameLoading } = useGameSelector();
 
   // Redirect unauthenticated users to login
   useEffect(() => {
@@ -413,10 +415,12 @@ export default function MyWishlistPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Fetch wishlist data
+  // Fetch wishlist data filtered by primary game
   const wishlist = useQuery(
-    api.wishlist.getWishlist,
-    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+    api.wishlist.getWishlistByGame,
+    profileId && !gameLoading
+      ? { profileId: profileId as Id<'profiles'>, gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' }
+      : 'skip'
   );
 
   const priorityData = useQuery(
@@ -500,7 +504,7 @@ export default function MyWishlistPage() {
   }
 
   // Loading state
-  if (profileLoading || wishlist === undefined || priorityData === undefined) {
+  if (profileLoading || gameLoading || wishlist === undefined || priorityData === undefined) {
     return <WishlistPageSkeleton />;
   }
 
@@ -529,9 +533,9 @@ export default function MyWishlistPage() {
                 <GiftIcon className="h-7 w-7 text-white sm:h-8 sm:w-8" aria-hidden="true" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">My Wishlist</h1>
+                <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">My {primaryGame.shortName} Wishlist</h1>
                 <p className="text-sm text-gray-500 sm:text-base">
-                  Cards you want to add to your collection
+                  {primaryGame.shortName} cards you want to add to your collection
                 </p>
               </div>
             </div>
