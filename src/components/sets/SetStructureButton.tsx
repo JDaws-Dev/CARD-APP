@@ -40,7 +40,7 @@ export function SetStructureButton({ className }: SetStructureButtonProps) {
             : 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:border-indigo-300 hover:bg-indigo-100',
           className
         )}
-        aria-label="Learn how Pokemon sets work"
+        aria-label="Learn how card sets work"
       >
         <BookOpenIcon className="h-5 w-5" aria-hidden="true" />
         <span className="hidden sm:inline">How Sets Work</span>

@@ -1,10 +1,10 @@
 /**
- * Set Structure Content - Educational content for understanding Pokemon TCG sets
+ * Set Structure Content - Educational content for understanding trading card sets
  * Provides kid-friendly explanations of how sets work, what a "master set" is,
  * and guides for understanding set structure and collection goals.
  *
  * This module contains structured onboarding content that helps new collectors
- * understand the organization of Pokemon TCG sets.
+ * understand the organization of trading card sets.
  */
 
 // ============================================================================
@@ -92,10 +92,10 @@ export interface SetStructureOnboarding {
  */
 export const SET_STRUCTURE_ONBOARDING: SetStructureOnboarding = {
   id: 'set-structure-intro',
-  title: 'Understanding Pokemon Sets',
-  shortDescription: 'Learn how Pokemon card sets work',
+  title: 'Understanding Card Sets',
+  shortDescription: 'Learn how card sets work',
   fullDescription:
-    'Pokemon cards are organized into sets - like chapters in a book! Each set has a theme, unique cards, and a set symbol. Understanding sets helps you organize your collection and set collecting goals.',
+    'Trading cards are organized into sets - like chapters in a book! Each set has a theme, unique cards, and a set symbol. Understanding sets helps you organize your collection and set collecting goals.',
   gradientFrom: 'from-indigo-500',
   gradientTo: 'to-purple-500',
   steps: [
@@ -103,9 +103,9 @@ export const SET_STRUCTURE_ONBOARDING: SetStructureOnboarding = {
       id: 'what-is-a-set',
       title: 'What is a Set?',
       description:
-        'A Pokemon TCG set is a collection of cards released together with a shared theme. Each set has its own set symbol - a small icon printed on every card. Sets can have different numbers of cards, from small 30-card sets to large 200+ card sets!',
+        'A trading card set is a collection of cards released together with a shared theme. Each set has its own set symbol - a small icon printed on every card. Sets can have different numbers of cards, from small 30-card sets to large 200+ card sets!',
       summary: 'Sets are themed card collections with shared symbols',
-      tip: "Look at the bottom right of any Pokemon card to find its set symbol - it's like a secret code that tells you where the card belongs!",
+      tip: "Look for the set symbol on your cards - it's like a secret code that tells you where the card belongs!",
       iconName: 'RectangleStackIcon',
     },
     {
@@ -155,11 +155,11 @@ export const SET_STRUCTURE_ONBOARDING: SetStructureOnboarding = {
     },
   ],
   funFacts: [
-    'The first Pokemon set (Base Set) had only 102 cards in 1999!',
-    'Scarlet & Violet sets can have over 250 cards including secret rares!',
-    'Some special sets, like celebrations, mix old and new cards together.',
+    'The first trading card sets were much smaller than modern releases!',
+    'Modern sets can have over 250 cards including secret rares!',
+    'Some special sets mix old and new cards together for collectors.',
     'The set symbol is always printed in the same spot on every card from that set.',
-    'Japan gets Pokemon sets before other countries, sometimes with different cards!',
+    'Different regions sometimes get exclusive cards or different release dates!',
   ],
 };
 

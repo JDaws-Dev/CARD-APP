@@ -507,7 +507,7 @@ export function AdventureMap({ className }: AdventureMapProps) {
       {unlockedCount < REGIONS.length && (
         <div className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-3 text-center">
           <p className="text-sm text-gray-600">
-            Collect more Pokemon cards by type to unlock new regions!
+            Collect more cards by type to unlock new regions!
           </p>
         </div>
       )}

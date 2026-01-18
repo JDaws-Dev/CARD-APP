@@ -165,7 +165,7 @@ interface SetTypesSectionProps {
 function SetTypesSection({ setTypes }: SetTypesSectionProps) {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-bold text-gray-900">Types of Pokemon Sets</h3>
+      <h3 className="text-lg font-bold text-gray-900">Types of Card Sets</h3>
       <div className="grid gap-4 sm:grid-cols-2">
         {setTypes.map((setType) => {
           const IconComponent = getStepIcon(setType.iconName);
@@ -302,7 +302,7 @@ function CompletionCelebration({ onClose }: CompletionCelebrationProps) {
 
         <div className="space-y-2">
           <h2 className="text-3xl font-bold text-white">You Did It!</h2>
-          <p className="text-lg text-white/90">Now you know how Pokemon sets work!</p>
+          <p className="text-lg text-white/90">Now you know how card sets work!</p>
           <p className="text-white/70">Time to start building your collection!</p>
         </div>
 
@@ -671,7 +671,7 @@ export function SetStructureIntro({
           />
         </div>
         <h2 className="text-2xl font-bold text-gray-900">You Did It!</h2>
-        <p className="text-gray-600">Now you know how Pokemon sets work!</p>
+        <p className="text-gray-600">Now you know how card sets work!</p>
       </div>
     );
   }

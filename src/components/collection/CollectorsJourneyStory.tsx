@@ -49,7 +49,7 @@ const CHAPTERS: ChapterDefinition[] = [
     gradient: 'from-emerald-400 to-teal-500',
     bgPattern: 'from-emerald-50 to-teal-50',
     storyText:
-      "You've taken your first step into the world of Pokemon card collecting! Like the greatest trainers before you, your adventure begins with a single card. This humble start marks the beginning of what could become a legendary collection. Keep going, young collector - destiny awaits!",
+      "You've taken your first step into the world of trading card collecting! Like the greatest collectors before you, your adventure begins with a single card. This humble start marks the beginning of what could become a legendary collection. Keep going, young collector - destiny awaits!",
   },
   {
     id: 'ch2_rookie',
@@ -61,7 +61,7 @@ const CHAPTERS: ChapterDefinition[] = [
     gradient: 'from-blue-400 to-indigo-500',
     bgPattern: 'from-blue-50 to-indigo-50',
     storyText:
-      "With 10 cards now in your possession, you've proven that you're serious about this journey. Other trainers are starting to notice your growing collection. The local Pokemon center has begun to recognize you as a regular. Your binder is filling up nicely, and each card tells a story of discovery.",
+      "With 10 cards now in your possession, you've proven that you're serious about this journey. Other collectors are starting to notice your growing collection. The local card shop has begun to recognize you as a regular. Your binder is filling up nicely, and each card tells a story of discovery.",
   },
   {
     id: 'ch3_rising',
@@ -97,7 +97,7 @@ const CHAPTERS: ChapterDefinition[] = [
     gradient: 'from-orange-400 to-red-500',
     bgPattern: 'from-orange-50 to-red-50',
     storyText:
-      "100 cards! You've achieved what many collectors only dream of. Your collection spans multiple sets and features cards from every rarity tier. Local shop owners know you by name, and your opinion on cards carries weight. You're not just collecting anymore - you're curating a piece of Pokemon history.",
+      "100 cards! You've achieved what many collectors only dream of. Your collection spans multiple sets and features cards from every rarity tier. Local shop owners know you by name, and your opinion on cards carries weight. You're not just collecting anymore - you're curating a piece of trading card history.",
   },
   {
     id: 'ch6_master',
@@ -109,7 +109,7 @@ const CHAPTERS: ChapterDefinition[] = [
     gradient: 'from-pink-400 to-rose-500',
     bgPattern: 'from-pink-50 to-rose-50',
     storyText:
-      "250 cards in your collection marks you as a true Master. Your binders are filled with memories - each card a chapter in your personal Pokemon story. You've weathered market fluctuations, hunted chase cards, and built something truly special. The Pokemon Company itself would be impressed!",
+      "250 cards in your collection marks you as a true Master. Your binders are filled with memories - each card a chapter in your personal collecting story. You've weathered market fluctuations, hunted chase cards, and built something truly special. Any card game publisher would be impressed!",
   },
   {
     id: 'ch7_legend',

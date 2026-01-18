@@ -674,15 +674,15 @@ export function LearnToCollect() {
         <ul className="space-y-2 text-sm text-gray-700">
           <li className="flex items-start gap-2">
             <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" aria-hidden="true" />
-            Over 30 billion Pokemon cards have been produced worldwide!
+            Trading cards have been collected for over 100 years!
           </li>
           <li className="flex items-start gap-2">
             <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" aria-hidden="true" />
-            The first Pokemon TCG set, Base Set, was released in 1999.
+            Card condition matters - mint cards are worth more than played ones.
           </li>
           <li className="flex items-start gap-2">
-            <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" aria-hidden="true" />A
-            mint condition Base Set Charizard has sold for over $400,000!
+            <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" aria-hidden="true" />
+            Rare chase cards can be worth hundreds or even thousands of dollars!
           </li>
         </ul>
       </div>
