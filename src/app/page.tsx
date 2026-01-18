@@ -30,7 +30,6 @@ import {
   NoSymbolIcon,
   ShieldExclamationIcon,
   CameraIcon,
-  ChatBubbleBottomCenterTextIcon,
   BookOpenIcon,
 } from '@heroicons/react/24/solid';
 
@@ -355,18 +354,17 @@ export default function Home() {
             </div>
 
             {/* Ask Your Collection Feature */}
-            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-50 to-teal-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
-              <div className="mb-3 inline-flex rounded-xl bg-cyan-500/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
-                <ChatBubbleBottomCenterTextIcon className="h-6 w-6 text-cyan-500 sm:h-8 sm:w-8" />
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
+              <div className="mb-3 inline-flex rounded-xl bg-purple-500/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
+                <ChatBubbleLeftRightIcon className="h-6 w-6 text-purple-500 sm:h-8 sm:w-8" />
               </div>
               <h3 className="mb-2 text-lg font-bold text-gray-900 sm:mb-3 sm:text-xl">
                 Ask Your Collection
               </h3>
               <p className="text-sm text-gray-600 sm:text-base">
-                Chat with your collection! Ask &quot;What fire-type cards do I have?&quot; or
-                &quot;Which set am I closest to completing?&quot;
+                Chat with your collection! Ask about your rarest cards, total value, and more.
               </p>
-              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-cyan-500/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
+              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-purple-500/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
             </div>
 
             {/* Card Stories Feature */}

@@ -176,3 +176,9 @@
 **Files:** src/app/page.tsx
 **Commit:** edfa8cb
 ---
+## CD-uo1 - Landing: Ask Your Collection feature card
+**Status:** Completed
+**Changes:** Updated the Ask Your Collection feature card in the AI Magic section to use purple-pink gradient, ChatBubbleLeftRightIcon, and specified description text.
+**Files:** src/app/page.tsx
+**Commit:** (pending)
+---
