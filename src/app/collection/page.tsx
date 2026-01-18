@@ -133,7 +133,7 @@ export default function MyCollectionPage() {
                 title="Log a Trade"
               >
                 <ArrowsRightLeftIcon className="h-5 w-5" />
-                <span className="hidden sm:inline">Trade</span>
+                <span>Log Trade</span>
               </button>
               {/* Secondary actions hidden on mobile, shown on desktop */}
               <div className="hidden items-center gap-2 sm:flex">
