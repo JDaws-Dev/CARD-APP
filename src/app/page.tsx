@@ -742,8 +742,14 @@ export default function Home() {
                     <SparklesIcon className="h-4 w-4 text-violet-500" />
                   </div>
                   <span className="text-gray-700">
-                    <strong>AI Magic:</strong> Snap to Add, Card Stories
+                    <strong>AI Magic:</strong> 5 card scans/day
                   </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/10">
+                    <SparklesIcon className="h-4 w-4 text-violet-500" />
+                  </div>
+                  <span className="text-gray-700">10 collection questions/day</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100">
@@ -825,8 +831,26 @@ export default function Home() {
                     <SparklesIcon className="h-4 w-4 text-violet-500" />
                   </div>
                   <span className="text-gray-700">
-                    <strong>AI Magic:</strong> Snap to Add, Ask Your Collection, Card Stories
+                    <strong>AI Magic:</strong> 20 card scans/day
                   </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/10">
+                    <SparklesIcon className="h-4 w-4 text-violet-500" />
+                  </div>
+                  <span className="text-gray-700">Unlimited collection questions</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/10">
+                    <SparklesIcon className="h-4 w-4 text-violet-500" />
+                  </div>
+                  <span className="text-gray-700">Quiz Me! game mode</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/10">
+                    <SparklesIcon className="h-4 w-4 text-violet-500" />
+                  </div>
+                  <span className="text-gray-700">Fair Trade Helper</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kid-secondary/10">
@@ -857,6 +881,82 @@ export default function Home() {
               {/* Decorative elements */}
               <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-gradient-to-br from-pink-200 to-rose-200 opacity-40" />
             </div>
+          </div>
+
+          {/* Feature Comparison Table */}
+          <div className="mt-16 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                    Feature
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Free</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-kid-secondary">
+                    Family
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                <tr>
+                  <td className="px-6 py-4 text-sm text-gray-700">Collection Profiles</td>
+                  <td className="px-6 py-4 text-center text-sm text-gray-700">1</td>
+                  <td className="px-6 py-4 text-center text-sm font-medium text-kid-secondary">
+                    Up to 5
+                  </td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="px-6 py-4 text-sm text-gray-700">Card Tracking</td>
+                  <td className="px-6 py-4 text-center text-sm text-gray-700">Unlimited</td>
+                  <td className="px-6 py-4 text-center text-sm text-gray-700">Unlimited</td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 text-sm text-gray-700">TCGs Supported</td>
+                  <td className="px-6 py-4 text-center text-sm text-gray-700">All 4</td>
+                  <td className="px-6 py-4 text-center text-sm text-gray-700">All 4</td>
+                </tr>
+                <tr className="bg-violet-50">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <SparklesIcon className="h-4 w-4 text-violet-500" />
+                      <span className="text-sm font-medium text-gray-900">AI Features</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="text-sm text-gray-700">
+                      <div>5 scans/day</div>
+                      <div>10 questions/day</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="text-sm font-medium text-violet-700">
+                      <div>20 scans/day</div>
+                      <div>Unlimited questions</div>
+                      <div>Quiz Me!</div>
+                      <div>Fair Trade Helper</div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 text-sm text-gray-700">Duplicate Finder</td>
+                  <td className="px-6 py-4 text-center">
+                    <XMarkIcon className="mx-auto h-5 w-5 text-gray-300" />
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <CheckIcon className="mx-auto h-5 w-5 text-kid-success" />
+                  </td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="px-6 py-4 text-sm text-gray-700">Parent Dashboard</td>
+                  <td className="px-6 py-4 text-center">
+                    <XMarkIcon className="mx-auto h-5 w-5 text-gray-300" />
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <CheckIcon className="mx-auto h-5 w-5 text-kid-success" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           {/* Trust badges */}
