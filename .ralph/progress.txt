@@ -289,3 +289,17 @@
 - src/app/sets/[setId]/page.tsx (reconstructs prices incorrectly)
 **Commit:** N/A (investigation only)
 ---
+## CD-w1m - Sets Page - Research Pokemon TCG API variants
+**Status:** Completed
+**Changes:** Documented the Pokemon TCG API tcgplayer.prices structure including all variant keys (normal, holofoil, reverseHolofoil, 1stEditionHolofoil, 1stEditionNormal), price fields (low, mid, high, market, directLow), and analyzed current implementation gaps. Identified that variant information is lost during data caching and documented the recommended solution.
+**Files:** Research documented in issue notes (no code changes - research task)
+**Commit:** N/A (documentation only)
+---
+## CD-v5a - Sets Page - Variant badge component
+**Status:** Completed
+**Changes:** Created reusable VariantBadge and VariantBadgeGroup components for displaying card variant badges (N/H/R/1N/1H) with owned/unowned styling. Refactored VirtualCardGrid to use the new component.
+**Files:** 
+- src/components/ui/VariantBadge.tsx (new)
+- src/components/collection/VirtualCardGrid.tsx (updated)
+**Commit:** b33f2bb
+---
