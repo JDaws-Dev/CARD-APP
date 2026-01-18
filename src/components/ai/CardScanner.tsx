@@ -65,36 +65,91 @@ export function CardScanner({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Initialize camera
+  // Initialize camera with fallback constraints
   const startCamera = useCallback(async () => {
-    try {
-      setCameraError(null);
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
+    setCameraError(null);
+
+    // Try progressively simpler constraints
+    const constraintOptions = [
+      // First try: preferred constraints for mobile back camera
+      {
         video: {
-          facingMode: 'environment', // Prefer back camera on mobile
+          facingMode: 'environment',
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
         audio: false,
+      },
+      // Second try: simpler constraints without facingMode
+      {
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      },
+      // Third try: minimal constraints - just video
+      {
+        video: true,
+        audio: false,
+      },
+    ];
+
+    let lastError: Error | null = null;
+
+    for (let i = 0; i < constraintOptions.length; i++) {
+      const constraints = constraintOptions[i];
+      try {
+        console.log(`Camera attempt ${i + 1}/${constraintOptions.length}:`, constraints);
+        const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log('Camera started successfully with constraints:', constraints);
+
+        setStream(mediaStream);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+        }
+        return; // Success - exit the function
+      } catch (err) {
+        console.error(`Camera attempt ${i + 1} failed:`, {
+          errorName: err instanceof Error ? err.name : 'Unknown',
+          errorMessage: err instanceof Error ? err.message : String(err),
+          constraints,
+        });
+        lastError = err instanceof Error ? err : new Error(String(err));
+
+        // If permission denied or no camera, don't try other constraints
+        if (err instanceof Error && (err.name === 'NotAllowedError' || err.name === 'NotFoundError')) {
+          break;
+        }
+      }
+    }
+
+    // All attempts failed - set appropriate error message
+    if (lastError) {
+      console.error('All camera attempts failed. Last error:', {
+        name: lastError.name,
+        message: lastError.message,
       });
 
-      setStream(mediaStream);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
-    } catch (err) {
-      console.error('Camera access error:', err);
-      if (err instanceof Error) {
-        if (err.name === 'NotAllowedError') {
-          setCameraError(
-            'Camera access was denied. Please allow camera access in your browser settings to scan cards.'
-          );
-        } else if (err.name === 'NotFoundError') {
-          setCameraError('No camera found. Please connect a camera to scan cards.');
-        } else {
-          setCameraError('Could not start camera. Please try again or check your device settings.');
-        }
+      if (lastError.name === 'NotAllowedError') {
+        setCameraError(
+          'Camera access was denied. Please allow camera access in your browser settings to scan cards.'
+        );
+      } else if (lastError.name === 'NotFoundError') {
+        setCameraError('No camera found. Please connect a camera to scan cards.');
+      } else if (lastError.name === 'NotReadableError') {
+        setCameraError(
+          'Camera is in use by another application. Please close other apps using the camera and try again.'
+        );
+      } else if (lastError.name === 'OverconstrainedError') {
+        setCameraError(
+          'Camera does not support the required settings. Please try a different browser or device.'
+        );
+      } else {
+        setCameraError(
+          `Could not start camera: ${lastError.name} - ${lastError.message}. Please try again or check your device settings.`
+        );
       }
     }
   }, []);
