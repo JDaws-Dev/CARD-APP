@@ -856,3 +856,18 @@
 **Files:** convex/collections.ts, src/components/dashboard/FeaturedCardsPreview.tsx, src/components/dashboard/RecentCardsPreview.tsx, src/components/dashboard/KidDashboard.tsx, src/components/dashboard/ParentDashboard.tsx
 **Commit:** b051c83 (changes were already committed)
 ---
+## CD-3me - Additional fix: Game-agnostic milestone and level names
+**Status:** Completed
+**Changes:** Made milestone and level names game-agnostic by replacing Pokemon-specific terminology with neutral names
+**Files:** 
+- src/components/gamification/MilestoneCelebration.tsx
+- src/components/achievements/TrophyCase.tsx
+- src/components/gamification/LevelSystem.tsx
+- src/lib/badges.ts
+- src/lib/achievements.ts
+- src/lib/avatarItems.ts
+- src/lib/milestones.ts
+- src/lib/levelSystem.ts
+- convex/achievements.ts
+**Commit:** 0333a4d
+---
