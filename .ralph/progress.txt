@@ -709,3 +709,12 @@
 - src/components/family/TradeSuggestionEngine.tsx
 **Commit:** 9d5435b
 ---
+## CD-7o8 - Audit and fix Wishlist system (Additional Fixes)
+**Status:** Completed (additional fixes committed)
+**Changes:** Fixed gameSlug not being passed when adding to wishlist from CardGrid and VirtualCardGrid components. CardGrid was missing gameSlug entirely, VirtualCardGrid had it hardcoded to 'pokemon'.
+**Files:** 
+- src/components/collection/CardGrid.tsx
+- src/components/collection/VirtualCardGrid.tsx
+**Commit:** b76481a
+**Note:** Issue was already closed; these are supplementary fixes discovered during review.
+---
