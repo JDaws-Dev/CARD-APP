@@ -601,3 +601,9 @@
 - src/components/dashboard/KidDashboard.tsx (modified)
 **Commit:** 68f9692
 ---
+## CD-7p3 - Investigate and fix card images for non-Pokemon games
+**Status:** Completed
+**Changes:** Fixed API response parsing in browse page - was setting entire response object instead of extracting .data array
+**Files:** src/app/browse/page.tsx
+**Commit:** 2127488
+---

@@ -1,19 +1,26 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
+import { GAMES } from '@/lib/gameSelector';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
+type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
+
 export default function SetsPage() {
+  const searchParams = useSearchParams();
   const { primaryGame, isLoading: gameLoading } = useGameSelector();
   const [sampleCards, setSampleCards] = useState<Record<string, string>>({});
 
-  const gameSlug = primaryGame?.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' | undefined;
+  // Use game from URL params if provided, otherwise fall back to the user's primary game
+  const gameSlug = (searchParams.get('game') || primaryGame?.id) as GameSlug | undefined;
+  const game = GAMES.find((g) => g.id === gameSlug);
 
   const sets = useQuery(
     api.dataPopulation.getSetsByGame,
@@ -84,11 +91,11 @@ export default function SetsPage() {
           <h1
             className={cn(
               'bg-gradient-to-r bg-clip-text text-4xl font-bold text-transparent',
-              primaryGame?.gradientFrom || 'from-indigo-500',
-              primaryGame?.gradientTo || 'to-purple-500'
+              game?.gradientFrom || 'from-indigo-500',
+              game?.gradientTo || 'to-purple-500'
             )}
           >
-            {primaryGame?.name || 'Card'} Sets
+            {game?.name || 'Card'} Sets
           </h1>
           <p className="mt-2 text-gray-600 dark:text-slate-400">
             Choose a set to start tracking your collection!
@@ -112,7 +119,7 @@ export default function SetsPage() {
         {!isLoading && (!sets || sets.length === 0) && (
           <div className="rounded-xl bg-white p-8 text-center shadow-md dark:bg-slate-800">
             <p className="text-lg font-medium text-gray-700 dark:text-slate-300">
-              No sets found for {primaryGame?.name}
+              No sets found for {game?.name}
             </p>
             <p className="mt-2 text-gray-500 dark:text-slate-400">
               The data for this game may still be loading. Check back soon!
@@ -128,13 +135,13 @@ export default function SetsPage() {
               // 1. Pokemon with logo -> use logo
               // 2. Any game with sample card -> use sample card
               // 3. Fallback -> gradient with first letter
-              const useLogo = set.logoUrl && primaryGame?.id === 'pokemon';
+              const useLogo = set.logoUrl && gameSlug === 'pokemon';
               const sampleCardUrl = sampleCards[set.setId];
 
               return (
                 <Link
                   key={set._id}
-                  href={`/sets/${set.setId}?game=${primaryGame?.id}`}
+                  href={`/sets/${set.setId}?game=${gameSlug}`}
                   className={cn(
                     'group rounded-xl bg-white p-4 shadow-md transition-all hover:shadow-lg hover:scale-[1.02]',
                     'dark:bg-slate-800 dark:hover:bg-slate-750'
@@ -162,8 +169,8 @@ export default function SetsPage() {
                       <div
                         className={cn(
                           'flex h-full w-full items-center justify-center text-2xl font-bold text-white bg-gradient-to-br',
-                          primaryGame?.gradientFrom || 'from-indigo-500',
-                          primaryGame?.gradientTo || 'to-purple-500'
+                          game?.gradientFrom || 'from-indigo-500',
+                          game?.gradientTo || 'to-purple-500'
                         )}
                       >
                         {set.name.charAt(0)}
