@@ -1429,3 +1429,9 @@
 **Files:** src/app/my-wishlist/page.tsx, src/app/wishlist/[token]/page.tsx, convex/wishlist.ts
 **Commit:** 936bd8b
 ---
+## CD-0mz.5 - Sub-task 5: Hide prices in collection and set views
+**Status:** Completed
+**Changes:** Integrated useHidePrices hook into CardGrid.tsx and VirtualCardGrid.tsx to hide prices when the parent setting is enabled. Added showPrices prop to VariantSelector components. Combined kid mode and parent hide prices settings into shouldShowPrices boolean.
+**Files:** src/components/collection/CardGrid.tsx, src/components/collection/VirtualCardGrid.tsx
+**Commit:** b500872
+---
