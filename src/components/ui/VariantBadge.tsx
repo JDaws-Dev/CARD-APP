@@ -25,8 +25,20 @@ export type YugiohVariant =
   | 'prismatic_secret_rare'
   | 'quarter_century_secret_rare';
 
+// One Piece variant type definition - based on rarity and parallel art
+export type OnePieceVariant =
+  | 'leader' // L - Leader cards
+  | 'common' // C - Common
+  | 'uncommon' // UC - Uncommon
+  | 'rare' // R - Rare
+  | 'super_rare' // SR - Super Rare
+  | 'secret_rare' // SEC - Secret Rare
+  | 'special' // SP - Special
+  | 'promo' // P - Promo
+  | 'parallel'; // Parallel/alternate art version
+
 // Combined variant type for backwards compatibility
-export type CardVariant = PokemonVariant | YugiohVariant | string;
+export type CardVariant = PokemonVariant | YugiohVariant | OnePieceVariant | string;
 
 // All possible Pokemon variants in display order
 export const ALL_POKEMON_VARIANTS: PokemonVariant[] = [
@@ -50,6 +62,19 @@ export const ALL_YUGIOH_VARIANTS: YugiohVariant[] = [
   'collector\'s_rare',
   'prismatic_secret_rare',
   'quarter_century_secret_rare',
+];
+
+// All possible One Piece variants in display order (by rarity tier)
+export const ALL_ONEPIECE_VARIANTS: OnePieceVariant[] = [
+  'leader',
+  'common',
+  'uncommon',
+  'rare',
+  'super_rare',
+  'secret_rare',
+  'special',
+  'promo',
+  'parallel',
 ];
 
 // Legacy export for backwards compatibility
@@ -232,6 +257,98 @@ export const YUGIOH_VARIANT_CONFIG: Record<YugiohVariant, VariantDisplayConfig> 
   },
 };
 
+// One Piece variant display configuration
+export const ONEPIECE_VARIANT_CONFIG: Record<OnePieceVariant, VariantDisplayConfig> = {
+  leader: {
+    label: 'Leader',
+    shortLabel: 'L',
+    gradient: 'from-red-500 to-orange-500',
+    bgOwned: 'bg-gradient-to-r from-red-500 to-orange-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: StarIcon,
+  },
+  common: {
+    label: 'Common',
+    shortLabel: 'C',
+    gradient: 'from-gray-400 to-gray-500',
+    bgOwned: 'bg-gradient-to-r from-gray-400 to-gray-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+  },
+  uncommon: {
+    label: 'Uncommon',
+    shortLabel: 'UC',
+    gradient: 'from-green-400 to-emerald-500',
+    bgOwned: 'bg-gradient-to-r from-green-400 to-emerald-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+  },
+  rare: {
+    label: 'Rare',
+    shortLabel: 'R',
+    gradient: 'from-blue-400 to-blue-600',
+    bgOwned: 'bg-gradient-to-r from-blue-400 to-blue-600',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: StarIcon,
+  },
+  super_rare: {
+    label: 'Super Rare',
+    shortLabel: 'SR',
+    gradient: 'from-purple-400 to-indigo-500',
+    bgOwned: 'bg-gradient-to-r from-purple-400 to-indigo-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+  secret_rare: {
+    label: 'Secret Rare',
+    shortLabel: 'SEC',
+    gradient: 'from-pink-400 to-rose-500',
+    bgOwned: 'bg-gradient-to-r from-pink-400 to-rose-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+  special: {
+    label: 'Special',
+    shortLabel: 'SP',
+    gradient: 'from-amber-400 to-yellow-500',
+    bgOwned: 'bg-gradient-to-r from-amber-400 to-yellow-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+  promo: {
+    label: 'Promo',
+    shortLabel: 'P',
+    gradient: 'from-cyan-400 to-teal-500',
+    bgOwned: 'bg-gradient-to-r from-cyan-400 to-teal-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: StarIcon,
+  },
+  parallel: {
+    label: 'Parallel',
+    shortLabel: 'PAR',
+    gradient: 'from-violet-400 to-fuchsia-500',
+    bgOwned: 'bg-gradient-to-r from-violet-400 to-fuchsia-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+};
+
 // Default config for unknown variants
 const DEFAULT_VARIANT_CONFIG: VariantDisplayConfig = {
   label: 'Unknown',
@@ -253,7 +370,11 @@ export function getVariantConfig(variant: string): VariantDisplayConfig {
   if (variant in YUGIOH_VARIANT_CONFIG) {
     return YUGIOH_VARIANT_CONFIG[variant as YugiohVariant];
   }
-  // Handle alt art variants
+  // Check One Piece variants
+  if (variant in ONEPIECE_VARIANT_CONFIG) {
+    return ONEPIECE_VARIANT_CONFIG[variant as OnePieceVariant];
+  }
+  // Handle alt art variants (Yu-Gi-Oh)
   if (variant.startsWith('alt_art_')) {
     const artNum = variant.replace('alt_art_', '');
     return {
@@ -262,6 +383,15 @@ export function getVariantConfig(variant: string): VariantDisplayConfig {
       shortLabel: `A${artNum}`,
       gradient: 'from-teal-400 to-emerald-500',
       bgOwned: 'bg-gradient-to-r from-teal-400 to-emerald-500',
+    };
+  }
+  // Handle parallel variants (One Piece)
+  if (variant.startsWith('parallel_')) {
+    const parallelNum = variant.replace('parallel_', '');
+    return {
+      ...ONEPIECE_VARIANT_CONFIG.parallel,
+      label: `Parallel ${parallelNum}`,
+      shortLabel: `P${parallelNum}`,
     };
   }
   // Return default with formatted label for unknown variants

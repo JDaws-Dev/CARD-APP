@@ -1774,21 +1774,58 @@ export const populateOnePieceSetCards = internalAction({
         }
       }
 
-      const cards = allCards.map((card) => ({
-        cardId: `optcg-${card.code}`,
-        gameSlug: 'onepiece' as const,
-        setId: args.setId.toUpperCase(),
-        name: card.name,
-        number: card.code,
-        supertype: card.type || 'Character',
-        subtypes: card.class ? card.class.split('/').map((c) => c.trim()) : [],
-        types: card.color ? [card.color] : [],
-        rarity: card.rarity,
-        imageSmall: card.image || '',
-        imageLarge: card.image || '',
-        tcgPlayerUrl: undefined,
-        priceMarket: undefined,
-      }));
+      // Helper function to convert One Piece rarity to variant string
+      const rarityToVariant = (rarity: string): string => {
+        const rarityMap: Record<string, string> = {
+          L: 'leader',
+          C: 'common',
+          UC: 'uncommon',
+          R: 'rare',
+          SR: 'super_rare',
+          SEC: 'secret_rare',
+          SP: 'special',
+          P: 'promo',
+        };
+        return rarityMap[rarity.toUpperCase()] || rarity.toLowerCase().replace(/[\s-]+/g, '_');
+      };
+
+      // Helper function to detect parallel art from image URL
+      const isParallelArt = (imageUrl: string): boolean => {
+        // OPTCG API uses _p1, _p2, etc. suffixes for parallel art versions
+        return /_p\d+\./.test(imageUrl);
+      };
+
+      const cards = allCards.map((card) => {
+        // Build availableVariants array based on rarity and parallel detection
+        const availableVariants: string[] = [];
+
+        // Add the base rarity as a variant
+        if (card.rarity) {
+          availableVariants.push(rarityToVariant(card.rarity));
+        }
+
+        // Check for parallel art version
+        if (isParallelArt(card.image)) {
+          availableVariants.push('parallel');
+        }
+
+        return {
+          cardId: `optcg-${card.code}`,
+          gameSlug: 'onepiece' as const,
+          setId: args.setId.toUpperCase(),
+          name: card.name,
+          number: card.code,
+          supertype: card.type || 'Character',
+          subtypes: card.class ? card.class.split('/').map((c) => c.trim()) : [],
+          types: card.color ? [card.color] : [],
+          rarity: card.rarity,
+          imageSmall: card.image || '',
+          imageLarge: card.image || '',
+          tcgPlayerUrl: undefined,
+          priceMarket: undefined,
+          availableVariants: availableVariants.length > 0 ? availableVariants : undefined,
+        };
+      });
 
       if (cards.length > 0) {
         const result = await ctx.runMutation(internal.dataPopulation.batchUpsertCards, {
