@@ -256,3 +256,9 @@
 **Files:** src/components/collection/CollectionView.tsx
 **Commit:** 656cb3d
 ---
+## CD-fw6 - Collection - Grid size options
+**Status:** Completed
+**Changes:** Added toggle control to switch between compact and expanded thumbnail views. Compact shows more cards (4-10 columns), expanded shows larger cards (2-6 columns).
+**Files:** src/components/collection/CollectionView.tsx
+**Commit:** 00234a7
+---
