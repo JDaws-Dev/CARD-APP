@@ -836,3 +836,11 @@
 **Files:** No code changes (research task)
 **Commit:** N/A (research/documentation only)
 ---
+## CD-yhl - Add card imagery to landing page showing supported games
+**Status:** Completed
+**Changes:** Created GameCardShowcase and GameCardGrid components to display sample cards from all 4 games (Pokemon, Yu-Gi-Oh, One Piece, Lorcana) on the landing page. Added fanned card display to hero section and card grids to each game in the Supported Games section.
+**Files:** 
+- src/components/landing/GameCardShowcase.tsx (created)
+- src/app/page.tsx (modified)
+**Commit:** df42070
+---
