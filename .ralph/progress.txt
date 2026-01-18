@@ -613,3 +613,13 @@
 **Files:** convex/achievements.ts
 **Commit:** db47175
 ---
+## CD-7p3 - Investigate and fix card images for non-Pokemon games
+**Status:** Already Completed (reviewed/verified)
+**Changes:** Verified that card images for all 4 games (Pokemon, Yu-Gi-Oh, One Piece, Lorcana) load correctly through Next.js image optimization. The Browse Sets page already respects URL game parameters and displays correct game-specific styling.
+**Files:** src/app/sets/page.tsx (already committed with Suspense wrapper and URL param support)
+**Verification:**
+- All 4 games return correct image URLs from Convex
+- All image domains configured in next.config.js
+- HTTP 200 responses from Next.js image optimizer for all games
+- Build passes successfully
+---
