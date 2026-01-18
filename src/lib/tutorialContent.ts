@@ -4,7 +4,11 @@
  *
  * This module contains structured tutorial data that can be used throughout the app
  * for educational features like the "Learn to Collect" tutorials.
+ *
+ * Supports multiple TCGs: Pokemon, Yu-Gi-Oh!, One Piece, and Disney Lorcana.
  */
+
+import type { GameId } from './gameSelector';
 
 // ============================================================================
 // TYPES
@@ -1328,4 +1332,723 @@ export function getGuidesGroupedByCategory(): Array<{
       totalMinutes,
     };
   });
+}
+
+// ============================================================================
+// GAME-SPECIFIC CARD TYPE CONTENT
+// ============================================================================
+
+/**
+ * Information about a card type within a game.
+ */
+export interface CardTypeInfo {
+  /** Card type identifier */
+  id: string;
+  /** Display name */
+  name: string;
+  /** Symbol or icon representation */
+  symbol: string;
+  /** Kid-friendly description */
+  description: string;
+  /** Examples of this card type */
+  examples: string[];
+  /** Fun fact about this card type */
+  funFact: string;
+  /** Color class for styling */
+  colorClass: string;
+}
+
+/**
+ * Set symbol/code information for a game.
+ */
+export interface SetSymbolInfo {
+  /** Description of where to find set symbols */
+  location: string;
+  /** How set symbols work in this game */
+  explanation: string;
+  /** Examples of set codes */
+  examples: string[];
+  /** Tip for identifying sets */
+  tip: string;
+}
+
+/**
+ * Game-specific tutorial content.
+ */
+export interface GameTutorialContent {
+  /** Game identifier */
+  gameId: GameId;
+  /** Display name */
+  gameName: string;
+  /** Card types in this game */
+  cardTypes: CardTypeInfo[];
+  /** Set symbol information */
+  setSymbols: SetSymbolInfo;
+  /** Fun facts about the game */
+  funFacts: string[];
+  /** Card number format explanation */
+  cardNumberFormat: string;
+  /** Quiz questions for this game */
+  quizQuestions: QuizQuestion[];
+}
+
+/**
+ * Quiz question for mini-games.
+ */
+export interface QuizQuestion {
+  /** Question ID */
+  id: string;
+  /** The question text */
+  question: string;
+  /** Available answer options */
+  options: string[];
+  /** Index of the correct answer */
+  correctIndex: number;
+  /** Explanation for the correct answer */
+  explanation: string;
+  /** Difficulty level */
+  difficulty: 'easy' | 'medium' | 'hard';
+}
+
+// ============================================================================
+// POKEMON TUTORIAL CONTENT
+// ============================================================================
+
+export const POKEMON_TUTORIAL_CONTENT: GameTutorialContent = {
+  gameId: 'pokemon',
+  gameName: 'Pokémon TCG',
+  cardTypes: [
+    {
+      id: 'pokemon',
+      name: 'Pokémon Cards',
+      symbol: '🐾',
+      description:
+        'The stars of the game! Pokémon cards show your creatures that battle and use attacks.',
+      examples: ['Pikachu', 'Charizard', 'Mewtwo', 'Eevee'],
+      funFact: 'There are over 900 different Pokémon, and most have multiple card versions!',
+      colorClass: 'text-yellow-500',
+    },
+    {
+      id: 'trainer',
+      name: 'Trainer Cards',
+      symbol: '🎒',
+      description:
+        'Trainer cards help you in battle! They include Items, Supporters, and Stadiums.',
+      examples: ['Poké Ball', 'Professor', 'Rare Candy', 'Switch'],
+      funFact: 'Supporter cards are based on characters from the Pokémon games and anime!',
+      colorClass: 'text-blue-500',
+    },
+    {
+      id: 'energy',
+      name: 'Energy Cards',
+      symbol: '⚡',
+      description:
+        "Energy cards power your Pokémon's attacks! Match the energy type to your Pokémon.",
+      examples: ['Fire Energy', 'Water Energy', 'Lightning Energy', 'Psychic Energy'],
+      funFact: 'There are 11 different basic Energy types in the Pokémon TCG!',
+      colorClass: 'text-amber-500',
+    },
+  ],
+  setSymbols: {
+    location: 'Look at the bottom right of your card, near the card number.',
+    explanation:
+      "Every card has a set symbol that tells you which expansion it's from. The symbol matches the booster pack it came in!",
+    examples: ['SVI (Scarlet & Violet)', 'PAF (Paldean Fates)', 'CRZ (Crown Zenith)'],
+    tip: 'The set symbol usually appears next to the card number, like "025/198 SVI"',
+  },
+  funFacts: [
+    'The Pokémon TCG launched in Japan in 1996 and came to the US in 1999!',
+    'The first holographic Charizard from Base Set is one of the most valuable cards ever!',
+    'Over 52 billion Pokémon cards have been produced worldwide!',
+    'Some Secret Rare cards are numbered higher than the set size, like "215/198"!',
+    'The Pokémon TCG is played in over 76 countries and 13 languages!',
+  ],
+  cardNumberFormat:
+    'Pokémon cards show their number as "001/198" where the first number is the card and the second is the set size. Secret Rares go beyond the set size!',
+  quizQuestions: [
+    {
+      id: 'pkmn-q1',
+      question: 'What symbol shows a card is Common rarity?',
+      options: ['Star ★', 'Diamond ◆', 'Circle ●', 'Square ■'],
+      correctIndex: 2,
+      explanation: 'Common cards have a circle ● symbol at the bottom of the card!',
+      difficulty: 'easy',
+    },
+    {
+      id: 'pkmn-q2',
+      question: 'Which type of card powers your Pokémon attacks?',
+      options: ['Trainer cards', 'Energy cards', 'Stadium cards', 'Item cards'],
+      correctIndex: 1,
+      explanation: 'Energy cards attach to Pokémon to power their attacks!',
+      difficulty: 'easy',
+    },
+    {
+      id: 'pkmn-q3',
+      question: 'What does "151/165" on a card mean?',
+      options: [
+        'The card is worth $151',
+        'Card #151 in a 165-card set',
+        'The Pokémon has 151 HP',
+        'Made in 1965',
+      ],
+      correctIndex: 1,
+      explanation: 'This shows it\'s card number 151 in a set of 165 cards!',
+      difficulty: 'medium',
+    },
+    {
+      id: 'pkmn-q4',
+      question: 'What makes a card "Secret Rare"?',
+      options: [
+        "It's hidden in the pack",
+        'It has a secret code',
+        "It's numbered higher than the set size",
+        'Only found in secret locations',
+      ],
+      correctIndex: 2,
+      explanation:
+        'Secret Rares are numbered beyond the set size, like 201/198, making them extra special!',
+      difficulty: 'medium',
+    },
+    {
+      id: 'pkmn-q5',
+      question: 'How many basic Energy types exist in the Pokémon TCG?',
+      options: ['5', '8', '11', '18'],
+      correctIndex: 2,
+      explanation:
+        'There are 11 basic Energy types: Fire, Water, Grass, Lightning, Psychic, Fighting, Darkness, Metal, Fairy, Dragon, and Colorless!',
+      difficulty: 'hard',
+    },
+  ],
+};
+
+// ============================================================================
+// YU-GI-OH! TUTORIAL CONTENT
+// ============================================================================
+
+export const YUGIOH_TUTORIAL_CONTENT: GameTutorialContent = {
+  gameId: 'yugioh',
+  gameName: 'Yu-Gi-Oh!',
+  cardTypes: [
+    {
+      id: 'monster',
+      name: 'Monster Cards',
+      symbol: '👹',
+      description:
+        'Your main fighters! Monster cards have ATK and DEF stats and battle each other. They come in different colors based on their type.',
+      examples: ['Blue-Eyes White Dragon', 'Dark Magician', 'Exodia', 'Red-Eyes B. Dragon'],
+      funFact:
+        'Normal Monsters (yellow cards) have flavor text instead of effects - they tell the monster\'s story!',
+      colorClass: 'text-amber-600',
+    },
+    {
+      id: 'spell',
+      name: 'Spell Cards',
+      symbol: '✨',
+      description:
+        'Green cards that create powerful magical effects! Some are quick-play (lightning bolt icon) and can be used during your opponent\'s turn.',
+      examples: ['Pot of Greed', 'Monster Reborn', 'Dark Hole', 'Polymerization'],
+      funFact:
+        'Spell cards used to be called "Magic Cards" in early Yu-Gi-Oh! They changed the name in 2003.',
+      colorClass: 'text-green-500',
+    },
+    {
+      id: 'trap',
+      name: 'Trap Cards',
+      symbol: '🪤',
+      description:
+        "Purple cards you set face-down to surprise your opponent! They can't be activated the turn you set them.",
+      examples: ['Mirror Force', 'Trap Hole', 'Magic Cylinder', 'Solemn Judgment'],
+      funFact:
+        "The most famous trap card, Mirror Force, destroys all your opponent's attacking monsters!",
+      colorClass: 'text-purple-500',
+    },
+    {
+      id: 'extra-deck',
+      name: 'Extra Deck Cards',
+      symbol: '🌟',
+      description:
+        'Special monsters kept in your Extra Deck! Includes Fusion (purple), Synchro (white), Xyz (black), and Link (blue) monsters.',
+      examples: ['Blue-Eyes Ultimate Dragon', 'Stardust Dragon', 'Number 39: Utopia', 'Decode Talker'],
+      funFact:
+        'Your Extra Deck can hold up to 15 cards and you summon them using special methods!',
+      colorClass: 'text-indigo-500',
+    },
+  ],
+  setSymbols: {
+    location: 'Look at the right side of the card, below the picture.',
+    explanation:
+      "Yu-Gi-Oh! uses set codes like 'LOB-001' where LOB is the set abbreviation and 001 is the card number.",
+    examples: ['LOB (Legend of Blue Eyes)', 'DUEA (Duelist Alliance)', 'DUNE (Duelist Nexus)'],
+    tip: 'The set code also shows the rarity with letters after the number, like LOB-001 (Common) vs LOB-E001 (European print)',
+  },
+  funFacts: [
+    'Yu-Gi-Oh! started as a manga in 1996, and the card game launched in 1999!',
+    'The Blue-Eyes White Dragon was inspired by a legend from Ancient Egypt in the story!',
+    'In the original anime, Seto Kaiba tore up the 4th Blue-Eyes so no one else could use it!',
+    'Tournament-legal Yu-Gi-Oh! decks must have exactly 40-60 cards in the Main Deck!',
+    'The rarest Yu-Gi-Oh! card, Tyler the Great Warrior, was made for a Make-A-Wish child!',
+  ],
+  cardNumberFormat:
+    'Yu-Gi-Oh! cards show set-number format like "LOB-001" where LOB is the set and 001 is the card number. Different editions have slightly different codes!',
+  quizQuestions: [
+    {
+      id: 'ygo-q1',
+      question: 'What color are Spell cards in Yu-Gi-Oh!?',
+      options: ['Purple', 'Yellow', 'Green', 'Blue'],
+      correctIndex: 2,
+      explanation: 'Spell cards are always green! Traps are purple and most Monsters are yellow/orange.',
+      difficulty: 'easy',
+    },
+    {
+      id: 'ygo-q2',
+      question: 'What color are Trap cards?',
+      options: ['Green', 'Purple', 'Brown', 'White'],
+      correctIndex: 1,
+      explanation: 'Trap cards are purple! You set them face-down and activate them to surprise your opponent.',
+      difficulty: 'easy',
+    },
+    {
+      id: 'ygo-q3',
+      question: 'What is an Ultra Rare card known for?',
+      options: [
+        'Green name text',
+        'Gold foil name + holo art',
+        'Black borders',
+        'No artwork',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Ultra Rares have a gold foil card name AND holographic artwork - double the shine!',
+      difficulty: 'medium',
+    },
+    {
+      id: 'ygo-q4',
+      question: 'Where do Fusion, Synchro, and Xyz monsters go?',
+      options: ['Main Deck', 'Side Deck', 'Extra Deck', 'Graveyard'],
+      correctIndex: 2,
+      explanation:
+        'These special monsters live in the Extra Deck and are summoned using special methods!',
+      difficulty: 'medium',
+    },
+    {
+      id: 'ygo-q5',
+      question: 'What makes a Starlight Rare special?',
+      options: [
+        'It glows in the dark',
+        'Full-card rainbow foil with vertical sparkle',
+        'It has no text',
+        'Only in Japan',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Starlight Rares have stunning full-card rainbow foil and are about 1 per sealed case - super rare!',
+      difficulty: 'hard',
+    },
+  ],
+};
+
+// ============================================================================
+// ONE PIECE TUTORIAL CONTENT
+// ============================================================================
+
+export const ONEPIECE_TUTORIAL_CONTENT: GameTutorialContent = {
+  gameId: 'onepiece',
+  gameName: 'One Piece Card Game',
+  cardTypes: [
+    {
+      id: 'leader',
+      name: 'Leader Cards',
+      symbol: '👑',
+      description:
+        'The captain of your deck! Leaders have a red card back and special abilities that define your strategy.',
+      examples: ['Monkey D. Luffy', 'Trafalgar Law', 'Kaido', 'Shanks'],
+      funFact:
+        'Your Leader determines which colors you can include in your deck! Choose wisely, captain!',
+      colorClass: 'text-red-500',
+    },
+    {
+      id: 'character',
+      name: 'Character Cards',
+      symbol: '🏴‍☠️',
+      description:
+        'Your crew members! Characters have Power (attack strength) and cost DON!! to play.',
+      examples: ['Roronoa Zoro', 'Nami', 'Sanji', 'Portgas D. Ace'],
+      funFact:
+        'Character cards feature amazing artwork of your favorite pirates from the manga and anime!',
+      colorClass: 'text-blue-500',
+    },
+    {
+      id: 'event',
+      name: 'Event Cards',
+      symbol: '💥',
+      description:
+        "Action cards you play from your hand for one-time effects! They're like surprise moves.",
+      examples: ['Gum-Gum Jet Pistol', 'Radical Beam', 'Overheat'],
+      funFact:
+        "Many Event cards are named after famous attacks from the One Piece series!",
+      colorClass: 'text-amber-500',
+    },
+    {
+      id: 'stage',
+      name: 'Stage Cards',
+      symbol: '🏝️',
+      description:
+        'Locations from the One Piece world that provide ongoing effects while in play!',
+      examples: ['Thousand Sunny', 'Onigashima', 'Baratie', 'Whole Cake Island'],
+      funFact:
+        'Stage cards represent famous locations from Luffy\'s adventures across the Grand Line!',
+      colorClass: 'text-green-500',
+    },
+    {
+      id: 'don',
+      name: 'DON!! Cards',
+      symbol: '⚡',
+      description:
+        'Energy cards that power your plays! Add DON!! each turn and attach them to boost your characters.',
+      examples: ['DON!! x10 (included in every starter deck)'],
+      funFact:
+        'DON!! stands for the sound effect "ドン" used in the manga for dramatic moments!',
+      colorClass: 'text-yellow-500',
+    },
+  ],
+  setSymbols: {
+    location: 'Look at the bottom left of your card for the set ID and card number.',
+    explanation:
+      "One Piece cards use codes like 'OP01-001' where OP01 is the set and 001 is the card number.",
+    examples: ['OP01 (Romance Dawn)', 'OP02 (Paramount War)', 'OP03 (Pillars of Strength)'],
+    tip: 'The set number tells you which booster the card is from - OP01 was the first set!',
+  },
+  funFacts: [
+    'The One Piece Card Game launched in 2022 and became instantly popular worldwide!',
+    'One Piece is the best-selling manga of all time with over 500 million copies!',
+    'Leader cards have red backs while all other cards have normal card backs!',
+    'Manga Rare cards feature actual black-and-white manga artwork by Eiichiro Oda!',
+    'The game features 5 colors: Red, Green, Blue, Purple, and Black - each with unique strategies!',
+  ],
+  cardNumberFormat:
+    'One Piece cards show "OP01-001" format where OP01 is the set code and 001 is the card number. Special cards have different prefixes like "ST" for starter decks!',
+  quizQuestions: [
+    {
+      id: 'op-q1',
+      question: 'What makes Leader cards special?',
+      options: [
+        'They have blue backs',
+        'They have red backs and lead your deck',
+        'They cost no DON!!',
+        'They can attack twice',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Leader cards have distinctive red card backs and determine your deck\'s strategy!',
+      difficulty: 'easy',
+    },
+    {
+      id: 'op-q2',
+      question: 'What are DON!! cards used for?',
+      options: ['Blocking attacks', 'Powering your plays', 'Drawing cards', 'Healing'],
+      correctIndex: 1,
+      explanation:
+        'DON!! cards are your energy! You add them each turn and spend them to play characters and events.',
+      difficulty: 'easy',
+    },
+    {
+      id: 'op-q3',
+      question: 'How many DON!! cards come in a starter deck?',
+      options: ['5', '8', '10', '15'],
+      correctIndex: 2,
+      explanation: 'Every starter deck includes exactly 10 DON!! cards for your DON!! deck!',
+      difficulty: 'medium',
+    },
+    {
+      id: 'op-q4',
+      question: 'What is special about Manga Rare cards?',
+      options: [
+        'They have gold borders',
+        'They feature black-and-white manga artwork',
+        'They have no text',
+        'They are only in Japanese',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Manga Rare cards feature stunning black-and-white artwork from the original One Piece manga!',
+      difficulty: 'medium',
+    },
+    {
+      id: 'op-q5',
+      question: 'How many main colors exist in One Piece Card Game?',
+      options: ['3', '4', '5', '6'],
+      correctIndex: 2,
+      explanation:
+        'There are 5 colors: Red (aggressive), Green (ramp), Blue (control), Purple (trash effects), and Black (cost reduction)!',
+      difficulty: 'hard',
+    },
+  ],
+};
+
+// ============================================================================
+// DISNEY LORCANA TUTORIAL CONTENT
+// ============================================================================
+
+export const LORCANA_TUTORIAL_CONTENT: GameTutorialContent = {
+  gameId: 'lorcana',
+  gameName: 'Disney Lorcana',
+  cardTypes: [
+    {
+      id: 'character',
+      name: 'Character Cards',
+      symbol: '🏰',
+      description:
+        'Disney heroes and villains! Characters have Strength, Willpower, and special abilities.',
+      examples: ['Mickey Mouse', 'Elsa', 'Stitch', 'Maleficent'],
+      funFact:
+        "Characters can 'Quest' to earn Lore - the first player to 20 Lore wins!",
+      colorClass: 'text-blue-500',
+    },
+    {
+      id: 'action',
+      name: 'Action Cards',
+      symbol: '✨',
+      description:
+        "One-time effect cards that create magical moments! Play them from your hand for instant effects.",
+      examples: ['Be Prepared', 'Grab Your Sword', 'Develop Your Brain'],
+      funFact:
+        'Many Action cards are named after famous Disney song lyrics and movie quotes!',
+      colorClass: 'text-purple-500',
+    },
+    {
+      id: 'item',
+      name: 'Item Cards',
+      symbol: '🗡️',
+      description:
+        "Magical objects that stay in play and provide ongoing effects or can be used by characters!",
+      examples: ["Maui's Fish Hook", 'Poison Apple', 'Lantern'],
+      funFact:
+        'Items are based on iconic objects from Disney films - you might recognize them!',
+      colorClass: 'text-amber-500',
+    },
+    {
+      id: 'song',
+      name: 'Song Cards',
+      symbol: '🎵',
+      description:
+        "Special Action cards! Characters can 'sing' Songs instead of you paying their ink cost.",
+      examples: ['Let It Go', 'Be Our Guest', 'A Whole New World'],
+      funFact:
+        'If a character has enough Cost, they can sing a Song for free! The Cost must equal or exceed the Song\'s cost.',
+      colorClass: 'text-pink-500',
+    },
+    {
+      id: 'location',
+      name: 'Location Cards',
+      symbol: '🌍',
+      description:
+        'Magical Disney locations that provide special effects! Characters can move to locations.',
+      examples: ['Arendelle', 'Motunui', 'Agrabah', 'Never Land'],
+      funFact:
+        'Location cards were added in the Ursula\'s Return set - bringing famous Disney places to life!',
+      colorClass: 'text-green-500',
+    },
+  ],
+  setSymbols: {
+    location: 'Look at the bottom of your card for the set number and card number.',
+    explanation:
+      "Lorcana uses set numbers like '1/204' and a set symbol. Each set has a unique symbol!",
+    examples: ['The First Chapter (castle)', 'Rise of the Floodborn (wave)', 'Into the Inklands (compass)'],
+    tip: 'The set symbol appears next to the card number - each set has a unique shape!',
+  },
+  funFacts: [
+    'Disney Lorcana launched in August 2023 and sold out everywhere almost instantly!',
+    'The 6 ink colors are Amber, Amethyst, Emerald, Ruby, Sapphire, and Steel!',
+    'Enchanted cards are the original ultra-rare cards with stunning full-art designs!',
+    'You can only have 4 copies of any card (by name) in your deck of 60 cards!',
+    'Characters with the same name can\'t be in play at the same time - choose wisely!',
+  ],
+  cardNumberFormat:
+    'Lorcana cards show "1/204" format where 1 is the card number and 204 is the set size. Promo cards have a "P" prefix!',
+  quizQuestions: [
+    {
+      id: 'lor-q1',
+      question: 'How do you win a game of Lorcana?',
+      options: [
+        'Defeat all enemy characters',
+        'Collect 20 Lore first',
+        'Run out of cards last',
+        'Have the most ink',
+      ],
+      correctIndex: 1,
+      explanation:
+        'The first player to collect 20 Lore wins! Characters earn Lore by Questing.',
+      difficulty: 'easy',
+    },
+    {
+      id: 'lor-q2',
+      question: 'What makes Song cards special?',
+      options: [
+        'They make music',
+        'Characters can sing them for free',
+        'They never cost ink',
+        'Only villains can use them',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Characters with enough Cost can "sing" a Song card, playing it without spending ink!',
+      difficulty: 'easy',
+    },
+    {
+      id: 'lor-q3',
+      question: 'How many ink colors are there in Lorcana?',
+      options: ['4', '5', '6', '7'],
+      correctIndex: 2,
+      explanation:
+        'There are 6 ink colors: Amber, Amethyst, Emerald, Ruby, Sapphire, and Steel!',
+      difficulty: 'medium',
+    },
+    {
+      id: 'lor-q4',
+      question: 'What rarity has a rainbow hexagon symbol?',
+      options: ['Super Rare', 'Legendary', 'Enchanted', 'Epic'],
+      correctIndex: 2,
+      explanation:
+        'Enchanted cards have the rainbow hexagon symbol and feature stunning full-art designs!',
+      difficulty: 'medium',
+    },
+    {
+      id: 'lor-q5',
+      question: 'What is unique about Iconic rarity cards?',
+      options: [
+        'Only 2 exist per set',
+        'They have no artwork',
+        'Only in starter decks',
+        'They are always Mickey',
+      ],
+      correctIndex: 0,
+      explanation:
+        'Iconic cards are the rarest - only 2 different Iconic cards exist in each set!',
+      difficulty: 'hard',
+    },
+  ],
+};
+
+// ============================================================================
+// GAME TUTORIAL CONTENT REGISTRY
+// ============================================================================
+
+/**
+ * Map of game IDs to their tutorial content.
+ */
+export const GAME_TUTORIAL_CONTENT: Record<GameId, GameTutorialContent> = {
+  pokemon: POKEMON_TUTORIAL_CONTENT,
+  yugioh: YUGIOH_TUTORIAL_CONTENT,
+  onepiece: ONEPIECE_TUTORIAL_CONTENT,
+  lorcana: LORCANA_TUTORIAL_CONTENT,
+};
+
+/**
+ * Get tutorial content for a specific game.
+ * @param gameId - The game to get content for
+ */
+export function getTutorialContentForGame(gameId: GameId): GameTutorialContent {
+  return GAME_TUTORIAL_CONTENT[gameId] ?? POKEMON_TUTORIAL_CONTENT;
+}
+
+/**
+ * Get card types for a specific game.
+ * @param gameId - The game to get card types for
+ */
+export function getCardTypesForGame(gameId: GameId): CardTypeInfo[] {
+  return getTutorialContentForGame(gameId).cardTypes;
+}
+
+/**
+ * Get a specific card type by ID for a game.
+ * @param gameId - The game to search in
+ * @param cardTypeId - The card type ID to find
+ */
+export function getCardTypeInfo(gameId: GameId, cardTypeId: string): CardTypeInfo | null {
+  const content = getTutorialContentForGame(gameId);
+  return content.cardTypes.find((ct) => ct.id === cardTypeId) ?? null;
+}
+
+/**
+ * Get set symbol information for a game.
+ * @param gameId - The game to get set symbol info for
+ */
+export function getSetSymbolInfo(gameId: GameId): SetSymbolInfo {
+  return getTutorialContentForGame(gameId).setSymbols;
+}
+
+/**
+ * Get fun facts for a specific game.
+ * @param gameId - The game to get fun facts for
+ */
+export function getGameFunFacts(gameId: GameId): string[] {
+  return getTutorialContentForGame(gameId).funFacts;
+}
+
+/**
+ * Get a random fun fact for a game.
+ * @param gameId - The game to get a fun fact for
+ */
+export function getRandomFunFact(gameId: GameId): string {
+  const facts = getGameFunFacts(gameId);
+  return facts[Math.floor(Math.random() * facts.length)];
+}
+
+/**
+ * Get card number format explanation for a game.
+ * @param gameId - The game to get format for
+ */
+export function getCardNumberFormat(gameId: GameId): string {
+  return getTutorialContentForGame(gameId).cardNumberFormat;
+}
+
+/**
+ * Get quiz questions for a specific game.
+ * @param gameId - The game to get questions for
+ */
+export function getQuizQuestionsForGame(gameId: GameId): QuizQuestion[] {
+  return getTutorialContentForGame(gameId).quizQuestions;
+}
+
+/**
+ * Get quiz questions filtered by difficulty.
+ * @param gameId - The game to get questions for
+ * @param difficulty - The difficulty level to filter by
+ */
+export function getQuizQuestionsByDifficulty(
+  gameId: GameId,
+  difficulty: QuizQuestion['difficulty']
+): QuizQuestion[] {
+  return getQuizQuestionsForGame(gameId).filter((q) => q.difficulty === difficulty);
+}
+
+/**
+ * Get a random quiz question for a game.
+ * @param gameId - The game to get a question for
+ * @param difficulty - Optional difficulty filter
+ */
+export function getRandomQuizQuestion(
+  gameId: GameId,
+  difficulty?: QuizQuestion['difficulty']
+): QuizQuestion | null {
+  const questions = difficulty
+    ? getQuizQuestionsByDifficulty(gameId, difficulty)
+    : getQuizQuestionsForGame(gameId);
+  if (questions.length === 0) return null;
+  return questions[Math.floor(Math.random() * questions.length)];
+}
+
+/**
+ * Get all quiz questions across all games.
+ */
+export function getAllQuizQuestions(): QuizQuestion[] {
+  return Object.values(GAME_TUTORIAL_CONTENT).flatMap((content) => content.quizQuestions);
+}
+
+/**
+ * Get the game name for display.
+ * @param gameId - The game ID
+ */
+export function getGameDisplayName(gameId: GameId): string {
+  return getTutorialContentForGame(gameId).gameName;
 }

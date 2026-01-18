@@ -1075,3 +1075,9 @@
 - src/app/collection/page.tsx (modified)
 **Commit:** 0008945
 ---
+## CD-ej7.2 - Create game-specific tutorial content data
+**Status:** Completed
+**Changes:** Added comprehensive game-specific tutorial content to tutorialContent.ts for all 4 TCGs (Pokemon, Yu-Gi-Oh!, One Piece, Lorcana). Includes card types, set symbol info, fun facts, and quiz questions for each game. Added new types (CardTypeInfo, SetSymbolInfo, GameTutorialContent, QuizQuestion) and helper functions.
+**Files:** src/lib/tutorialContent.ts
+**Commit:** (see below)
+---
