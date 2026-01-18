@@ -648,3 +648,9 @@
 - src/app/layout.tsx (modified)
 **Commit:** 9929406
 ---
+## CD-nxw - Redesign header - add logo, make it sleek and modern
+**Status:** Completed
+**Changes:** Redesigned AppHeader with modern CardDexLogo SVG featuring gradient-filled layered card stack, animated sparkle accent, enhanced glass-morphism effect, thicker gradient accent line, larger logo/text, visible game subtitle, smooth 500ms transitions, pill-style navigation, and improved mobile menu
+**Files:** src/components/layout/AppHeader.tsx
+**Commit:** 4a3b897
+---

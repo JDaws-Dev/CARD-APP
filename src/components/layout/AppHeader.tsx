@@ -430,111 +430,118 @@ export function AppHeader() {
           </div>
 
           {/* Mobile Profile Switcher - for families with multiple profiles */}
-          <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
-            <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+          <div className="border-t border-gray-100/60 px-4 py-3 dark:border-slate-700/60">
+            <div className="mb-2 flex items-center gap-1.5 px-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+              <SparklesIcon className="h-3 w-3" />
               Switch Profile
             </div>
             <ProfileSwitcher />
           </div>
 
           {/* Mobile Game Switcher */}
-          <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
-            <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+          <div className="border-t border-gray-100/60 px-4 py-3 dark:border-slate-700/60">
+            <div className="mb-2 flex items-center gap-1.5 px-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+              <SparklesIcon className="h-3 w-3" />
               Active Game
             </div>
             <GameSwitcher />
           </div>
 
           {/* Mobile profile links */}
-          <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
-            <Link
-              href="/profile"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
-                pathname === '/profile'
-                  ? 'bg-kid-primary/10 text-kid-primary'
-                  : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800'
-              }`}
-              role="menuitem"
-            >
-              <UserCircleIcon className="h-5 w-5" aria-hidden="true" />
-              My Profile
-            </Link>
-            <Link
-              href="/learn"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
-                pathname === '/learn'
-                  ? 'bg-kid-primary/10 text-kid-primary'
-                  : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800'
-              }`}
-              role="menuitem"
-            >
-              <Square3Stack3DIcon className="h-5 w-5" aria-hidden="true" />
-              Learn to Collect
-            </Link>
-            {isParent && (
+          <div className="border-t border-gray-100/60 px-4 py-3 dark:border-slate-700/60">
+            <div className="space-y-1">
               <Link
-                href="/parent-dashboard"
+                href="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
-                  pathname === '/parent-dashboard'
-                    ? 'bg-kid-primary/10 text-kid-primary'
-                    : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
+                  pathname === '/profile'
+                    ? 'bg-game-gradient-subtle text-game-primary'
+                    : 'text-gray-700 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50'
                 }`}
                 role="menuitem"
               >
-                <UserGroupIcon className="h-5 w-5" aria-hidden="true" />
-                <span className="flex flex-col">
-                  <span>Parent Dashboard</span>
-                  <span className="text-xs font-normal text-purple-600 dark:text-purple-400">
-                    Parent features available
-                  </span>
-                </span>
+                <UserCircleIcon className="h-5 w-5" aria-hidden="true" />
+                My Profile
               </Link>
-            )}
+              <Link
+                href="/learn"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
+                  pathname === '/learn'
+                    ? 'bg-game-gradient-subtle text-game-primary'
+                    : 'text-gray-700 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50'
+                }`}
+                role="menuitem"
+              >
+                <Square3Stack3DIcon className="h-5 w-5" aria-hidden="true" />
+                Learn to Collect
+              </Link>
+              {isParent && (
+                <Link
+                  href="/parent-dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
+                    pathname === '/parent-dashboard'
+                      ? 'bg-game-gradient-subtle text-game-primary'
+                      : 'text-gray-700 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50'
+                  }`}
+                  role="menuitem"
+                >
+                  <UserGroupIcon className="h-5 w-5" aria-hidden="true" />
+                  <span className="flex flex-col">
+                    <span>Parent Dashboard</span>
+                    <span className="text-[10px] font-normal text-purple-600 dark:text-purple-400">
+                      Parent features
+                    </span>
+                  </span>
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Mobile Quick Settings */}
-          <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
-            <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+          <div className="border-t border-gray-100/60 px-4 py-3 dark:border-slate-700/60">
+            <div className="mb-2 flex items-center gap-1.5 px-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+              <Cog6ToothIcon className="h-3 w-3" />
               Quick Settings
             </div>
-            <div className="mb-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2.5 dark:bg-slate-700/50">
-              <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
-                Dark Mode
-              </span>
-              <DarkModeToggle />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-xl bg-gray-50/80 px-3 py-2.5 dark:bg-slate-800/50">
+                <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                  Dark Mode
+                </span>
+                <DarkModeToggle />
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-gray-50/80 px-3 py-2.5 dark:bg-slate-800/50">
+                <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                  Kid Mode
+                </span>
+                <KidModeToggle />
+              </div>
+              <Link
+                href="/settings"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
+                  pathname === '/settings'
+                    ? 'bg-game-gradient-subtle text-game-primary'
+                    : 'text-gray-700 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50'
+                }`}
+                role="menuitem"
+              >
+                <Cog6ToothIcon className="h-5 w-5" aria-hidden="true" />
+                All Settings
+              </Link>
             </div>
-            <div className="mb-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2.5 dark:bg-slate-700/50">
-              <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
-                Kid Mode
-              </span>
-              <KidModeToggle />
-            </div>
-            <Link
-              href="/settings"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 ${
-                pathname === '/settings'
-                  ? 'bg-kid-primary/10 text-kid-primary'
-                  : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800'
-              }`}
-              role="menuitem"
-            >
-              <Cog6ToothIcon className="h-5 w-5" aria-hidden="true" />
-              All Settings
-            </Link>
           </div>
 
           {/* Sign out button */}
-          <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
+          <div className="border-t border-gray-100/60 px-4 py-4 dark:border-slate-700/60">
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 signOut();
               }}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-2 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200/80 px-4 py-3 text-sm font-medium text-gray-600 transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary dark:border-slate-600/80 dark:text-slate-300 dark:hover:border-red-800 dark:hover:bg-red-900/20 dark:hover:text-red-400"
               role="menuitem"
             >
               <ArrowRightOnRectangleIcon className="h-4 w-4" aria-hidden="true" />
