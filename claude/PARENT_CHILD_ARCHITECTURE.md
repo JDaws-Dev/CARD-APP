@@ -2728,3 +2728,456 @@ const routeProtection = {
   },
 };
 ```
+
+---
+
+## 14. Implementation Task Breakdown
+
+This section provides concrete, actionable implementation tasks organized by phase with technical dependencies and effort estimates.
+
+### 14.1 Task Dependency Graph
+
+```
+                                    ┌─────────────────────┐
+                                    │  PHASE 1: FOUNDATION │
+                                    └──────────┬──────────┘
+                                               │
+        ┌──────────────────────────────────────┼──────────────────────────────────────┐
+        │                                      │                                      │
+        ▼                                      ▼                                      ▼
+┌───────────────┐                    ┌───────────────────┐                  ┌─────────────────┐
+│ 1.1 Schema    │                    │ 1.2 PIN Utilities │                  │ 1.3 Migration   │
+│    Changes    │                    │                   │                  │    Script       │
+└───────┬───────┘                    └─────────┬─────────┘                  └────────┬────────┘
+        │                                      │                                     │
+        │                    ┌─────────────────┴─────────────────┐                   │
+        │                    │                                   │                   │
+        ▼                    ▼                                   ▼                   │
+┌───────────────┐   ┌───────────────────┐              ┌─────────────────┐          │
+│ 1.4 Update    │   │ 1.5 PIN Validation│              │ 1.6 Feature     │          │
+│   AuthForm    │   │    Endpoints      │              │    Flags        │          │
+└───────┬───────┘   └─────────┬─────────┘              └────────┬────────┘          │
+        │                     │                                 │                    │
+        └─────────────────────┼─────────────────────────────────┼────────────────────┘
+                              │                                 │
+                              ▼                                 ▼
+                    ┌─────────────────────────────────────────────────┐
+                    │              PHASE 2: KID PIN LOGIN             │
+                    └─────────────────────────┬───────────────────────┘
+                                              │
+        ┌─────────────────────────────────────┼─────────────────────────────────────┐
+        │                                     │                                     │
+        ▼                                     ▼                                     ▼
+┌───────────────────┐              ┌───────────────────┐              ┌───────────────────┐
+│ 2.1 LoginSelector │              │ 2.2 KidPinEntry   │              │ 2.3 Session       │
+│    Component      │              │    Component      │              │    Management     │
+└─────────┬─────────┘              └─────────┬─────────┘              └─────────┬─────────┘
+          │                                  │                                  │
+          └──────────────────────────────────┼──────────────────────────────────┘
+                                             │
+                                             ▼
+                              ┌───────────────────────────┐
+                              │ 2.4 Navigation Updates    │
+                              └─────────────┬─────────────┘
+                                            │
+                                            ▼
+                    ┌─────────────────────────────────────────────────┐
+                    │           PHASE 3: PARENT MANAGEMENT            │
+                    └─────────────────────────┬───────────────────────┘
+                                              │
+        ┌─────────────────────────────────────┼─────────────────────────────────────┐
+        │                                     │                                     │
+        ▼                                     ▼                                     ▼
+┌───────────────────┐              ┌───────────────────┐              ┌───────────────────┐
+│ 3.1 KidPinManager │              │ 3.2 PIN Reset     │              │ 3.3 Parent        │
+│    Component      │              │    Flow           │              │    Dashboard UI   │
+└───────────────────┘              └───────────────────┘              └───────────────────┘
+                                              │
+                                              ▼
+                    ┌─────────────────────────────────────────────────┐
+                    │           PHASE 4: DEVICE SESSIONS              │
+                    └─────────────────────────┬───────────────────────┘
+                                              │
+        ┌─────────────────────────────────────┼─────────────────────────────────────┐
+        │                                     │                                     │
+        ▼                                     ▼                                     ▼
+┌───────────────────┐              ┌───────────────────┐              ┌───────────────────┐
+│ 4.1 Device Token  │              │ 4.2 Device        │              │ 4.3 Device        │
+│    Generation     │              │    Authorization  │              │    Manager UI     │
+└───────────────────┘              └───────────────────┘              └───────────────────┘
+                                              │
+                                              ▼
+                    ┌─────────────────────────────────────────────────┐
+                    │           PHASE 5: POLISH & TESTING             │
+                    └─────────────────────────────────────────────────┘
+```
+
+### 14.2 Phase 1: Foundation Tasks
+
+| ID | Task | Files | Dependencies | Priority |
+|----|------|-------|--------------|----------|
+| **1.1** | **Schema Changes** | | | |
+| 1.1.1 | Add `accountType` field to `families` table | `convex/schema.ts` | None | P0 |
+| 1.1.2 | Create `childLoginPins` table with indexes | `convex/schema.ts` | None | P0 |
+| 1.1.3 | Create `deviceSessions` table with indexes | `convex/schema.ts` | None | P0 |
+| 1.1.4 | Add `migrationLog` table for auditing | `convex/schema.ts` | None | P1 |
+| 1.1.5 | Add migration fields (`migrationConfidence`, `needsNewFeatureOnboarding`) | `convex/schema.ts` | 1.1.1 | P1 |
+| **1.2** | **PIN Utilities** | | | |
+| 1.2.1 | Create PBKDF2 PIN hashing function | `convex/lib/pinUtils.ts` (new) | None | P0 |
+| 1.2.2 | Create PIN validation function | `convex/lib/pinUtils.ts` | 1.2.1 | P0 |
+| 1.2.3 | Create PIN strength checker (reject weak PINs) | `convex/lib/pinUtils.ts` | 1.2.1 | P0 |
+| 1.2.4 | Create rate limiting helpers | `convex/lib/pinUtils.ts` | None | P0 |
+| **1.3** | **Migration Script** | | | |
+| 1.3.1 | Create `classifyFamily()` function | `convex/migrations/parentChild.ts` (new) | 1.1.1 | P0 |
+| 1.3.2 | Create `preMigrationValidation()` function | `convex/migrations/parentChild.ts` | 1.3.1 | P0 |
+| 1.3.3 | Create `executeMigration()` function (batched) | `convex/migrations/parentChild.ts` | 1.3.1, 1.3.2 | P0 |
+| 1.3.4 | Create `validateMigration()` post-check | `convex/migrations/parentChild.ts` | 1.3.3 | P0 |
+| 1.3.5 | Create rollback scripts | `convex/migrations/parentChild.ts` | 1.3.3 | P1 |
+| **1.4** | **AuthForm Updates** | | | |
+| 1.4.1 | Persist `accountType` to family during signup | `src/components/auth/AuthForm.tsx`, `convex/families.ts` | 1.1.1 | P0 |
+| 1.4.2 | Store `accountType` in localStorage after login | `src/components/auth/AuthForm.tsx` | 1.4.1 | P0 |
+| 1.4.3 | Add signup flow branch for individual vs family | `src/components/auth/AuthForm.tsx` | 1.4.1 | P0 |
+| **1.5** | **PIN Validation Endpoints** | | | |
+| 1.5.1 | Create `createChildPin` mutation | `convex/childPins.ts` (new) | 1.1.2, 1.2.1 | P0 |
+| 1.5.2 | Create `validateChildPin` query | `convex/childPins.ts` | 1.1.2, 1.2.2, 1.2.4 | P0 |
+| 1.5.3 | Create `resetChildPin` mutation | `convex/childPins.ts` | 1.1.2, 1.2.1 | P0 |
+| 1.5.4 | Create `deleteChildPin` mutation | `convex/childPins.ts` | 1.1.2 | P1 |
+| **1.6** | **Feature Flags** | | | |
+| 1.6.1 | Add `kidPinLogin` feature flag | `convex/featureFlags.ts` | None | P0 |
+| 1.6.2 | Add `accountTypeSeparation` feature flag | `convex/featureFlags.ts` | None | P0 |
+| 1.6.3 | Add `deviceAuthorization` feature flag | `convex/featureFlags.ts` | None | P0 |
+| 1.6.4 | Create hook `useFeatureFlag()` for client usage | `src/hooks/useFeatureFlag.ts` (new) | 1.6.1-1.6.3 | P0 |
+
+### 14.3 Phase 2: Kid PIN Login Tasks
+
+| ID | Task | Files | Dependencies | Priority |
+|----|------|-------|--------------|----------|
+| **2.1** | **Login Selector Component** | | | |
+| 2.1.1 | Create `LoginSelector.tsx` with email/PIN options | `src/components/auth/LoginSelector.tsx` (new) | 1.6.4 | P0 |
+| 2.1.2 | Style login selector for mobile | `src/components/auth/LoginSelector.tsx` | 2.1.1 | P0 |
+| 2.1.3 | Add animation transitions between modes | `src/components/auth/LoginSelector.tsx` | 2.1.1 | P2 |
+| **2.2** | **Kid PIN Entry Component** | | | |
+| 2.2.1 | Create `KidPinEntry.tsx` with numpad layout | `src/components/auth/KidPinEntry.tsx` (new) | None | P0 |
+| 2.2.2 | Add visual feedback (dots filling, error shake) | `src/components/auth/KidPinEntry.tsx` | 2.2.1 | P0 |
+| 2.2.3 | Add "Forgot PIN? Get Parent" link | `src/components/auth/KidPinEntry.tsx` | 2.2.1 | P0 |
+| 2.2.4 | Integrate with `validateChildPin` endpoint | `src/components/auth/KidPinEntry.tsx` | 2.2.1, 1.5.2 | P0 |
+| 2.2.5 | Handle lockout state display | `src/components/auth/KidPinEntry.tsx` | 2.2.4 | P0 |
+| 2.2.6 | Make touch-friendly for tablets | `src/components/auth/KidPinEntry.tsx` | 2.2.1 | P0 |
+| **2.3** | **Session Management** | | | |
+| 2.3.1 | Create `SessionType` enum and context | `src/contexts/SessionContext.tsx` (new) | None | P0 |
+| 2.3.2 | Update `useCurrentProfile()` to track session type | `src/hooks/useCurrentProfile.ts` | 2.3.1 | P0 |
+| 2.3.3 | Create `useSession()` hook with permissions | `src/hooks/useSession.ts` (new) | 2.3.1, 2.3.2 | P0 |
+| 2.3.4 | Store session type in localStorage | `src/hooks/useSession.ts` | 2.3.3 | P0 |
+| 2.3.5 | Create kid session token generation (limited scope) | `convex/sessions.ts` (new) | 2.3.1 | P0 |
+| **2.4** | **Navigation Updates** | | | |
+| 2.4.1 | Conditionally hide "Parent Dashboard" link | `src/components/header/Header.tsx` | 2.3.3 | P0 |
+| 2.4.2 | Update `ProfileSwitcher` for session-aware switching | `src/components/header/ProfileSwitcher.tsx` | 2.3.3 | P0 |
+| 2.4.3 | Add "Get Parent" action for kid sessions | `src/components/header/ProfileSwitcher.tsx` | 2.4.2 | P0 |
+| 2.4.4 | Hide profile switcher for individual accounts | `src/components/header/ProfileSwitcher.tsx` | 2.3.3 | P0 |
+| 2.4.5 | Update mobile navigation drawer | `src/components/header/MobileNav.tsx` | 2.4.1-2.4.4 | P0 |
+
+### 14.4 Phase 3: Parent Management Tasks
+
+| ID | Task | Files | Dependencies | Priority |
+|----|------|-------|--------------|----------|
+| **3.1** | **Kid PIN Manager Component** | | | |
+| 3.1.1 | Create `KidPinManager.tsx` parent component | `src/components/parent/KidPinManager.tsx` (new) | 1.5.1-1.5.4 | P0 |
+| 3.1.2 | Create PIN setup wizard for each child | `src/components/parent/KidPinManager.tsx` | 3.1.1 | P0 |
+| 3.1.3 | Display PIN status (set/not set) for each child | `src/components/parent/KidPinManager.tsx` | 3.1.1 | P0 |
+| 3.1.4 | Add optional PIN hint editor | `src/components/parent/KidPinManager.tsx` | 3.1.1 | P1 |
+| 3.1.5 | Add "Remove PIN" action | `src/components/parent/KidPinManager.tsx` | 3.1.1, 1.5.4 | P1 |
+| **3.2** | **PIN Reset Flow** | | | |
+| 3.2.1 | Create PIN reset modal component | `src/components/parent/PinResetModal.tsx` (new) | 1.5.3 | P0 |
+| 3.2.2 | Require parent re-authentication for reset | `src/components/parent/PinResetModal.tsx` | 3.2.1 | P0 |
+| 3.2.3 | Send notification when PIN is reset (optional) | `convex/notifications.ts` | 3.2.1 | P2 |
+| **3.3** | **Parent Dashboard Integration** | | | |
+| 3.3.1 | Add "Kid PINs" section to parent dashboard | `src/app/parent-dashboard/page.tsx` | 3.1.1 | P0 |
+| 3.3.2 | Add setup prompt if no PINs configured | `src/app/parent-dashboard/page.tsx` | 3.3.1 | P0 |
+| 3.3.3 | Add quick-action card for PIN management | `src/app/parent-dashboard/page.tsx` | 3.3.1 | P1 |
+| **3.4** | **Login Activity (Future)** | | | |
+| 3.4.1 | Create `loginActivity` table | `convex/schema.ts` | None | P2 |
+| 3.4.2 | Log kid PIN logins | `convex/childPins.ts` | 3.4.1 | P2 |
+| 3.4.3 | Create `LoginActivity.tsx` component | `src/components/parent/LoginActivity.tsx` (new) | 3.4.1, 3.4.2 | P2 |
+
+### 14.5 Phase 4: Device Sessions Tasks
+
+| ID | Task | Files | Dependencies | Priority |
+|----|------|-------|--------------|----------|
+| **4.1** | **Device Token Generation** | | | |
+| 4.1.1 | Create secure device token generator | `convex/lib/deviceUtils.ts` (new) | None | P0 |
+| 4.1.2 | Create `authorizeDevice` mutation | `convex/deviceSessions.ts` (new) | 1.1.3, 4.1.1 | P0 |
+| 4.1.3 | Create `checkDeviceAuthorization` query | `convex/deviceSessions.ts` | 4.1.2 | P0 |
+| 4.1.4 | Create `revokeDevice` mutation | `convex/deviceSessions.ts` | 4.1.2 | P0 |
+| 4.1.5 | Create `listAuthorizedDevices` query | `convex/deviceSessions.ts` | 4.1.2 | P0 |
+| **4.2** | **Device Authorization Flow** | | | |
+| 4.2.1 | Add "Remember this device" checkbox to parent login | `src/components/auth/AuthForm.tsx` | 4.1.2 | P0 |
+| 4.2.2 | Store device token in httpOnly cookie | `convex/deviceSessions.ts` | 4.2.1 | P0 |
+| 4.2.3 | Create device authorization prompt component | `src/components/auth/DeviceAuthPrompt.tsx` (new) | 4.1.2 | P0 |
+| 4.2.4 | Add device name capture (auto-detect + editable) | `src/components/auth/DeviceAuthPrompt.tsx` | 4.2.3 | P1 |
+| **4.3** | **Device Manager UI** | | | |
+| 4.3.1 | Create `DeviceManager.tsx` component | `src/components/parent/DeviceManager.tsx` (new) | 4.1.5 | P0 |
+| 4.3.2 | Display list of authorized devices | `src/components/parent/DeviceManager.tsx` | 4.3.1 | P0 |
+| 4.3.3 | Add "Revoke Access" action per device | `src/components/parent/DeviceManager.tsx` | 4.3.1, 4.1.4 | P0 |
+| 4.3.4 | Show last used timestamp for each device | `src/components/parent/DeviceManager.tsx` | 4.3.1 | P1 |
+| 4.3.5 | Add "Revoke All Devices" action | `src/components/parent/DeviceManager.tsx` | 4.3.1 | P1 |
+| **4.4** | **Integration** | | | |
+| 4.4.1 | Check device authorization before showing PIN entry | `src/components/auth/LoginSelector.tsx` | 4.1.3, 2.1.1 | P0 |
+| 4.4.2 | Show "Get parent to authorize" message | `src/components/auth/KidPinEntry.tsx` | 4.4.1 | P0 |
+| 4.4.3 | Update device `lastUsedAt` on successful PIN login | `convex/childPins.ts` | 4.1.2 | P0 |
+
+### 14.6 Phase 5: Polish & Testing Tasks
+
+| ID | Task | Files | Dependencies | Priority |
+|----|------|-------|--------------|----------|
+| **5.1** | **Accessibility** | | | |
+| 5.1.1 | Add ARIA labels to PIN keypad | `src/components/auth/KidPinEntry.tsx` | 2.2.1 | P0 |
+| 5.1.2 | Ensure keyboard navigation on PIN entry | `src/components/auth/KidPinEntry.tsx` | 2.2.1 | P0 |
+| 5.1.3 | Add screen reader announcements for PIN state | `src/components/auth/KidPinEntry.tsx` | 2.2.1 | P0 |
+| 5.1.4 | Test with VoiceOver/TalkBack | All auth components | 5.1.1-5.1.3 | P0 |
+| **5.2** | **Security Testing** | | | |
+| 5.2.1 | Penetration test PIN validation endpoint | `convex/childPins.ts` | 1.5.2 | P0 |
+| 5.2.2 | Verify rate limiting under load | `convex/childPins.ts` | 1.2.4 | P0 |
+| 5.2.3 | Test device token security | `convex/deviceSessions.ts` | 4.1.1 | P0 |
+| 5.2.4 | Audit session permission boundaries | `src/hooks/useSession.ts` | 2.3.3 | P0 |
+| 5.2.5 | Test route protection rules | All protected routes | 2.3.3 | P0 |
+| **5.3** | **Edge Case Handling** | | | |
+| 5.3.1 | Handle concurrent PIN changes | `convex/childPins.ts` | 1.5.1-1.5.3 | P0 |
+| 5.3.2 | Handle device token expiration gracefully | `src/components/auth/LoginSelector.tsx` | 4.4.1 | P0 |
+| 5.3.3 | Handle mid-session profile deletion | `src/hooks/useSession.ts` | 2.3.3 | P0 |
+| 5.3.4 | Handle family downgrade (family → individual) | `convex/families.ts` | 1.4.1 | P1 |
+| **5.4** | **Mobile Responsiveness** | | | |
+| 5.4.1 | Test PIN keypad on various screen sizes | `src/components/auth/KidPinEntry.tsx` | 2.2.6 | P0 |
+| 5.4.2 | Test login selector on mobile | `src/components/auth/LoginSelector.tsx` | 2.1.2 | P0 |
+| 5.4.3 | Test device manager on mobile | `src/components/parent/DeviceManager.tsx` | 4.3.1 | P0 |
+| **5.5** | **Animation & Polish** | | | |
+| 5.5.1 | Add success animation on PIN entry | `src/components/auth/KidPinEntry.tsx` | 2.2.2 | P2 |
+| 5.5.2 | Add profile avatar reveal during PIN entry | `src/components/auth/KidPinEntry.tsx` | 2.2.2 | P2 |
+| 5.5.3 | Polish error state transitions | All auth components | All | P2 |
+
+### 14.7 Technical Dependencies Summary
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        CRITICAL PATH DEPENDENCIES                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  MUST BE DONE FIRST (blocking everything):                                  │
+│  ─────────────────────────────────────────                                   │
+│  • 1.1.1 accountType field in schema                                        │
+│  • 1.1.2 childLoginPins table                                               │
+│  • 1.2.1 PIN hashing utilities                                              │
+│                                                                              │
+│  BLOCKS KID PIN LOGIN (Phase 2):                                            │
+│  ─────────────────────────────────                                           │
+│  • 1.5.1-1.5.2 PIN creation/validation endpoints                            │
+│  • 1.6.1-1.6.4 Feature flags and client hooks                               │
+│  • 2.3.1-2.3.4 Session management infrastructure                            │
+│                                                                              │
+│  BLOCKS DEVICE AUTHORIZATION (Phase 4):                                     │
+│  ───────────────────────────────────────                                     │
+│  • 1.1.3 deviceSessions table                                               │
+│  • 4.1.1-4.1.3 Device token utilities                                       │
+│  • Phase 2 completion (kid PIN login must work first)                       │
+│                                                                              │
+│  CAN BE PARALLELIZED:                                                       │
+│  ────────────────────                                                        │
+│  • 1.2.x PIN utilities (no external dependencies)                           │
+│  • 1.6.x Feature flags (no external dependencies)                           │
+│  • 2.1.x and 2.2.x can be built simultaneously                              │
+│  • 3.1.x and 3.2.x can be built simultaneously after Phase 2                │
+│  • 4.3.x Device manager UI can parallel 4.2.x authorization flow            │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 15. Testing Strategy
+
+### 15.1 Test Categories
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           TESTING PYRAMID                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│                              E2E Tests                                       │
+│                            ┌─────────┐                                       │
+│                           /   10%    \                                       │
+│                          /  Critical  \                                      │
+│                         /   Flows      \                                     │
+│                        ───────────────────                                   │
+│                       /                   \                                  │
+│                      /  Integration Tests  \                                 │
+│                     /        30%           \                                 │
+│                    /   API & Component      \                                │
+│                   ───────────────────────────                                │
+│                  /                           \                               │
+│                 /        Unit Tests          \                               │
+│                /           60%               \                               │
+│               /    Functions & Utilities     \                               │
+│              ─────────────────────────────────                               │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 15.2 Unit Tests
+
+| Category | Test Cases | Files to Test |
+|----------|------------|---------------|
+| **PIN Utilities** | | `convex/lib/pinUtils.ts` |
+| | Hash generation is deterministic with same salt | |
+| | Hash differs with different salts | |
+| | Weak PINs (12345, 11111, 00000) are rejected | |
+| | PIN validation passes for correct PIN | |
+| | PIN validation fails for incorrect PIN | |
+| | Rate limiter tracks attempts correctly | |
+| | Lockout triggers after 5 failed attempts | |
+| | Lockout expires after 15 minutes | |
+| **Device Utilities** | | `convex/lib/deviceUtils.ts` |
+| | Device tokens are unique | |
+| | Device tokens are cryptographically secure | |
+| | Token expiration calculation is correct | |
+| **Migration Logic** | | `convex/migrations/parentChild.ts` |
+| | Single profile without parent → individual (high) | |
+| | Parent + children → family (high) | |
+| | Single parent profile → family (medium) | |
+| | Multiple profiles no parent → family (low) | |
+| | Zero profiles → data issue flagged | |
+| **Session Permissions** | | `src/hooks/useSession.ts` |
+| | Parent session has all permissions | |
+| | Kid session lacks parent dashboard access | |
+| | Individual session has no profile switching | |
+
+### 15.3 Integration Tests
+
+| Category | Test Cases | Components/Endpoints |
+|----------|------------|---------------------|
+| **Authentication Flows** | | |
+| | Parent can log in with email/password | `AuthForm` → `convex auth` |
+| | Kid can log in with valid PIN | `KidPinEntry` → `validateChildPin` |
+| | Invalid PIN shows error | `KidPinEntry` → `validateChildPin` |
+| | Lockout triggers after 5 failures | `KidPinEntry` → `validateChildPin` |
+| | Lockout prevents further attempts | `KidPinEntry` → `validateChildPin` |
+| | Unauthorized device shows error | `LoginSelector` → `checkDeviceAuthorization` |
+| **PIN Management** | | |
+| | Parent can create PIN for child | `KidPinManager` → `createChildPin` |
+| | Parent can reset child's PIN | `PinResetModal` → `resetChildPin` |
+| | Parent can delete child's PIN | `KidPinManager` → `deleteChildPin` |
+| | Duplicate PINs in family are rejected | `createChildPin` |
+| **Device Management** | | |
+| | Parent can authorize device | `AuthForm` → `authorizeDevice` |
+| | Parent can revoke device | `DeviceManager` → `revokeDevice` |
+| | Revoked device cannot PIN login | `LoginSelector` → `checkDeviceAuthorization` |
+| **Navigation** | | |
+| | Parent sees "Parent Dashboard" link | `Header` |
+| | Kid does not see "Parent Dashboard" link | `Header` |
+| | Individual does not see profile switcher | `ProfileSwitcher` |
+
+### 15.4 End-to-End Tests
+
+| Flow | Steps | Expected Outcome |
+|------|-------|------------------|
+| **Happy Path: Family Setup** | | |
+| 1 | Parent signs up as family account | Account created with `accountType: 'family'` |
+| 2 | Parent creates child profile | Child profile exists |
+| 3 | Parent sets PIN for child | PIN stored hashed in `childLoginPins` |
+| 4 | Parent enables device | Device token stored |
+| 5 | Child logs in with PIN | Child session active, sees their dashboard |
+| 6 | Child cannot access parent dashboard | Redirected to `/dashboard` |
+| **Happy Path: Individual Setup** | | |
+| 1 | User signs up as individual | Account created with `accountType: 'individual'` |
+| 2 | User logs in | Session active |
+| 3 | User sees no family features | No profile switcher, no parent dashboard |
+| **Error Path: PIN Lockout** | | |
+| 1 | Kid enters wrong PIN 5 times | Lockout message displayed |
+| 2 | Kid waits 15 minutes | Lockout expires |
+| 3 | Kid enters correct PIN | Login succeeds |
+| **Error Path: Unauthorized Device** | | |
+| 1 | Kid tries PIN on new device | "Ask parent" message shown |
+| 2 | Parent logs in, authorizes device | Device token stored |
+| 3 | Kid tries PIN again | Login succeeds |
+
+### 15.5 Security Tests
+
+| Test | Validation |
+|------|------------|
+| **PIN Brute Force** | Rate limiting prevents >5 attempts in 15 min |
+| **Session Scope** | Kid token cannot access `/api/parent/*` endpoints |
+| **Device Token Theft** | Token is httpOnly, cannot be accessed by JS |
+| **Replay Attack** | Expired device tokens are rejected |
+| **Cross-Family PIN** | PIN from Family A cannot access Family B |
+| **Privilege Escalation** | Kid cannot modify `sessionType` in localStorage to gain access |
+
+### 15.6 Test Environment Setup
+
+```typescript
+// Test fixtures
+const TEST_FAMILIES = {
+  family: {
+    email: 'parent@test.com',
+    accountType: 'family',
+    profiles: [
+      { displayName: 'Parent', profileType: 'parent' },
+      { displayName: 'Kid1', profileType: 'child' },
+      { displayName: 'Kid2', profileType: 'child' }
+    ]
+  },
+  individual: {
+    email: 'solo@test.com',
+    accountType: 'individual',
+    profiles: [
+      { displayName: 'Solo Collector', profileType: null }
+    ]
+  }
+};
+
+const TEST_PINS = {
+  valid: '12357',  // Passes weak PIN check
+  weak: '12345',   // Fails weak PIN check
+  invalid: '00000' // Wrong PIN
+};
+```
+
+### 15.7 Test Coverage Requirements
+
+| Area | Minimum Coverage |
+|------|------------------|
+| `convex/lib/pinUtils.ts` | 95% |
+| `convex/childPins.ts` | 90% |
+| `convex/deviceSessions.ts` | 90% |
+| `src/hooks/useSession.ts` | 85% |
+| `src/components/auth/*` | 80% |
+| Overall | 80% |
+
+---
+
+## 16. Deployment Checklist
+
+### 16.1 Pre-Deployment
+
+- [ ] All unit tests passing
+- [ ] All integration tests passing
+- [ ] Security tests completed
+- [ ] Code review completed
+- [ ] Database backup taken
+- [ ] Feature flags configured (all OFF)
+- [ ] Monitoring dashboard ready
+- [ ] Rollback scripts tested in staging
+
+### 16.2 Deployment Order
+
+1. **Database migrations** (schema additions - non-breaking)
+2. **Backend code** (new tables, endpoints, utilities)
+3. **Feature flag configuration** (still OFF)
+4. **Frontend code** (new components, hooks)
+5. **Run data migration script**
+6. **Enable feature flags** (graduated rollout)
+
+### 16.3 Post-Deployment
+
+- [ ] Monitor error rates for 1 hour
+- [ ] Spot-check migrated accounts
+- [ ] Verify feature flags working
+- [ ] Test critical flows manually
+- [ ] Enable alerts for anomalies
