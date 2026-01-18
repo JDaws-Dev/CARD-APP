@@ -1321,3 +1321,9 @@
 **Files:** src/app/api/search/route.ts, src/app/api/filter/route.ts
 **Commit:** 0d38664
 ---
+## CD-5yk.11 - Make set completion configurable for variants
+**Status:** Completed (verified as already implemented by CD-5yk.7)
+**Changes:** No new code required - verified existing implementation meets all acceptance criteria
+**Files:** convex/schema.ts, convex/profileSettings.ts, src/lib/setCompletion.ts, src/components/collection/SetDetailClient.tsx
+**Commit:** N/A - no changes made, functionality already in place
+---
