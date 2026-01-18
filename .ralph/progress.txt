@@ -339,3 +339,9 @@
 **Files:** src/components/header/GameSwitcher.tsx, src/components/layout/AppHeader.tsx
 **Commit:** N/A - already completed in previous commits (56d1a71, 3d6b18a)
 ---
+## CD-t3g - Update page routes to use game selector
+**Status:** Completed
+**Changes:** Added game selector support to browse, search, my-wishlist, and public wishlist pages. Pages now filter/search within the selected game and display game-appropriate text.
+**Files:** src/app/browse/page.tsx, src/app/search/page.tsx, src/app/my-wishlist/page.tsx, src/app/wishlist/[token]/page.tsx
+**Commit:** 290bb42
+---
