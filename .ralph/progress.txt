@@ -520,3 +520,12 @@
 **Files:** src/app/browse/page.tsx, src/app/search/page.tsx (already complete)
 **Commit:** N/A (no changes required)
 ---
+## CD-4d7.3 - Update browse/search pages to use game selector
+**Status:** Completed
+**Changes:** Verified browse and search pages already use game selector correctly. No code changes needed - pages already import useGameSelector and use primaryGame.id for API calls and primaryGame.shortName for display text.
+**Files:** 
+- src/app/browse/page.tsx (already complete)
+- src/app/search/page.tsx (already complete)
+- src/components/search/SearchResults.tsx (no changes needed - presentational component)
+**Commit:** No new commits needed - work was already done
+---

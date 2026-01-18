@@ -5,8 +5,7 @@ import { CameraIcon } from '@heroicons/react/24/outline';
 import { CardScanner } from './CardScanner';
 import { SnapToAddFlow } from './SnapToAddFlow';
 import { cn } from '@/lib/utils';
-
-type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 
 interface CardScanResult {
   identified: boolean;
@@ -26,8 +25,6 @@ interface CardScanResult {
 }
 
 interface ScannerButtonProps {
-  /** The game to scan cards for */
-  gameSlug?: GameSlug;
   /** Button variant: 'primary' for gradient button, 'icon' for icon-only floating button */
   variant?: 'primary' | 'icon';
   /** Additional className for the button */
@@ -39,11 +36,11 @@ interface ScannerButtonProps {
 type ModalState = 'closed' | 'scanning' | 'result';
 
 export function ScannerButton({
-  gameSlug = 'pokemon',
   variant = 'primary',
   className,
   label = 'Scan Card',
 }: ScannerButtonProps) {
+  const { primaryGame } = useGameSelector();
   const [modalState, setModalState] = useState<ModalState>('closed');
   const [scanResult, setScanResult] = useState<CardScanResult | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -114,7 +111,7 @@ export function ScannerButton({
           >
             {modalState === 'scanning' && (
               <CardScanner
-                gameSlug={gameSlug}
+                gameSlug={primaryGame.id}
                 onCardIdentified={handleCardIdentified}
                 onClose={handleClose}
               />
