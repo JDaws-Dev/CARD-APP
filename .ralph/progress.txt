@@ -990,3 +990,18 @@
 **Files:** claude/PARENT_CHILD_ARCHITECTURE.md
 **Commit:** See below
 ---
+## CD-bhw.5 - Create migration plan for existing users
+**Status:** Completed
+**Changes:** Expanded Section 6 of PARENT_CHILD_ARCHITECTURE.md with comprehensive migration plan including:
+- Migration overview and approach
+- Account type classification logic with confidence scoring
+- Existing user handling for individual and family accounts
+- Migration script design with pre-validation and batched execution
+- 4-level rollback strategy with decision matrix
+- User communication plan with email templates
+- Migration monitoring with key metrics
+- 5-phase migration timeline
+- Edge case handling
+**Files:** claude/PARENT_CHILD_ARCHITECTURE.md (Section 6 expanded from ~25 to ~760 lines)
+**Commit:** f4c6b65
+---
