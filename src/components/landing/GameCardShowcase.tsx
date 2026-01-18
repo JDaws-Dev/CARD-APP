@@ -48,38 +48,38 @@ const SAMPLE_CARDS: Record<
   onepiece: [
     {
       name: 'Monkey D. Luffy',
-      imageUrl: 'https://optcg-api.ryanmichaelhirst.us/api/v1/cards/image/OP01-001_p1',
+      imageUrl: 'https://images.ryanmichaelhirst.us/OP02-041.png',
       alt: 'Monkey D. Luffy card from One Piece TCG',
     },
     {
       name: 'Roronoa Zoro',
-      imageUrl: 'https://optcg-api.ryanmichaelhirst.us/api/v1/cards/image/OP01-025_p1',
+      imageUrl: 'https://images.ryanmichaelhirst.us/OP02-043.png',
       alt: 'Roronoa Zoro card from One Piece TCG',
     },
     {
-      name: 'Nami',
-      imageUrl: 'https://optcg-api.ryanmichaelhirst.us/api/v1/cards/image/OP01-016_p1',
-      alt: 'Nami card from One Piece TCG',
+      name: 'Tony Tony Chopper',
+      imageUrl: 'https://images.ryanmichaelhirst.us/EB01-006.png',
+      alt: 'Tony Tony Chopper card from One Piece TCG',
     },
   ],
   lorcana: [
     {
       name: 'Mickey Mouse',
-      // Mickey Mouse - Brave Little Tailor from The First Chapter (set 1)
-      imageUrl: 'https://cards.lorcast.io/cards/1/1/en/small.webp',
+      // Mickey Mouse - Steamboat Pilot
+      imageUrl: 'https://cards.lorcast.io/card/digital/small/crd_d4a3ddcb1d0743239de2b493403ef0c1.avif',
       alt: 'Mickey Mouse card from Disney Lorcana',
     },
     {
       name: 'Elsa',
-      // Elsa - Snow Queen from The First Chapter (set 1)
-      imageUrl: 'https://cards.lorcast.io/cards/1/43/en/small.webp',
+      // Elsa - Snow Queen
+      imageUrl: 'https://cards.lorcast.io/card/digital/small/crd_285e5cadf23a4b2b836effe0550a237a.avif',
       alt: 'Elsa card from Disney Lorcana',
     },
     {
-      name: 'Stitch',
-      // Stitch - Carefree Surfer from The First Chapter (set 1)
-      imageUrl: 'https://cards.lorcast.io/cards/1/55/en/small.webp',
-      alt: 'Stitch card from Disney Lorcana',
+      name: 'Mickey Mouse - Brave Little Tailor',
+      // Mickey Mouse - Brave Little Tailor
+      imageUrl: 'https://cards.lorcast.io/card/digital/small/crd_e74ef94562b9440e8dd95ada098728d6.avif',
+      alt: 'Mickey Mouse Brave Little Tailor card from Disney Lorcana',
     },
   ],
 };
