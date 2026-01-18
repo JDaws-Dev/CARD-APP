@@ -757,6 +757,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
     return (
       <div
         key={card.id}
+        data-card-id={card.id}
         role="button"
         tabIndex={0}
         aria-label={`${card.name}, ${isOwned ? `owned ${quantity} copies` : 'not owned'}${isNewlyAdded ? ', newly added' : ''}${isWishlisted ? ', on wishlist' : ''}. ${features.simplifiedLayout ? `Tap to ${isOwned ? 'remove' : 'add'}` : `Click to ${isOwned ? 'manage' : 'add to collection'}`}`}
@@ -944,6 +945,36 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
             availableVariants={getAvailableVariants(card)}
             ownedVariants={ownedVariantsMap.get(card.id) ?? new Map()}
             className="mt-1"
+            onBadgeClick={(variant, isOwned) => {
+              if (!profileId) return;
+
+              if (!isOwned) {
+                // Gray badge clicked - add this variant directly
+                const isNewCard = !ownedCards.has(card.id);
+                handleAddVariant(card.id, card.name, variant);
+                if (isNewCard) {
+                  setCelebrationCard(card);
+                }
+              } else {
+                // Lit badge clicked - open variant selector for view/manage
+                const isMobile = window.innerWidth < 640;
+                const cardElement = document.querySelector(`[data-card-id="${card.id}"]`);
+                const rect = cardElement?.getBoundingClientRect();
+
+                if (isMobile || !rect) {
+                  setSelectorPosition({
+                    top: window.innerHeight / 2,
+                    left: window.innerWidth / 2,
+                  });
+                } else {
+                  setSelectorPosition({
+                    top: rect.top + rect.height / 2,
+                    left: rect.left + rect.width / 2,
+                  });
+                }
+                setSelectedCard(card);
+              }
+            }}
           />
         )}
       </div>

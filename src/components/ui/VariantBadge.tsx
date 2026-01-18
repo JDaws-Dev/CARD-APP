@@ -90,6 +90,7 @@ interface VariantBadgeProps {
   quantity?: number;
   showQuantity?: boolean;
   className?: string;
+  onClick?: (variant: CardVariant, isOwned: boolean) => void;
 }
 
 /**
@@ -102,24 +103,38 @@ export function VariantBadge({
   quantity = 0,
   showQuantity = true,
   className,
+  onClick,
 }: VariantBadgeProps) {
   const config = VARIANT_CONFIG[variant];
+  const isClickable = !!onClick;
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      e.stopPropagation();
+      onClick(variant, isOwned);
+    }
+  };
 
   return (
-    <span
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={!isClickable}
       className={cn(
         'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium transition-all',
         isOwned ? config.bgOwned : config.bgUnowned,
         isOwned ? config.textOwned : config.textUnowned,
+        isClickable && 'cursor-pointer hover:scale-110 hover:shadow-md active:scale-95',
+        !isClickable && 'cursor-default',
         className
       )}
-      title={isOwned ? `${config.label} x${quantity}` : `${config.label} - Not owned`}
+      title={isOwned ? `${config.label} x${quantity} - Click to manage` : `${config.label} - Click to add`}
     >
       {config.shortLabel}
       {showQuantity && isOwned && quantity > 1 && (
         <span className="text-white/80">x{quantity}</span>
       )}
-    </span>
+    </button>
   );
 }
 
@@ -128,6 +143,7 @@ interface VariantBadgeGroupProps {
   ownedVariants: Map<CardVariant, number>;
   className?: string;
   showQuantity?: boolean;
+  onBadgeClick?: (variant: CardVariant, isOwned: boolean) => void;
 }
 
 /**
@@ -139,6 +155,7 @@ export function VariantBadgeGroup({
   ownedVariants,
   className,
   showQuantity = true,
+  onBadgeClick,
 }: VariantBadgeGroupProps) {
   return (
     <div className={cn('flex items-center justify-center gap-1', className)}>
@@ -153,6 +170,7 @@ export function VariantBadgeGroup({
             isOwned={isOwned}
             quantity={qty}
             showQuantity={showQuantity}
+            onClick={onBadgeClick}
           />
         );
       })}
