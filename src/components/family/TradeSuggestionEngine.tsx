@@ -277,7 +277,9 @@ export function TradeSuggestionEngine({
       });
 
       if (response.ok) {
-        const cards: CardData[] = await response.json();
+        const result = await response.json();
+        // API returns { data: [...cards...], ... } structure
+        const cards: CardData[] = result.data || [];
         setCardDataMap((prev) => {
           const newMap = new Map(prev);
           cards.forEach((card) => newMap.set(card.id, card));

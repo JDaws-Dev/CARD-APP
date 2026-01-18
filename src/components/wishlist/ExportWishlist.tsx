@@ -120,7 +120,9 @@ function ExportWishlistModal({
         throw new Error('Failed to fetch card data');
       }
 
-      const cards: CardData[] = await response.json();
+      const result = await response.json();
+      // API returns { data: [...cards...], ... } structure
+      const cards: CardData[] = result.data || [];
       const cardMap = new Map<string, CardData>();
       cards.forEach((card) => cardMap.set(card.id, card));
       setCardData(cardMap);
