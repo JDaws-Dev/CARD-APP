@@ -31,6 +31,7 @@ import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
 import { FamilyLeaderboard } from '@/components/family/FamilyLeaderboard';
 import { WhatsNextCard } from '@/components/dashboard/WhatsNextCard';
 import { getDisplayName } from '@/lib/displayName';
+import { getGameInfo, type GameId } from '@/lib/gameSelector';
 
 // ============================================================================
 // QUICK ACTION CARDS
@@ -387,10 +388,19 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
   const currentStreak = streakProgress.currentStreak ?? 0;
   const isActiveToday = streakProgress.isActiveToday ?? false;
 
+  // Get game info for theming
+  const gameInfo = getGameInfo(gameSlug as GameId);
+
   return (
     <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-6 text-white shadow-lg">
+      {/* Welcome Header - uses game-specific gradient */}
+      <div
+        className={cn(
+          'relative overflow-hidden rounded-3xl p-6 text-white shadow-lg bg-gradient-to-r',
+          gameInfo?.gradientFrom || 'from-indigo-500',
+          gameInfo?.gradientTo || 'to-purple-500'
+        )}
+      >
         {/* Background decorations */}
         <div
           className="absolute inset-0 opacity-10"
@@ -410,17 +420,26 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
         />
 
         <div className="relative flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold drop-shadow sm:text-3xl">
-              {greeting}, {profileName}!
-            </h1>
-            <p className="mt-1 text-white/80">
-              {stats.totalCards === 0
-                ? "Let's start your collection adventure!"
-                : isActiveToday
-                  ? "Great job! You've added cards today!"
-                  : 'Ready to add some cards?'}
-            </p>
+          <div className="flex items-center gap-4">
+            {/* Game Logo Badge */}
+            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-white/20 shadow-lg backdrop-blur-sm sm:h-16 sm:w-16">
+              <span className="text-2xl font-black drop-shadow sm:text-3xl">
+                {gameInfo?.shortName.charAt(0) || gameName.charAt(0)}
+              </span>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white/70">{gameInfo?.shortName || gameName}</p>
+              <h1 className="text-xl font-bold drop-shadow sm:text-2xl md:text-3xl">
+                {greeting}, {profileName}!
+              </h1>
+              <p className="mt-1 text-sm text-white/80 sm:text-base">
+                {stats.totalCards === 0
+                  ? "Let's start your collection adventure!"
+                  : isActiveToday
+                    ? "Great job! You've added cards today!"
+                    : 'Ready to add some cards?'}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <StreakCounter variant="compact" />
