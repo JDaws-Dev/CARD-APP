@@ -168,21 +168,15 @@ export const SET_STRUCTURE_ONBOARDING: SetStructureOnboarding = {
 // ============================================================================
 
 /**
- * Information about different types of Pokemon TCG sets.
+ * Information about different types of trading card sets.
  */
 export const SET_TYPES: readonly SetTypeInfo[] = [
   {
     id: 'main-expansion',
     name: 'Main Expansion',
     description:
-      'The big quarterly releases with lots of new Pokemon, trainers, and mechanics. These are the most popular sets with the biggest card pools.',
-    examples: [
-      'Scarlet & Violet',
-      'Paldea Evolved',
-      'Obsidian Flames',
-      'Temporal Forces',
-      'Shrouded Fable',
-    ],
+      'The big quarterly releases with lots of new cards and mechanics. These are the most popular sets with the biggest card pools.',
+    examples: ['Main Set', 'Core Expansion', 'Major Release'],
     cardCountRange: '150-200+ cards',
     releaseFrequency: '4 times per year',
     gradientFrom: 'from-blue-500',
@@ -193,8 +187,8 @@ export const SET_TYPES: readonly SetTypeInfo[] = [
     id: 'mini-set',
     name: 'Mini Set',
     description:
-      'Smaller sets that release between main expansions. They often focus on specific themes or Pokemon and are easier to complete.',
-    examples: ['Pokemon GO', 'Crown Zenith', '151', 'Paldean Fates'],
+      'Smaller sets that release between main expansions. They often focus on specific themes and are easier to complete.',
+    examples: ['Mini Expansion', 'Theme Set', 'Special Release'],
     cardCountRange: '60-100 cards',
     releaseFrequency: '2-3 times per year',
     gradientFrom: 'from-emerald-500',
@@ -206,7 +200,7 @@ export const SET_TYPES: readonly SetTypeInfo[] = [
     name: 'Special Set',
     description:
       'Unique sets for celebrations, anniversaries, or special events. These often have reprints of classic cards or exclusive artwork.',
-    examples: ['Celebrations', 'Shining Fates', 'Hidden Fates', 'Pokemon 151'],
+    examples: ['Anniversary Set', 'Collector Set', 'Event Exclusive'],
     cardCountRange: '30-70 cards',
     releaseFrequency: 'Special occasions',
     gradientFrom: 'from-amber-500',
@@ -218,12 +212,7 @@ export const SET_TYPES: readonly SetTypeInfo[] = [
     name: 'Promo Cards',
     description:
       'Special cards you can only get from specific products, events, or promotions. These have a "PROMO" stamp instead of a regular set symbol.',
-    examples: [
-      'SV Black Star Promos',
-      'SWSH Black Star Promos',
-      "McDonald's Promos",
-      'Build & Battle Promos',
-    ],
+    examples: ['Event Promos', 'Product Promos', 'Tournament Promos'],
     cardCountRange: 'Ongoing (50-200+)',
     releaseFrequency: 'Throughout the year',
     gradientFrom: 'from-rose-500',

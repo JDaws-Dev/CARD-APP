@@ -877,3 +877,17 @@
 **Files:** src/lib/gameSelector.ts, src/app/globals.css, src/components/header/GameSwitcher.tsx, src/components/sets/GameFilter.tsx, src/components/onboarding/GameSelectorOnboarding.tsx
 **Commit:** 3e17eec
 ---
+## CD-j95 - Remove Pokemon-specific references from general pages
+**Status:** Completed
+**Changes:** Made all user-facing content game-agnostic by replacing Pokemon-specific references with general trading card terminology across 8 files.
+**Files:** 
+- src/components/wishlist/ExportWishlist.tsx
+- src/components/collection/ExportChecklist.tsx
+- src/components/onboarding/SetStructureIntro.tsx
+- src/components/tutorials/LearnToCollect.tsx
+- src/components/collection/CollectorsJourneyStory.tsx
+- src/components/collection/AdventureMap.tsx
+- src/components/sets/SetStructureButton.tsx
+- src/lib/setStructureContent.ts
+**Commit:** 3d939a7
+---
