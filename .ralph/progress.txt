@@ -1315,3 +1315,9 @@
 - src/components/collection/SetDetailClient.tsx (added progress bar and toggle UI)
 **Commit:** (to be committed)
 ---
+## CD-5yk.9 - Ensure API adapters fetch and cache available variants per card
+**Status:** Completed
+**Changes:** Fixed /api/search and /api/filter routes to include availableVariants field in response transformation. The data population layer was already correctly extracting and storing variants for all 4 games; the issue was that API route handlers weren't passing this field through to clients.
+**Files:** src/app/api/search/route.ts, src/app/api/filter/route.ts
+**Commit:** 0d38664
+---
