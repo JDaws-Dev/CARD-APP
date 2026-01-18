@@ -238,7 +238,7 @@ export default function SetDetailPage({ params }: SetDetailPageProps) {
           </div>
         ) : (
           /* Card Grid with Rarity Filter */
-          <SetDetailClient set={transformedSet} cards={transformedCards} />
+          <SetDetailClient set={transformedSet} cards={transformedCards} gameSlug={gameSlug} />
         )}
       </div>
     </main>

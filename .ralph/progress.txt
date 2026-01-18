@@ -1346,3 +1346,12 @@
 **Files:** convex/collections.ts, src/components/dashboard/FeaturedCardsPreview.tsx
 **Commit:** 6b70c8b
 ---
+## CD-a1l - Add card type filter to set detail page (game-specific)
+**Status:** Completed
+**Changes:** Added a new CardTypeFilter component for filtering cards by supertype (Pokémon/Trainer/Energy, Monster/Spell/Trap, etc.) on the set detail page. The filter is game-specific, showing only relevant card types for the current TCG. Works in combination with the existing rarity filter.
+**Files:** 
+- src/components/filter/CardTypeFilter.tsx (NEW)
+- src/components/collection/SetDetailClient.tsx
+- src/app/sets/[setId]/page.tsx
+**Commit:** 92a10c7
+---

@@ -12,6 +12,13 @@ import {
   RARITY_CATEGORIES,
   type RarityCategoryId,
 } from '@/components/filter/RarityFilter';
+import {
+  CardTypeFilter,
+  getCardTypeCategory,
+  getCardTypesForGame,
+  type CardTypeCategoryId,
+} from '@/components/filter/CardTypeFilter';
+import type { GameId } from '@/lib/gameSelector';
 import { ChevronDownIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -95,10 +102,12 @@ function parseCardNumber(number: string): number {
 interface SetDetailClientProps {
   set: PokemonSet;
   cards: PokemonCard[];
+  gameSlug?: GameId;
 }
 
-export function SetDetailClient({ set, cards }: SetDetailClientProps) {
+export function SetDetailClient({ set, cards, gameSlug = 'pokemon' }: SetDetailClientProps) {
   const [selectedRarity, setSelectedRarity] = useState<RarityCategoryId | null>(null);
+  const [selectedType, setSelectedType] = useState<CardTypeCategoryId | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('number');
   const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>('all');
 
@@ -190,6 +199,25 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
     return counts;
   }, [cards]);
 
+  // Calculate card type counts for the filter badges
+  const typeCounts = useMemo(() => {
+    const counts = new Map<CardTypeCategoryId, number>();
+    const categories = getCardTypesForGame(gameSlug);
+
+    // Initialize all categories with 0
+    categories.forEach((cat) => counts.set(cat.id, 0));
+
+    // Count cards per category
+    cards.forEach((card) => {
+      const category = getCardTypeCategory(card.supertype, gameSlug);
+      if (category) {
+        counts.set(category, (counts.get(category) ?? 0) + 1);
+      }
+    });
+
+    return counts;
+  }, [cards, gameSlug]);
+
   // Calculate collection filter counts (Have/Need)
   const collectionCounts = useMemo(() => {
     const haveCount = cards.filter((card) => ownedCardIds.has(card.id)).length;
@@ -255,6 +283,14 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
       result = result.filter((card) => {
         const category = getRarityCategory(card.rarity);
         return category === selectedRarity;
+      });
+    }
+
+    // Then filter by card type
+    if (selectedType) {
+      result = result.filter((card) => {
+        const category = getCardTypeCategory(card.supertype, gameSlug);
+        return category === selectedType;
       });
     }
 
@@ -327,7 +363,7 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
     }
 
     return sorted;
-  }, [cards, collectionFilter, selectedRarity, sortBy, ownedCardIds, wishlistCardIds, recentlyAddedTimes]);
+  }, [cards, collectionFilter, selectedRarity, selectedType, sortBy, ownedCardIds, wishlistCardIds, recentlyAddedTimes, gameSlug]);
 
   return (
     <div className="space-y-6">
@@ -394,6 +430,16 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
             rarityCounts={rarityCounts}
           />
         </div>
+
+        {/* Card Type Filter - full width on mobile, flex-1 on desktop */}
+        <div className="w-full min-w-0 sm:flex-1">
+          <CardTypeFilter
+            gameId={gameSlug}
+            selectedType={selectedType}
+            onTypeChange={setSelectedType}
+            typeCounts={typeCounts}
+          />
+        </div>
       </div>
 
       {/* Set Completion Progress */}
@@ -456,7 +502,7 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
       </div>
 
       {/* Filtered Card Count Indicator */}
-      {(selectedRarity || collectionFilter !== 'all') && (
+      {(selectedRarity || selectedType || collectionFilter !== 'all') && (
         <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-3">
           <p className="text-sm text-gray-600">
             Showing <span className="font-semibold text-kid-primary">{filteredAndSortedCards.length}</span>{' '}
@@ -467,10 +513,19 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
                 ({collectionFilter === 'have' ? 'owned' : 'needed'})
               </>
             )}
+            {selectedType && (
+              <>
+                {' '}
+                &middot;{' '}
+                <span className="font-semibold">
+                  {getCardTypesForGame(gameSlug).find((c) => c.id === selectedType)?.label}
+                </span>
+              </>
+            )}
             {selectedRarity && (
               <>
                 {' '}
-                in{' '}
+                &middot;{' '}
                 <span className="font-semibold">
                   {RARITY_CATEGORIES.find((c) => c.id === selectedRarity)?.label}
                 </span>
