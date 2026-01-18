@@ -82,12 +82,13 @@ function FeaturedCard({
   return (
     <Link
       href={`/search?q=${encodeURIComponent(name)}`}
-      className="group flex-shrink-0 transition-transform hover:scale-105"
+      className="group flex-shrink-0 transition-transform hover:scale-105 active:scale-100"
       title={`${name}${rarity ? ` - ${rarity}` : ''}`}
     >
+      {/* Responsive card sizes - smaller on mobile to fit 3 cards */}
       <div
         className={cn(
-          'relative aspect-[5/7] w-[125px] overflow-hidden rounded-xl shadow-lg transition-all',
+          'relative aspect-[5/7] w-[90px] overflow-hidden rounded-xl shadow-lg transition-all sm:w-[110px] md:w-[125px]',
           isHighlighted
             ? 'ring-4 ring-amber-300 ring-offset-2'
             : 'ring-2 ring-transparent group-hover:ring-indigo-300'
@@ -98,12 +99,12 @@ function FeaturedCard({
             src={imageLarge || imageSmall}
             alt={name}
             fill
-            sizes="125px"
+            sizes="(max-width: 640px) 90px, (max-width: 768px) 110px, 125px"
             className="object-cover"
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-100">
-            <SparklesIcon className="h-10 w-10 text-indigo-300" />
+            <SparklesIcon className="h-8 w-8 text-indigo-300 sm:h-10 sm:w-10" />
           </div>
         )}
         {/* Highlight badge for center card */}
@@ -119,12 +120,14 @@ function FeaturedCard({
           </div>
         )}
       </div>
-      <div className="mt-2 max-w-[125px] text-center">
-        <p className="truncate text-sm font-medium text-gray-700 group-hover:text-gray-900">
+      {/* Minimal text - just card name */}
+      <div className="mt-2 max-w-[90px] text-center sm:max-w-[110px] md:max-w-[125px]">
+        <p className="truncate text-xs font-medium text-gray-700 group-hover:text-gray-900 sm:text-sm">
           {name}
         </p>
+        {/* Hide type on smallest screens */}
         {types && types.length > 0 && (
-          <p className="text-[10px] text-gray-400">{types.slice(0, 2).join(' · ')}</p>
+          <p className="hidden text-[10px] text-gray-400 sm:block">{types.slice(0, 2).join(' · ')}</p>
         )}
       </div>
     </Link>
@@ -220,20 +223,21 @@ export function FeaturedCardsPreview({
           <StarIcon className="h-5 w-5 text-amber-500" />
           <h3 className="font-semibold text-gray-800">Collection Spotlight</h3>
         </div>
+        {/* Larger touch target for refresh button */}
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="rounded-full bg-amber-100 p-2 text-amber-600 transition-all hover:bg-amber-200 disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600 transition-all hover:bg-amber-200 active:scale-95 disabled:opacity-50"
           aria-label="Show different cards"
         >
           <ArrowPathIcon
-            className={cn('h-4 w-4', isRefreshing && 'animate-spin')}
+            className={cn('h-5 w-5', isRefreshing && 'animate-spin')}
           />
         </button>
       </div>
 
-      {/* Featured cards */}
-      <div className="relative flex items-center justify-center gap-4">
+      {/* Featured cards - responsive gap */}
+      <div className="relative flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
         {randomCards.map((card, index) => (
           <FeaturedCard
             key={`${card.cardId}-${refreshKey}-${index}`}
@@ -248,14 +252,14 @@ export function FeaturedCardsPreview({
         ))}
       </div>
 
-      {/* Footer link */}
+      {/* Footer link - larger touch target */}
       <div className="relative mt-4 text-center">
         <Link
           href="/collection"
-          className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700"
+          className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-200"
         >
           View your collection
-          <ArrowRightIcon className="h-3 w-3" />
+          <ArrowRightIcon className="h-4 w-4" />
         </Link>
       </div>
     </div>

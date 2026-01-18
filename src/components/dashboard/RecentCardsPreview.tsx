@@ -200,7 +200,7 @@ export function RecentCardsPreview({
   return (
     <div className={cn('relative rounded-2xl bg-white p-4 shadow-sm', className)}>
       {/* Header */}
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ClockIcon className="h-5 w-5 text-indigo-500" />
           <h3 className="font-semibold text-gray-800">Recently Added</h3>
@@ -208,33 +208,34 @@ export function RecentCardsPreview({
             {recentCards.summary.totalAdditions}
           </span>
         </div>
+        {/* Larger touch target for kid-friendly tapping */}
         <Link
           href="/collection"
-          className="flex items-center gap-1 text-sm text-indigo-500 hover:text-indigo-600"
+          className="flex items-center gap-1.5 rounded-full bg-indigo-100 px-3 py-1.5 text-sm font-medium text-indigo-600 transition-colors hover:bg-indigo-200"
         >
           View all
-          <ArrowRightIcon className="h-3 w-3" />
+          <ArrowRightIcon className="h-4 w-4" />
         </Link>
       </div>
 
       {/* Scrollable cards container */}
       <div className="relative">
-        {/* Scroll buttons - only show if there are enough cards */}
+        {/* Scroll buttons - larger touch targets for kids, only show if there are enough cards */}
         {recentCards.cards.length > 4 && (
           <>
             <button
               onClick={() => scroll('left')}
-              className="absolute -left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-1.5 shadow-md transition-all hover:bg-gray-50 hover:shadow-lg"
+              className="absolute -left-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md transition-all hover:bg-gray-50 hover:shadow-lg active:scale-95 sm:-left-2"
               aria-label="Scroll left"
             >
-              <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
+              <ChevronLeftIcon className="h-5 w-5 text-gray-600" />
             </button>
             <button
               onClick={() => scroll('right')}
-              className="absolute -right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-1.5 shadow-md transition-all hover:bg-gray-50 hover:shadow-lg"
+              className="absolute -right-1 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md transition-all hover:bg-gray-50 hover:shadow-lg active:scale-95 sm:-right-2"
               aria-label="Scroll right"
             >
-              <ChevronRightIcon className="h-4 w-4 text-gray-600" />
+              <ChevronRightIcon className="h-5 w-5 text-gray-600" />
             </button>
           </>
         )}

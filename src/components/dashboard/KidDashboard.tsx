@@ -61,23 +61,25 @@ function QuickActionCard({
     <Link
       href={href}
       className={cn(
-        'group relative flex items-center gap-4 rounded-2xl p-4 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md',
+        'group relative flex items-center gap-3 rounded-2xl p-4 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md sm:gap-4',
         gradient
       )}
     >
+      {/* Larger touch-friendly icon container */}
       <div
         className={cn(
-          'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br shadow-md',
+          'flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br shadow-md',
           iconGradient
         )}
       >
-        <Icon className="h-6 w-6 text-white" />
+        <Icon className="h-7 w-7 text-white" />
       </div>
       <div className="min-w-0 flex-1">
-        <h3 className="font-semibold text-gray-800 group-hover:text-gray-900">{title}</h3>
-        <p className="text-sm text-gray-500">{description}</p>
+        <h3 className="text-base font-semibold text-gray-800 group-hover:text-gray-900">{title}</h3>
+        {/* Hide description on very small screens to reduce text */}
+        <p className="hidden text-sm text-gray-500 xs:block sm:block">{description}</p>
       </div>
-      <ArrowRightIcon className="h-5 w-5 flex-shrink-0 text-gray-400 transition-transform group-hover:translate-x-1 group-hover:text-gray-600" />
+      <ArrowRightIcon className="h-6 w-6 flex-shrink-0 text-gray-400 transition-transform group-hover:translate-x-1 group-hover:text-gray-600" />
     </Link>
   );
 }
@@ -99,7 +101,7 @@ function StatCard({ icon: Icon, value, label, gradient, iconColor, animate }: St
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl p-4 shadow-sm transition-all hover:shadow-md',
+        'relative overflow-hidden rounded-2xl p-3 shadow-sm transition-all hover:shadow-md sm:p-4',
         gradient
       )}
       role="group"
@@ -114,21 +116,22 @@ function StatCard({ icon: Icon, value, label, gradient, iconColor, animate }: St
         }}
         aria-hidden="true"
       />
-      <div className="relative flex items-center gap-3">
+      <div className="relative flex items-center gap-2 sm:gap-3">
+        {/* Slightly larger icon container for better touch */}
         <div
           className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-xl bg-white/60 shadow-sm',
+            'flex h-11 w-11 items-center justify-center rounded-xl bg-white/60 shadow-sm sm:h-12 sm:w-12',
             animate && 'animate-pulse'
           )}
           aria-hidden="true"
         >
-          <Icon className={cn('h-5 w-5', iconColor)} />
+          <Icon className={cn('h-5 w-5 sm:h-6 sm:w-6', iconColor)} />
         </div>
         <div>
-          <div className="text-2xl font-bold text-gray-800" aria-hidden="true">
+          <div className="text-xl font-bold text-gray-800 sm:text-2xl" aria-hidden="true">
             {value}
           </div>
-          <div className="text-xs font-medium text-gray-500" aria-hidden="true">
+          <div className="text-[10px] font-medium text-gray-500 sm:text-xs" aria-hidden="true">
             {label}
           </div>
         </div>
@@ -188,12 +191,13 @@ function BadgeProgressPreview({ className }: BadgeProgressPreviewProps) {
           <TrophyIcon className="h-5 w-5 text-amber-500" />
           <h3 className="font-semibold text-gray-800">Badges</h3>
         </div>
+        {/* Larger touch target for kid-friendly tapping */}
         <Link
           href="/badges"
-          className="flex items-center gap-1 text-sm text-kid-primary hover:text-kid-primary/80"
+          className="flex items-center gap-1.5 rounded-full bg-kid-primary/10 px-3 py-1.5 text-sm font-medium text-kid-primary transition-colors hover:bg-kid-primary/20"
         >
           View all
-          <ArrowRightIcon className="h-3 w-3" />
+          <ArrowRightIcon className="h-4 w-4" />
         </Link>
       </div>
 
@@ -256,17 +260,18 @@ function StreakCalendarPreview({ className }: StreakCalendarPreviewProps) {
   return (
     <div className={cn('rounded-2xl bg-white shadow-sm', className)}>
       {/* Header with link to full calendar */}
-      <div className="flex items-center justify-between border-b border-gray-100 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 p-4">
         <div className="flex items-center gap-2">
           <CalendarDaysIcon className="h-5 w-5 text-orange-500" />
           <h3 className="font-semibold text-gray-800">Activity Calendar</h3>
         </div>
+        {/* Larger touch target for kid-friendly tapping */}
         <Link
           href="/streak"
-          className="flex items-center gap-1 text-sm text-orange-500 hover:text-orange-600"
+          className="flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1.5 text-sm font-medium text-orange-600 transition-colors hover:bg-orange-200"
         >
-          View full calendar
-          <ArrowRightIcon className="h-3 w-3" />
+          View calendar
+          <ArrowRightIcon className="h-4 w-4" />
         </Link>
       </div>
       {/* Compact calendar view */}
@@ -298,24 +303,29 @@ function GamificationHero({ className }: GamificationHeroProps) {
     profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
   );
 
-  if (profileLoading || streakProgress === undefined || achievements === undefined) {
+  const milestoneProgress = useQuery(
+    api.achievements.getMilestoneProgress,
+    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+  );
+
+  if (profileLoading || streakProgress === undefined || achievements === undefined || milestoneProgress === undefined) {
     return (
       <div className={cn('grid gap-4 sm:grid-cols-2', className)}>
-        <div className="animate-pulse rounded-2xl bg-gradient-to-br from-orange-100 to-amber-50 p-6">
+        <div className="animate-pulse rounded-3xl bg-gradient-to-br from-orange-100 to-amber-50 p-6">
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-2xl bg-white/50" />
+            <div className="h-20 w-20 rounded-2xl bg-white/50" />
             <div className="flex-1">
-              <div className="mb-2 h-8 w-24 rounded bg-white/50" />
-              <div className="h-4 w-32 rounded bg-white/50" />
+              <div className="mb-2 h-10 w-28 rounded bg-white/50" />
+              <div className="h-4 w-36 rounded bg-white/50" />
             </div>
           </div>
         </div>
-        <div className="animate-pulse rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-50 p-6">
+        <div className="animate-pulse rounded-3xl bg-gradient-to-br from-indigo-100 to-purple-50 p-6">
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-2xl bg-white/50" />
+            <div className="h-20 w-20 rounded-2xl bg-white/50" />
             <div className="flex-1">
-              <div className="mb-2 h-8 w-24 rounded bg-white/50" />
-              <div className="h-4 w-32 rounded bg-white/50" />
+              <div className="mb-2 h-10 w-28 rounded bg-white/50" />
+              <div className="h-4 w-36 rounded bg-white/50" />
             </div>
           </div>
         </div>
@@ -326,128 +336,193 @@ function GamificationHero({ className }: GamificationHeroProps) {
   const currentStreak = streakProgress.currentStreak ?? 0;
   const isHotStreak = currentStreak >= 7;
   const isOnFire = currentStreak >= 14;
+  const isSuperStreak = currentStreak >= 30;
 
-  // Get recent badge for celebration
-  const recentBadge = achievements
-    .filter((a) => a.earnedAt !== null)
-    .sort((a, b) => (b.earnedAt ?? 0) - (a.earnedAt ?? 0))[0];
+  // Get recent badges for celebration (within 48 hours for more visibility)
+  const recentBadges = achievements
+    .filter((a) => a.earnedAt !== null && Date.now() - (a.earnedAt ?? 0) < 48 * 60 * 60 * 1000)
+    .sort((a, b) => (b.earnedAt ?? 0) - (a.earnedAt ?? 0));
 
-  // Check if badge was earned recently (within 24 hours)
-  const badgeIsRecent = recentBadge?.earnedAt && Date.now() - recentBadge.earnedAt < 24 * 60 * 60 * 1000;
+  const hasRecentBadges = recentBadges.length > 0;
+
+  // Calculate XP for display
+  const totalXP = milestoneProgress.totalUniqueCards * 2;
 
   return (
     <div className={cn('grid gap-4 sm:grid-cols-2', className)}>
-      {/* Enhanced Streak Display */}
+      {/* Enhanced Streak Display - More prominent with larger elements */}
       <Link
         href="/streak"
-        className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 p-5 shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl"
-      >
-        {/* Animated background particles for hot streaks */}
-        {isHotStreak && (
-          <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-            <div className="absolute left-4 top-4 h-2 w-2 animate-ping rounded-full bg-yellow-300/40" style={{ animationDelay: '0s' }} />
-            <div className="absolute right-8 top-6 h-1.5 w-1.5 animate-ping rounded-full bg-orange-300/40" style={{ animationDelay: '0.5s' }} />
-            <div className="absolute bottom-8 left-8 h-2 w-2 animate-ping rounded-full bg-pink-300/40" style={{ animationDelay: '1s' }} />
-            <div className="absolute bottom-4 right-4 h-1.5 w-1.5 animate-ping rounded-full bg-yellow-300/40" style={{ animationDelay: '1.5s' }} />
-          </div>
+        className={cn(
+          'group relative overflow-hidden rounded-3xl p-6 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl',
+          'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500',
+          isOnFire && 'animate-streak-glow'
         )}
+      >
+        {/* Animated background particles - always show some, more for hot streaks */}
+        <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+          <div className="absolute left-4 top-4 h-3 w-3 animate-ping rounded-full bg-yellow-300/50" style={{ animationDelay: '0s' }} />
+          <div className="absolute right-8 top-6 h-2 w-2 animate-ping rounded-full bg-orange-300/50" style={{ animationDelay: '0.3s' }} />
+          <div className="absolute bottom-12 left-8 h-2.5 w-2.5 animate-ping rounded-full bg-pink-300/50" style={{ animationDelay: '0.6s' }} />
+          <div className="absolute bottom-6 right-6 h-2 w-2 animate-ping rounded-full bg-yellow-300/50" style={{ animationDelay: '0.9s' }} />
+          {isHotStreak && (
+            <>
+              <div className="absolute left-1/3 top-8 h-2 w-2 animate-ping rounded-full bg-red-300/40" style={{ animationDelay: '1.2s' }} />
+              <div className="absolute bottom-10 right-1/4 h-2 w-2 animate-ping rounded-full bg-amber-300/40" style={{ animationDelay: '1.5s' }} />
+            </>
+          )}
+        </div>
 
         {/* Background pattern */}
         <div
           className="absolute inset-0 opacity-10"
           style={{
             backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-            backgroundSize: '16px 16px',
+            backgroundSize: '20px 20px',
           }}
           aria-hidden="true"
         />
 
-        <div className="relative flex items-center gap-4">
-          {/* Large animated fire icon */}
-          <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-white/20 shadow-lg backdrop-blur-sm">
+        <div className="relative flex items-center gap-5">
+          {/* Extra large animated fire icon with glow effect */}
+          <div className={cn(
+            'relative flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl shadow-xl backdrop-blur-sm',
+            'bg-gradient-to-br from-yellow-400/30 to-orange-500/30',
+            isOnFire && 'animate-level-pulse'
+          )}>
+            {/* Animated ring behind fire */}
+            {isHotStreak && (
+              <div className="absolute inset-0 animate-achievement-ring rounded-2xl bg-yellow-400/20" aria-hidden="true" />
+            )}
             <FireIcon
               className={cn(
-                'h-10 w-10 text-white drop-shadow-lg',
-                isHotStreak && 'animate-streak-flame'
+                'h-12 w-12 text-white',
+                currentStreak > 0 ? 'animate-fire-dance' : 'drop-shadow-lg'
               )}
               aria-hidden="true"
             />
             {isOnFire && (
               <>
                 <SparklesIcon
-                  className="animate-sparkle absolute -right-2 -top-2 h-5 w-5 text-yellow-300 drop-shadow"
+                  className="animate-sparkle absolute -right-2 -top-2 h-6 w-6 text-yellow-300 drop-shadow-lg"
                   aria-hidden="true"
                 />
                 <SparklesIcon
-                  className="animate-sparkle absolute -bottom-1 -left-1 h-4 w-4 text-yellow-300 drop-shadow"
+                  className="animate-sparkle absolute -bottom-1 -left-2 h-5 w-5 text-yellow-300 drop-shadow-lg"
                   style={{ animationDelay: '0.5s' }}
                   aria-hidden="true"
                 />
+                {isSuperStreak && (
+                  <SparklesIcon
+                    className="animate-sparkle absolute -top-1 left-1/2 h-4 w-4 -translate-x-1/2 text-amber-200 drop-shadow-lg"
+                    style={{ animationDelay: '1s' }}
+                    aria-hidden="true"
+                  />
+                )}
               </>
             )}
           </div>
 
           <div className="flex-1">
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-white drop-shadow-lg">
+              <span className="text-5xl font-extrabold text-white drop-shadow-lg">
                 {currentStreak}
               </span>
-              <span className="text-lg font-semibold text-white/90">
+              <span className="text-xl font-bold text-white/90">
                 day{currentStreak !== 1 ? 's' : ''}
               </span>
             </div>
-            <p className="text-sm font-medium text-white/80">
+            <p className="mt-1 text-base font-semibold text-white/90">
               {currentStreak === 0
                 ? 'Start your streak today!'
-                : currentStreak < 7
-                  ? 'Keep collecting daily!'
-                  : currentStreak < 14
-                    ? 'Amazing streak!'
-                    : "You're on fire!"}
+                : currentStreak < 3
+                  ? 'Keep it going!'
+                  : currentStreak < 7
+                    ? 'Great streak!'
+                    : currentStreak < 14
+                      ? 'Amazing streak!'
+                      : currentStreak < 30
+                        ? "You're on fire!"
+                        : 'LEGENDARY!'}
             </p>
           </div>
 
           {/* Arrow indicator */}
-          <ArrowRightIcon className="h-5 w-5 flex-shrink-0 text-white/60 transition-transform group-hover:translate-x-1 group-hover:text-white" />
+          <ArrowRightIcon className="h-6 w-6 flex-shrink-0 text-white/70 transition-transform group-hover:translate-x-1 group-hover:text-white" />
         </div>
 
-        {/* Next milestone hint */}
+        {/* Next milestone hint - more prominent */}
         {streakProgress.nextBadge && (
-          <div className="relative mt-3 flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 backdrop-blur-sm">
-            <TrophyIconSolid className="h-4 w-4 text-yellow-300" aria-hidden="true" />
-            <span className="text-xs font-medium text-white/90">
-              {streakProgress.nextBadge.daysNeeded} more day{streakProgress.nextBadge.daysNeeded !== 1 ? 's' : ''} for{' '}
-              <span className="font-semibold">{streakProgress.nextBadge.name}</span>
+          <div className="relative mt-4 flex items-center gap-3 rounded-xl bg-white/15 px-4 py-3 backdrop-blur-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-400/30">
+              <TrophyIconSolid className="h-5 w-5 text-yellow-300" aria-hidden="true" />
+            </div>
+            <span className="text-sm font-medium text-white">
+              <span className="font-bold">{streakProgress.nextBadge.daysNeeded}</span> more day{streakProgress.nextBadge.daysNeeded !== 1 ? 's' : ''} for{' '}
+              <span className="font-bold text-yellow-200">{streakProgress.nextBadge.name}</span>
             </span>
           </div>
         )}
       </Link>
 
-      {/* Enhanced Level/XP Display */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-5 shadow-lg">
+      {/* Enhanced Level/XP Display - More prominent with visual progress */}
+      <div className={cn(
+        'relative overflow-hidden rounded-3xl p-6 shadow-xl',
+        'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500'
+      )}>
         {/* Background pattern */}
         <div
           className="absolute inset-0 opacity-10"
           style={{
             backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-            backgroundSize: '16px 16px',
+            backgroundSize: '20px 20px',
           }}
           aria-hidden="true"
         />
+
+        {/* Animated sparkle particles for level */}
+        <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+          <SparklesIcon className="animate-sparkle absolute left-6 top-6 h-4 w-4 text-white/30" style={{ animationDelay: '0s' }} />
+          <SparklesIcon className="animate-sparkle absolute right-10 top-10 h-3 w-3 text-white/25" style={{ animationDelay: '0.7s' }} />
+          <SparklesIcon className="animate-sparkle absolute bottom-16 left-10 h-4 w-4 text-white/30" style={{ animationDelay: '1.4s' }} />
+        </div>
 
         <div className="relative">
           <LevelDisplay variant="full" className="!bg-transparent !p-0 !shadow-none" />
         </div>
 
-        {/* Recent badge celebration */}
-        {badgeIsRecent && recentBadge && (
-          <div className="relative mt-3 flex items-center gap-2 rounded-xl bg-white/20 px-3 py-2 backdrop-blur-sm">
-            <div className="flex h-6 w-6 animate-pulse items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow">
-              <StarIcon className="h-4 w-4 text-white" />
+        {/* XP Total display - more prominent */}
+        <div className="relative mt-4 flex items-center justify-between rounded-xl bg-white/15 px-4 py-3 backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <BoltIcon className="h-5 w-5 text-yellow-300" aria-hidden="true" />
+            <span className="text-sm font-bold text-white">{totalXP} Total XP</span>
+          </div>
+          <span className="text-sm font-medium text-white/80">
+            {milestoneProgress.totalUniqueCards} cards
+          </span>
+        </div>
+
+        {/* Recent badges celebration - extended window and more prominent */}
+        {hasRecentBadges && (
+          <div className="relative mt-3 overflow-hidden rounded-xl bg-gradient-to-r from-amber-400/30 to-orange-500/30 px-4 py-3 backdrop-blur-sm">
+            {/* Shine animation on badge celebration */}
+            <div className="absolute inset-0 animate-badge-shine" aria-hidden="true" />
+            <div className="relative flex items-center gap-3">
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg">
+                {/* Pulsing ring */}
+                <div className="absolute inset-0 animate-achievement-ring rounded-full bg-amber-400/40" aria-hidden="true" />
+                <StarIcon className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">
+                  {recentBadges.length === 1 ? 'New Badge!' : `${recentBadges.length} New Badges!`}
+                </p>
+                <p className="text-xs font-medium text-white/80">
+                  {recentBadges[0].achievementKey}
+                  {recentBadges.length > 1 && ` +${recentBadges.length - 1} more`}
+                </p>
+              </div>
             </div>
-            <span className="text-xs font-medium text-white/90">
-              New badge earned! <span className="font-semibold">{recentBadge.achievementKey}</span>
-            </span>
           </div>
         )}
       </div>
