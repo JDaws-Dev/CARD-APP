@@ -1188,3 +1188,9 @@
 **Files:** 21 new layout.tsx files in src/app/*/layout.tsx and src/app/*/*/layout.tsx
 **Commit:** b9b7057
 ---
+## CD-3gc - SEO - Add Open Graph and Twitter Card tags
+**Status:** Completed
+**Changes:** Added Open Graph metadata (og:title, og:description, og:url, etc.) and Twitter Card tags (summary_large_image) to root layout.tsx. Created dynamic OG and Twitter images using Next.js ImageResponse API.
+**Files:** src/app/layout.tsx, src/app/opengraph-image.tsx (new), src/app/twitter-image.tsx (new)
+**Commit:** db98573
+---
