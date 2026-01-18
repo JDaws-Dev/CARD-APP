@@ -158,3 +158,9 @@
 **Files:** src/components/ai/AIQuiz.tsx (new file, 827 lines)
 **Commit:** 53ce67a
 ---
+## CD-tm7 - AI-030: Add AI quiz to Learn page
+**Status:** Completed
+**Changes:** Added AI Quiz section to Learn page with SparklesIcon banner and "Quiz Me!" button that opens the AIQuiz modal. Mobile responsive layout.
+**Files:** src/components/tutorials/LearnToCollect.tsx
+**Commit:** d0d4ecd
+---
