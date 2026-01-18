@@ -29,11 +29,29 @@ import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://carddex.app';
+
 export const metadata: Metadata = {
   title: 'CardDex - Pokemon Card Collection Tracker',
   description:
     'The family-friendly way to track, organize, and celebrate your Pokemon card collection. Built for kids ages 6-14 and their families.',
   keywords: ['pokemon', 'cards', 'collection', 'tracker', 'kids', 'tcg', 'trading cards'],
+  metadataBase: new URL(siteUrl),
+  openGraph: {
+    title: 'CardDex - Pokemon Card Collection Tracker',
+    description:
+      'The family-friendly way to track, organize, and celebrate your Pokemon card collection. Built for kids ages 6-14 and their families.',
+    url: siteUrl,
+    siteName: 'CardDex',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CardDex - Pokemon Card Collection Tracker',
+    description:
+      'The family-friendly way to track, organize, and celebrate your Pokemon card collection. Built for kids ages 6-14 and their families.',
+  },
 };
 
 export default function RootLayout({
