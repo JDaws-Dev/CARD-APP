@@ -762,3 +762,9 @@
 - src/components/collection/__tests__/CollectionView.test.tsx
 **Commit:** f7f3a64
 ---
+## CD-kxm - Fix card detail modal - arrows don't update card image
+**Status:** Completed
+**Changes:** Fixed CardImage component to properly reset image state when src prop changes during card navigation. Used a ref to track the previous src prop value separately from internal imageSrc state. This ensures the image updates when navigating between cards while preserving error fallback behavior.
+**Files:** src/components/ui/CardImage.tsx, src/components/ui/__tests__/CardImage.test.tsx
+**Commit:** 09136c6018993d210aeed07e8a71e1e836c83ed5
+---

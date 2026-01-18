@@ -261,6 +261,7 @@ export function CardDetailModal({
         <div className="relative w-full max-w-sm shrink-0">
           <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-xl shadow-2xl">
             <CardImage
+              key={card.id}
               src={largeImage}
               alt={card.name}
               fill
