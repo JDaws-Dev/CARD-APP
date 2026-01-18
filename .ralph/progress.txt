@@ -607,3 +607,9 @@
 **Files:** src/app/browse/page.tsx
 **Commit:** 2127488
 ---
+## CD-fzv.4 - Add gameSlug filtering to achievement backend queries
+**Status:** Completed
+**Changes:** Added optional gameSlug parameter to getAchievements and getAchievementsWithDates queries. Created achievementBelongsToGame helper function that determines game affiliation (set_completion by set's game, type_specialist/pokemon_fan Pokemon-only, milestone/streak global).
+**Files:** convex/achievements.ts
+**Commit:** db47175
+---

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { Suspense, useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 
 type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
-export default function SetsPage() {
+function SetsPageContent() {
   const searchParams = useSearchParams();
   const { primaryGame, isLoading: gameLoading } = useGameSelector();
   const [sampleCards, setSampleCards] = useState<Record<string, string>>({});
@@ -195,5 +195,38 @@ export default function SetsPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-indigo-50 to-purple-50 px-4 py-8 dark:from-slate-900 dark:to-slate-800">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8 text-center">
+          <div className="mb-4 flex items-center justify-center gap-4">
+            <div className="h-5 w-24 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
+          </div>
+          <div className="mx-auto h-10 w-48 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
+          <div className="mx-auto mt-2 h-5 w-64 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="animate-pulse rounded-xl bg-white p-4 shadow-md dark:bg-slate-800">
+              <div className="mb-3 h-20 rounded-lg bg-gray-200 dark:bg-slate-700" />
+              <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-slate-700" />
+              <div className="mt-2 h-3 w-1/2 rounded bg-gray-200 dark:bg-slate-700" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default function SetsPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <SetsPageContent />
+    </Suspense>
   );
 }
