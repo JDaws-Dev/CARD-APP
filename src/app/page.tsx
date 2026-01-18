@@ -1117,12 +1117,12 @@ export default function Home() {
               </div>
               <h3 className="mb-2 text-xl font-bold text-gray-900">No Personal Data</h3>
               <p className="text-sm text-gray-600">
-                We don&apos;t collect personal information from kids. No real names required, no
-                location tracking, and no data sold to third parties. Ever.
+                We never send your child&apos;s name or info to AI. Our AI features only see card
+                data, never personal details about your family.
               </p>
               <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
                 <CheckIcon className="h-3 w-3" />
-                Privacy first
+                AI privacy protected
               </div>
               <div
                 className="absolute -bottom-2 -right-2 h-24 w-24 rounded-full bg-amber-500/5 transition-all group-hover:scale-150"
