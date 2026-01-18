@@ -245,7 +245,9 @@ export default function PublicWishlistPage() {
         });
 
         if (response.ok) {
-          const cards: PokemonCard[] = await response.json();
+          const result = await response.json();
+          // API returns { data: [...cards...], ... } structure
+          const cards: PokemonCard[] = result.data || [];
           const cardMap = new Map<string, PokemonCard>();
           cards.forEach((card) => cardMap.set(card.id, card));
           setCardData(cardMap);

@@ -688,3 +688,9 @@
 **Files:** src/components/layout/AppHeader.tsx
 **Commit:** 00bf141
 ---
+## CD-1om - Fix header branding - CardDex name not visible
+**Status:** Completed
+**Changes:** Created text-game-gradient CSS utility class with @supports fallback for browsers that don't support gradient text. The CardDex brand name now displays as a gradient when supported, with solid primary color fallback otherwise.
+**Files:** src/app/globals.css, src/components/layout/AppHeader.tsx
+**Commit:** 175bd40
+---
