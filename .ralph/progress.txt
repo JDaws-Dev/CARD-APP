@@ -1248,3 +1248,9 @@
 **Files:** src/components/icons/tcg/index.tsx, src/components/header/GameSwitcher.tsx, src/components/dashboard/KidDashboard.tsx
 **Commit:** 7294665
 ---
+## CD-yiw - Remove 'More games coming soon' messaging
+**Status:** Completed
+**Changes:** Removed all 'more games coming soon' messaging from landing page, onboarding, and SetsList. Refactored ComingSoonState to NoSetsState with clearer wording.
+**Files:** src/app/page.tsx, src/lib/gameSelector.ts, src/components/sets/SetsList.tsx, src/components/onboarding/__tests__/GameSelectorOnboarding.test.tsx
+**Commit:** 7a1de09
+---
