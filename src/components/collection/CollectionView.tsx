@@ -22,6 +22,15 @@ import { RandomCardButton } from './RandomCardButton';
 import { DigitalBinder, DigitalBinderButton } from '@/components/virtual/DigitalBinder';
 import { CardDetailModal } from './CardDetailModal';
 import { VariantFilter, VARIANT_CATEGORIES, type VariantCategoryId } from '@/components/filter/VariantFilter';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
+
+// Sort options for the collection
+type SortOption = 'set' | 'dateAdded';
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'set', label: 'By Set' },
+  { value: 'dateAdded', label: 'Recently Added' },
+];
 
 // Variant types and display configuration
 type CardVariant =
@@ -94,6 +103,7 @@ interface CollectionCard {
   cardId: string;
   quantity: number;
   variant?: string;
+  _creationTime?: number; // Convex creation timestamp for date sorting
 }
 
 interface CollectionViewProps {
@@ -104,6 +114,7 @@ interface CardWithQuantity extends PokemonCard {
   quantity: number;
   collectionId: string; // Unique ID from the collection entry
   ownedVariants?: Record<string, number>; // variant -> quantity
+  addedAt?: number; // Earliest creation time for this card (for date sorting)
 }
 
 interface SetGroup {
@@ -123,6 +134,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<VariantCategoryId | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('set');
 
   // Get current profile for mutations
   const { profileId } = useCurrentProfile();
@@ -199,23 +211,30 @@ export function CollectionView({ collection }: CollectionViewProps) {
     const setMap = new Map<string, SetGroup>();
 
     // First pass: aggregate quantities and variants by cardId
+    // Track the most recent creation time for date sorting
     const cardAggregates = new Map<
       string,
-      { totalQuantity: number; variants: Record<string, number>; firstId: string }
+      { totalQuantity: number; variants: Record<string, number>; firstId: string; latestAddedAt: number }
     >();
 
     collection.forEach((item) => {
       const existing = cardAggregates.get(item.cardId);
       const variant = item.variant ?? 'normal';
+      const creationTime = item._creationTime ?? 0;
 
       if (existing) {
         existing.totalQuantity += item.quantity;
         existing.variants[variant] = (existing.variants[variant] ?? 0) + item.quantity;
+        // Track the most recent addition time
+        if (creationTime > existing.latestAddedAt) {
+          existing.latestAddedAt = creationTime;
+        }
       } else {
         cardAggregates.set(item.cardId, {
           totalQuantity: item.quantity,
           variants: { [variant]: item.quantity },
           firstId: item._id,
+          latestAddedAt: creationTime,
         });
       }
     });
@@ -240,6 +259,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
           quantity: aggregate.totalQuantity,
           collectionId: aggregate.firstId,
           ownedVariants: aggregate.variants,
+          addedAt: aggregate.latestAddedAt,
         });
       }
     });
@@ -288,21 +308,43 @@ export function CollectionView({ collection }: CollectionViewProps) {
     return counts;
   }, [collection]);
 
-  // Filter setGroups by selected variant
+  // Filter and sort setGroups based on selected variant and sort option
   const filteredSetGroups = useMemo(() => {
-    if (!selectedVariant) {
-      return setGroups;
+    let groups = setGroups;
+
+    // Apply variant filter if selected
+    if (selectedVariant) {
+      groups = groups
+        .map(group => ({
+          ...group,
+          cards: group.cards.filter(card =>
+            card.ownedVariants && card.ownedVariants[selectedVariant] !== undefined
+          ),
+        }))
+        .filter(group => group.cards.length > 0);
     }
 
-    return setGroups
-      .map(group => ({
-        ...group,
-        cards: group.cards.filter(card =>
-          card.ownedVariants && card.ownedVariants[selectedVariant] !== undefined
-        ),
-      }))
-      .filter(group => group.cards.length > 0);
-  }, [setGroups, selectedVariant]);
+    // Apply sorting
+    if (sortBy === 'dateAdded') {
+      // For date-based sorting, flatten all cards into a single "Recently Added" group
+      const allCards: CardWithQuantity[] = [];
+      groups.forEach(group => {
+        allCards.push(...group.cards);
+      });
+
+      // Sort by date added (newest first)
+      allCards.sort((a, b) => (b.addedAt ?? 0) - (a.addedAt ?? 0));
+
+      // Return as a single group
+      return [{
+        setId: 'recently-added',
+        setName: 'Recently Added',
+        cards: allCards,
+      }];
+    }
+
+    return groups;
+  }, [setGroups, selectedVariant, sortBy]);
 
   // Calculate total collection value
   const collectionValue = useMemo(() => {
@@ -544,13 +586,33 @@ export function CollectionView({ collection }: CollectionViewProps) {
         onClose={() => setIsBinderOpen(false)}
       />
 
-      {/* Variant Filter */}
+      {/* Variant Filter and Sort */}
       {cardData.size > 0 && (
-        <VariantFilter
-          selectedVariant={selectedVariant}
-          onVariantChange={setSelectedVariant}
-          variantCounts={variantCounts}
-        />
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <VariantFilter
+            selectedVariant={selectedVariant}
+            onVariantChange={setSelectedVariant}
+            variantCounts={variantCounts}
+          />
+
+          {/* Sort Dropdown */}
+          <div className="relative">
+            <label htmlFor="sort-select" className="sr-only">Sort by</label>
+            <select
+              id="sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="appearance-none rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-300 focus:border-kid-primary focus:outline-none focus:ring-2 focus:ring-kid-primary/20"
+            >
+              {SORT_OPTIONS.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          </div>
+        </div>
       )}
 
       {/* Collection Value Banner */}
@@ -663,24 +725,32 @@ export function CollectionView({ collection }: CollectionViewProps) {
           {/* Set Header */}
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <Link
-                href={`/sets/${group.setId}`}
-                className="text-xl font-bold text-gray-800 hover:text-kid-primary"
-              >
-                {group.setName}
-              </Link>
+              {group.setId === 'recently-added' ? (
+                <h2 className="text-xl font-bold text-gray-800">
+                  {group.setName}
+                </h2>
+              ) : (
+                <Link
+                  href={`/sets/${group.setId}`}
+                  className="text-xl font-bold text-gray-800 hover:text-kid-primary"
+                >
+                  {group.setName}
+                </Link>
+              )}
               <p className="text-sm text-gray-500">
                 {group.cards.length} unique card{group.cards.length !== 1 ? 's' : ''} (
                 {group.cards.reduce((sum, c) => sum + c.quantity, 0)} total)
               </p>
             </div>
-            <Link
-              href={`/sets/${group.setId}`}
-              className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1 text-sm text-gray-600 hover:bg-gray-200"
-            >
-              View Set
-              <ArrowRightIcon className="h-3 w-3" />
-            </Link>
+            {group.setId !== 'recently-added' && (
+              <Link
+                href={`/sets/${group.setId}`}
+                className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1 text-sm text-gray-600 hover:bg-gray-200"
+              >
+                View Set
+                <ArrowRightIcon className="h-3 w-3" />
+              </Link>
+            )}
           </div>
 
           {/* Cards Grid */}
