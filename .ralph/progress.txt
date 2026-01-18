@@ -1023,3 +1023,9 @@
 **Files:** convex/dataPopulation.ts, src/components/ui/VariantBadge.tsx, src/components/collection/CardGrid.tsx, src/components/collection/VirtualCardGrid.tsx, convex/schema.ts, convex/collections.ts, convex/trades.ts, convex/tradingCalculator.ts, convex/dataPersistence.ts, convex/conflictResolution.ts, convex/dataBackup.ts, convex/subscriptionLimits.ts
 **Commit:** cb7bda6
 ---
+## CD-5yk.6 - One Piece: Add variant detection for parallel/alt art versions
+**Status:** Completed
+**Changes:** Added One Piece variant detection and display support. Implemented OnePieceVariant type with all rarity variants (L, C, UC, R, SR, SEC, SP, P) plus parallel art detection. Updated dataPopulation.ts to extract variants from rarity field and detect parallel art from image URL patterns (_p1, _p2 suffixes). Added ONEPIECE_VARIANT_CONFIG with appropriate display styling for all One Piece variant badges.
+**Files:** src/components/ui/VariantBadge.tsx, convex/dataPopulation.ts
+**Commit:** 5ee2eb4
+---
