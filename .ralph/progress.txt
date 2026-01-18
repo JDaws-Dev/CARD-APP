@@ -1123,3 +1123,9 @@
 **Files:** src/components/ai/SnapToAddFlow.tsx
 **Commit:** a65f528
 ---
+## CD-59x - Mobile Navigation Restructure - Bottom nav vs hamburger, search prominence
+**Status:** Completed
+**Changes:** Restructured mobile bottom navigation to add Dashboard (was missing!), promoted Search to bottom nav, removed More submenu (items moved to hamburger)
+**Files:** src/components/header/MobileBottomNav.tsx, src/components/layout/AppHeader.tsx
+**Commit:** b449369
+---
