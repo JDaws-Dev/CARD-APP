@@ -1359,5 +1359,5 @@
 **Status:** Completed
 **Changes:** Added price badge to WishlistCard component showing TCGPlayer market price on each card in the wishlist grid view. Uses same styling as CardGrid (amber for high-value, emerald for lower-value cards).
 **Files:** src/app/my-wishlist/page.tsx
-**Commit:** (pending)
+**Commit:** 7d1e827
 ---
