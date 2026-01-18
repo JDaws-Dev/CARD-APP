@@ -22,6 +22,49 @@ import { RandomCardButton } from './RandomCardButton';
 import { DigitalBinder, DigitalBinderButton } from '@/components/virtual/DigitalBinder';
 import { CardDetailModal } from './CardDetailModal';
 
+// Variant types and display configuration
+type CardVariant =
+  | 'normal'
+  | 'holofoil'
+  | 'reverseHolofoil'
+  | '1stEditionHolofoil'
+  | '1stEditionNormal';
+
+const VARIANT_CONFIG: Record<
+  CardVariant,
+  {
+    label: string;
+    shortLabel: string;
+    gradient: string;
+  }
+> = {
+  normal: {
+    label: 'Normal',
+    shortLabel: 'N',
+    gradient: 'from-gray-400 to-gray-500',
+  },
+  holofoil: {
+    label: 'Holofoil',
+    shortLabel: 'H',
+    gradient: 'from-purple-400 to-indigo-500',
+  },
+  reverseHolofoil: {
+    label: 'Reverse Holo',
+    shortLabel: 'R',
+    gradient: 'from-cyan-400 to-blue-500',
+  },
+  '1stEditionHolofoil': {
+    label: '1st Ed. Holo',
+    shortLabel: '1H',
+    gradient: 'from-amber-400 to-yellow-500',
+  },
+  '1stEditionNormal': {
+    label: '1st Edition',
+    shortLabel: '1N',
+    gradient: 'from-amber-400 to-orange-500',
+  },
+};
+
 // Helper function to get the best market price from a card's TCGPlayer prices
 function getCardMarketPrice(card: PokemonCard): number | null {
   const prices = card.tcgplayer?.prices;
@@ -623,6 +666,26 @@ export function CollectionView({ collection }: CollectionViewProps) {
                 <p className="mt-1 truncate text-center text-xs font-medium text-gray-700">
                   {card.name}
                 </p>
+
+                {/* Variant Badges */}
+                {card.ownedVariants && Object.keys(card.ownedVariants).length > 0 && (
+                  <div className="mt-1 flex flex-wrap items-center justify-center gap-0.5">
+                    {Object.entries(card.ownedVariants).map(([variant, qty]) => {
+                      const config = VARIANT_CONFIG[variant as CardVariant];
+                      if (!config) return null;
+                      return (
+                        <span
+                          key={variant}
+                          className={`inline-flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[10px] font-medium text-white bg-gradient-to-r ${config.gradient}`}
+                          title={`${config.label} x${qty}`}
+                        >
+                          {config.shortLabel}
+                          {qty > 1 && <span className="text-white/80">x{qty}</span>}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
               </button>
             ))}
           </div>
