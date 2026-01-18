@@ -21,6 +21,7 @@ import {
 import { RandomCardButton } from './RandomCardButton';
 import { DigitalBinder, DigitalBinderButton } from '@/components/virtual/DigitalBinder';
 import { CardDetailModal } from './CardDetailModal';
+import { VariantFilter, VARIANT_CATEGORIES, type VariantCategoryId } from '@/components/filter/VariantFilter';
 
 // Variant types and display configuration
 type CardVariant =
@@ -121,6 +122,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<VariantCategoryId | null>(null);
 
   // Get current profile for mutations
   const { profileId } = useCurrentProfile();
@@ -258,6 +260,49 @@ export function CollectionView({ collection }: CollectionViewProps) {
 
     return groups;
   }, [collection, cardData]);
+
+  // Calculate variant counts for the filter
+  const variantCounts = useMemo(() => {
+    const counts = new Map<VariantCategoryId, number>();
+
+    // Initialize counts for all variants
+    VARIANT_CATEGORIES.forEach(category => {
+      counts.set(category.id, 0);
+    });
+
+    // Count unique cards per variant (not quantities)
+    // A card with multiple of the same variant still counts as 1 for filter purposes
+    const cardVariantSet = new Set<string>();
+
+    collection.forEach((item) => {
+      const variant = (item.variant ?? 'normal') as VariantCategoryId;
+      const key = `${item.cardId}-${variant}`;
+
+      // Only count each card-variant combination once
+      if (!cardVariantSet.has(key) && counts.has(variant)) {
+        cardVariantSet.add(key);
+        counts.set(variant, (counts.get(variant) ?? 0) + 1);
+      }
+    });
+
+    return counts;
+  }, [collection]);
+
+  // Filter setGroups by selected variant
+  const filteredSetGroups = useMemo(() => {
+    if (!selectedVariant) {
+      return setGroups;
+    }
+
+    return setGroups
+      .map(group => ({
+        ...group,
+        cards: group.cards.filter(card =>
+          card.ownedVariants && card.ownedVariants[selectedVariant] !== undefined
+        ),
+      }))
+      .filter(group => group.cards.length > 0);
+  }, [setGroups, selectedVariant]);
 
   // Calculate total collection value
   const collectionValue = useMemo(() => {
@@ -499,6 +544,15 @@ export function CollectionView({ collection }: CollectionViewProps) {
         onClose={() => setIsBinderOpen(false)}
       />
 
+      {/* Variant Filter */}
+      {cardData.size > 0 && (
+        <VariantFilter
+          selectedVariant={selectedVariant}
+          onVariantChange={setSelectedVariant}
+          variantCounts={variantCounts}
+        />
+      )}
+
       {/* Collection Value Banner */}
       {collectionValue.total > 0 && (
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-6 text-white shadow-lg">
@@ -604,7 +658,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
         </div>
       )}
 
-      {setGroups.map((group) => (
+      {filteredSetGroups.map((group) => (
         <div key={group.setId} className="rounded-xl bg-white p-6 shadow-sm">
           {/* Set Header */}
           <div className="mb-4 flex items-center justify-between">
