@@ -1200,3 +1200,9 @@
 **Files:** public/robots.txt (created)
 **Commit:** f4af8d6
 ---
+## CD-yiy - SEO - Add JSON-LD structured data
+**Status:** Completed
+**Changes:** Added JSON-LD structured data schemas for SEO - SoftwareApplication (global), FAQPage (/learn), and BreadcrumbList (set detail pages)
+**Files:** src/lib/structured-data.ts (new), src/components/JsonLD.tsx (new), src/app/layout.tsx, src/app/learn/layout.tsx, src/app/sets/[setId]/page.tsx
+**Commit:** 076d7d9
+---
