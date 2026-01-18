@@ -133,15 +133,19 @@ function MobileGamePicker({
                   </div>
                 )}
 
-                {/* Game Icon - large for easy recognition */}
+                {/* Game Icon - large and prominent for easy recognition */}
                 <div
                   className={cn(
-                    'flex h-16 w-16 items-center justify-center rounded-xl transition-transform sm:h-20 sm:w-20',
-                    'bg-white/80 shadow-sm',
+                    'flex h-18 w-18 items-center justify-center rounded-2xl transition-transform sm:h-24 sm:w-24',
+                    'bg-white/90 shadow-lg',
                     'group-hover:scale-105 group-active:scale-95'
                   )}
                 >
-                  <GameIcon className={cn('h-10 w-10 sm:h-12 sm:w-12', game.primaryColor)} />
+                  <GameIcon
+                    className={cn('h-12 w-12 sm:h-14 sm:w-14', game.primaryColor)}
+                    aria-hidden="true"
+                  />
+                  <span className="sr-only">{game.name} logo</span>
                 </div>
 
                 {/* Game Name */}
@@ -223,9 +227,12 @@ function DesktopGamePicker({
               )}
             >
               <div
-                className={cn('flex h-8 w-8 items-center justify-center rounded-lg', game.bgColor)}
+                className={cn('flex h-9 w-9 items-center justify-center rounded-lg shadow-sm', game.bgColor)}
               >
-                <GameIcon className={cn('h-5 w-5', game.primaryColor)} />
+                <GameIcon
+                  className={cn('h-5 w-5', game.primaryColor)}
+                  aria-hidden="true"
+                />
               </div>
               <div className="flex-1">
                 <div className="font-medium">{game.name}</div>
@@ -277,10 +284,10 @@ export function GameSwitcher() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'flex items-center gap-2 rounded-lg font-medium transition-all',
+          'flex items-center gap-2 rounded-xl font-medium transition-all',
           'border-2 shadow-md hover:shadow-lg active:scale-95',
-          // Mobile: larger touch target (min 44x44px)
-          'h-11 min-w-[44px] justify-center px-3 md:h-auto md:min-w-0 md:px-3 md:py-2',
+          // Mobile: larger touch target with more prominent icon
+          'h-12 min-w-[48px] justify-center px-3 md:h-auto md:min-w-0 md:px-3 md:py-2.5',
           primaryGame.bgColor,
           primaryGame.borderColor,
           primaryGame.textColor
@@ -289,10 +296,16 @@ export function GameSwitcher() {
         aria-expanded={isOpen}
         aria-haspopup="dialog"
       >
-        <PrimaryIcon className={cn('h-5 w-5 md:h-5 md:w-5', primaryGame.primaryColor)} />
+        {/* Game icon - larger and more prominent */}
+        <span className="sr-only">{primaryGame.name} logo</span>
+        <PrimaryIcon
+          className={cn('h-6 w-6 md:h-6 md:w-6', primaryGame.primaryColor)}
+          aria-hidden="true"
+        />
         <span className="hidden md:inline">{primaryGame.name}</span>
         <ChevronDownIcon
           className={cn('hidden h-4 w-4 transition-transform md:block', primaryGame.primaryColor, isOpen && 'rotate-180')}
+          aria-hidden="true"
         />
       </button>
 

@@ -139,10 +139,27 @@ export const GAME_ICONS = {
 } as const;
 
 /**
+ * Map of game IDs to their display names for accessibility
+ */
+export const GAME_NAMES: Record<keyof typeof GAME_ICONS, string> = {
+  pokemon: 'Pokémon',
+  yugioh: 'Yu-Gi-Oh!',
+  onepiece: 'One Piece',
+  lorcana: 'Disney Lorcana',
+};
+
+/**
  * Get icon component for a game by ID
  */
 export function getGameIcon(
   gameId: keyof typeof GAME_ICONS
 ): (typeof GAME_ICONS)[keyof typeof GAME_ICONS] {
   return GAME_ICONS[gameId] ?? GenericTcgIcon;
+}
+
+/**
+ * Get the display name for a game by ID (for accessibility)
+ */
+export function getGameIconName(gameId: keyof typeof GAME_ICONS): string {
+  return GAME_NAMES[gameId] ?? 'Card Game';
 }

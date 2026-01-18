@@ -687,9 +687,13 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
 
         <div className="relative flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            {/* Game Logo Badge */}
-            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-white/20 shadow-lg backdrop-blur-sm sm:h-16 sm:w-16">
-              <GameIcon className="h-8 w-8 text-white drop-shadow sm:h-10 sm:w-10" />
+            {/* Game Logo Badge - Prominent and accessible */}
+            <div
+              className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-white/25 shadow-lg backdrop-blur-sm sm:h-18 sm:w-18"
+              role="img"
+              aria-label={`${gameInfo?.shortName || gameName} logo`}
+            >
+              <GameIcon className="h-8 w-8 text-white drop-shadow-lg sm:h-11 sm:w-11" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm font-medium text-white/70">{gameInfo?.shortName || gameName}</p>
