@@ -909,3 +909,13 @@
 **Files:** Verified: src/lib/profileGames.ts, src/lib/__tests__/profileGames.test.ts
 **Commit:** N/A - no changes needed
 ---
+## CD-4ka.2 - Add current game logo to dashboard header
+**Status:** Completed
+**Changes:** No changes needed - functionality was already implemented. Verified that game logo displays prominently in dashboard header via GameIcon component, updates when user switches games, and is appropriately sized (56-64px) and positioned.
+**Files:** (existing implementation)
+- src/components/dashboard/KidDashboard.tsx (lines 435-439)
+- src/components/icons/tcg/index.tsx
+- src/lib/gameSelector.ts
+- src/components/providers/GameSelectorProvider.tsx
+**Commit:** N/A (no changes required)
+---

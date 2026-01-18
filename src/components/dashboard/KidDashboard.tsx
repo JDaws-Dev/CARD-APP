@@ -388,6 +388,13 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
     return 'Good evening';
   }, []);
 
+  // Get game icon component - updates when gameSlug changes
+  // Must be called before early return to satisfy React hooks rules
+  const GameIcon = useMemo(() => getGameIcon(gameSlug as GameId), [gameSlug]);
+
+  // Get game info for theming
+  const gameInfo = getGameInfo(gameSlug as GameId);
+
   // Loading state
   if (profileLoading || stats === undefined || streakProgress === undefined) {
     return <KidDashboardSkeleton />;
@@ -396,12 +403,6 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
   const profileName = getDisplayName(profile?.displayName);
   const currentStreak = streakProgress.currentStreak ?? 0;
   const isActiveToday = streakProgress.isActiveToday ?? false;
-
-  // Get game info for theming
-  const gameInfo = getGameInfo(gameSlug as GameId);
-
-  // Get game icon component - updates when gameSlug changes
-  const GameIcon = useMemo(() => getGameIcon(gameSlug as GameId), [gameSlug]);
 
   return (
     <div className="space-y-6">
