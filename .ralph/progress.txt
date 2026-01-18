@@ -444,3 +444,9 @@
 **Files:** src/components/layout/AppHeader.tsx
 **Commit:** e271784
 ---
+## CD-vg4 - Remove redundant Back to Home link from dashboard
+**Status:** Completed
+**Changes:** Removed "Back to Home" link and "Go Home" button from dashboard error page since dashboard IS home. Error page now only shows "Try Again" button. Also removed incorrect test that tested for a link that didn't exist in the main dashboard page.
+**Files:** src/app/dashboard/error.tsx, src/app/dashboard/__tests__/page.test.tsx
+**Commit:** b9d98ce
+---
