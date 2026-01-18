@@ -718,3 +718,17 @@
 **Commit:** b76481a
 **Note:** Issue was already closed; these are supplementary fixes discovered during review.
 ---
+
+# Ralph Session 2026-01-18 05:42:11
+# Scope: Working on: **all open issues**
+
+
+# Ralph Session 2026-01-18 05:42:16
+# Scope: Working on: **all open issues**
+
+## CD-xzy - Remove all MTG references from codebase
+**Status:** Completed
+**Changes:** Removed MTG, Digimon, and DragonBall from supported games. Only 4 TCGs supported: Pokemon, Yu-Gi-Oh!, One Piece, Lorcana.
+**Files:** src/lib/profileGames.ts, src/lib/wishlist.ts, src/lib/unified-api-evaluation.ts, src/app/api/*/route.ts, src/lib/__tests__/profileGames.test.ts
+**Commit:** 5319999
+---

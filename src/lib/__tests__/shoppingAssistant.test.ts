@@ -907,18 +907,15 @@ describe('Game support', () => {
   const supportedGames = [
     'pokemon',
     'yugioh',
-    'mtg',
     'onepiece',
     'lorcana',
-    'digimon',
-    'dragonball',
   ];
 
   it.each(supportedGames)('should support %s game', (game) => {
     expect(supportedGames).toContain(game);
   });
 
-  it('should have 7 supported games', () => {
-    expect(supportedGames.length).toBe(7);
+  it('should have 4 supported games', () => {
+    expect(supportedGames.length).toBe(4);
   });
 });

@@ -661,11 +661,8 @@ describe('Multi-TCG Support', () => {
   const validGameSlugs = [
     'pokemon',
     'yugioh',
-    'mtg',
     'onepiece',
     'lorcana',
-    'digimon',
-    'dragonball',
   ];
 
   it('should support all valid game slugs', () => {
@@ -675,8 +672,8 @@ describe('Multi-TCG Support', () => {
     }
   });
 
-  it('should have 7 supported games', () => {
-    expect(validGameSlugs.length).toBe(7);
+  it('should have 4 supported games', () => {
+    expect(validGameSlugs.length).toBe(4);
   });
 });
 

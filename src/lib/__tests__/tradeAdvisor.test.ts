@@ -15,7 +15,7 @@ import { describe, it, expect } from 'vitest';
 // Types matching convex/ai/tradeAdvisor.ts
 type FairnessRating = 'very_fair' | 'fair' | 'slightly_uneven' | 'uneven';
 type TradeType = 'duplicate_swap' | 'wishlist_match' | 'set_completion' | 'type_match';
-type GameSlug = 'pokemon' | 'yugioh' | 'mtg' | 'onepiece' | 'lorcana' | 'digimon' | 'dragonball';
+type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
 interface TradeCard {
   cardId: string;
@@ -75,11 +75,8 @@ interface TradeAdvisorResult {
 const VALID_GAME_SLUGS: GameSlug[] = [
   'pokemon',
   'yugioh',
-  'mtg',
   'onepiece',
   'lorcana',
-  'digimon',
-  'dragonball',
 ];
 
 const VALID_FAIRNESS_RATINGS: FairnessRating[] = ['very_fair', 'fair', 'slightly_uneven', 'uneven'];
@@ -246,11 +243,8 @@ describe('Trade Advisor Types', () => {
     it('should accept all valid game slugs', () => {
       expect(isValidGameSlug('pokemon')).toBe(true);
       expect(isValidGameSlug('yugioh')).toBe(true);
-      expect(isValidGameSlug('mtg')).toBe(true);
       expect(isValidGameSlug('onepiece')).toBe(true);
       expect(isValidGameSlug('lorcana')).toBe(true);
-      expect(isValidGameSlug('digimon')).toBe(true);
-      expect(isValidGameSlug('dragonball')).toBe(true);
     });
 
     it('should reject invalid game slugs', () => {
@@ -828,21 +822,18 @@ describe('Trade Advisor Result Validation', () => {
 });
 
 describe('Multi-TCG Support', () => {
-  it('should support all 7 TCGs for trade suggestions', () => {
+  it('should support all 4 TCGs for trade suggestions', () => {
     const supportedGames: GameSlug[] = [
       'pokemon',
       'yugioh',
-      'mtg',
       'onepiece',
       'lorcana',
-      'digimon',
-      'dragonball',
     ];
 
     for (const game of supportedGames) {
       expect(isValidGameSlug(game)).toBe(true);
     }
-    expect(supportedGames).toHaveLength(7);
+    expect(supportedGames).toHaveLength(4);
   });
 
   it('should handle game-specific card types', () => {
@@ -872,18 +863,18 @@ describe('Multi-TCG Support', () => {
     };
     expect(isValidTradeCard(yugiohCard)).toBe(true);
 
-    // MTG types
-    const mtgCard: TradeCard = {
-      cardId: 'M21-001',
-      name: 'Baneslayer Angel',
-      setId: 'M21',
-      setName: 'Core Set 2021',
-      rarity: 'Mythic Rare',
+    // Lorcana types
+    const lorcanaCard: TradeCard = {
+      cardId: 'TFC-001',
+      name: 'Mickey Mouse - True Friend',
+      setId: 'TFC',
+      setName: 'The First Chapter',
+      rarity: 'Legendary',
       imageUrl: '',
-      marketPrice: 5.0,
-      types: ['Creature', 'Angel'],
+      marketPrice: 15.0,
+      types: ['Hero', 'Storyborn'],
     };
-    expect(isValidTradeCard(mtgCard)).toBe(true);
+    expect(isValidTradeCard(lorcanaCard)).toBe(true);
   });
 });
 

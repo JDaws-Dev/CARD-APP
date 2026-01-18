@@ -206,15 +206,12 @@ describe('VALID_GAME_SLUGS', () => {
   it('should contain all expected game slugs', () => {
     expect(VALID_GAME_SLUGS).toContain('pokemon');
     expect(VALID_GAME_SLUGS).toContain('yugioh');
-    expect(VALID_GAME_SLUGS).toContain('mtg');
     expect(VALID_GAME_SLUGS).toContain('onepiece');
     expect(VALID_GAME_SLUGS).toContain('lorcana');
-    expect(VALID_GAME_SLUGS).toContain('digimon');
-    expect(VALID_GAME_SLUGS).toContain('dragonball');
   });
 
-  it('should have exactly 7 game slugs', () => {
-    expect(VALID_GAME_SLUGS.length).toBe(7);
+  it('should have exactly 4 game slugs', () => {
+    expect(VALID_GAME_SLUGS.length).toBe(4);
   });
 });
 
@@ -222,11 +219,8 @@ describe('isValidGameSlug', () => {
   it('should return true for valid game slugs', () => {
     expect(isValidGameSlug('pokemon')).toBe(true);
     expect(isValidGameSlug('yugioh')).toBe(true);
-    expect(isValidGameSlug('mtg')).toBe(true);
     expect(isValidGameSlug('onepiece')).toBe(true);
     expect(isValidGameSlug('lorcana')).toBe(true);
-    expect(isValidGameSlug('digimon')).toBe(true);
-    expect(isValidGameSlug('dragonball')).toBe(true);
   });
 
   it('should return false for invalid game slugs', () => {
@@ -322,12 +316,12 @@ describe('countWishlistByGame', () => {
 
   it('should count priority items correctly', () => {
     const items: WishlistItem[] = [
-      { cardId: 'c1', isPriority: true, gameSlug: 'mtg' },
-      { cardId: 'c2', isPriority: true, gameSlug: 'mtg' },
-      { cardId: 'c3', isPriority: false, gameSlug: 'mtg' },
+      { cardId: 'c1', isPriority: true, gameSlug: 'lorcana' },
+      { cardId: 'c2', isPriority: true, gameSlug: 'lorcana' },
+      { cardId: 'c3', isPriority: false, gameSlug: 'lorcana' },
     ];
     const result = countWishlistByGame(items);
-    expect(result.mtg).toEqual({ total: 3, priority: 2 });
+    expect(result.lorcana).toEqual({ total: 3, priority: 2 });
   });
 });
 

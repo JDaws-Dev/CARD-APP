@@ -171,14 +171,14 @@ describe('suspiciousAccessLog', () => {
 
       recordApiAccess(request, '/api/cards', 200, { gameSlug: 'pokemon', config });
       recordApiAccess(request, '/api/cards', 200, { gameSlug: 'yugioh', config });
-      recordApiAccess(request, '/api/cards', 200, { gameSlug: 'mtg', config });
+      recordApiAccess(request, '/api/cards', 200, { gameSlug: 'onepiece', config });
       const events = recordApiAccess(request, '/api/cards', 200, { gameSlug: 'lorcana', config });
 
       const scanEvent = events.find((e) => e.type === 'multi_game_scan');
       expect(scanEvent).toBeDefined();
       expect(scanEvent?.level).toBe('info');
       expect(scanEvent?.details.gamesAccessed).toEqual(
-        expect.arrayContaining(['pokemon', 'yugioh', 'mtg', 'lorcana'])
+        expect.arrayContaining(['pokemon', 'yugioh', 'onepiece', 'lorcana'])
       );
     });
 
@@ -188,7 +188,7 @@ describe('suspiciousAccessLog', () => {
 
       recordApiAccess(request, '/api/cards', 200, { gameSlug: 'pokemon', config });
       recordApiAccess(request, '/api/cards', 200, { gameSlug: 'yugioh', config });
-      const events = recordApiAccess(request, '/api/cards', 200, { gameSlug: 'mtg', config });
+      const events = recordApiAccess(request, '/api/cards', 200, { gameSlug: 'onepiece', config });
 
       const scanEvent = events.find((e) => e.type === 'multi_game_scan');
       expect(scanEvent).toBeUndefined();

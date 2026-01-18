@@ -379,15 +379,12 @@ describe('Game-specific Recommendation Support', () => {
   const SUPPORTED_GAMES = [
     'pokemon',
     'yugioh',
-    'mtg',
     'onepiece',
     'lorcana',
-    'digimon',
-    'dragonball',
   ];
 
-  it('should support all 7 TCG games', () => {
-    expect(SUPPORTED_GAMES).toHaveLength(7);
+  it('should support all 4 TCG games', () => {
+    expect(SUPPORTED_GAMES).toHaveLength(4);
   });
 
   it('should have pokemon as the first supported game', () => {
@@ -397,11 +394,8 @@ describe('Game-specific Recommendation Support', () => {
   it('should include all TCG game slugs', () => {
     expect(SUPPORTED_GAMES).toContain('pokemon');
     expect(SUPPORTED_GAMES).toContain('yugioh');
-    expect(SUPPORTED_GAMES).toContain('mtg');
     expect(SUPPORTED_GAMES).toContain('onepiece');
     expect(SUPPORTED_GAMES).toContain('lorcana');
-    expect(SUPPORTED_GAMES).toContain('digimon');
-    expect(SUPPORTED_GAMES).toContain('dragonball');
   });
 });
 
