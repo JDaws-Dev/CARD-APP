@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { getRarityInfo, getRarityInfoByName, type RarityInfo } from '@/lib/rarityExplainer';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import {
   InformationCircleIcon,
   StarIcon,
@@ -77,8 +78,12 @@ export function RarityTooltip({
   const triggerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Get rarity info - try by ID first, then by name
-  const rarityInfo: RarityInfo | null = getRarityInfo(rarity) || getRarityInfoByName(rarity);
+  // Get the current game for game-specific rarity info
+  const { primaryGame } = useGameSelector();
+  const gameId = primaryGame.id;
+
+  // Get rarity info - try by ID first, then by name, using current game context
+  const rarityInfo: RarityInfo | null = getRarityInfo(rarity, gameId) || getRarityInfoByName(rarity, gameId);
 
   // Detect mobile device
   useEffect(() => {
@@ -275,7 +280,10 @@ export function RarityBadge({
   size = 'md',
   className,
 }: RarityBadgeProps) {
-  const rarityInfo = getRarityInfo(rarity) || getRarityInfoByName(rarity);
+  // Get the current game for game-specific rarity info
+  const { primaryGame } = useGameSelector();
+  const gameId = primaryGame.id;
+  const rarityInfo = getRarityInfo(rarity, gameId) || getRarityInfoByName(rarity, gameId);
 
   if (!rarityInfo) {
     // Fallback for unknown rarities
