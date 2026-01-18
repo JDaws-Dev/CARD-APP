@@ -1361,3 +1361,9 @@
 **Files:** src/app/my-wishlist/page.tsx
 **Commit:** 7d1e827
 ---
+## CD-cxz.6 - Trade UX: Add clear label to trade icon/button
+**Status:** Completed
+**Changes:** Changed trade button label from 'Trade' to 'Log Trade' and made it always visible (not hidden on mobile)
+**Files:** src/app/collection/page.tsx
+**Commit:** 80f2ed5
+---
