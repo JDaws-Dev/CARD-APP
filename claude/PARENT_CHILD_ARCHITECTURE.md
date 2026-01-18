@@ -27,19 +27,35 @@ This document outlines a comprehensive architecture for implementing separate pa
 **Core Tables:**
 
 ```typescript
-// families - Account container
+// families - Account container (convex/schema.ts)
 families: {
-  email: string,
+  email: string,                      // Unique per family, indexed
   subscriptionTier: 'free' | 'family',
-  parentPinHash?: string,  // PIN for protecting parent features from children
+  subscriptionExpiresAt?: number,
+  parentPinHash?: string,             // PIN for protecting parent features from children
+  tradeApprovalRequired?: boolean,
+  tradeNotificationsEnabled?: boolean,
 }
 
-// profiles - Individual user profiles within a family
+// profiles - Individual user profiles within a family (convex/schema.ts)
 profiles: {
-  familyId: Id<'families'>,
+  familyId: Id<'families'>,           // Foreign key
   displayName: string,
+  avatarUrl?: string,
   profileType?: 'parent' | 'child',
+  xp?: number,                        // Gamification
+  level?: number,
 }
+```
+
+**User-Family-Profile Relationship:**
+```
+User (Convex Auth)          ← Built-in auth table
+  └─ email
+      └─ Family             ← One per email, email is unique
+          └─ Profiles       ← Multiple (max 4), one parent max
+              ├─ parent profile
+              └─ child profiles
 ```
 
 **Key Observations:**
@@ -47,8 +63,91 @@ profiles: {
 2. The schema supports parent/child distinction via `profileType`
 3. Parent PIN exists (`parentPinHash`) but is for protecting parent features, not for login
 4. No mechanism for child-only PIN login exists
+5. Maximum 4 profiles per family enforced in mutations
+6. One parent profile maximum per family enforced
 
-### 1.3 Gaps in Current Architecture
+### 1.3 Profile Switching Mechanism
+
+**Current Implementation** (`src/components/header/ProfileSwitcher.tsx`):
+
+```typescript
+const PROFILE_ID_KEY = 'kidcollect_profile_id';
+
+// Profile switching stores ID in localStorage
+const handleProfileSelect = (profile: Profile) => {
+  localStorage.setItem(PROFILE_ID_KEY, profile.id);
+  window.location.reload();  // Full page reload to refresh all queries
+};
+```
+
+**How it works:**
+1. User clicks profile in dropdown
+2. Profile ID stored in `localStorage` with key `kidcollect_profile_id`
+3. Page reloads to refresh all Convex queries with new profile context
+4. `useCurrentProfile()` hook reads from localStorage on mount
+5. All queries pass `profileId` to backend for data scoping
+
+**Limitation:** Requires full page reload; no real-time profile switching.
+
+### 1.4 Parent Dashboard Access Control
+
+**Access Query** (`convex/profiles.ts:hasParentAccess`):
+
+```typescript
+export const hasParentAccess = query({
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return { hasAccess: false, reason: 'NOT_AUTHENTICATED' };
+
+    const user = await ctx.db.get(userId);
+    if (!user?.email) return { hasAccess: false, reason: 'NO_EMAIL' };
+
+    const family = await ctx.db
+      .query('families')
+      .withIndex('by_email', q => q.eq('email', user.email.toLowerCase()))
+      .first();
+    if (!family) return { hasAccess: false, reason: 'NO_FAMILY' };
+
+    const parentProfile = profiles.find(p => p.profileType === 'parent');
+    if (!parentProfile) return { hasAccess: false, reason: 'NO_PARENT_PROFILE' };
+
+    return { hasAccess: true, profile: parentProfile, family };
+  }
+});
+```
+
+**Dashboard Features** (`src/components/dashboard/ParentDashboard.tsx`):
+- Child profile cards with stats
+- `FamilyCollectionGoal` - Track family goals
+- `FamilyLeaderboard` - Compare children's progress
+- `TradeSuggestionEngine` - AI trade suggestions
+- `SharedWishlistViewer` - View wishlists
+- Add profile button, family settings access
+
+### 1.5 Session Management
+
+**Session Type:** Stateless JWT-based via Convex Auth
+
+**Session Provider Setup** (`src/components/providers/ConvexClientProvider.tsx`):
+```typescript
+<ConvexProvider client={convex}>
+  <ConvexAuthProvider client={convex}>
+    {children}
+  </ConvexAuthProvider>
+</ConvexProvider>
+```
+
+**Key Auth Hooks:**
+- `useConvexAuth()` - Check `isAuthenticated`, `isLoading`
+- `useAuthActions()` - Access `signIn()`, `signOut()`
+- `useQuery(api.profiles.getCurrentUserProfile)` - Get current user/profile data
+
+**Session Storage:**
+- Tokens managed automatically by `@convex-dev/auth/react`
+- Persists across page reloads via browser storage
+- No server-side session store; stateless JWT validation
+
+### 1.6 Gaps in Current Architecture
 
 1. **No Individual User Type Storage** - `accountType` is not persisted
 2. **No Child PIN Login** - Children require full auth

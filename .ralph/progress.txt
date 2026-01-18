@@ -961,3 +961,9 @@
 **Files:** src/app/sets/page.tsx (added SetImage component)
 **Commit:** 9a523ae
 ---
+## CD-bhw.1 - Research current auth and data model architecture
+**Status:** Completed
+**Changes:** Research task - verified existing documentation at claude/PARENT_CHILD_ARCHITECTURE.md is accurate and comprehensive. Explored codebase to confirm auth flow (Convex Auth + Password), data models (families/profiles tables), and profile switching mechanism (getCurrentUserProfile query).
+**Files:** claude/PARENT_CHILD_ARCHITECTURE.md (verified, no changes needed)
+**Commit:** No code changes - research verification only
+---
