@@ -274,3 +274,9 @@
 **Files:** src/components/collection/VirtualCardGrid.tsx
 **Commit:** See below
 ---
+## CD-5hi - Sets Page - Magnifying glass for close-up
+**Status:** Completed
+**Changes:** Added magnifying glass icon button to card thumbnails in VirtualCardGrid that opens a CardCloseUpModal showing enlarged card image
+**Files:** src/components/collection/VirtualCardGrid.tsx
+**Commit:** 70af558
+---
