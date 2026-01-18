@@ -10,7 +10,6 @@ import {
   XMarkIcon,
   MagnifyingGlassIcon,
   ArrowsRightLeftIcon,
-  CheckCircleIcon,
   ExclamationCircleIcon,
   ArrowPathIcon,
   PlusIcon,
@@ -20,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { CheckIcon } from '@heroicons/react/24/solid';
 import { CardImage } from '@/components/ui/CardImage';
+import { TradeCelebration } from '@/components/trades/TradeCelebration';
 import type { Id } from '../../../convex/_generated/dataModel';
 
 type CardVariant = 'normal' | 'holofoil' | 'reverseHolofoil' | '1stEditionHolofoil' | '1stEditionNormal';
@@ -102,6 +102,13 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
     cardsReceivedCount: number;
   } | null>(null);
 
+  // Card info for celebration animation (need to preserve across state changes)
+  const [celebrationCards, setCelebrationCards] = useState<{
+    given: { imageSmall: string; cardName: string }[];
+    received: { imageSmall: string; cardName: string }[];
+    partner?: string;
+  } | null>(null);
+
   // Reset state when modal opens (and pre-fill if provided)
   useEffect(() => {
     if (isOpen) {
@@ -114,6 +121,7 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
       setSearchResults([]);
       setSelectedVariant('normal');
       setTradeSummary(null);
+      setCelebrationCards(null);
 
       // Pre-fill the "Cards I Gave" if a prefilled card was provided
       if (prefilledGiveCard) {
@@ -280,6 +288,13 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
 
     setFlowState('submitting');
     setErrorMessage(null);
+
+    // Save card info for celebration animation before submitting
+    setCelebrationCards({
+      given: cardsGiven.map((c) => ({ imageSmall: c.imageSmall, cardName: c.cardName })),
+      received: cardsReceived.map((c) => ({ imageSmall: c.imageSmall, cardName: c.cardName })),
+      partner: tradingPartner.trim() || undefined,
+    });
 
     try {
       const result = await logTrade({
@@ -793,55 +808,24 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
     </div>
   );
 
-  // Render success state
+  // Render success state with celebration animation
   const renderSuccessState = () => (
-    <div className="text-center">
-      <div className="mb-4 flex justify-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-kid-success/10">
-          <CheckCircleIcon className="h-12 w-12 text-kid-success" />
-        </div>
-      </div>
-      <h3 className="mb-2 text-xl font-bold text-gray-900">Trade Logged!</h3>
-      {tradeSummary && (
-        <div className="mb-4">
-          <p className="text-gray-600">
-            {tradeSummary.cardsGivenCount > 0 && (
-              <span className="text-red-600">{tradeSummary.cardsGivenCount} cards given</span>
-            )}
-            {tradeSummary.cardsGivenCount > 0 && tradeSummary.cardsReceivedCount > 0 && (
-              <span className="text-gray-400"> | </span>
-            )}
-            {tradeSummary.cardsReceivedCount > 0 && (
-              <span className="text-green-600">{tradeSummary.cardsReceivedCount} cards received</span>
-            )}
-          </p>
-          {tradingPartner && (
-            <p className="mt-1 text-sm text-gray-500">Traded with {tradingPartner}</p>
-          )}
-        </div>
-      )}
-      <div className="flex gap-3">
-        <button
-          onClick={() => {
-            setFlowState('form');
-            setCardsGiven([]);
-            setCardsReceived([]);
-            setTradingPartner('');
-            setTradeSummary(null);
-          }}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-kid-primary py-3 font-semibold text-white shadow-lg transition hover:bg-kid-primary/90"
-        >
-          <ArrowsRightLeftIcon className="h-5 w-5" />
-          Log Another Trade
-        </button>
-        <button
-          onClick={onClose}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-200 py-3 font-semibold text-gray-700 transition hover:bg-gray-300"
-        >
-          Done
-        </button>
-      </div>
-    </div>
+    <TradeCelebration
+      cardsGivenCount={tradeSummary?.cardsGivenCount ?? 0}
+      cardsReceivedCount={tradeSummary?.cardsReceivedCount ?? 0}
+      cardsGiven={celebrationCards?.given ?? []}
+      cardsReceived={celebrationCards?.received ?? []}
+      tradingPartner={celebrationCards?.partner}
+      onContinue={onClose}
+      onLogAnother={() => {
+        setFlowState('form');
+        setCardsGiven([]);
+        setCardsReceived([]);
+        setTradingPartner('');
+        setTradeSummary(null);
+        setCelebrationCards(null);
+      }}
+    />
   );
 
   // Render error state
