@@ -1190,7 +1190,7 @@ export const getCollectionValue = query({
 export const getMostValuableCards = query({
   args: {
     profileId: v.id('profiles'),
-    gameSlug: v.optional(gameSlugValidator),
+    gameSlug: gameSlugValidator,
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -1247,7 +1247,7 @@ export const getMostValuableCards = query({
       const cardData = cardDataMap.get(card.cardId);
       if (cardData) {
         // Skip cards that don't match the game filter
-        if (args.gameSlug && cardData.gameSlug !== args.gameSlug) {
+        if (cardData.gameSlug !== args.gameSlug) {
           continue;
         }
         valuedCards.push({

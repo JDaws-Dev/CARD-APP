@@ -792,3 +792,9 @@
 **Files:** convex/collections.ts, src/components/virtual/VirtualTrophyRoom.tsx
 **Commit:** (pending)
 ---
+## CD-wm5 - Add toggle filter for set cards: Have / Need / All
+**Status:** Completed
+**Changes:** Added a toggle filter (pill-button group) to the set detail page allowing users to filter cards by collection status (All/Have/Need). Each option displays the count of matching cards.
+**Files:** src/components/collection/SetDetailClient.tsx
+**Commit:** c02da69
+---
