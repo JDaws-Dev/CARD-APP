@@ -462,3 +462,9 @@
 **Files:** src/app/page.tsx
 **Commit:** f092955
 ---
+## CD-n60 - Landing Page - Update How It Works for multi-TCG
+**Status:** Completed
+**Changes:** Updated Step 1 description in How It Works section to be game-agnostic. Changed from listing specific game names (Pokemon, Yu-Gi-Oh!, Lorcana) to generic "your favorite trading card games".
+**Files:** src/app/page.tsx
+**Commit:** (pending)
+---
