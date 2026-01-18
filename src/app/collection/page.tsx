@@ -5,6 +5,7 @@ import { useQuery, useConvexAuth } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import { CollectionView } from '@/components/collection/CollectionView';
 import { ExportChecklistButton } from '@/components/collection/ExportChecklist';
 import { CollectionSnapshotShare } from '@/components/collection/CollectionSnapshotShare';
@@ -33,6 +34,7 @@ export default function MyCollectionPage() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const router = useRouter();
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
+  const { primaryGame } = useGameSelector();
 
   const collection = useQuery(
     api.collections.getCollection,
@@ -126,12 +128,12 @@ export default function MyCollectionPage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">My Collection</h1>
               <p className="text-sm text-gray-500 sm:text-base">
-                All your collected Pokemon cards in one place
+                All your collected {primaryGame.shortName} cards in one place
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <ScannerButton
-                gameSlug="pokemon"
+                gameSlug={primaryGame.id}
                 variant="primary"
                 label="Scan Card"
               />
@@ -240,7 +242,7 @@ export default function MyCollectionPage() {
       </div>
 
       {/* Floating Chat Button */}
-      <ChatButton gameSlug="pokemon" />
+      <ChatButton gameSlug={primaryGame.id} />
     </main>
   );
 }
