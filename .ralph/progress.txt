@@ -244,3 +244,9 @@
 - src/components/collection/CollectionView.tsx (modified)
 **Commit:** 1e97c97
 ---
+## CD-u0t - Collection - Sort by date added
+**Status:** Completed
+**Changes:** Added sort dropdown with "By Set" (default) and "Recently Added" options. Uses Convex _creationTime for date-based sorting.
+**Files:** src/components/collection/CollectionView.tsx
+**Commit:** 4ca8267
+---
