@@ -967,3 +967,9 @@
 **Files:** claude/PARENT_CHILD_ARCHITECTURE.md (verified, no changes needed)
 **Commit:** No code changes - research verification only
 ---
+## CD-bhw.2 - Design new data model for family accounts
+**Status:** Completed
+**Changes:** Verified existing design in architecture document. Section 2 of claude/PARENT_CHILD_ARCHITECTURE.md already contains complete data model design including accountType field, childLoginPins table schema, and deviceSessions table schema.
+**Files:** claude/PARENT_CHILD_ARCHITECTURE.md (verified, no changes needed)
+**Commit:** No code changes - design verification only
+---
