@@ -1150,3 +1150,9 @@
 - src/components/collection/CollectionView.tsx (added variant callbacks)
 **Commit:** See below
 ---
+## CD-cxz.2 - Trade UX: Show card images and names in trade selection (receiving cards)
+**Status:** Completed
+**Changes:** Redesigned search results in TradeLoggingModal from horizontal list to 3-column visual grid matching collection selector style, with card images, names, set info, and visual selection state
+**Files:** src/components/trades/TradeLoggingModal.tsx
+**Commit:** 04fdfc8
+---
