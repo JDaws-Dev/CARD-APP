@@ -1212,3 +1212,9 @@
 **Files:** src/components/ai/ChatAvatar.tsx (new), src/components/ai/CollectionChat.tsx (updated)
 **Commit:** 41316a0
 ---
+## CD-bfx - Landing: AI demo animation/visual
+**Status:** Completed
+**Changes:** Added animated phone mockup demonstrating "Snap to Add" AI feature with camera view → scanning → AI identified → success sequence. Redesigned AI Magic section to two-column layout with demo animation alongside feature cards.
+**Files:** src/components/landing/AIDemoAnimation.tsx (NEW), src/app/page.tsx, src/app/globals.css
+**Commit:** cc40b6c
+---
