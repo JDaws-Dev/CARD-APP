@@ -239,7 +239,11 @@ export const addToWishlist = mutation({
         .query('cachedCards')
         .withIndex('by_card_id', (q) => q.eq('cardId', args.cardId))
         .first();
-      gameSlug = cachedCard?.gameSlug;
+      // Filter out legacy 'mtg' values - only use supported games
+      const cachedGameSlug = cachedCard?.gameSlug;
+      if (cachedGameSlug && cachedGameSlug !== 'mtg') {
+        gameSlug = cachedGameSlug as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
+      }
     }
 
     // If adding with priority, check the limit

@@ -273,11 +273,11 @@ Collector B: ${familyCheck.profileBName}
           (
             card: {
               name: string;
-              rarity?: string;
+              rarity?: string | null;
               ownerName: string;
-              marketPrice?: number;
-              types?: string[];
-              wantedByName?: string;
+              marketPrice?: number | null;
+              types?: string[] | null;
+              wantedByName?: string | null;
             },
             i: number
           ) =>

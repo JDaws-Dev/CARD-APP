@@ -390,3 +390,18 @@
 **Files:** src/components/header/ProfileSwitcher.tsx (new), src/components/layout/AppHeader.tsx (updated)
 **Commit:** Previously committed
 ---
+## CD-56t - My Collection page UX overhaul - clean up clutter and improve mobile
+**Status:** Completed
+**Changes:** 
+- Removed Random Card button from CollectionView
+- Hidden Binder view on mobile (md:flex)
+- Simplified header: removed Back to Home link, reduced buttons from ~8 to 2-3
+- Made Trophy Room cards clickable with CardDetailModal integration
+- Fixed Trophy Room mobile layout (3 cols mobile, 5 desktop)
+- Hidden Trophy Room bottom row on mobile
+**Files:** 
+- src/app/collection/page.tsx
+- src/components/collection/CollectionView.tsx
+- src/components/virtual/VirtualTrophyRoom.tsx
+**Commit:** 5dcd4de
+---
