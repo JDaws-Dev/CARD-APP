@@ -891,3 +891,9 @@
 - src/lib/setStructureContent.ts
 **Commit:** 3d939a7
 ---
+## CD-j95 - Remove Pokemon-specific references from general pages
+**Status:** Completed
+**Changes:** Made one additional fix missed from previous work - renamed 'Pokemon Focus' collection goal to 'Character Focus' in setStructureContent.ts
+**Files:** src/lib/setStructureContent.ts
+**Commit:** 7623e4e
+---
