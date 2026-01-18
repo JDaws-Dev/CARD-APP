@@ -7,9 +7,11 @@ import {
   getAllTutorialGuides,
   getTutorialGuide,
   getDifficultyInfo,
+  getTutorialContentForGame,
   type TutorialGuide,
   type TutorialCategory,
 } from '@/lib/tutorialContent';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import { getStepExamples, guideHasExamples } from '@/lib/tutorialExamples';
 import { TutorialExampleCards } from './TutorialExampleCards';
 import { AIQuiz } from '../ai/AIQuiz';
@@ -527,6 +529,10 @@ export function LearnToCollect() {
   const [activeGuide, setActiveGuide] = useState<string | null>(null);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
 
+  // Get current game for game-specific content
+  const { primaryGame } = useGameSelector();
+  const gameContent = getTutorialContentForGame(primaryGame.id);
+
   const categories = getAllTutorialCategories();
   const allGuides = getAllTutorialGuides();
 
@@ -584,7 +590,7 @@ export function LearnToCollect() {
         </div>
         <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Learn to Collect</h1>
         <p className="mx-auto max-w-2xl text-gray-600">
-          Interactive guides to help you become a card collecting pro! Learn organization, binder
+          Interactive guides to help you become a {gameContent.gameName} collecting pro! Learn organization, binder
           setup, and card care tips.
         </p>
       </div>
@@ -631,7 +637,7 @@ export function LearnToCollect() {
             <div>
               <h2 className="text-lg font-bold text-gray-900">Test Your Knowledge</h2>
               <p className="text-sm text-gray-600">
-                AI-powered quiz about your card collection
+                AI-powered quiz about your {gameContent.gameName} collection
               </p>
             </div>
           </div>
@@ -643,6 +649,41 @@ export function LearnToCollect() {
             <SparklesIcon className="h-5 w-5" aria-hidden="true" />
             Quiz Me!
           </button>
+        </div>
+      </div>
+
+      {/* Game-specific Card Types Section */}
+      <div className="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
+        <div className="mb-4 flex items-center gap-2">
+          <RectangleStackIcon className="h-5 w-5 text-blue-500" aria-hidden="true" />
+          <h2 className="font-bold text-gray-900">{gameContent.gameName} Card Types</h2>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {gameContent.cardTypes.map((cardType) => (
+            <div
+              key={cardType.id}
+              className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg" role="img" aria-hidden="true">{cardType.symbol}</span>
+                <h3 className={cn('text-sm font-semibold', cardType.colorClass)}>{cardType.name}</h3>
+              </div>
+              <p className="mt-1 text-xs text-gray-600">{cardType.description}</p>
+            </div>
+          ))}
+        </div>
+        {/* Set symbol info */}
+        <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50/50 p-3">
+          <p className="text-sm font-medium text-blue-800">Finding Set Symbols:</p>
+          <p className="mt-1 text-xs text-blue-700">{gameContent.setSymbols.location}</p>
+          <p className="mt-2 text-xs text-gray-600">{gameContent.setSymbols.explanation}</p>
+          <div className="mt-2 flex flex-wrap gap-1">
+            {gameContent.setSymbols.examples.map((example, i) => (
+              <span key={i} className="inline-block rounded bg-white px-2 py-0.5 text-xs text-gray-700 shadow-sm">
+                {example}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -665,25 +706,19 @@ export function LearnToCollect() {
         );
       })}
 
-      {/* Fun facts section */}
+      {/* Fun facts section - game-specific */}
       <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-6">
         <div className="mb-4 flex items-center gap-2">
           <LightBulbIcon className="h-5 w-5 text-amber-500" aria-hidden="true" />
           <h2 className="font-bold text-gray-900">Did You Know?</h2>
         </div>
         <ul className="space-y-2 text-sm text-gray-700">
-          <li className="flex items-start gap-2">
-            <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" aria-hidden="true" />
-            Trading cards have been collected for over 100 years!
-          </li>
-          <li className="flex items-start gap-2">
-            <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" aria-hidden="true" />
-            Card condition matters - mint cards are worth more than played ones.
-          </li>
-          <li className="flex items-start gap-2">
-            <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" aria-hidden="true" />
-            Rare chase cards can be worth hundreds or even thousands of dollars!
-          </li>
+          {gameContent.funFacts.slice(0, 3).map((fact, index) => (
+            <li key={index} className="flex items-start gap-2">
+              <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" aria-hidden="true" />
+              {fact}
+            </li>
+          ))}
         </ul>
       </div>
 
