@@ -236,3 +236,11 @@
 **Files:** src/components/collection/CollectionView.tsx
 **Commit:** 8d2771f
 ---
+## CD-ehd - Collection - Filter by variant type
+**Status:** Completed
+**Changes:** Added VariantFilter component to filter collection cards by variant type (Normal, Holofoil, Reverse Holo, 1st Ed. Holo, 1st Edition). Integrated into CollectionView with variant counts and filtering logic.
+**Files:** 
+- src/components/filter/VariantFilter.tsx (new)
+- src/components/collection/CollectionView.tsx (modified)
+**Commit:** 1e97c97
+---
