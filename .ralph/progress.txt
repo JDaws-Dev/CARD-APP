@@ -973,3 +973,9 @@
 **Files:** claude/PARENT_CHILD_ARCHITECTURE.md (verified, no changes needed)
 **Commit:** No code changes - design verification only
 ---
+## CD-bhw.3 - Design authentication flow diagrams
+**Status:** Completed
+**Changes:** Added comprehensive authentication flow diagrams to claude/PARENT_CHILD_ARCHITECTURE.md including parent login, kid PIN login, individual collector login, session management strategy, PIN validation approach, and account creation flows
+**Files:** claude/PARENT_CHILD_ARCHITECTURE.md (Sections 11-12 added)
+**Commit:** 4d35e88
+---
