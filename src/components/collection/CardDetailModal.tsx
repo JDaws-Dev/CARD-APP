@@ -25,6 +25,15 @@ type CardVariant =
   | '1stEditionHolofoil'
   | '1stEditionNormal';
 
+// Game-specific label mapping for the "types" field
+// Different TCGs use different terminology for what's stored in the types array
+const TYPES_LABEL_BY_GAME: Record<string, string> = {
+  pokemon: 'Energy',
+  yugioh: 'Attribute',
+  onepiece: 'Color',
+  lorcana: 'Ink',
+};
+
 // Variant display configuration
 const VARIANT_CONFIG: Record<
   CardVariant,
@@ -346,7 +355,9 @@ export function CardDetailModal({
 
             {card.types && card.types.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-white/50">Energy:</span>
+                <span className="text-sm text-white/50">
+                  {TYPES_LABEL_BY_GAME[primaryGame.id] || 'Type'}:
+                </span>
                 <div className="flex gap-1">
                   {card.types.map((type) => (
                     <span

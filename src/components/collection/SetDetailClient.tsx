@@ -29,11 +29,41 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 ];
 
 // Card type sort order (for grouping/sorting by supertype)
+// Includes types from all 4 supported games: Pokemon, Yu-Gi-Oh!, One Piece, Lorcana
 const TYPE_SORT_ORDER: Record<string, number> = {
+  // Pokemon
   'Pokémon': 1,
   'Pokemon': 1,
   'Trainer': 2,
   'Energy': 3,
+  // Yu-Gi-Oh! (frameType values)
+  'Monster': 1,
+  'normal': 1,
+  'effect': 1,
+  'ritual': 1,
+  'fusion': 1,
+  'synchro': 1,
+  'xyz': 1,
+  'link': 1,
+  'Spell': 2,
+  'spell': 2,
+  'Trap': 3,
+  'trap': 3,
+  // One Piece
+  'LEADER': 1,
+  'Leader': 1,
+  'CHARACTER': 2,
+  'Character': 2,
+  'EVENT': 3,
+  'Event': 3,
+  'STAGE': 4,
+  'Stage': 4,
+  'DON!!': 5,
+  // Lorcana (card types can be combined like "Character/Song")
+  'Action': 2,
+  'Item': 3,
+  'Song': 4,
+  'Location': 5,
 };
 
 // Helper function to get the best market price from a card's TCGPlayer prices
