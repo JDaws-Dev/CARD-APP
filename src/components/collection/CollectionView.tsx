@@ -25,11 +25,12 @@ import { VariantFilter, VARIANT_CATEGORIES, type VariantCategoryId } from '@/com
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 // Sort options for the collection
-type SortOption = 'set' | 'dateAdded';
+type SortOption = 'set' | 'dateAdded' | 'value';
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'set', label: 'By Set' },
   { value: 'dateAdded', label: 'Recently Added' },
+  { value: 'value', label: 'By Value' },
 ];
 
 // Variant types and display configuration
@@ -339,6 +340,34 @@ export function CollectionView({ collection }: CollectionViewProps) {
       return [{
         setId: 'recently-added',
         setName: 'Recently Added',
+        cards: allCards,
+      }];
+    }
+
+    if (sortBy === 'value') {
+      // For value-based sorting, flatten all cards into a single "By Value" group
+      const allCards: CardWithQuantity[] = [];
+      groups.forEach(group => {
+        allCards.push(...group.cards);
+      });
+
+      // Sort by market price (highest first), cards without price go to the end
+      allCards.sort((a, b) => {
+        const priceA = getCardMarketPrice(a);
+        const priceB = getCardMarketPrice(b);
+
+        // Cards without price go to the end
+        if (priceA === null && priceB === null) return 0;
+        if (priceA === null) return 1;
+        if (priceB === null) return -1;
+
+        return priceB - priceA;
+      });
+
+      // Return as a single group
+      return [{
+        setId: 'by-value',
+        setName: 'By Value',
         cards: allCards,
       }];
     }
