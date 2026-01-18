@@ -509,31 +509,63 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess }: TradeLoggingMo
         ))}
       </div>
 
-      {/* Search results */}
+      {/* Search results - visual grid matching collection selector style */}
       {searchResults.length > 0 && (
-        <div className="max-h-48 space-y-2 overflow-y-auto">
-          {searchResults.map((card) => (
-            <button
-              key={card.id}
-              onClick={() => handleAddCardToReceive(card)}
-              className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-2 text-left transition hover:border-kid-primary hover:bg-kid-primary/5"
-            >
-              <div className="relative h-12 w-9 flex-shrink-0 overflow-hidden rounded">
-                <CardImage
-                  src={card.images.small}
-                  alt={card.name}
-                  fill
-                  sizes="36px"
-                  className="object-cover"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-gray-900">{card.name}</p>
-                <p className="truncate text-xs text-gray-500">{card.set.name} #{card.number}</p>
-              </div>
-              <PlusIcon className="h-5 w-5 flex-shrink-0 text-kid-primary" />
-            </button>
-          ))}
+        <div className="max-h-80 overflow-y-auto">
+          <div className="grid grid-cols-3 gap-2">
+            {searchResults.map((card) => {
+              const isSelected = cardsReceived.some(
+                (c) => c.cardId === card.id && c.variant === selectedVariant
+              );
+
+              return (
+                <button
+                  key={card.id}
+                  onClick={() => handleAddCardToReceive(card)}
+                  className={cn(
+                    'group relative flex flex-col items-center rounded-lg border p-2 text-center transition',
+                    isSelected
+                      ? 'border-kid-primary bg-kid-primary/10 ring-2 ring-kid-primary'
+                      : 'border-gray-200 hover:border-kid-primary hover:bg-kid-primary/5'
+                  )}
+                >
+                  {/* Card Image */}
+                  <div className="relative mb-1 h-20 w-14 overflow-hidden rounded">
+                    <CardImage
+                      src={card.images.small}
+                      alt={card.name}
+                      fill
+                      sizes="56px"
+                      className="object-cover"
+                    />
+                    {/* Selected checkmark overlay */}
+                    {isSelected && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-kid-primary/30">
+                        <CheckIcon className="h-6 w-6 text-white drop-shadow" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Name */}
+                  <p className="line-clamp-2 text-xs font-medium leading-tight text-gray-900">
+                    {card.name}
+                  </p>
+
+                  {/* Set Info */}
+                  <p className="mt-0.5 text-[10px] text-gray-500">
+                    {card.set.name} #{card.number}
+                  </p>
+
+                  {/* Add indicator */}
+                  {!isSelected && (
+                    <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-kid-primary text-white opacity-0 transition group-hover:opacity-100">
+                      <PlusIcon className="h-3 w-3" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
