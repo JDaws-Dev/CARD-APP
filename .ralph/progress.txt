@@ -496,3 +496,9 @@
 **Files:** convex/schema.ts, convex/dataPopulation.ts, src/app/sets/[setId]/page.tsx
 **Commit:** 31fad30
 ---
+## CD-gvx - Store available variants in cachedCards schema
+**Status:** Completed
+**Changes:** Added availableVariants field to cachedCards schema to track which card variants (normal, holofoil, reverseHolofoil) are available from the Pokemon TCG API. Updated data population to extract variant keys and SetDetailPage to use stored variants when reconstructing price data.
+**Files:** convex/schema.ts, convex/dataPopulation.ts, src/app/sets/[setId]/page.tsx
+**Commit:** ce19b34
+---
