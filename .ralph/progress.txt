@@ -280,3 +280,12 @@
 **Files:** src/components/collection/VirtualCardGrid.tsx
 **Commit:** 70af558
 ---
+## CD-oyz - Debug variant badges not showing
+**Status:** Completed
+**Changes:** Investigated root cause of variant badges not showing on Sets page. Found that the database schema only stores a single priceMarket value and loses variant information from the Pokemon TCG API. Created follow-up issue CD-gvx to fix by storing available variants in the cachedCards schema.
+**Files:** Investigation only - no code changes needed. Root cause is in:
+- convex/schema.ts (missing variant fields)
+- convex/dataPopulation.ts (loses variant data)
+- src/app/sets/[setId]/page.tsx (reconstructs prices incorrectly)
+**Commit:** N/A (investigation only)
+---
