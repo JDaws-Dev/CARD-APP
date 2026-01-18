@@ -141,6 +141,7 @@ function formatTimeAgo(timestamp: number): string {
 export function RecentCardsPreview({
   limit = 10,
   className,
+  gameSlug,
 }: RecentCardsPreviewProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -148,7 +149,12 @@ export function RecentCardsPreview({
   const recentCards = useQuery(
     api.collections.getNewlyAddedCards,
     profileId
-      ? { profileId: profileId as Id<'profiles'>, days: 30, limit }
+      ? {
+          profileId: profileId as Id<'profiles'>,
+          days: 30,
+          limit,
+          gameSlug: gameSlug as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' | undefined,
+        }
       : 'skip'
   );
 

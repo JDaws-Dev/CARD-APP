@@ -26,6 +26,8 @@ interface FeaturedCardsPreviewProps {
   count?: number;
   /** Additional CSS classes */
   className?: string;
+  /** Game slug for filtering */
+  gameSlug?: string;
 }
 
 // ============================================================================
@@ -143,6 +145,7 @@ function FeaturedCard({
 export function FeaturedCardsPreview({
   count = 3,
   className,
+  gameSlug,
 }: FeaturedCardsPreviewProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const [refreshKey, setRefreshKey] = useState(0);
@@ -151,7 +154,11 @@ export function FeaturedCardsPreview({
   const randomCards = useQuery(
     api.collections.getRandomCards,
     profileId
-      ? { profileId: profileId as Id<'profiles'>, count }
+      ? {
+          profileId: profileId as Id<'profiles'>,
+          count,
+          gameSlug: gameSlug as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana' | undefined,
+        }
       : 'skip'
   );
 

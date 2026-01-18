@@ -518,10 +518,10 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
       <WhatsNextCard totalCards={stats.totalCards} setsStarted={stats.setsStarted} />
 
       {/* Featured Cards Spotlight - Only show if user has cards */}
-      {stats.totalCards > 0 && <FeaturedCardsPreview count={3} />}
+      {stats.totalCards > 0 && <FeaturedCardsPreview count={3} gameSlug={gameSlug} />}
 
       {/* Recently Added Cards - Only show if user has cards */}
-      {stats.totalCards > 0 && <RecentCardsPreview limit={10} />}
+      {stats.totalCards > 0 && <RecentCardsPreview limit={10} gameSlug={gameSlug} />}
 
       {/* Quick Actions */}
       <div>

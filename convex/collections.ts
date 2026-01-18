@@ -1004,6 +1004,7 @@ export const getRandomCards = query({
     setId: v.optional(v.string()),
     variant: v.optional(cardVariant),
     allowDuplicates: v.optional(v.boolean()),
+    gameSlug: v.optional(gameSlugValidator),
   },
   handler: async (ctx, args) => {
     const count = args.count ?? 3;
@@ -1014,6 +1015,39 @@ export const getRandomCards = query({
       .query('collectionCards')
       .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
       .collect();
+
+    if (collectionCards.length === 0) {
+      return [];
+    }
+
+    // Filter by game if specified - need to look up game slug for each card
+    if (args.gameSlug) {
+      const uniqueCardIds = [...new Set(collectionCards.map((c) => c.cardId))];
+      const CHUNK_SIZE = 50;
+      const cardGameMap = new Map<string, string>();
+
+      for (let i = 0; i < uniqueCardIds.length; i += CHUNK_SIZE) {
+        const chunk = uniqueCardIds.slice(i, i + CHUNK_SIZE);
+        const chunkResults = await Promise.all(
+          chunk.map((cardId) =>
+            ctx.db
+              .query('cachedCards')
+              .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
+              .first()
+          )
+        );
+
+        for (const cachedCard of chunkResults) {
+          if (cachedCard) {
+            cardGameMap.set(cachedCard.cardId, cachedCard.gameSlug);
+          }
+        }
+      }
+
+      collectionCards = collectionCards.filter(
+        (card) => cardGameMap.get(card.cardId) === args.gameSlug
+      );
+    }
 
     if (collectionCards.length === 0) {
       return [];
@@ -1380,6 +1414,7 @@ export const getNewlyAddedCards = query({
     profileId: v.id('profiles'),
     days: v.optional(v.number()),
     limit: v.optional(v.number()),
+    gameSlug: v.optional(gameSlugValidator),
   },
   handler: async (ctx, args) => {
     const days = args.days ?? 7;
@@ -1449,15 +1484,12 @@ export const getNewlyAddedCards = query({
       }
     }
 
-    // Limit results
-    const limitedAdditions = cardAdditions.slice(0, limit);
-
-    // Get unique card IDs for enrichment
-    const uniqueCardIds = [...new Set(limitedAdditions.map((a) => a.cardId))];
+    // Get unique card IDs for enrichment and game filtering
+    const allUniqueCardIds = [...new Set(cardAdditions.map((a) => a.cardId))];
 
     // Fetch card details from cache
     const cachedCards = await Promise.all(
-      uniqueCardIds.map((cardId) =>
+      allUniqueCardIds.map((cardId) =>
         ctx.db
           .query('cachedCards')
           .withIndex('by_card_id', (q) => q.eq('cardId', cardId))
@@ -1465,10 +1497,10 @@ export const getNewlyAddedCards = query({
       )
     );
 
-    // Build a map for quick lookups
+    // Build a map for quick lookups (include gameSlug for filtering)
     const cardDataMap = new Map<
       string,
-      { name: string; imageSmall: string; setId: string; rarity: string | undefined }
+      { name: string; imageSmall: string; setId: string; rarity: string | undefined; gameSlug: string }
     >();
     for (const cachedCard of cachedCards) {
       if (cachedCard) {
@@ -1477,9 +1509,22 @@ export const getNewlyAddedCards = query({
           imageSmall: cachedCard.imageSmall,
           setId: cachedCard.setId,
           rarity: cachedCard.rarity,
+          gameSlug: cachedCard.gameSlug,
         });
       }
     }
+
+    // Filter by game if specified
+    let filteredAdditions = cardAdditions;
+    if (args.gameSlug) {
+      filteredAdditions = cardAdditions.filter((addition) => {
+        const cardData = cardDataMap.get(addition.cardId);
+        return cardData?.gameSlug === args.gameSlug;
+      });
+    }
+
+    // Limit results
+    const limitedAdditions = filteredAdditions.slice(0, limit);
 
     // Enrich card additions with details
     const enrichedCards = limitedAdditions.map((addition) => {
@@ -1496,13 +1541,9 @@ export const getNewlyAddedCards = query({
       };
     });
 
-    // Get summary stats
-    const totalNewCards = recentCardAdds.length;
-    const uniqueNewCards = new Set(
-      recentCardAdds
-        .map((log) => (log.metadata as { cardId?: string } | undefined)?.cardId)
-        .filter(Boolean)
-    ).size;
+    // Get summary stats (from filtered data if game filter applied)
+    const totalNewCards = filteredAdditions.length;
+    const uniqueNewCards = new Set(filteredAdditions.map((a) => a.cardId)).size;
 
     return {
       cards: enrichedCards,

@@ -844,3 +844,9 @@
 - src/app/page.tsx (modified)
 **Commit:** df42070
 ---
+## CD-bbq - Fix broken card image URLs in landing page showcase
+**Status:** Completed
+**Changes:** Fixed 404 errors for One Piece and Lorcana card images in GameCardShowcase component
+**Files:** src/components/landing/GameCardShowcase.tsx
+**Commit:** dab9a32
+---

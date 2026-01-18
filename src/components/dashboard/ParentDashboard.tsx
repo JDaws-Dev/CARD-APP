@@ -465,7 +465,7 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
             </div>
             <h3 className="mb-2 text-xl font-bold text-gray-800">No Collectors Yet</h3>
             <p className="mb-6 text-gray-500">
-              Add profiles for your kids to start tracking their Pokemon card collections!
+              Add profiles for your kids to start tracking their card collections!
             </p>
             <button className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-kid-primary to-purple-500 px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-lg">
               <UserGroupIcon className="h-5 w-5" />
