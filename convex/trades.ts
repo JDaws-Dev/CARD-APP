@@ -1,14 +1,8 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 
-// Card variant type matching schema and collections.ts
-const cardVariant = v.union(
-  v.literal('normal'),
-  v.literal('holofoil'),
-  v.literal('reverseHolofoil'),
-  v.literal('1stEditionHolofoil'),
-  v.literal('1stEditionNormal')
-);
+// Card variant type - now supports all games (Pokemon, Yu-Gi-Oh, One Piece, Lorcana)
+const cardVariant = v.string();
 
 // Trade card entry for cards being given or received
 const tradeCardEntry = v.object({

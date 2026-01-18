@@ -1373,6 +1373,30 @@ export const populateYugiohSetCards = internalAction({
         const cardSet = card.card_sets?.find((s) => s.set_code === args.setId);
         const price = card.card_prices?.[0]?.tcgplayer_price;
 
+        // Extract available variants from card_sets rarity
+        // Yu-Gi-Oh variants are based on rarity (Common, Rare, Super Rare, etc.)
+        // and multiple art versions from card_images
+        const rarityVariant = cardSet?.set_rarity
+          ? cardSet.set_rarity.toLowerCase().replace(/[\s-]+/g, '_')
+          : undefined;
+
+        // Check for multiple art versions from card_images
+        const hasMultipleArts = (card.card_images?.length ?? 0) > 1;
+
+        // Build availableVariants array
+        const availableVariants: string[] = [];
+        if (rarityVariant) {
+          availableVariants.push(rarityVariant);
+        }
+        if (hasMultipleArts) {
+          // Add alternate art variants
+          card.card_images?.forEach((_, idx) => {
+            if (idx > 0) {
+              availableVariants.push(`alt_art_${idx}`);
+            }
+          });
+        }
+
         return {
           cardId: `${card.id}-${args.setId}`,
           gameSlug: 'yugioh' as const,
@@ -1387,6 +1411,7 @@ export const populateYugiohSetCards = internalAction({
           imageLarge: card.card_images?.[0]?.image_url || '',
           tcgPlayerUrl: undefined,
           priceMarket: price ? parseFloat(price) : undefined,
+          availableVariants: availableVariants.length > 0 ? availableVariants : undefined,
         };
       });
 

@@ -12,15 +12,9 @@ import { mutation, query } from './_generated/server';
 // ============================================================================
 
 /**
- * Card variant type for consistent typing
+ * Card variant type - now supports all games (Pokemon, Yu-Gi-Oh, One Piece, Lorcana)
  */
-const cardVariant = v.union(
-  v.literal('normal'),
-  v.literal('holofoil'),
-  v.literal('reverseHolofoil'),
-  v.literal('1stEditionHolofoil'),
-  v.literal('1stEditionNormal')
-);
+const cardVariant = v.string();
 
 /**
  * Device type for tracking

@@ -429,15 +429,7 @@ export const addCardWithLimitCheck = mutation({
     profileId: v.id('profiles'),
     cardId: v.string(),
     quantity: v.optional(v.number()),
-    variant: v.optional(
-      v.union(
-        v.literal('normal'),
-        v.literal('holofoil'),
-        v.literal('reverseHolofoil'),
-        v.literal('1stEditionHolofoil'),
-        v.literal('1stEditionNormal')
-      )
-    ),
+    variant: v.optional(v.string()), // Supports all game variants
   },
   handler: async (ctx, args) => {
     // Get profile and family

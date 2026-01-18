@@ -249,15 +249,7 @@ export const importCollectionData = mutation({
         v.object({
           cardId: v.string(),
           quantity: v.number(),
-          variant: v.optional(
-            v.union(
-              v.literal('normal'),
-              v.literal('holofoil'),
-              v.literal('reverseHolofoil'),
-              v.literal('1stEditionHolofoil'),
-              v.literal('1stEditionNormal')
-            )
-          ),
+          variant: v.optional(v.string()), // Supports all game variants
         })
       ),
       wishlist: v.optional(

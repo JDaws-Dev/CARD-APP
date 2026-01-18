@@ -3,14 +3,10 @@ import { mutation, query } from './_generated/server';
 import { paginationOptsValidator } from 'convex/server';
 import { api } from './_generated/api';
 
-// Card variant type for consistent typing across queries and mutations
-const cardVariant = v.union(
-  v.literal('normal'),
-  v.literal('holofoil'),
-  v.literal('reverseHolofoil'),
-  v.literal('1stEditionHolofoil'),
-  v.literal('1stEditionNormal')
-);
+// Card variant type - now supports all games (Pokemon, Yu-Gi-Oh, One Piece, Lorcana)
+// Pokemon: normal, holofoil, reverseHolofoil, 1stEditionHolofoil, 1stEditionNormal
+// Yu-Gi-Oh: common, rare, super_rare, ultra_rare, secret_rare, etc.
+const cardVariant = v.string();
 
 // Game slug type for multi-TCG filtering
 const gameSlugValidator = v.union(

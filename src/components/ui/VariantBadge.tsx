@@ -1,18 +1,35 @@
 'use client';
 
-import { SparklesIcon } from '@heroicons/react/24/solid';
+import { SparklesIcon, StarIcon } from '@heroicons/react/24/solid';
 import { cn } from '@/lib/utils';
 
-// Variant type definition - matches Pokemon TCG API price keys
-export type CardVariant =
+// Pokemon variant type definition - matches Pokemon TCG API price keys
+export type PokemonVariant =
   | 'normal'
   | 'holofoil'
   | 'reverseHolofoil'
   | '1stEditionHolofoil'
   | '1stEditionNormal';
 
-// All possible variants in display order
-export const ALL_VARIANTS: CardVariant[] = [
+// Yu-Gi-Oh variant type definition - based on rarity
+export type YugiohVariant =
+  | 'common'
+  | 'rare'
+  | 'super_rare'
+  | 'ultra_rare'
+  | 'secret_rare'
+  | 'ultimate_rare'
+  | 'ghost_rare'
+  | 'starlight_rare'
+  | 'collector\'s_rare'
+  | 'prismatic_secret_rare'
+  | 'quarter_century_secret_rare';
+
+// Combined variant type for backwards compatibility
+export type CardVariant = PokemonVariant | YugiohVariant | string;
+
+// All possible Pokemon variants in display order
+export const ALL_POKEMON_VARIANTS: PokemonVariant[] = [
   'normal',
   'holofoil',
   'reverseHolofoil',
@@ -20,20 +37,38 @@ export const ALL_VARIANTS: CardVariant[] = [
   '1stEditionHolofoil',
 ];
 
-// Variant display configuration
-export const VARIANT_CONFIG: Record<
-  CardVariant,
-  {
-    label: string;
-    shortLabel: string;
-    gradient: string;
-    bgOwned: string;
-    bgUnowned: string;
-    textOwned: string;
-    textUnowned: string;
-    icon?: React.ComponentType<{ className?: string }>;
-  }
-> = {
+// All possible Yu-Gi-Oh variants in display order (by rarity tier)
+export const ALL_YUGIOH_VARIANTS: YugiohVariant[] = [
+  'common',
+  'rare',
+  'super_rare',
+  'ultra_rare',
+  'secret_rare',
+  'ultimate_rare',
+  'ghost_rare',
+  'starlight_rare',
+  'collector\'s_rare',
+  'prismatic_secret_rare',
+  'quarter_century_secret_rare',
+];
+
+// Legacy export for backwards compatibility
+export const ALL_VARIANTS: CardVariant[] = ALL_POKEMON_VARIANTS;
+
+// Variant display configuration type
+interface VariantDisplayConfig {
+  label: string;
+  shortLabel: string;
+  gradient: string;
+  bgOwned: string;
+  bgUnowned: string;
+  textOwned: string;
+  textUnowned: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}
+
+// Pokemon variant display configuration
+export const POKEMON_VARIANT_CONFIG: Record<PokemonVariant, VariantDisplayConfig> = {
   normal: {
     label: 'Normal',
     shortLabel: 'N',
@@ -84,6 +119,165 @@ export const VARIANT_CONFIG: Record<
   },
 };
 
+// Yu-Gi-Oh variant display configuration
+export const YUGIOH_VARIANT_CONFIG: Record<YugiohVariant, VariantDisplayConfig> = {
+  common: {
+    label: 'Common',
+    shortLabel: 'C',
+    gradient: 'from-gray-400 to-gray-500',
+    bgOwned: 'bg-gradient-to-r from-gray-400 to-gray-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+  },
+  rare: {
+    label: 'Rare',
+    shortLabel: 'R',
+    gradient: 'from-blue-400 to-blue-600',
+    bgOwned: 'bg-gradient-to-r from-blue-400 to-blue-600',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: StarIcon,
+  },
+  super_rare: {
+    label: 'Super Rare',
+    shortLabel: 'SR',
+    gradient: 'from-cyan-400 to-blue-500',
+    bgOwned: 'bg-gradient-to-r from-cyan-400 to-blue-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+  ultra_rare: {
+    label: 'Ultra Rare',
+    shortLabel: 'UR',
+    gradient: 'from-yellow-400 to-amber-500',
+    bgOwned: 'bg-gradient-to-r from-yellow-400 to-amber-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+  secret_rare: {
+    label: 'Secret Rare',
+    shortLabel: 'ScR',
+    gradient: 'from-purple-400 to-pink-500',
+    bgOwned: 'bg-gradient-to-r from-purple-400 to-pink-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+  ultimate_rare: {
+    label: 'Ultimate Rare',
+    shortLabel: 'UtR',
+    gradient: 'from-indigo-400 to-purple-600',
+    bgOwned: 'bg-gradient-to-r from-indigo-400 to-purple-600',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+  ghost_rare: {
+    label: 'Ghost Rare',
+    shortLabel: 'GR',
+    gradient: 'from-slate-300 to-gray-400',
+    bgOwned: 'bg-gradient-to-r from-slate-300 to-gray-400',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-gray-800',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+  starlight_rare: {
+    label: 'Starlight Rare',
+    shortLabel: 'StR',
+    gradient: 'from-rose-300 to-pink-400',
+    bgOwned: 'bg-gradient-to-r from-rose-300 to-pink-400',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+  'collector\'s_rare': {
+    label: "Collector's Rare",
+    shortLabel: 'CR',
+    gradient: 'from-emerald-400 to-teal-500',
+    bgOwned: 'bg-gradient-to-r from-emerald-400 to-teal-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+  prismatic_secret_rare: {
+    label: 'Prismatic Secret',
+    shortLabel: 'PScR',
+    gradient: 'from-violet-400 to-fuchsia-500',
+    bgOwned: 'bg-gradient-to-r from-violet-400 to-fuchsia-500',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-white',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+  quarter_century_secret_rare: {
+    label: 'Quarter Century',
+    shortLabel: 'QCR',
+    gradient: 'from-amber-300 to-yellow-400',
+    bgOwned: 'bg-gradient-to-r from-amber-300 to-yellow-400',
+    bgUnowned: 'bg-gray-200',
+    textOwned: 'text-amber-900',
+    textUnowned: 'text-gray-400',
+    icon: SparklesIcon,
+  },
+};
+
+// Default config for unknown variants
+const DEFAULT_VARIANT_CONFIG: VariantDisplayConfig = {
+  label: 'Unknown',
+  shortLabel: '?',
+  gradient: 'from-gray-400 to-gray-500',
+  bgOwned: 'bg-gradient-to-r from-gray-400 to-gray-500',
+  bgUnowned: 'bg-gray-200',
+  textOwned: 'text-white',
+  textUnowned: 'text-gray-400',
+};
+
+// Helper to get variant config for any variant string
+export function getVariantConfig(variant: string): VariantDisplayConfig {
+  // Check Pokemon variants first
+  if (variant in POKEMON_VARIANT_CONFIG) {
+    return POKEMON_VARIANT_CONFIG[variant as PokemonVariant];
+  }
+  // Check Yu-Gi-Oh variants
+  if (variant in YUGIOH_VARIANT_CONFIG) {
+    return YUGIOH_VARIANT_CONFIG[variant as YugiohVariant];
+  }
+  // Handle alt art variants
+  if (variant.startsWith('alt_art_')) {
+    const artNum = variant.replace('alt_art_', '');
+    return {
+      ...DEFAULT_VARIANT_CONFIG,
+      label: `Alt Art ${artNum}`,
+      shortLabel: `A${artNum}`,
+      gradient: 'from-teal-400 to-emerald-500',
+      bgOwned: 'bg-gradient-to-r from-teal-400 to-emerald-500',
+    };
+  }
+  // Return default with formatted label for unknown variants
+  const formattedLabel = variant
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return {
+    ...DEFAULT_VARIANT_CONFIG,
+    label: formattedLabel,
+    shortLabel: formattedLabel.substring(0, 3).toUpperCase(),
+  };
+}
+
+// Legacy export for backwards compatibility (Pokemon only)
+export const VARIANT_CONFIG = POKEMON_VARIANT_CONFIG as Record<string, VariantDisplayConfig>;
+
 interface VariantBadgeProps {
   variant: CardVariant;
   isOwned: boolean;
@@ -94,7 +288,8 @@ interface VariantBadgeProps {
 }
 
 /**
- * VariantBadge - Displays a variant badge (N/H/R/1N/1H) with owned/unowned styling.
+ * VariantBadge - Displays a variant badge with owned/unowned styling.
+ * Supports Pokemon variants (N/H/R/1N/1H) and Yu-Gi-Oh variants (C/R/SR/UR/ScR etc.).
  * Owned variants show with colored gradients, unowned show in gray.
  */
 export function VariantBadge({
@@ -105,7 +300,7 @@ export function VariantBadge({
   className,
   onClick,
 }: VariantBadgeProps) {
-  const config = VARIANT_CONFIG[variant];
+  const config = getVariantConfig(variant);
   const isClickable = !!onClick;
 
   const handleClick = (e: React.MouseEvent) => {

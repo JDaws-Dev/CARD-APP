@@ -97,17 +97,13 @@ export default defineSchema({
 
   collectionCards: defineTable({
     profileId: v.id('profiles'),
-    cardId: v.string(), // Pokemon TCG API card ID (e.g., "sv1-1")
+    cardId: v.string(), // TCG API card ID (e.g., "sv1-1" for Pokemon, "LOB-001" for Yu-Gi-Oh)
     quantity: v.number(),
-    variant: v.optional(
-      v.union(
-        v.literal('normal'),
-        v.literal('holofoil'),
-        v.literal('reverseHolofoil'),
-        v.literal('1stEditionHolofoil'),
-        v.literal('1stEditionNormal')
-      )
-    ),
+    // Variant string supports all games:
+    // - Pokemon: normal, holofoil, reverseHolofoil, 1stEditionHolofoil, 1stEditionNormal
+    // - Yu-Gi-Oh: common, rare, super_rare, ultra_rare, secret_rare, etc.
+    // - One Piece/Lorcana: game-specific variants
+    variant: v.optional(v.string()),
   })
     .index('by_profile', ['profileId'])
     .index('by_profile_and_card', ['profileId', 'cardId'])
@@ -221,15 +217,7 @@ export default defineSchema({
         // Cards initiator is giving
         cardId: v.string(),
         quantity: v.number(),
-        variant: v.optional(
-          v.union(
-            v.literal('normal'),
-            v.literal('holofoil'),
-            v.literal('reverseHolofoil'),
-            v.literal('1stEditionHolofoil'),
-            v.literal('1stEditionNormal')
-          )
-        ),
+        variant: v.optional(v.string()), // Supports all game variants
         cardName: v.optional(v.string()), // Denormalized for display
         setName: v.optional(v.string()),
       })
@@ -239,15 +227,7 @@ export default defineSchema({
         // Cards initiator wants
         cardId: v.string(),
         quantity: v.number(),
-        variant: v.optional(
-          v.union(
-            v.literal('normal'),
-            v.literal('holofoil'),
-            v.literal('reverseHolofoil'),
-            v.literal('1stEditionHolofoil'),
-            v.literal('1stEditionNormal')
-          )
-        ),
+        variant: v.optional(v.string()), // Supports all game variants
         cardName: v.optional(v.string()), // Denormalized for display
         setName: v.optional(v.string()),
       })

@@ -84,22 +84,16 @@ const VARIANT_CONFIG: Record<
 };
 
 // Get available variants from a card's availableVariants field or tcgplayer prices
+// Now supports all game types (Pokemon, Yu-Gi-Oh, etc.)
 function getAvailableVariants(card: PokemonCard): CardVariant[] {
   // First check availableVariants field (from cachedCards)
+  // This works for all game types - Pokemon stores variant keys, Yu-Gi-Oh stores rarity variants
   if (card.availableVariants && card.availableVariants.length > 0) {
-    // Filter to only known variant types
-    const knownVariants = card.availableVariants.filter(
-      (v): v is CardVariant =>
-        v === 'normal' ||
-        v === 'holofoil' ||
-        v === 'reverseHolofoil' ||
-        v === '1stEditionHolofoil' ||
-        v === '1stEditionNormal'
-    );
-    return knownVariants.length > 0 ? knownVariants : ['normal'];
+    // Accept all variants - the getVariantConfig function in VariantBadge handles display
+    return card.availableVariants as CardVariant[];
   }
 
-  // Fallback to tcgplayer prices (for direct API calls)
+  // Fallback to tcgplayer prices (for Pokemon direct API calls)
   const prices = card.tcgplayer?.prices;
   if (!prices) return ['normal'];
 
