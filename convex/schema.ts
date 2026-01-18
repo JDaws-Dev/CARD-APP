@@ -537,6 +537,9 @@ export default defineSchema({
     sleepEndMinute: v.optional(v.number()), // 0-59
     sleepPinHash: v.optional(v.string()), // Hashed PIN to exit sleep mode
 
+    // Collection Preferences
+    variantAwareCompletion: v.optional(v.boolean()), // If true, count each variant separately for set completion (default: false = unique cards only)
+
     // Metadata
     updatedAt: v.number(), // Unix timestamp of last update
     updatedBy: v.optional(v.id('profiles')), // Which profile last updated settings

@@ -124,6 +124,27 @@ export const getPrimaryGame = query({
 });
 
 /**
+ * Get variant-aware completion setting for a profile
+ * Returns default value (false) if no setting exists - meaning unique cards only
+ */
+export const getVariantAwareCompletion = query({
+  args: {
+    profileId: v.id('profiles'),
+  },
+  handler: async (ctx, args) => {
+    const settings = await ctx.db
+      .query('profileSettings')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .unique();
+
+    return {
+      profileId: args.profileId,
+      variantAwareCompletion: settings?.variantAwareCompletion ?? false,
+    };
+  },
+});
+
+/**
  * Get sleep settings for multiple profiles (useful for parent view)
  */
 export const getChildrenSleepSettings = query({
@@ -205,6 +226,49 @@ export const setPrimaryGame = mutation({
       action: 'created' as const,
       profileId: args.profileId,
       primaryGame: args.primaryGame,
+    };
+  },
+});
+
+/**
+ * Set variant-aware completion preference for a profile
+ * When enabled, set completion counts each variant separately (for "master set" collectors)
+ * When disabled (default), completion counts unique card IDs only
+ */
+export const setVariantAwareCompletion = mutation({
+  args: {
+    profileId: v.id('profiles'),
+    variantAwareCompletion: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query('profileSettings')
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
+      .unique();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        variantAwareCompletion: args.variantAwareCompletion,
+        updatedAt: Date.now(),
+      });
+      return {
+        action: 'updated' as const,
+        profileId: args.profileId,
+        variantAwareCompletion: args.variantAwareCompletion,
+      };
+    }
+
+    // Create new settings record
+    await ctx.db.insert('profileSettings', {
+      profileId: args.profileId,
+      variantAwareCompletion: args.variantAwareCompletion,
+      updatedAt: Date.now(),
+    });
+
+    return {
+      action: 'created' as const,
+      profileId: args.profileId,
+      variantAwareCompletion: args.variantAwareCompletion,
     };
   },
 });

@@ -1305,3 +1305,13 @@
 **Files:** src/components/collection/CardGrid.tsx
 **Commit:** a4d4843
 ---
+## CD-5yk.7 - Update set completion to optionally account for variants
+**Status:** Completed
+**Changes:** Added variant-aware set completion calculation with user toggle. Users can now switch between "Unique Cards" mode (default - counts unique card IDs) and "Master Set" mode (counts each variant separately). The setting persists per-profile and the UI shows a progress bar with mode-appropriate labels.
+**Files:**
+- convex/schema.ts (added variantAwareCompletion field)
+- convex/profileSettings.ts (added query/mutation for setting)
+- src/lib/setCompletion.ts (added variant-aware calculation functions)
+- src/components/collection/SetDetailClient.tsx (added progress bar and toggle UI)
+**Commit:** (to be committed)
+---

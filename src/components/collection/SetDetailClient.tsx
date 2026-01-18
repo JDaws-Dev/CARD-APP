@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import type { PokemonCard, PokemonSet } from '@/lib/pokemon-tcg';
@@ -12,9 +12,15 @@ import {
   RARITY_CATEGORIES,
   type RarityCategoryId,
 } from '@/components/filter/RarityFilter';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import type { Id } from '../../../convex/_generated/dataModel';
+import {
+  getSetCompletionProgress,
+  getSetCompletionProgressWithMode,
+  type VariantCompletionData,
+  type CompletionMode,
+} from '@/lib/setCompletion';
 
 // Collection filter options for Have/Need/All toggle
 type CollectionFilter = 'all' | 'have' | 'need';
@@ -116,6 +122,26 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
     profileId ? { profileId: profileId as Id<'profiles'>, days: 7 } : 'skip'
   );
 
+  // Get variant-aware completion setting
+  const variantCompletionSetting = useQuery(
+    api.profileSettings.getVariantAwareCompletion,
+    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+  );
+  const setVariantAwareCompletion = useMutation(api.profileSettings.setVariantAwareCompletion);
+
+  const completionMode: CompletionMode =
+    variantCompletionSetting?.variantAwareCompletion ? 'variants' : 'unique';
+
+  // Toggle handler for completion mode
+  const handleToggleCompletionMode = async () => {
+    if (!profileId) return;
+    const newValue = !variantCompletionSetting?.variantAwareCompletion;
+    await setVariantAwareCompletion({
+      profileId: profileId as Id<'profiles'>,
+      variantAwareCompletion: newValue,
+    });
+  };
+
   // Build lookup maps for sorting
   const { ownedCardIds, wishlistCardIds, recentlyAddedCardIds, recentlyAddedTimes } = useMemo(() => {
     const owned = new Set<string>();
@@ -170,6 +196,49 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
     const needCount = cards.length - haveCount;
     return { have: haveCount, need: needCount, all: cards.length };
   }, [cards, ownedCardIds]);
+
+  // Build variant data for variant-aware completion
+  const variantData = useMemo<VariantCompletionData>(() => {
+    const availableVariantsPerCard = new Map<string, number>();
+    const ownedVariantsPerCard = new Map<string, string[]>();
+
+    // Count available variants per card (from card data)
+    cards.forEach((card) => {
+      // Cards may have availableVariants from the cache, or default to 1 (normal only)
+      const cardWithVariants = card as PokemonCard & { availableVariants?: string[] };
+      const variantCount = cardWithVariants.availableVariants?.length || 1;
+      availableVariantsPerCard.set(card.id, variantCount);
+    });
+
+    // Count owned variants per card (from collection)
+    if (collection) {
+      collection.forEach((item) => {
+        const variant = (item as { cardId: string; variant?: string }).variant || 'normal';
+        const existing = ownedVariantsPerCard.get(item.cardId) || [];
+        if (!existing.includes(variant)) {
+          existing.push(variant);
+          ownedVariantsPerCard.set(item.cardId, existing);
+        }
+      });
+    }
+
+    return {
+      totalUniqueCards: cards.length,
+      availableVariantsPerCard,
+      ownedVariantsPerCard,
+    };
+  }, [cards, collection]);
+
+  // Calculate completion progress based on mode
+  const completionProgress = useMemo(() => {
+    const ownedUniqueCards = cards.filter((card) => ownedCardIds.has(card.id)).length;
+    return getSetCompletionProgressWithMode(
+      completionMode,
+      ownedUniqueCards,
+      cards.length,
+      variantData
+    );
+  }, [completionMode, cards, ownedCardIds, variantData]);
 
   // Filter and sort cards
   const filteredAndSortedCards = useMemo(() => {
@@ -324,6 +393,65 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
             onRarityChange={setSelectedRarity}
             rarityCounts={rarityCounts}
           />
+        </div>
+      </div>
+
+      {/* Set Completion Progress */}
+      <div className="rounded-xl bg-white p-4 shadow-md dark:bg-slate-800">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                {completionMode === 'variants' ? 'Master Set Progress' : 'Set Progress'}
+              </span>
+              <span className="text-sm font-bold text-kid-primary">
+                {completionProgress.percentComplete}%
+              </span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
+              <div
+                className={cn(
+                  'h-full rounded-full transition-all duration-500',
+                  completionProgress.isComplete
+                    ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400'
+                    : 'bg-gradient-to-r from-kid-primary to-kid-secondary'
+                )}
+                style={{ width: `${completionProgress.percentComplete}%` }}
+              />
+            </div>
+            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+              {completionProgress.isComplete
+                ? completionMode === 'variants'
+                  ? 'Master set complete! You have every variant!'
+                  : 'Set complete! You have every card!'
+                : `${completionProgress.cardsNeeded} ${completionMode === 'variants' ? 'variants' : 'cards'} needed`}
+            </p>
+          </div>
+          {/* Completion Mode Toggle */}
+          <button
+            onClick={handleToggleCompletionMode}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-all',
+              completionMode === 'variants'
+                ? 'border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 hover:from-amber-100 hover:to-yellow-100'
+                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
+            )}
+            title={
+              completionMode === 'variants'
+                ? 'Currently counting all variants (Master Set mode). Click to switch to unique cards only.'
+                : 'Currently counting unique cards only. Click to switch to Master Set mode (all variants).'
+            }
+          >
+            <SparklesIcon
+              className={cn(
+                'h-4 w-4',
+                completionMode === 'variants' ? 'text-amber-500' : 'text-gray-400'
+              )}
+            />
+            <span className="hidden sm:inline">
+              {completionMode === 'variants' ? 'Master Set' : 'Unique Cards'}
+            </span>
+          </button>
         </div>
       </div>
 

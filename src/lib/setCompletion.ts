@@ -30,6 +30,24 @@ export interface SetCompletionCheckResult {
   justCompleted: boolean;
 }
 
+/**
+ * Variant-aware completion input data
+ * Used when calculating completion that accounts for all variants
+ */
+export interface VariantCompletionData {
+  /** Total unique cards in the set */
+  totalUniqueCards: number;
+  /** Map of cardId to number of available variants for that card */
+  availableVariantsPerCard: Map<string, number>;
+  /** Map of cardId to array of variant types owned */
+  ownedVariantsPerCard: Map<string, string[]>;
+}
+
+/**
+ * Completion mode for set progress calculation
+ */
+export type CompletionMode = 'unique' | 'variants';
+
 // ============================================================================
 // SET COMPLETION DETECTION
 // ============================================================================
@@ -58,6 +76,76 @@ export function getSetCompletionProgress(
     cardsNeeded,
     isComplete,
   };
+}
+
+/**
+ * Calculate variant-aware completion progress for a set
+ * When variant-aware mode is enabled, each variant of a card counts separately toward completion.
+ *
+ * @param data - Variant completion data including available and owned variants
+ * @returns SetCompletionProgress with variant-aware calculations
+ */
+export function getVariantAwareCompletionProgress(
+  data: VariantCompletionData
+): SetCompletionProgress {
+  // Calculate total possible variants across all cards
+  let totalVariants = 0;
+  for (const count of data.availableVariantsPerCard.values()) {
+    totalVariants += count;
+  }
+
+  // If no variant data, fall back to unique cards only
+  if (totalVariants === 0) {
+    totalVariants = data.totalUniqueCards;
+  }
+
+  // Calculate owned variants
+  let ownedVariants = 0;
+  for (const variants of data.ownedVariantsPerCard.values()) {
+    ownedVariants += variants.length;
+  }
+
+  if (totalVariants <= 0) {
+    return {
+      percentComplete: 0,
+      cardsNeeded: 0,
+      isComplete: false,
+    };
+  }
+
+  const percentComplete = Math.round((ownedVariants / totalVariants) * 100);
+  const cardsNeeded = Math.max(0, totalVariants - ownedVariants);
+  const isComplete = ownedVariants >= totalVariants;
+
+  return {
+    percentComplete: Math.min(percentComplete, 100),
+    cardsNeeded,
+    isComplete,
+  };
+}
+
+/**
+ * Get completion progress based on the selected mode
+ * This is the main entry point for calculating set completion with mode support.
+ *
+ * @param mode - 'unique' for unique cards only, 'variants' for all variants
+ * @param ownedUniqueCards - Number of unique cards owned (for unique mode)
+ * @param totalUniqueCards - Total unique cards in set
+ * @param variantData - Optional variant data for variant-aware mode
+ * @returns SetCompletionProgress
+ */
+export function getSetCompletionProgressWithMode(
+  mode: CompletionMode,
+  ownedUniqueCards: number,
+  totalUniqueCards: number,
+  variantData?: VariantCompletionData
+): SetCompletionProgress {
+  if (mode === 'variants' && variantData) {
+    return getVariantAwareCompletionProgress(variantData);
+  }
+
+  // Default to unique cards mode
+  return getSetCompletionProgress(ownedUniqueCards, totalUniqueCards);
 }
 
 /**
