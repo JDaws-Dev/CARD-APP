@@ -1236,3 +1236,9 @@
 **Files:** src/components/ai/TradeAdvisor.tsx (new), src/components/dashboard/ParentDashboard.tsx (modified)
 **Commit:** 11b3e41
 ---
+## CD-rnj - AI P2: Condition grader tutorial component
+**Status:** Completed
+**Changes:** Created ConditionGrader.tsx component with photo upload, AI condition analysis integration (calls gradeCardCondition action), and comprehensive educational UI including tutorial overlay, detailed condition breakdown with ratings/emojis, care tips, and fun facts.
+**Files:** src/components/ai/ConditionGrader.tsx (new)
+**Commit:** 4ca3999
+---
