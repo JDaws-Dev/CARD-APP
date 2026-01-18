@@ -30,6 +30,8 @@ import { cn } from '@/lib/utils';
 import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
 import { FamilyLeaderboard } from '@/components/family/FamilyLeaderboard';
 import { WhatsNextCard } from '@/components/dashboard/WhatsNextCard';
+import { RecentCardsPreview, RecentCardsPreviewSkeleton } from '@/components/dashboard/RecentCardsPreview';
+import { FeaturedCardsPreview, FeaturedCardsPreviewSkeleton } from '@/components/dashboard/FeaturedCardsPreview';
 import { getDisplayName } from '@/lib/displayName';
 import { getGameInfo, type GameId } from '@/lib/gameSelector';
 
@@ -310,6 +312,12 @@ export function KidDashboardSkeleton() {
         ))}
       </div>
 
+      {/* Featured cards skeleton */}
+      <FeaturedCardsPreviewSkeleton />
+
+      {/* Recent cards skeleton */}
+      <RecentCardsPreviewSkeleton />
+
       {/* Quick actions skeleton */}
       <div>
         <Skeleton className="mb-3 h-6 w-28" />
@@ -508,6 +516,12 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
 
       {/* What's Next Card - Shows for new users */}
       <WhatsNextCard totalCards={stats.totalCards} setsStarted={stats.setsStarted} />
+
+      {/* Featured Cards Spotlight - Only show if user has cards */}
+      {stats.totalCards > 0 && <FeaturedCardsPreview count={3} />}
+
+      {/* Recently Added Cards - Only show if user has cards */}
+      {stats.totalCards > 0 && <RecentCardsPreview limit={10} />}
 
       {/* Quick Actions */}
       <div>
