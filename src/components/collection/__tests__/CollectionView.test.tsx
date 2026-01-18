@@ -167,8 +167,7 @@ describe('CollectionView', () => {
     render(<CollectionView collection={collection} />);
 
     await waitFor(() => {
-      // Should show x3 badges for the card with quantity 3
-      // (appears in both "Most Valuable Cards" section and the grid)
+      // Should show x3 badge for the card with quantity 3 in the grid
       const badges = screen.getAllByText('x3');
       expect(badges.length).toBeGreaterThanOrEqual(1);
     });
@@ -224,7 +223,7 @@ describe('CollectionView', () => {
       });
     });
 
-    it('displays most valuable cards derived from cardData Map', async () => {
+    it('displays collection value banner with total value', async () => {
       const collection = [
         { _id: '1', cardId: 'sv1-1', quantity: 1 },
         { _id: '2', cardId: 'sv1-2', quantity: 2 },
@@ -233,12 +232,11 @@ describe('CollectionView', () => {
       render(<CollectionView collection={collection} />);
 
       await waitFor(() => {
-        // Should show "Most Valuable Cards" section header
-        expect(screen.getByText('Most Valuable Cards')).toBeInTheDocument();
-        // Charmander at $2.00 should be listed (most valuable)
-        expect(screen.getByText('$2.00')).toBeInTheDocument();
-        // Pikachu at $1.50 should also be listed
-        expect(screen.getByText('$1.50')).toBeInTheDocument();
+        // Should show total collection value in the value banner
+        // Pikachu ($1.50 x 1) + Charmander ($2.00 x 2) = $5.50
+        expect(screen.getByText('$5.50')).toBeInTheDocument();
+        // Should show cards priced count
+        expect(screen.getByText(/2 cards priced/)).toBeInTheDocument();
       });
     });
 

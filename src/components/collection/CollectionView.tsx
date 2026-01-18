@@ -566,23 +566,6 @@ export function CollectionView({ collection }: CollectionViewProps) {
           </div>
         </div>
 
-        {/* Most Valuable Cards Skeleton */}
-        <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <Skeleton className="h-6 w-6 rounded" />
-            <Skeleton className="h-6 w-40" />
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="rounded-lg bg-white p-3">
-                <Skeleton className="mb-2 aspect-[2.5/3.5] w-full rounded" />
-                <Skeleton className="mx-auto mb-1 h-3 w-16" />
-                <Skeleton className="mx-auto h-5 w-12" />
-              </div>
-            ))}
-          </div>
-        </div>
-
         {Array.from({ length: Math.max(estimatedGroups, 1) }).map((_, i) => (
           <CollectionGroupSkeleton key={i} />
         ))}
@@ -610,63 +593,69 @@ export function CollectionView({ collection }: CollectionViewProps) {
         onClose={() => setIsBinderOpen(false)}
       />
 
-      {/* Variant Filter and Sort */}
+      {/* Collection Controls - Sort, View, Filter */}
       {cardData.size > 0 && (
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <VariantFilter
-            selectedVariant={selectedVariant}
-            onVariantChange={setSelectedVariant}
-            variantCounts={variantCounts}
-          />
+        <div className="rounded-xl bg-white p-3 shadow-sm sm:p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            {/* Primary controls: Sort and Grid Size */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Sort Dropdown - most important, placed first */}
+              <div className="relative flex-shrink-0">
+                <label htmlFor="sort-select" className="sr-only">Sort by</label>
+                <select
+                  id="sort-select"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="appearance-none rounded-lg border border-gray-200 bg-gray-50 py-2 pl-3 pr-9 text-sm font-medium text-gray-700 transition hover:border-kid-primary hover:bg-white focus:border-kid-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-kid-primary/20"
+                >
+                  {SORT_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDownIcon className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              </div>
 
-          {/* Grid Size Toggle */}
-          <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
-            <button
-              type="button"
-              onClick={() => setGridSize('compact')}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                gridSize === 'compact'
-                  ? 'bg-kid-primary text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-              aria-label="Compact view"
-              aria-pressed={gridSize === 'compact'}
-            >
-              <Squares2X2Icon className="h-4 w-4" />
-              <span className="hidden sm:inline">Compact</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setGridSize('expanded')}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                gridSize === 'expanded'
-                  ? 'bg-kid-primary text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-              aria-label="Expanded view"
-              aria-pressed={gridSize === 'expanded'}
-            >
-              <ViewColumnsIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Expanded</span>
-            </button>
-          </div>
+              {/* Grid Size Toggle */}
+              <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
+                <button
+                  type="button"
+                  onClick={() => setGridSize('compact')}
+                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition ${
+                    gridSize === 'compact'
+                      ? 'bg-kid-primary text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-white'
+                  }`}
+                  aria-label="Compact view"
+                  aria-pressed={gridSize === 'compact'}
+                >
+                  <Squares2X2Icon className="h-4 w-4" />
+                  <span className="hidden sm:inline">Compact</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGridSize('expanded')}
+                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition ${
+                    gridSize === 'expanded'
+                      ? 'bg-kid-primary text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-white'
+                  }`}
+                  aria-label="Expanded view"
+                  aria-pressed={gridSize === 'expanded'}
+                >
+                  <ViewColumnsIcon className="h-4 w-4" />
+                  <span className="hidden sm:inline">Expanded</span>
+                </button>
+              </div>
+            </div>
 
-          {/* Sort Dropdown */}
-          <div className="relative">
-            <label htmlFor="sort-select" className="sr-only">Sort by</label>
-            <select
-              id="sort-select"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="appearance-none rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-300 focus:border-kid-primary focus:outline-none focus:ring-2 focus:ring-kid-primary/20"
-            >
-              {SORT_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            {/* Variant Filter - secondary control */}
+            <VariantFilter
+              selectedVariant={selectedVariant}
+              onVariantChange={setSelectedVariant}
+              variantCounts={variantCounts}
+            />
           </div>
         </div>
       )}
@@ -705,74 +694,6 @@ export function CollectionView({ collection }: CollectionViewProps) {
               {collectionValue.cardsWithoutPrice !== 1 ? 's' : ''} without price data
             </p>
           )}
-        </div>
-      )}
-
-      {/* Most Valuable Cards Section */}
-      {mostValuableCards.length > 0 && (
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 p-6 shadow-sm">
-          {/* Decorative background elements */}
-          <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-amber-200/30" />
-          <div className="absolute -bottom-4 right-1/3 h-16 w-16 rounded-full bg-orange-200/30" />
-
-          <div className="relative">
-            <div className="mb-4 flex items-center gap-2">
-              <TrophyIcon className="h-6 w-6 text-amber-500" />
-              <h2 className="text-xl font-bold text-gray-800">Most Valuable Cards</h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-              {mostValuableCards.map(({ card, price, quantity, collectionId }, index) => (
-                <div
-                  key={collectionId}
-                  className="group relative rounded-lg bg-white p-3 shadow-sm transition hover:shadow-md"
-                >
-                  {/* Rank Badge */}
-                  <div
-                    className={`absolute -left-2 -top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full font-bold text-white shadow ${
-                      index === 0
-                        ? 'bg-gradient-to-br from-amber-400 to-amber-600'
-                        : index === 1
-                          ? 'bg-gradient-to-br from-gray-300 to-gray-500'
-                          : index === 2
-                            ? 'bg-gradient-to-br from-orange-400 to-orange-600'
-                            : 'bg-gradient-to-br from-gray-400 to-gray-600'
-                    }`}
-                  >
-                    {index === 0 ? (
-                      <FireIcon className="h-4 w-4" />
-                    ) : (
-                      <span className="text-sm">{index + 1}</span>
-                    )}
-                  </div>
-
-                  {/* Card Image */}
-                  <div className="relative aspect-[2.5/3.5] overflow-hidden rounded">
-                    <CardImage
-                      src={card.images.small}
-                      alt={card.name}
-                      fill
-                      loading="lazy"
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                    />
-
-                    {/* Quantity Badge */}
-                    {quantity > 1 && (
-                      <div className="absolute right-0.5 top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-kid-primary px-1 text-xs font-bold text-white shadow">
-                        x{quantity}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Card Info */}
-                  <div className="mt-2 text-center">
-                    <p className="truncate text-xs font-medium text-gray-600">{card.name}</p>
-                    <p className="mt-1 text-lg font-bold text-emerald-600">{formatPrice(price)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 

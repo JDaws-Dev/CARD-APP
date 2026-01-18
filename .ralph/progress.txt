@@ -637,7 +637,7 @@
 **Status:** Completed
 **Changes:** Added useGameSelector hook to badges page, updated TrophyCase component to accept gameSlug prop and pass it to getAchievements query for game-specific achievement filtering
 **Files:** src/app/badges/page.tsx, src/components/achievements/TrophyCase.tsx
-**Commit:** (pending)
+**Commit:** f7f3a64
 ---
 ## CD-sqv - Improve mobile game switcher UX
 **Status:** Completed
@@ -750,4 +750,15 @@
 - src/lib/__tests__/conditionGrader.test.ts
 - src/lib/__tests__/suspiciousAccessLog.test.ts
 **Commit:** b98467c
+---
+## CD-3wh - Evaluate My Collection UX - sorting, trophy room, most valuable cards
+**Status:** Completed
+**Changes:** 
+- Removed redundant "Most Valuable Cards" section from CollectionView (Trophy Room already shows this data)
+- Improved sorting/filter control layout with better visual grouping and mobile-friendly stacking
+- Updated tests to match new behavior
+**Files:** 
+- src/components/collection/CollectionView.tsx
+- src/components/collection/__tests__/CollectionView.test.tsx
+**Commit:** f7f3a64
 ---
