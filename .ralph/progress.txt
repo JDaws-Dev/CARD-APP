@@ -372,3 +372,9 @@
 **Files:** src/components/header/ProfileSwitcher.tsx, src/components/layout/AppHeader.tsx
 **Commit:** 6f2190a (original implementation), f34ae8a (previous close attempt)
 ---
+## CD-2i4 - Profile switcher for families
+**Status:** Completed
+**Changes:** Profile switcher component added to header for authenticated users, allowing families to switch between child profiles. Shows current profile avatar and name, dropdown displays all available profiles with visual selection indicator.
+**Files:** src/components/header/ProfileSwitcher.tsx (new), src/components/layout/AppHeader.tsx (updated)
+**Commit:** (implementation committed previously, closing issue now)
+---
