@@ -9,6 +9,7 @@ import { loadOnboardingProgress } from './onboardingFlow';
 
 /**
  * Checks if a display name looks like an email prefix (e.g., "jedaws" from "jedaws@email.com").
+ * Also detects names derived from emails by OAuth providers (e.g., "JE Dawes" from "jedawes@...").
  * Returns true if it looks like an email-derived name that should be replaced.
  */
 export function looksLikeEmailPrefix(name: string | undefined | null): boolean {
@@ -28,6 +29,14 @@ export function looksLikeEmailPrefix(name: string | undefined | null): boolean {
 
   // If it has numbers mixed with letters and no spaces, likely an email prefix
   if (hasNoSpaces && isAllLowercase && hasNumbersAndLetters) {
+    return true;
+  }
+
+  // Check for OAuth-derived name patterns like "JE Dawes" from "jedawes@email.com"
+  // Pattern: 1-3 uppercase letters/initials followed by a capitalized surname
+  // This catches names like "JE Dawes", "J Smith", "AB Jones"
+  const initialsPattern = /^[A-Z]{1,3}\s+[A-Z][a-z]+$/;
+  if (initialsPattern.test(trimmed)) {
     return true;
   }
 

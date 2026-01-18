@@ -36,6 +36,16 @@ describe('looksLikeEmailPrefix', () => {
       expect(looksLikeEmailPrefix('jedaws1')).toBe(true);
       expect(looksLikeEmailPrefix('test2024')).toBe(true);
     });
+
+    it('returns true for OAuth-derived initials + surname patterns', () => {
+      // These are common patterns when OAuth providers parse email local parts
+      // e.g., "jedawes@gmail.com" -> "JE Dawes" or "J Dawes"
+      expect(looksLikeEmailPrefix('JE Dawes')).toBe(true);
+      expect(looksLikeEmailPrefix('J Smith')).toBe(true);
+      expect(looksLikeEmailPrefix('AB Jones')).toBe(true);
+      expect(looksLikeEmailPrefix('JK Rowling')).toBe(true);
+      expect(looksLikeEmailPrefix('ABC Test')).toBe(true);
+    });
   });
 
   describe('returns false for valid names', () => {
@@ -206,6 +216,20 @@ describe('getDisplayName', () => {
 
       // Database name looks like email prefix, should fall back
       expect(getDisplayName('user123')).toBe('RealName');
+    });
+
+    it('prefers onboarding name over OAuth-derived initials name', () => {
+      mockLoadOnboardingProgress.mockReturnValue({
+        currentStep: 'complete',
+        completedSteps: [],
+        isComplete: false,
+        profileName: 'Jeremiah',
+        profileType: 'child',
+        startedAt: Date.now(),
+      });
+
+      // Database name looks like OAuth-derived "JE Dawes", should fall back to "Jeremiah"
+      expect(getDisplayName('JE Dawes')).toBe('Jeremiah');
     });
   });
 });
