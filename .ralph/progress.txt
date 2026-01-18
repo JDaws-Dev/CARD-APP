@@ -333,3 +333,9 @@
 **Files:** src/components/layout/AppHeader.tsx
 **Commit:** (pending)
 ---
+## CD-ah7 - Quick game switcher in header
+**Status:** Completed
+**Changes:** Verified feature already implemented - GameSwitcher component exists and is integrated in AppHeader.tsx for both desktop and mobile views
+**Files:** src/components/header/GameSwitcher.tsx, src/components/layout/AppHeader.tsx
+**Commit:** N/A - already completed in previous commits (56d1a71, 3d6b18a)
+---
