@@ -1409,3 +1409,11 @@
 **Files:** convex/schema.ts, convex/profileSettings.ts
 **Commit:** 59e1df1
 ---
+## CD-0mz.2 - Sub-task 2: Add Hide Prices toggle to parent settings UI
+**Status:** Completed
+**Changes:** Created HidePricesSettings component with ProfileSelector and toggle switch. Added Price Visibility section to settings page in Family Controls area. Follows same pattern as SleepModeSettings for per-child configuration.
+**Files:** 
+- src/components/settings/HidePricesSettings.tsx (created)
+- src/app/settings/page.tsx (modified)
+**Commit:** 7a6abb2
+---
