@@ -823,7 +823,7 @@
 **Status:** Completed
 **Changes:** Fixed getAvailableVariants() function to read from card.availableVariants field (from cachedCards) instead of only checking tcgplayer.prices. Added availableVariants field to PokemonCard interface.
 **Files:** src/lib/pokemon-tcg.ts, src/components/collection/VirtualCardGrid.tsx, src/components/collection/CardGrid.tsx
-**Commit:** (pending)
+**Commit:** 8e92c0e
 ---
 ## CD-30a - Evaluate pricing model - tiers, trial, AI features, competitor research
 **Status:** Completed
