@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { ScannerButton } from '@/components/ai/ScannerButton';
 import { ChatButton } from '@/components/ai/ChatButton';
+import { RecommendationsPanel } from '@/components/ai/RecommendationsPanel';
 import { Skeleton, CollectionGroupSkeleton } from '@/components/ui/Skeleton';
 import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
 import { TrophyRoomSkeleton } from '@/components/virtual/VirtualTrophyRoom';
@@ -211,9 +212,11 @@ export default function MyCollectionPage() {
             )}
           </div>
 
-          {/* Sidebar: Trade History + Activity Feed */}
+          {/* Sidebar: Recommendations + Trade History + Activity Feed */}
           <div className="lg:col-span-1">
             <div className="space-y-4 lg:sticky lg:top-4">
+              {/* AI Recommendations */}
+              <RecommendationsPanel limit={4} />
               {/* Trade History */}
               <TradeHistory limit={5} />
               {/* Activity Feed */}
