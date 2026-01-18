@@ -1017,3 +1017,9 @@
 **Files:** convex/collections.ts, src/components/gamification/LevelSystem.tsx
 **Commit:** 480be0d
 ---
+## CD-5yk.5 - Yu-Gi-Oh: Add variant detection from card_images and rarities
+**Status:** Completed
+**Changes:** Implemented Yu-Gi-Oh variant detection and display support. Extract rarity variants from card_sets, detect alt art from card_images, added 11 Yu-Gi-Oh variant types with styling, made VariantBadge game-agnostic, updated schema to use string variants.
+**Files:** convex/dataPopulation.ts, src/components/ui/VariantBadge.tsx, src/components/collection/CardGrid.tsx, src/components/collection/VirtualCardGrid.tsx, convex/schema.ts, convex/collections.ts, convex/trades.ts, convex/tradingCalculator.ts, convex/dataPersistence.ts, convex/conflictResolution.ts, convex/dataBackup.ts, convex/subscriptionLimits.ts
+**Commit:** cb7bda6
+---
