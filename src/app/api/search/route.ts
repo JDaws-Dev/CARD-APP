@@ -120,6 +120,7 @@ export async function GET(request: NextRequest) {
         imageLarge: string;
         tcgPlayerUrl?: string;
         priceMarket?: number;
+        availableVariants?: string[];
       }) => ({
         id: card.cardId,
         name: card.name,
@@ -147,6 +148,7 @@ export async function GET(request: NextRequest) {
           name: '', // Set name not stored in cachedCards
         },
         gameSlug: card.gameSlug,
+        availableVariants: card.availableVariants,
       })
     );
 
