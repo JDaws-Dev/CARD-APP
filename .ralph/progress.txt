@@ -1176,3 +1176,9 @@
 **Files:** src/components/trades/TradeHistory.tsx
 **Commit:** 2e6a92b
 ---
+## CD-cxz.7 - Trade UX: Verify and test backend trade saving
+**Status:** Completed
+**Changes:** Verified that the trade system correctly saves trades to database, updates collection (removes given cards, adds received cards), and records trading partner name in trade history.
+**Files:** Reviewed - convex/trades.ts, convex/schema.ts, src/components/trades/TradeLoggingModal.tsx, src/components/trades/TradeHistory.tsx
+**Commit:** N/A (verification task, no code changes)
+---
