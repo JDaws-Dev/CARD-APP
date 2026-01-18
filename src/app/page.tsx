@@ -39,6 +39,7 @@ import {
   OnePieceIcon,
   LorcanaIcon,
 } from '@/components/icons/tcg';
+import { GameCardShowcase, GameCardGrid } from '@/components/landing/GameCardShowcase';
 import type { GameId } from '@/lib/gameSelector';
 
 // Map game IDs to icon components
@@ -190,8 +191,13 @@ export default function Home() {
             </Link>
           </div>
 
+          {/* Card Showcase - fanned cards from all games */}
+          <div className="mt-8 sm:mt-12">
+            <GameCardShowcase />
+          </div>
+
           {/* Social proof mini */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
             <div className="flex items-center gap-1">
               <HeartIcon className="h-4 w-4 text-red-400" />
               <span>Kid-safe & family friendly</span>
@@ -237,11 +243,16 @@ export default function Home() {
                     className={`absolute inset-0 bg-gradient-to-br ${game.gradientFrom} ${game.gradientTo} opacity-0 transition-opacity group-hover:opacity-5`}
                   />
 
-                  {/* Game icon */}
+                  {/* Sample cards preview */}
+                  <div className="relative mb-3 flex justify-center">
+                    <GameCardGrid game={game.id} />
+                  </div>
+
+                  {/* Game icon badge */}
                   <div
-                    className={`relative mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg transition-transform group-hover:scale-110 sm:h-20 sm:w-20 ${game.gradientFrom} ${game.gradientTo}`}
+                    className={`relative mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-md transition-transform group-hover:scale-110 sm:h-12 sm:w-12 ${game.gradientFrom} ${game.gradientTo}`}
                   >
-                    <IconComponent className="h-8 w-8 text-white sm:h-10 sm:w-10" />
+                    <IconComponent className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                   </div>
 
                   {/* Game name */}
