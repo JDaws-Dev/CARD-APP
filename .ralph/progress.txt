@@ -897,3 +897,9 @@
 **Files:** src/lib/setStructureContent.ts
 **Commit:** 7623e4e
 ---
+## CD-549 - Remove unsupported games from profileGames.ts
+**Status:** Completed (no changes needed)
+**Changes:** Investigation found that unsupported games (mtg, digimon, dragonball) were already removed from profileGames.ts. The file correctly contains only the 4 supported games (pokemon, yugioh, onepiece, lorcana). Test file correctly validates that unsupported games are rejected as invalid. All 86 tests pass.
+**Files:** No changes - code was already correct
+**Commit:** N/A (no changes made)
+---
