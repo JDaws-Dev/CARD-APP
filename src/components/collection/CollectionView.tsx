@@ -23,6 +23,7 @@ import { DigitalBinder, DigitalBinderButton } from '@/components/virtual/Digital
 import { CardDetailModal } from './CardDetailModal';
 import { VariantFilter, VARIANT_CATEGORIES, type VariantCategoryId } from '@/components/filter/VariantFilter';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useHidePrices } from '@/hooks/useHidePrices';
 
 // Sort options for the collection
 type SortOption = 'set' | 'dateAdded' | 'value';
@@ -157,6 +158,22 @@ export function CollectionView({ collection }: CollectionViewProps) {
   // Get current profile for mutations
   const { profileId } = useCurrentProfile();
   const { primaryGame } = useGameSelector();
+  const { hidePrices } = useHidePrices();
+
+  // Filter out value sort option when hidePrices is enabled
+  const availableSortOptions = useMemo(() => {
+    if (hidePrices) {
+      return SORT_OPTIONS.filter((option) => option.value !== 'value');
+    }
+    return SORT_OPTIONS;
+  }, [hidePrices]);
+
+  // Reset sort to 'set' if current sort is 'value' and prices are hidden
+  useEffect(() => {
+    if (hidePrices && sortBy === 'value') {
+      setSortBy('set');
+    }
+  }, [hidePrices, sortBy]);
 
   // Mutations for quick actions
   const removeCardMutation = useMutation(api.collections.removeCard);
@@ -669,7 +686,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
                   className="appearance-none rounded-lg border border-gray-200 bg-gray-50 py-2 pl-3 pr-9 text-sm font-medium text-gray-700 transition hover:border-kid-primary hover:bg-white focus:border-kid-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-kid-primary/20"
                 >
-                  {SORT_OPTIONS.map(option => (
+                  {availableSortOptions.map(option => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -721,8 +738,8 @@ export function CollectionView({ collection }: CollectionViewProps) {
         </div>
       )}
 
-      {/* Collection Value Banner */}
-      {collectionValue.total > 0 && (
+      {/* Collection Value Banner - hidden when hidePrices is enabled */}
+      {collectionValue.total > 0 && !hidePrices && (
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-6 text-white shadow-lg">
           {/* Decorative background elements */}
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10" />

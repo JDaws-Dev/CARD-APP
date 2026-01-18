@@ -9,6 +9,7 @@ import type { Id } from '../../../convex/_generated/dataModel';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/components/providers/ReducedMotionProvider';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
+import { useHidePrices } from '@/hooks/useHidePrices';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { TrophyIcon, SparklesIcon, CurrencyDollarIcon, StarIcon } from '@heroicons/react/24/solid';
 import { Square3Stack3DIcon } from '@heroicons/react/24/outline';
@@ -55,10 +56,11 @@ interface TrophySlotProps {
   };
   rank: number;
   reducedMotion: boolean;
+  hidePrices?: boolean;
   onClick?: () => void;
 }
 
-function TrophySlot({ card, rank, reducedMotion, onClick }: TrophySlotProps) {
+function TrophySlot({ card, rank, reducedMotion, hidePrices = false, onClick }: TrophySlotProps) {
   const [isHovered, setIsHovered] = useState(false);
   const glowColor = getGlowColor(card.rarity);
 
@@ -69,7 +71,7 @@ function TrophySlot({ card, rank, reducedMotion, onClick }: TrophySlotProps) {
       className="group relative flex flex-col items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 rounded-lg"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      aria-label={`View ${card.name} details - ranked #${rank}, valued at $${card.totalValue.toFixed(2)}`}
+      aria-label={hidePrices ? `View ${card.name} details - ranked #${rank}` : `View ${card.name} details - ranked #${rank}, valued at $${card.totalValue.toFixed(2)}`}
     >
       {/* Rank badge */}
       <div
@@ -136,12 +138,14 @@ function TrophySlot({ card, rank, reducedMotion, onClick }: TrophySlotProps) {
         <p className="max-w-24 truncate text-xs font-semibold text-gray-800 sm:max-w-28 sm:text-sm">
           {card.name}
         </p>
-        <div className="mt-1 flex items-center justify-center gap-1">
-          <CurrencyDollarIcon className="h-3 w-3 text-emerald-600" />
-          <span className="text-xs font-medium text-emerald-600">
-            ${card.totalValue.toFixed(2)}
-          </span>
-        </div>
+        {!hidePrices && (
+          <div className="mt-1 flex items-center justify-center gap-1">
+            <CurrencyDollarIcon className="h-3 w-3 text-emerald-600" />
+            <span className="text-xs font-medium text-emerald-600">
+              ${card.totalValue.toFixed(2)}
+            </span>
+          </div>
+        )}
         {card.rarity && <p className="mt-0.5 truncate text-[10px] text-gray-500">{card.rarity}</p>}
       </div>
     </button>
@@ -213,6 +217,7 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { isReduced: prefersReducedMotion } = useReducedMotion();
   const { primaryGame } = useGameSelector();
+  const { hidePrices } = useHidePrices();
   const [selectedCard, setSelectedCard] = useState<(PokemonCard & { quantity: number; collectionId: string }) | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
@@ -292,12 +297,14 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
           </div>
         </div>
 
-        {/* Total value badge */}
-        <div className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm">
-          <SparklesIcon className="h-4 w-4 text-amber-500" />
-          <span className="text-sm font-semibold text-gray-700">Total Value:</span>
-          <span className="font-bold text-emerald-600">${totalValue.toFixed(2)}</span>
-        </div>
+        {/* Total value badge - hidden when prices are hidden */}
+        {!hidePrices && (
+          <div className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm">
+            <SparklesIcon className="h-4 w-4 text-amber-500" />
+            <span className="text-sm font-semibold text-gray-700">Total Value:</span>
+            <span className="font-bold text-emerald-600">${totalValue.toFixed(2)}</span>
+          </div>
+        )}
       </div>
 
       {/* Trophy display shelves */}
@@ -316,6 +323,7 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
               card={card}
               rank={index + 1}
               reducedMotion={prefersReducedMotion}
+              hidePrices={hidePrices}
               onClick={() => handleCardClick(card)}
             />
           ))}
@@ -335,6 +343,7 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
                 card={card}
                 rank={index + 6}
                 reducedMotion={prefersReducedMotion}
+                hidePrices={hidePrices}
                 onClick={() => handleCardClick(card)}
               />
             ))}

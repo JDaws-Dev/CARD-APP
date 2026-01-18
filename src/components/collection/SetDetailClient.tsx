@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
@@ -28,6 +28,7 @@ import {
   type VariantCompletionData,
   type CompletionMode,
 } from '@/lib/setCompletion';
+import { useHidePrices } from '@/hooks/useHidePrices';
 
 // Collection filter options for Have/Need/All toggle
 type CollectionFilter = 'all' | 'have' | 'need';
@@ -112,6 +113,22 @@ export function SetDetailClient({ set, cards, gameSlug = 'pokemon' }: SetDetailC
   const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>('all');
 
   const { profileId } = useCurrentProfile();
+  const { hidePrices } = useHidePrices();
+
+  // Filter out price sort option when hidePrices is enabled
+  const availableSortOptions = useMemo(() => {
+    if (hidePrices) {
+      return SORT_OPTIONS.filter((option) => option.value !== 'price');
+    }
+    return SORT_OPTIONS;
+  }, [hidePrices]);
+
+  // Reset sort to 'number' if current sort is 'price' and prices are hidden
+  useEffect(() => {
+    if (hidePrices && sortBy === 'price') {
+      setSortBy('number');
+    }
+  }, [hidePrices, sortBy]);
 
   // Get collection data for this set
   const collection = useQuery(
@@ -411,7 +428,7 @@ export function SetDetailClient({ set, cards, gameSlug = 'pokemon' }: SetDetailC
                   'hover:border-gray-300 focus:border-kid-primary focus:outline-none focus:ring-2 focus:ring-kid-primary/20'
                 )}
               >
-                {SORT_OPTIONS.map((option) => (
+                {availableSortOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>

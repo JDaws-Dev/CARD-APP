@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
+import { useHidePrices } from '@/hooks/useHidePrices';
 import { cn } from '@/lib/utils';
 import {
   CheckCircleIcon,
@@ -99,6 +100,7 @@ export function SnapToAddFlow({
   className,
 }: SnapToAddFlowProps) {
   const { profileId } = useCurrentProfile();
+  const { hidePrices } = useHidePrices();
   const addCard = useMutation(api.collections.addCard);
 
   // Start in loading state if we have a suggestedCardId to fetch
@@ -486,7 +488,7 @@ export function SnapToAddFlow({
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
                   Select Version
-                  {currentPrice !== null && (
+                  {!hidePrices && currentPrice !== null && (
                     <span className="ml-2 text-kid-success font-semibold">
                       {formatPrice(currentPrice)}
                     </span>
@@ -508,7 +510,7 @@ export function SnapToAddFlow({
                         )}
                       >
                         <span>{option.label}</span>
-                        {price !== null && (
+                        {!hidePrices && price !== null && (
                           <span className={cn(
                             'text-xs mt-0.5',
                             isSelected ? 'text-white/80' : 'text-green-600'
@@ -542,7 +544,7 @@ export function SnapToAddFlow({
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-kid-success py-3 font-semibold text-white shadow-lg transition hover:bg-kid-success/90"
                   >
                     <CheckIcon className="h-5 w-5" />
-                    {currentPrice !== null ? `Add (${formatPrice(currentPrice)})` : 'Yes, add it!'}
+                    {!hidePrices && currentPrice !== null ? `Add (${formatPrice(currentPrice)})` : 'Yes, add it!'}
                   </button>
                   <button
                     onClick={() => setFlowState('search')}

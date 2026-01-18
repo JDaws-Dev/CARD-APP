@@ -5,6 +5,7 @@ import { useAction, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
+import { useHidePrices } from '@/hooks/useHidePrices';
 import { CardImage } from '@/components/ui/CardImage';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/utils';
@@ -211,8 +212,10 @@ const TradeCardItem = memo(function TradeCardItem({
  */
 const TradeSuggestionCard = memo(function TradeSuggestionCard({
   suggestion,
+  hidePrices = false,
 }: {
   suggestion: TradeSuggestion;
+  hidePrices?: boolean;
 }) {
   const fairnessDisplay = getFairnessDisplay(suggestion.fairnessRating);
   const tradeTypeDisplay = getTradeTypeDisplay(suggestion.tradeType);
@@ -246,18 +249,20 @@ const TradeSuggestionCard = memo(function TradeSuggestionCard({
           </p>
           <div className="flex flex-wrap justify-center gap-1">
             {suggestion.fromProfile.cards.map((card) => (
-              <TradeCardItem key={card.cardId} card={card} />
+              <TradeCardItem key={card.cardId} card={card} showPrice={!hidePrices} />
             ))}
           </div>
-          <p className="mt-1 text-center text-[10px] text-gray-400">
-            ${suggestion.fromProfile.totalValue.toFixed(2)}
-          </p>
+          {!hidePrices && (
+            <p className="mt-1 text-center text-[10px] text-gray-400">
+              ${suggestion.fromProfile.totalValue.toFixed(2)}
+            </p>
+          )}
         </div>
 
         {/* Trade arrow */}
         <div className="flex flex-col items-center">
           <ArrowsRightLeftIcon className="h-6 w-6 text-gray-300" />
-          {suggestion.valueDifference > 0 && (
+          {!hidePrices && suggestion.valueDifference > 0 && (
             <span className="mt-1 text-[9px] text-gray-400">
               ${suggestion.valueDifference.toFixed(2)} diff
             </span>
@@ -271,12 +276,14 @@ const TradeSuggestionCard = memo(function TradeSuggestionCard({
           </p>
           <div className="flex flex-wrap justify-center gap-1">
             {suggestion.toProfile.cards.map((card) => (
-              <TradeCardItem key={card.cardId} card={card} />
+              <TradeCardItem key={card.cardId} card={card} showPrice={!hidePrices} />
             ))}
           </div>
-          <p className="mt-1 text-center text-[10px] text-gray-400">
-            ${suggestion.toProfile.totalValue.toFixed(2)}
-          </p>
+          {!hidePrices && (
+            <p className="mt-1 text-center text-[10px] text-gray-400">
+              ${suggestion.toProfile.totalValue.toFixed(2)}
+            </p>
+          )}
         </div>
       </div>
 
@@ -361,6 +368,7 @@ export const TradeAdvisor = memo(function TradeAdvisor({
 }: TradeAdvisorProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { primaryGame } = useGameSelector();
+  const { hidePrices } = useHidePrices();
   const getTradeSuggestions = useAction(api.ai.tradeAdvisor.getTradeSuggestions);
 
   // Fetch family profiles
@@ -607,6 +615,7 @@ export const TradeAdvisor = memo(function TradeAdvisor({
                   <TradeSuggestionCard
                     key={`${suggestion.fromProfile.profileId}-${suggestion.toProfile.profileId}-${index}`}
                     suggestion={suggestion}
+                    hidePrices={hidePrices}
                   />
                 ))}
               </div>
