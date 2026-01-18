@@ -21,6 +21,7 @@ import {
   ShoppingCartIcon,
 } from '@heroicons/react/24/solid';
 import { BackLink } from '@/components/ui/BackLink';
+import { Tooltip } from '@/components/ui/Tooltip';
 import {
   HeartIcon as HeartIconOutline,
   StarIcon as StarIconOutline,
@@ -378,50 +379,64 @@ function WishlistCard({
 
       {/* Action Buttons */}
       <div className="mt-3 flex justify-center gap-2">
-        <button
-          onClick={handleTogglePriority}
-          disabled={isTogglingPriority || (!item.isPriority && !canAddPriority)}
-          className={cn(
-            'flex h-9 w-9 items-center justify-center rounded-full transition',
-            item.isPriority
-              ? 'bg-amber-100 text-amber-600 hover:bg-amber-200'
-              : canAddPriority
-                ? 'bg-gray-100 text-gray-400 hover:bg-amber-100 hover:text-amber-500'
-                : 'cursor-not-allowed bg-gray-50 text-gray-300'
-          )}
-          aria-label={item.isPriority ? 'Remove from most wanted' : 'Add to most wanted'}
-          title={
-            !canAddPriority && !item.isPriority
-              ? `Max ${maxPriority} priority items`
-              : item.isPriority
-                ? 'Remove from most wanted'
-                : 'Add to most wanted'
+        <Tooltip
+          content={
+            <div className="text-center">
+              <div className="font-medium">
+                {item.isPriority ? 'Remove from Most Wanted' : 'Mark as Most Wanted'}
+              </div>
+              <div className="mt-1 text-xs text-gray-300">
+                {!canAddPriority && !item.isPriority
+                  ? `You've used all ${maxPriority} priority slots`
+                  : item.isPriority
+                    ? 'Removes this card from your top picks'
+                    : `Star your top ${maxPriority} cards to highlight them!`}
+              </div>
+            </div>
           }
+          position="top"
         >
-          {item.isPriority ? (
-            <StarIcon className="h-5 w-5" aria-hidden="true" />
-          ) : (
-            <StarIconOutline className="h-5 w-5" aria-hidden="true" />
-          )}
-        </button>
-        <a
-          href={getCardPurchaseUrlWithAffiliate(cardData, gameSlug).affiliateUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition hover:bg-emerald-100 hover:text-emerald-600"
-          aria-label="Buy on TCGPlayer"
-          title="Buy on TCGPlayer"
-        >
-          <ShoppingCartIcon className="h-5 w-5" aria-hidden="true" />
-        </a>
-        <button
-          onClick={handleRemove}
-          disabled={isRemoving}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition hover:bg-rose-100 hover:text-rose-500"
-          aria-label="Remove from wishlist"
-        >
-          <TrashIcon className="h-5 w-5" aria-hidden="true" />
-        </button>
+          <button
+            onClick={handleTogglePriority}
+            disabled={isTogglingPriority || (!item.isPriority && !canAddPriority)}
+            className={cn(
+              'flex h-9 w-9 items-center justify-center rounded-full transition-all',
+              item.isPriority
+                ? 'bg-amber-100 text-amber-600 hover:bg-amber-200'
+                : canAddPriority
+                  ? 'bg-gray-100 text-gray-400 hover:bg-amber-100 hover:text-amber-500 hover:scale-110'
+                  : 'cursor-not-allowed bg-gray-50 text-gray-300'
+            )}
+            aria-label={item.isPriority ? 'Remove from most wanted' : 'Add to most wanted'}
+          >
+            {item.isPriority ? (
+              <StarIcon className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <StarIconOutline className="h-5 w-5" aria-hidden="true" />
+            )}
+          </button>
+        </Tooltip>
+        <Tooltip content="Buy on TCGPlayer" position="top">
+          <a
+            href={getCardPurchaseUrlWithAffiliate(cardData, gameSlug).affiliateUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition hover:bg-emerald-100 hover:text-emerald-600"
+            aria-label="Buy on TCGPlayer"
+          >
+            <ShoppingCartIcon className="h-5 w-5" aria-hidden="true" />
+          </a>
+        </Tooltip>
+        <Tooltip content="Remove from wishlist" position="top">
+          <button
+            onClick={handleRemove}
+            disabled={isRemoving}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition hover:bg-rose-100 hover:text-rose-500"
+            aria-label="Remove from wishlist"
+          >
+            <TrashIcon className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );
@@ -629,6 +644,26 @@ export default function MyWishlistPage() {
             <p className="text-xs text-gray-500 sm:text-sm">Stars Left</p>
           </div>
         </div>
+
+        {/* Heart/Star Hint - Show when wishlist has items but no priorities */}
+        {totalCount > 0 && priorityCount === 0 && (
+          <div className="mx-auto mb-6 max-w-lg rounded-xl bg-gradient-to-r from-amber-50 to-rose-50 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex items-center gap-1">
+                <HeartIcon className="h-5 w-5 text-rose-500" aria-hidden="true" />
+                <span className="text-gray-400">+</span>
+                <StarIcon className="h-5 w-5 text-amber-400" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700">Pro Tip: Star your favorites!</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Tap the star on any card to mark it as &quot;Most Wanted&quot; (up to {priorityData?.max || 5} cards).
+                  Share your wishlist so family knows which cards you want most!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Share Link Section */}
         {profileId && totalCount > 0 && (

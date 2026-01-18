@@ -1373,3 +1373,9 @@
 **Files:** src/components/collection/CollectionSnapshotShare.tsx
 **Commit:** 5a7f5d7
 ---
+## CD-9ck.2 - Wishlist: Improve heart/star UX clarity with tooltips
+**Status:** Completed
+**Changes:** Added Tooltip component and improved UX clarity for heart/star system on wishlist page. Star button now has hover animation, tooltips explain functionality, and first-use hint appears for new users.
+**Files:** src/components/ui/Tooltip.tsx (new), src/app/my-wishlist/page.tsx (modified)
+**Commit:** c59c232
+---
