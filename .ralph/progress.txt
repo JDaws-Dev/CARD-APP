@@ -216,3 +216,17 @@
 **Files:** src/app/page.tsx
 **Commit:** 1d66368
 ---
+## CD-dkx - Collection Modal - Card metadata
+**Status:** Completed
+**Changes:** Verified that all requested metadata (rarity, card number, type, market value) is already displayed in CardDetailModal.tsx. No code changes needed - work was previously completed.
+**Files:** 
+- src/components/collection/CardDetailModal.tsx - Already contains all metadata display
+- src/components/collection/CollectionView.tsx - Already uses CardDetailModal
+**Commit:** N/A (no changes needed)
+---
+## CD-696 - Collection Modal - Navigation
+**Status:** Completed
+**Changes:** Added swipe navigation support to CardDetailModal for mobile devices. Arrow key navigation (left/right) and ESC to close were already implemented. Updated navigation hint to show responsive messages (desktop vs mobile).
+**Files:** src/components/collection/CardDetailModal.tsx
+**Commit:** a32d21c
+---
