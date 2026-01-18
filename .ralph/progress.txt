@@ -508,3 +508,15 @@
 **Files:** src/app/dashboard/page.tsx, src/components/dashboard/KidDashboard.tsx (both already configured correctly)
 **Commit:** N/A (no changes needed)
 ---
+## CD-4d7.2 - Update dashboard page to use game selector
+**Status:** Completed
+**Changes:** Verified that dashboard page already had game selector integration complete. Imports useGameSelector, uses primaryGame.id for KidDashboard and ChatButton components.
+**Files:** src/app/dashboard/page.tsx (already complete)
+**Commit:** N/A (work was already done)
+---
+## CD-4d7.3 - Update browse/search pages to use game selector
+**Status:** Completed
+**Changes:** Verified that both browse and search pages already use the game selector correctly. No code changes needed.
+**Files:** src/app/browse/page.tsx, src/app/search/page.tsx (already complete)
+**Commit:** N/A (no changes required)
+---
