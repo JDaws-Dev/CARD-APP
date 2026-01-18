@@ -1156,3 +1156,9 @@
 **Files:** src/components/trades/TradeLoggingModal.tsx
 **Commit:** 04fdfc8
 ---
+## CD-cxz.3 - Trade UX: Add 'Trade Away' option to CardDetailModal
+**Status:** Completed
+**Changes:** Added 'Trade Away' button to CardDetailModal Quick Actions that opens TradeLoggingModal with the current card pre-filled as a card to give away, respecting variant selection and quantity limits.
+**Files:** src/components/collection/CardDetailModal.tsx, src/components/trades/TradeLoggingModal.tsx
+**Commit:** d99c0dc
+---
