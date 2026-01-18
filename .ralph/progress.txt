@@ -327,3 +327,9 @@
 **Files:** convex/schema.ts, convex/profileSettings.ts, src/components/providers/GameSelectorProvider.tsx
 **Commit:** e26c7b2
 ---
+## CD-fp4 - Game switch indicator across all pages
+**Status:** Completed
+**Changes:** Added GameSwitcher component to the mobile menu in AppHeader, ensuring the game indicator is visible on both desktop (already present) and mobile views. The indicator shows the active game with game-specific icons and gradient colors.
+**Files:** src/components/layout/AppHeader.tsx
+**Commit:** (pending)
+---

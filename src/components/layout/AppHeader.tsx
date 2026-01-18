@@ -363,6 +363,14 @@ export function AppHeader() {
             <ProfileSwitcher />
           </div>
 
+          {/* Mobile Game Switcher */}
+          <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
+            <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+              Active Game
+            </div>
+            <GameSwitcher />
+          </div>
+
           {/* Mobile profile links */}
           <div className="border-t border-gray-200 px-4 py-3 dark:border-slate-700">
             <Link
