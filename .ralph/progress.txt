@@ -639,3 +639,12 @@
 **Files:** src/app/badges/page.tsx, src/components/achievements/TrophyCase.tsx
 **Commit:** (pending)
 ---
+## CD-sqv - Improve mobile game switcher UX
+**Status:** Completed
+**Changes:** Implemented a mobile bottom tab bar for game switching. Created MobileGameBar component with 56x56px tap targets, game-specific gradient colors, scale animation feedback, and fixed positioning at bottom of screen. Added AuthAwareMobileGameBar wrapper to show only for authenticated users. Updated layout.tsx with proper padding to prevent content overlap.
+**Files:** 
+- src/components/header/MobileGameBar.tsx (created)
+- src/components/layout/AuthAwareMobileGameBar.tsx (created)
+- src/app/layout.tsx (modified)
+**Commit:** 9929406
+---
