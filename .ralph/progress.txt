@@ -230,3 +230,9 @@
 **Files:** src/components/collection/CardDetailModal.tsx
 **Commit:** a32d21c
 ---
+## CD-3vv - Collection - Variant badges on cards
+**Status:** Completed
+**Changes:** Added variant badges (N/H/R/1H/1N) to collection card thumbnails showing which variants the user owns with color-coded gradient badges
+**Files:** src/components/collection/CollectionView.tsx
+**Commit:** 8d2771f
+---
