@@ -426,3 +426,9 @@
 **Files:** src/app/dashboard/page.tsx, src/components/dashboard/KidDashboard.tsx
 **Commit:** 1959058
 ---
+## CD-75f - Add onError handlers to CardGrid images
+**Status:** Completed
+**Changes:** Updated wishlist pages to use CardImage component which has built-in onError handling and fallback placeholder. The CardGrid components already used CardImage.
+**Files:** src/app/wishlist/[token]/page.tsx, src/app/my-wishlist/page.tsx
+**Commit:** 0287b6f
+---
