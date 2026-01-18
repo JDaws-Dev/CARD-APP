@@ -19,7 +19,7 @@ function isValidGameSlug(value: string): value is GameSlug {
 /**
  * GET /api/sets
  * Query params:
- *   - game: "pokemon" | "yugioh" | "mtg" | "onepiece" | "lorcana" | "digimon" | "dragonball" (default: "pokemon")
+ *   - game: "pokemon" | "yugioh" | "onepiece" | "lorcana" (default: "pokemon")
  *   - series: Optional filter by series name within the selected game
  *
  * Returns cached sets from Convex database for the specified game.

@@ -84,18 +84,15 @@ describe('Profile Games Utility Functions', () => {
 
   describe('Constants', () => {
     describe('GAME_SLUGS', () => {
-      it('should contain exactly 7 games', () => {
-        expect(GAME_SLUGS).toHaveLength(7);
+      it('should contain exactly 4 games', () => {
+        expect(GAME_SLUGS).toHaveLength(4);
       });
 
       it('should contain all expected game slugs', () => {
         expect(GAME_SLUGS).toContain('pokemon');
         expect(GAME_SLUGS).toContain('yugioh');
-        expect(GAME_SLUGS).toContain('mtg');
         expect(GAME_SLUGS).toContain('onepiece');
         expect(GAME_SLUGS).toContain('lorcana');
-        expect(GAME_SLUGS).toContain('digimon');
-        expect(GAME_SLUGS).toContain('dragonball');
       });
 
       it('should have unique slugs', () => {
@@ -124,9 +121,10 @@ describe('Profile Games Utility Functions', () => {
       });
 
       it('should have correct names', () => {
-        expect(GAME_DISPLAY_NAMES.pokemon).toBe('Pok\u00e9mon TCG');
+        expect(GAME_DISPLAY_NAMES.pokemon).toBe('Pokémon TCG');
         expect(GAME_DISPLAY_NAMES.yugioh).toBe('Yu-Gi-Oh!');
-        expect(GAME_DISPLAY_NAMES.mtg).toBe('Magic: The Gathering');
+        expect(GAME_DISPLAY_NAMES.onepiece).toBe('One Piece TCG');
+        expect(GAME_DISPLAY_NAMES.lorcana).toBe('Disney Lorcana');
       });
     });
 
@@ -175,11 +173,8 @@ describe('Profile Games Utility Functions', () => {
       it('should return true for valid slugs', () => {
         expect(isValidGameSlug('pokemon')).toBe(true);
         expect(isValidGameSlug('yugioh')).toBe(true);
-        expect(isValidGameSlug('mtg')).toBe(true);
         expect(isValidGameSlug('onepiece')).toBe(true);
         expect(isValidGameSlug('lorcana')).toBe(true);
-        expect(isValidGameSlug('digimon')).toBe(true);
-        expect(isValidGameSlug('dragonball')).toBe(true);
       });
 
       it('should return false for invalid slugs', () => {
@@ -188,13 +183,16 @@ describe('Profile Games Utility Functions', () => {
         expect(isValidGameSlug('Pokemon')).toBe(false);
         expect(isValidGameSlug('POKEMON')).toBe(false);
         expect(isValidGameSlug('magic')).toBe(false);
+        expect(isValidGameSlug('mtg')).toBe(false);
+        expect(isValidGameSlug('digimon')).toBe(false);
+        expect(isValidGameSlug('dragonball')).toBe(false);
       });
     });
 
     describe('validateGameSlugs', () => {
       it('should separate valid and invalid slugs', () => {
-        const result = validateGameSlugs(['pokemon', 'invalid', 'mtg', 'fake']);
-        expect(result.valid).toEqual(['pokemon', 'mtg']);
+        const result = validateGameSlugs(['pokemon', 'invalid', 'lorcana', 'fake']);
+        expect(result.valid).toEqual(['pokemon', 'lorcana']);
         expect(result.invalid).toEqual(['invalid', 'fake']);
       });
 
@@ -248,14 +246,14 @@ describe('Profile Games Utility Functions', () => {
     const sampleGames: ProfileGame[] = [
       createProfileGame('pokemon', now - 3000, true),
       createProfileGame('yugioh', now - 2000, false),
-      createProfileGame('mtg', now - 1000, true),
+      createProfileGame('lorcana', now - 1000, true),
     ];
 
     describe('filterActiveGames', () => {
       it('should return only active games', () => {
         const result = filterActiveGames(sampleGames);
         expect(result).toHaveLength(2);
-        expect(result.map((pg) => pg.gameSlug)).toEqual(['pokemon', 'mtg']);
+        expect(result.map((pg) => pg.gameSlug)).toEqual(['pokemon', 'lorcana']);
       });
 
       it('should return empty array when no active games', () => {
@@ -280,7 +278,7 @@ describe('Profile Games Utility Functions', () => {
     describe('getEnabledSlugs', () => {
       it('should return slugs of active games', () => {
         const result = getEnabledSlugs(sampleGames);
-        expect(result).toEqual(['pokemon', 'mtg']);
+        expect(result).toEqual(['pokemon', 'lorcana']);
       });
     });
 
@@ -301,7 +299,7 @@ describe('Profile Games Utility Functions', () => {
       });
 
       it('should return false for untracked game', () => {
-        expect(isGameEnabled(sampleGames, 'lorcana')).toBe(false);
+        expect(isGameEnabled(sampleGames, 'onepiece')).toBe(false);
       });
     });
 
@@ -313,7 +311,7 @@ describe('Profile Games Utility Functions', () => {
       });
 
       it('should return undefined for non-existent game', () => {
-        expect(findProfileGame(sampleGames, 'lorcana')).toBeUndefined();
+        expect(findProfileGame(sampleGames, 'onepiece')).toBeUndefined();
       });
     });
 
@@ -321,12 +319,9 @@ describe('Profile Games Utility Functions', () => {
       it('should return games not in profile', () => {
         const result = getUntrackedGames(sampleGames);
         expect(result).toContain('onepiece');
-        expect(result).toContain('lorcana');
-        expect(result).toContain('digimon');
-        expect(result).toContain('dragonball');
         expect(result).not.toContain('pokemon');
         expect(result).not.toContain('yugioh');
-        expect(result).not.toContain('mtg');
+        expect(result).not.toContain('lorcana');
       });
     });
 
@@ -334,9 +329,9 @@ describe('Profile Games Utility Functions', () => {
       it('should return games not currently active', () => {
         const result = getAvailableGames(sampleGames);
         expect(result).toContain('yugioh'); // disabled counts as available
-        expect(result).toContain('lorcana');
+        expect(result).toContain('onepiece');
         expect(result).not.toContain('pokemon');
-        expect(result).not.toContain('mtg');
+        expect(result).not.toContain('lorcana');
       });
     });
   });
@@ -348,7 +343,7 @@ describe('Profile Games Utility Functions', () => {
   describe('Sorting', () => {
     const now = Date.now();
     const sampleGames: ProfileGame[] = [
-      createProfileGame('mtg', now - 1000), // enabled 1 sec ago
+      createProfileGame('lorcana', now - 1000), // enabled 1 sec ago
       createProfileGame('pokemon', now - 3000), // enabled 3 secs ago
       createProfileGame('yugioh', now - 2000), // enabled 2 secs ago
     ];
@@ -356,12 +351,12 @@ describe('Profile Games Utility Functions', () => {
     describe('sortByEnabledDate', () => {
       it('should sort by enabled date ascending by default', () => {
         const result = sortByEnabledDate(sampleGames);
-        expect(result.map((pg) => pg.gameSlug)).toEqual(['pokemon', 'yugioh', 'mtg']);
+        expect(result.map((pg) => pg.gameSlug)).toEqual(['pokemon', 'yugioh', 'lorcana']);
       });
 
       it('should sort descending when specified', () => {
         const result = sortByEnabledDate(sampleGames, false);
-        expect(result.map((pg) => pg.gameSlug)).toEqual(['mtg', 'yugioh', 'pokemon']);
+        expect(result.map((pg) => pg.gameSlug)).toEqual(['lorcana', 'yugioh', 'pokemon']);
       });
 
       it('should not mutate original array', () => {
@@ -374,12 +369,12 @@ describe('Profile Games Utility Functions', () => {
     describe('sortByReleaseOrder', () => {
       it('should sort by release order ascending', () => {
         const result = sortByReleaseOrder(sampleGames);
-        expect(result.map((pg) => pg.gameSlug)).toEqual(['pokemon', 'yugioh', 'mtg']);
+        expect(result.map((pg) => pg.gameSlug)).toEqual(['pokemon', 'yugioh', 'lorcana']);
       });
 
       it('should sort descending when specified', () => {
         const result = sortByReleaseOrder(sampleGames, false);
-        expect(result.map((pg) => pg.gameSlug)).toEqual(['mtg', 'yugioh', 'pokemon']);
+        expect(result.map((pg) => pg.gameSlug)).toEqual(['lorcana', 'yugioh', 'pokemon']);
       });
 
       it('should not mutate original array', () => {
@@ -392,8 +387,8 @@ describe('Profile Games Utility Functions', () => {
     describe('sortByDisplayName', () => {
       it('should sort alphabetically by display name', () => {
         const result = sortByDisplayName(sampleGames);
-        // Magic: The Gathering, Pok\u00e9mon TCG, Yu-Gi-Oh!
-        expect(result.map((pg) => pg.gameSlug)).toEqual(['mtg', 'pokemon', 'yugioh']);
+        // Disney Lorcana, Pokémon TCG, Yu-Gi-Oh!
+        expect(result.map((pg) => pg.gameSlug)).toEqual(['lorcana', 'pokemon', 'yugioh']);
       });
 
       it('should not mutate original array', () => {
@@ -405,9 +400,9 @@ describe('Profile Games Utility Functions', () => {
 
     describe('sortSlugsByReleaseOrder', () => {
       it('should sort slugs by release order', () => {
-        const slugs: GameSlug[] = ['mtg', 'pokemon', 'yugioh'];
+        const slugs: GameSlug[] = ['lorcana', 'pokemon', 'yugioh'];
         const result = sortSlugsByReleaseOrder(slugs);
-        expect(result).toEqual(['pokemon', 'yugioh', 'mtg']);
+        expect(result).toEqual(['pokemon', 'yugioh', 'lorcana']);
       });
     });
   });
@@ -421,7 +416,7 @@ describe('Profile Games Utility Functions', () => {
     const sampleGames: ProfileGame[] = [
       createProfileGame('pokemon', now - 3000, true),
       createProfileGame('yugioh', now - 2000, false),
-      createProfileGame('mtg', now - 1000, true),
+      createProfileGame('lorcana', now - 1000, true),
     ];
 
     describe('calculateProfileGameStats', () => {
@@ -429,10 +424,10 @@ describe('Profile Games Utility Functions', () => {
         const stats = calculateProfileGameStats(sampleGames);
         expect(stats.totalEnabled).toBe(2);
         expect(stats.totalDisabled).toBe(1);
-        expect(stats.enabledGames).toEqual(['pokemon', 'mtg']);
+        expect(stats.enabledGames).toEqual(['pokemon', 'lorcana']);
         expect(stats.disabledGames).toEqual(['yugioh']);
         expect(stats.firstGameEnabled?.slug).toBe('pokemon');
-        expect(stats.lastGameEnabled?.slug).toBe('mtg');
+        expect(stats.lastGameEnabled?.slug).toBe('lorcana');
       });
 
       it('should handle empty array', () => {
@@ -500,7 +495,7 @@ describe('Profile Games Utility Functions', () => {
     describe('getGameReleaseOrder', () => {
       it('should return correct order', () => {
         expect(getGameReleaseOrder('pokemon')).toBe(1);
-        expect(getGameReleaseOrder('dragonball')).toBe(7);
+        expect(getGameReleaseOrder('lorcana')).toBe(4);
       });
     });
 
@@ -516,7 +511,7 @@ describe('Profile Games Utility Functions', () => {
     describe('getAllGameInfo', () => {
       it('should return info for all games', () => {
         const allInfo = getAllGameInfo();
-        expect(allInfo).toHaveLength(7);
+        expect(allInfo).toHaveLength(4);
         expect(allInfo[0].slug).toBeDefined();
       });
     });
@@ -525,7 +520,7 @@ describe('Profile Games Utility Functions', () => {
       it('should return games sorted by release order', () => {
         const sorted = getAllGameInfoSorted();
         expect(sorted[0].slug).toBe('pokemon');
-        expect(sorted[6].slug).toBe('dragonball');
+        expect(sorted[3].slug).toBe('lorcana');
       });
     });
 
@@ -533,9 +528,9 @@ describe('Profile Games Utility Functions', () => {
       it('should format enabled games', () => {
         const games = [
           createProfileGame('pokemon', Date.now()),
-          createProfileGame('mtg', Date.now()),
+          createProfileGame('lorcana', Date.now()),
         ];
-        expect(formatEnabledGamesForDisplay(games)).toBe('Pok\u00e9mon TCG, Magic: The Gathering');
+        expect(formatEnabledGamesForDisplay(games)).toBe('Pokémon TCG, Disney Lorcana');
       });
 
       it('should handle empty list', () => {
@@ -546,7 +541,7 @@ describe('Profile Games Utility Functions', () => {
         const games = [
           createProfileGame('pokemon', Date.now()),
           createProfileGame('yugioh', Date.now()),
-          createProfileGame('mtg', Date.now()),
+          createProfileGame('onepiece', Date.now()),
           createProfileGame('lorcana', Date.now()),
         ];
         expect(formatEnabledGamesForDisplay(games, 2)).toContain('+2 more');
@@ -599,29 +594,29 @@ describe('Profile Games Utility Functions', () => {
   describe('Change Detection', () => {
     describe('compareGameSelections', () => {
       it('should detect added games', () => {
-        const result = compareGameSelections(['pokemon'], ['pokemon', 'mtg']);
-        expect(result.added).toEqual(['mtg']);
+        const result = compareGameSelections(['pokemon'], ['pokemon', 'lorcana']);
+        expect(result.added).toEqual(['lorcana']);
         expect(result.removed).toEqual([]);
         expect(result.unchanged).toEqual(['pokemon']);
       });
 
       it('should detect removed games', () => {
-        const result = compareGameSelections(['pokemon', 'mtg'], ['pokemon']);
+        const result = compareGameSelections(['pokemon', 'lorcana'], ['pokemon']);
         expect(result.added).toEqual([]);
-        expect(result.removed).toEqual(['mtg']);
+        expect(result.removed).toEqual(['lorcana']);
         expect(result.unchanged).toEqual(['pokemon']);
       });
 
       it('should handle no changes', () => {
-        const result = compareGameSelections(['pokemon', 'mtg'], ['pokemon', 'mtg']);
+        const result = compareGameSelections(['pokemon', 'lorcana'], ['pokemon', 'lorcana']);
         expect(result.added).toEqual([]);
         expect(result.removed).toEqual([]);
-        expect(result.unchanged).toEqual(['pokemon', 'mtg']);
+        expect(result.unchanged).toEqual(['pokemon', 'lorcana']);
       });
 
       it('should handle complete replacement', () => {
-        const result = compareGameSelections(['pokemon'], ['mtg']);
-        expect(result.added).toEqual(['mtg']);
+        const result = compareGameSelections(['pokemon'], ['lorcana']);
+        expect(result.added).toEqual(['lorcana']);
         expect(result.removed).toEqual(['pokemon']);
         expect(result.unchanged).toEqual([]);
       });
@@ -629,19 +624,19 @@ describe('Profile Games Utility Functions', () => {
 
     describe('hasSelectionChanged', () => {
       it('should return true when changes exist', () => {
-        expect(hasSelectionChanged(['pokemon'], ['pokemon', 'mtg'])).toBe(true);
+        expect(hasSelectionChanged(['pokemon'], ['pokemon', 'lorcana'])).toBe(true);
       });
 
       it('should return false when no changes', () => {
-        expect(hasSelectionChanged(['pokemon', 'mtg'], ['mtg', 'pokemon'])).toBe(false);
+        expect(hasSelectionChanged(['pokemon', 'lorcana'], ['lorcana', 'pokemon'])).toBe(false);
       });
     });
 
     describe('getSelectionChangeSummary', () => {
       it('should summarize changes', () => {
-        const summary = getSelectionChangeSummary(['pokemon'], ['pokemon', 'mtg']);
+        const summary = getSelectionChangeSummary(['pokemon'], ['pokemon', 'lorcana']);
         expect(summary).toContain('Added');
-        expect(summary).toContain('Magic: The Gathering');
+        expect(summary).toContain('Disney Lorcana');
       });
 
       it('should return "No changes" when unchanged', () => {
@@ -668,11 +663,11 @@ describe('Profile Games Utility Functions', () => {
       it('should create map by slug', () => {
         const games = [
           createProfileGame('pokemon', Date.now()),
-          createProfileGame('mtg', Date.now()),
+          createProfileGame('lorcana', Date.now()),
         ];
         const map = createProfileGameMap(games);
         expect(map.get('pokemon')).toBeDefined();
-        expect(map.get('mtg')).toBeDefined();
+        expect(map.get('lorcana')).toBeDefined();
         expect(map.get('yugioh')).toBeUndefined();
       });
     });
@@ -686,7 +681,7 @@ describe('Profile Games Utility Functions', () => {
     describe('getRecommendedGamesForOnboarding', () => {
       it('should return all games', () => {
         const recommended = getRecommendedGamesForOnboarding();
-        expect(recommended).toHaveLength(7);
+        expect(recommended).toHaveLength(4);
       });
 
       it('should have pokemon first', () => {
@@ -734,15 +729,15 @@ describe('Profile Games Utility Functions', () => {
         const recommended = getRecommendedGamesForOnboarding();
         expect(recommended[0]).toBe('pokemon');
 
-        // User selects Pokemon and MTG
-        const selection: GameSlug[] = ['pokemon', 'mtg'];
+        // User selects Pokemon and Lorcana
+        const selection: GameSlug[] = ['pokemon', 'lorcana'];
         const validation = validateOnboardingSelection(selection);
         expect(validation.valid).toBe(true);
 
         // After enabling
         const afterOnboarding = selection.map((slug, i) => createProfileGame(slug, Date.now() + i));
         expect(countEnabledGames(afterOnboarding)).toBe(2);
-        expect(formatEnabledGamesForDisplay(afterOnboarding)).toContain('Pok\u00e9mon');
+        expect(formatEnabledGamesForDisplay(afterOnboarding)).toContain('Pokémon');
       });
     });
 
@@ -753,13 +748,13 @@ describe('Profile Games Utility Functions', () => {
 
         // Check available games
         const available = getAvailableGames(currentGames);
-        expect(available).toContain('mtg');
+        expect(available).toContain('lorcana');
         expect(available).not.toContain('pokemon');
 
         // Detect change
-        const newSelection: GameSlug[] = ['pokemon', 'mtg'];
+        const newSelection: GameSlug[] = ['pokemon', 'lorcana'];
         const changes = compareGameSelections(getEnabledSlugs(currentGames), newSelection);
-        expect(changes.added).toEqual(['mtg']);
+        expect(changes.added).toEqual(['lorcana']);
         expect(hasSelectionChanged(getEnabledSlugs(currentGames), newSelection)).toBe(true);
       });
     });
@@ -769,17 +764,17 @@ describe('Profile Games Utility Functions', () => {
         const now = Date.now();
         const currentGames = [
           createProfileGame('pokemon', now - 20000),
-          createProfileGame('mtg', now - 10000),
+          createProfileGame('lorcana', now - 10000),
         ];
 
         expect(countEnabledGames(currentGames)).toBe(2);
 
-        // Disable MTG
+        // Disable Lorcana
         const afterDisable = [currentGames[0], { ...currentGames[1], isActive: false }];
 
         expect(countEnabledGames(afterDisable)).toBe(1);
         expect(countDisabledGames(afterDisable)).toBe(1);
-        expect(isGameEnabled(afterDisable, 'mtg')).toBe(false);
+        expect(isGameEnabled(afterDisable, 'lorcana')).toBe(false);
         expect(isGameEnabled(afterDisable, 'pokemon')).toBe(true);
       });
     });
@@ -790,7 +785,7 @@ describe('Profile Games Utility Functions', () => {
         const games = [
           createProfileGame('pokemon', now - 30000),
           createProfileGame('yugioh', now - 20000, false),
-          createProfileGame('mtg', now - 10000),
+          createProfileGame('onepiece', now - 10000),
           createProfileGame('lorcana', now - 5000),
         ];
 

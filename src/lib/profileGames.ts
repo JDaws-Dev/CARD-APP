@@ -10,16 +10,9 @@
 // =============================================================================
 
 /**
- * Valid game slugs
+ * Valid game slugs (4 supported games)
  */
-export type GameSlug =
-  | 'pokemon'
-  | 'yugioh'
-  | 'mtg'
-  | 'onepiece'
-  | 'lorcana'
-  | 'digimon'
-  | 'dragonball';
+export type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
 /**
  * Profile game entry (from database)
@@ -70,16 +63,13 @@ export interface ProfileGameStats {
 // =============================================================================
 
 /**
- * All valid game slugs
+ * All valid game slugs (4 supported games)
  */
 export const GAME_SLUGS: readonly GameSlug[] = [
   'pokemon',
   'yugioh',
-  'mtg',
   'onepiece',
   'lorcana',
-  'digimon',
-  'dragonball',
 ] as const;
 
 /**
@@ -91,13 +81,10 @@ export const DEFAULT_GAME: GameSlug = 'pokemon';
  * Game display names
  */
 export const GAME_DISPLAY_NAMES: Record<GameSlug, string> = {
-  pokemon: 'Pok\u00e9mon TCG',
+  pokemon: 'Pokémon TCG',
   yugioh: 'Yu-Gi-Oh!',
-  mtg: 'Magic: The Gathering',
   onepiece: 'One Piece TCG',
   lorcana: 'Disney Lorcana',
-  digimon: 'Digimon TCG',
-  dragonball: 'Dragon Ball Fusion World',
 };
 
 /**
@@ -106,11 +93,8 @@ export const GAME_DISPLAY_NAMES: Record<GameSlug, string> = {
 export const GAME_COLORS: Record<GameSlug, string> = {
   pokemon: '#FFCB05',
   yugioh: '#1D1D1D',
-  mtg: '#000000',
   onepiece: '#E74C3C',
   lorcana: '#1B1464',
-  digimon: '#FF6600',
-  dragonball: '#FF8C00',
 };
 
 /**
@@ -119,11 +103,8 @@ export const GAME_COLORS: Record<GameSlug, string> = {
 export const GAME_RELEASE_ORDER: Record<GameSlug, number> = {
   pokemon: 1,
   yugioh: 2,
-  mtg: 3,
-  onepiece: 4,
-  lorcana: 5,
-  digimon: 6,
-  dragonball: 7,
+  onepiece: 3,
+  lorcana: 4,
 };
 
 // =============================================================================
@@ -550,7 +531,7 @@ export function createProfileGameMap(profileGames: ProfileGame[]): Map<GameSlug,
  */
 export function getRecommendedGamesForOnboarding(): GameSlug[] {
   // Pokemon first as most accessible, then other popular TCGs
-  return ['pokemon', 'yugioh', 'mtg', 'lorcana', 'onepiece', 'digimon', 'dragonball'];
+  return ['pokemon', 'yugioh', 'lorcana', 'onepiece'];
 }
 
 /**

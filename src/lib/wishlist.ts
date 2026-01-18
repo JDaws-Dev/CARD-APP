@@ -6,16 +6,8 @@
 // Maximum number of priority (starred) items allowed per profile
 export const MAX_PRIORITY_ITEMS = 5;
 
-// Valid game slugs for multi-TCG wishlist support
-export const VALID_GAME_SLUGS = [
-  'pokemon',
-  'yugioh',
-  'mtg',
-  'onepiece',
-  'lorcana',
-  'digimon',
-  'dragonball',
-] as const;
+// Valid game slugs for multi-TCG wishlist support (4 supported games)
+export const VALID_GAME_SLUGS = ['pokemon', 'yugioh', 'onepiece', 'lorcana'] as const;
 
 export type GameSlug = (typeof VALID_GAME_SLUGS)[number];
 

@@ -116,15 +116,15 @@
  * |-------------|---------------------|--------|---------|---------|
  * | Pokémon     | pokemontcg.io       | ✓      | ✓       | TCGPlayer (both) |
  * | Yu-Gi-Oh!   | ygoprodeck.com      | ✗      | ✓       | TCGPlayer (YGO) |
- * | MTG         | scryfall.com        | ✓      | ✓       | Scryfall (MTG) |
  * | One Piece   | optcg-api           | ✓      | ✓       | None    |
  * | Lorcana     | lorcast.com         | ✗      | ✓       | Lorcast (Lorcana) |
- * | Digimon     | digimoncard.io      | ✓      | ✓       | None    |
- * | Dragon Ball | apitcg.com          | ✓      | ✗       | None    |
  *
- * Current adapters: 7 individual APIs
- * ApiTCG coverage: 5/7 games (missing Yu-Gi-Oh!, Lorcana)
- * JustTCG coverage: 6/7 games (missing Dragon Ball)
+ * Note: We currently support 4 games (Pokemon, Yu-Gi-Oh!, One Piece, Lorcana).
+ * MTG, Digimon, and Dragon Ball were evaluated but are not currently supported.
+ *
+ * Current adapters: 4 individual APIs
+ * ApiTCG coverage: 2/4 games (missing Yu-Gi-Oh!, Lorcana)
+ * JustTCG coverage: 4/4 games
  *
  * =============================================================================
  * RECOMMENDATION
@@ -134,14 +134,14 @@
  *
  * Rationale:
  *
- * 1. NEITHER unified API covers all 7 games
- *    - ApiTCG: Missing Yu-Gi-Oh! and Lorcana
- *    - JustTCG: Missing Dragon Ball Fusion World
- *    - Would still need 2-3 adapters even with unified API
+ * 1. JustTCG covers all 4 supported games but at a cost
+ *    - ApiTCG: Missing Yu-Gi-Oh! and Lorcana (2 of our 4 games)
+ *    - JustTCG: Covers all 4 but requires paid plan for production
+ *    - Individual adapters are more reliable and free
  *
  * 2. Pricing data is inconsistent
  *    - JustTCG has pricing but at a cost (literally)
- *    - Current adapters: Pokemon, MTG, Lorcana have pricing
+ *    - Current adapters: Pokemon, Lorcana have pricing
  *    - ApiTCG has NO pricing data
  *
  * 3. Rate limits on JustTCG free tier are restrictive
@@ -189,7 +189,8 @@ export const JUSTTCG_CONFIG = {
     professional: { requestsPerMinute: 100, monthlyLimit: 50000 },
     enterprise: { requestsPerMinute: 500, monthlyLimit: 500000 },
   },
-  supportedGames: ['mtg', 'pokemon', 'yugioh', 'lorcana', 'onepiece', 'digimon', 'unionarena'],
+  // Note: JustTCG supports many games, but we only use 4: pokemon, yugioh, onepiece, lorcana
+  supportedGames: ['pokemon', 'yugioh', 'lorcana', 'onepiece'],
 } as const;
 
 /**
@@ -233,17 +234,9 @@ export function getUnifiedApiEvaluations(): UnifiedApiEvaluation[] {
   return [
     {
       apiName: 'ApiTCG',
-      gamesSupported: [
-        'pokemon',
-        'onepiece',
-        'dragonball',
-        'digimon',
-        'mtg',
-        'unionarena',
-        'gundam',
-        'starwars',
-      ],
-      gamesMissing: ['yugioh', 'lorcana'],
+      // Note: ApiTCG supports many games, but we only need 4
+      gamesSupported: ['pokemon', 'onepiece'], // Of our 4 games, only these 2 are supported
+      gamesMissing: ['yugioh', 'lorcana'], // These 2 of our games are not supported
       hasPricing: false,
       rateLimitFree: null, // Not strictly documented
       requiresApiKey: false, // Optional
@@ -257,15 +250,16 @@ export function getUnifiedApiEvaluations(): UnifiedApiEvaluation[] {
     },
     {
       apiName: 'JustTCG',
-      gamesSupported: ['mtg', 'pokemon', 'yugioh', 'lorcana', 'onepiece', 'digimon', 'unionarena'],
-      gamesMissing: ['dragonball'],
+      // Note: JustTCG supports all 4 of our games
+      gamesSupported: ['pokemon', 'yugioh', 'lorcana', 'onepiece'],
+      gamesMissing: [], // All 4 of our supported games are available
       hasPricing: true,
       rateLimitFree: { requestsPerMinute: 10, monthlyLimit: 1000 },
       requiresApiKey: true,
       recommendation: 'partial',
       notes: [
         'Has pricing data via TCGPlayer integration',
-        'Missing Dragon Ball Fusion World',
+        'Supports all 4 of our games',
         'Restrictive free tier (10 req/min, 1000/month)',
         'Useful for cross-game pricing features',
         'Could supplement current adapters for price data',
@@ -305,11 +299,6 @@ export function getRecommendedDataSource(gameSlug: string): {
       forPricing: 'ygoprodeck.com (TCGPlayer)',
       notes: '20 req/sec, comprehensive data, built-in pricing',
     },
-    mtg: {
-      primary: 'scryfall.com',
-      forPricing: 'scryfall.com',
-      notes: 'Best MTG data, 10 req/sec, excellent pricing',
-    },
     onepiece: {
       primary: 'optcg-api',
       forPricing: 'JustTCG (if needed)',
@@ -319,16 +308,6 @@ export function getRecommendedDataSource(gameSlug: string): {
       primary: 'lorcast.com',
       forPricing: 'lorcast.com',
       notes: 'Good Lorcana data, built-in pricing',
-    },
-    digimon: {
-      primary: 'digimoncard.io',
-      forPricing: 'JustTCG (if needed)',
-      notes: 'No built-in pricing, JustTCG could supplement',
-    },
-    dragonball: {
-      primary: 'apitcg.com',
-      forPricing: null,
-      notes: 'Only available source, no pricing available anywhere',
     },
   };
 

@@ -20,7 +20,7 @@ function isValidGameSlug(value: string): value is GameSlug {
  * POST /api/cards
  * Body:
  *   - cardIds: string[] - Array of card IDs to fetch (max 500)
- *   - game: "pokemon" | "yugioh" | "mtg" | "onepiece" | "lorcana" | "digimon" | "dragonball" (optional, for validation)
+ *   - game: "pokemon" | "yugioh" | "onepiece" | "lorcana" (optional, for validation)
  *
  * Returns cached cards from Convex database for the specified card IDs.
  *
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
 /**
  * GET /api/cards
  * Query params:
- *   - game: "pokemon" | "yugioh" | "mtg" | "onepiece" | "lorcana" | "digimon" | "dragonball" (required)
+ *   - game: "pokemon" | "yugioh" | "onepiece" | "lorcana" (required)
  *   - setId: Optional filter by set ID
  *   - limit: Optional limit (default 50, max 500)
  *   - offset: Optional offset for pagination

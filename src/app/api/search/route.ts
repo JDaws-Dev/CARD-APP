@@ -26,7 +26,7 @@ function isValidGameSlug(value: string): value is GameSlug {
  * GET /api/search
  * Query params:
  *   - q: Search query string (required, 2-100 characters)
- *   - game: "pokemon" | "yugioh" | "mtg" | "onepiece" | "lorcana" | "digimon" | "dragonball" (default: "pokemon")
+ *   - game: "pokemon" | "yugioh" | "onepiece" | "lorcana" (default: "pokemon")
  *   - limit: Optional limit on results (default 20, max 50)
  *
  * Returns cached cards from Convex database matching the search term within the specified game.

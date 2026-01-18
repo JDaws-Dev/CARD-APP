@@ -48,7 +48,7 @@ const COMMON_TYPES_BY_GAME: Record<GameSlug, string[]> = {
 /**
  * GET /api/filter
  * Query params:
- *   - game: "pokemon" | "yugioh" | "mtg" | "onepiece" | "lorcana" | "digimon" | "dragonball" (default: "pokemon")
+ *   - game: "pokemon" | "yugioh" | "onepiece" | "lorcana" (default: "pokemon")
  *   - setId: Optional set ID to filter by
  *   - type: Optional type/color to filter by (e.g., "Fire" for Pokemon)
  *   - name: Optional partial name match (case-insensitive, 2-100 characters)
