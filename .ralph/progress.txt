@@ -1011,3 +1011,9 @@
 **Files:** claude/PARENT_CHILD_ARCHITECTURE.md
 **Commit:** 0fdc1d8
 ---
+## CD-1d7 - CRITICAL: Gamification system not connected - XP, achievements, badges broken
+**Status:** Completed
+**Changes:** Connected gamification system to card addition flow. When cards are added, XP is now awarded and achievements are checked. Activity logs created for streak tracking. Frontend updated to use backend XP data.
+**Files:** convex/collections.ts, src/components/gamification/LevelSystem.tsx
+**Commit:** 480be0d
+---
