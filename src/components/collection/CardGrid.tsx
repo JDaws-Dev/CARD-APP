@@ -34,6 +34,7 @@ import { useKidMode } from '@/components/providers/KidModeProvider';
 import { useSetCompletionTracker } from '@/components/gamification/SetCompletionCelebration';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import { CardFlipModal } from './FlippableCard';
+import { getVariantConfig } from '@/components/ui/VariantBadge';
 
 // Variant type definition
 type CardVariant =
@@ -896,6 +897,56 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                     )}
                   </button>
                 )}
+
+                {/* Variant Badges - Show available variants with owned/unowned styling */}
+                {features.showVariantSelector && (() => {
+                  const availableVariants = getAvailableVariants(card);
+                  // Only show if there are multiple variants available
+                  if (availableVariants.length <= 1) return null;
+                  const cardOwnedVariants = ownedVariantsMap.get(card.id) ?? new Map<CardVariant, number>();
+
+                  return (
+                    <div
+                      className="absolute bottom-1 left-10 flex items-center gap-0.5 sm:gap-1"
+                      role="group"
+                      aria-label={`Variant badges for ${card.name}`}
+                    >
+                      {availableVariants.map((variant) => {
+                        const qty = cardOwnedVariants.get(variant) ?? 0;
+                        const variantIsOwned = qty > 0;
+                        const config = getVariantConfig(variant);
+
+                        return (
+                          <span
+                            key={variant}
+                            className={cn(
+                              // Base styles with min touch target for mobile (24px recommended)
+                              'inline-flex min-h-5 min-w-5 items-center justify-center rounded px-1 py-0.5 text-[10px] font-bold shadow-sm transition-all sm:min-h-0 sm:min-w-0 sm:px-1.5 sm:text-xs',
+                              variantIsOwned
+                                ? `bg-gradient-to-r ${config.gradient} text-white`
+                                : 'bg-white/80 text-gray-400 ring-1 ring-gray-300'
+                            )}
+                            title={
+                              variantIsOwned
+                                ? `${config.label} x${qty} (owned)`
+                                : `${config.label} (not owned)`
+                            }
+                            aria-label={
+                              variantIsOwned
+                                ? `${config.label}: owned, quantity ${qty}`
+                                : `${config.label}: not owned`
+                            }
+                          >
+                            {config.shortLabel}
+                            {variantIsOwned && qty > 1 && (
+                              <span className="ml-0.5 text-white/80">x{qty}</span>
+                            )}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Card Info */}
@@ -945,31 +996,6 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
                 </div>
               </div>
 
-              {/* Owned Variants Indicator - Show which variants are owned (only in non-simplified mode) */}
-              {isOwned && features.showVariantSelector && (
-                <div className="mt-1 flex items-center justify-center gap-1">
-                  {(() => {
-                    const cardVariants = ownedVariantsMap.get(card.id);
-                    if (!cardVariants) return null;
-                    return Array.from(cardVariants.entries()).map(([variant, qty]) => {
-                      const config = VARIANT_CONFIG[variant];
-                      return (
-                        <span
-                          key={variant}
-                          className={cn(
-                            'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium text-white',
-                            `bg-gradient-to-r ${config.gradient}`
-                          )}
-                          title={`${config.label} x${qty}`}
-                        >
-                          {config.shortLabel}
-                          {qty > 1 && <span className="text-white/80">x{qty}</span>}
-                        </span>
-                      );
-                    });
-                  })()}
-                </div>
-              )}
             </div>
           );
         })}
