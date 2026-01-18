@@ -667,3 +667,18 @@
 **Files:** src/components/layout/AppHeader.tsx, src/components/layout/MarketingHeader.tsx, src/components/layout/AuthAwareHeader.tsx, src/components/header/MobileBottomNav.tsx
 **Commits:** fe73745, 4a3b897, 9628027
 ---
+## CD-yg8 - Redesign mobile bottom navigation - move game picker, add main nav
+**Status:** Completed
+**Changes:** Verified existing implementation - MobileBottomNav.tsx shows Collection/Sets/Badges/Wishlist/More, More menu has Search/Profile/Settings/Sign Out, tap targets exceed 44px, iOS safe area support added
+**Files:** src/components/header/MobileBottomNav.tsx (created), src/components/header/MobileGameBar.tsx (deleted), src/components/layout/AuthAwareMobileGameBar.tsx (updated)
+**Commit:** Previous commits (feature already implemented)
+---
+## CD-yg8 - Redesign mobile bottom navigation - move game picker, add main nav
+**Status:** Completed
+**Changes:** Redesigned mobile bottom navigation from game selector to main app navigation. Created MobileBottomNav.tsx with Collection, Sets, Badges, Wishlist, and More menu. More menu includes Search, Profile, Settings, and Sign Out. Removed old MobileGameBar.tsx. Game switcher remains in header.
+**Files:** 
+- src/components/header/MobileBottomNav.tsx (created)
+- src/components/header/MobileGameBar.tsx (deleted)
+- src/components/layout/AuthAwareMobileGameBar.tsx (updated)
+**Commit:** Changes were already included in commit 9628027
+---
