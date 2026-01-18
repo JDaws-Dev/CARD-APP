@@ -768,3 +768,9 @@
 **Files:** src/components/ui/CardImage.tsx, src/components/ui/__tests__/CardImage.test.tsx
 **Commit:** 09136c6018993d210aeed07e8a71e1e836c83ed5
 ---
+## CD-dhj - Verify Browse Sets flow and game-specific content for all 4 games
+**Status:** Completed
+**Changes:** Added game-specific terminology support for card detail labels. CardDetailModal now shows appropriate labels (Energy/Attribute/Color/Ink) based on selected game. Expanded TYPE_SORT_ORDER in SetDetailClient to include card types from all 4 supported games (Pokemon, Yu-Gi-Oh!, One Piece, Lorcana).
+**Files:** src/components/collection/CardDetailModal.tsx, src/components/collection/SetDetailClient.tsx
+**Commit:** a01d1f6
+---
