@@ -262,3 +262,9 @@
 **Files:** src/components/collection/CollectionView.tsx
 **Commit:** 00234a7
 ---
+## CD-tdv - Sets Page - Fix card spacing/overlap
+**Status:** Completed
+**Changes:** Increased grid gaps from gap-4/5/6 to gap-5/6/8 to accommodate ring-offset-2 styling on owned cards that was causing overlap
+**Files:** src/app/globals.css, src/components/collection/VirtualCardGrid.tsx, src/app/sets/[setId]/page.tsx
+**Commit:** 3b2083f
+---
