@@ -16,6 +16,9 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import type { Id } from '../../../convex/_generated/dataModel';
 
+// Collection filter options for Have/Need/All toggle
+type CollectionFilter = 'all' | 'have' | 'need';
+
 // Sort options for the set detail view
 type SortOption = 'number' | 'type' | 'owned' | 'wanted' | 'recentlyAdded' | 'price';
 
@@ -91,6 +94,7 @@ interface SetDetailClientProps {
 export function SetDetailClient({ set, cards }: SetDetailClientProps) {
   const [selectedRarity, setSelectedRarity] = useState<RarityCategoryId | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('number');
+  const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>('all');
 
   const { profileId } = useCurrentProfile();
 
@@ -160,12 +164,26 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
     return counts;
   }, [cards]);
 
+  // Calculate collection filter counts (Have/Need)
+  const collectionCounts = useMemo(() => {
+    const haveCount = cards.filter((card) => ownedCardIds.has(card.id)).length;
+    const needCount = cards.length - haveCount;
+    return { have: haveCount, need: needCount, all: cards.length };
+  }, [cards, ownedCardIds]);
+
   // Filter and sort cards
   const filteredAndSortedCards = useMemo(() => {
-    // First filter by rarity
+    // First apply collection filter (Have/Need/All)
     let result = cards;
+    if (collectionFilter === 'have') {
+      result = cards.filter((card) => ownedCardIds.has(card.id));
+    } else if (collectionFilter === 'need') {
+      result = cards.filter((card) => !ownedCardIds.has(card.id));
+    }
+
+    // Then filter by rarity
     if (selectedRarity) {
-      result = cards.filter((card) => {
+      result = result.filter((card) => {
         const category = getRarityCategory(card.rarity);
         return category === selectedRarity;
       });
@@ -240,12 +258,37 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
     }
 
     return sorted;
-  }, [cards, selectedRarity, sortBy, ownedCardIds, wishlistCardIds, recentlyAddedTimes]);
+  }, [cards, collectionFilter, selectedRarity, sortBy, ownedCardIds, wishlistCardIds, recentlyAddedTimes]);
 
   return (
     <div className="space-y-6">
       {/* Filter and Sort Controls */}
       <div className="flex flex-wrap items-start gap-4">
+        {/* Collection Filter Toggle (Have/Need/All) */}
+        <div className="flex-shrink-0">
+          <label className="mb-1 block text-xs font-medium text-gray-500">
+            Show cards
+          </label>
+          <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 shadow-sm">
+            {(['all', 'have', 'need'] as const).map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setCollectionFilter(filter)}
+                className={cn(
+                  'px-3 py-1.5 text-sm font-medium rounded-md transition-all',
+                  collectionFilter === filter
+                    ? 'bg-kid-primary text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                )}
+              >
+                {filter === 'all' && `All (${collectionCounts.all})`}
+                {filter === 'have' && `Have (${collectionCounts.have})`}
+                {filter === 'need' && `Need (${collectionCounts.need})`}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Rarity Filter */}
         <div className="flex-1 min-w-0">
           <RarityFilter
@@ -282,11 +325,17 @@ export function SetDetailClient({ set, cards }: SetDetailClientProps) {
       </div>
 
       {/* Filtered Card Count Indicator */}
-      {selectedRarity && (
+      {(selectedRarity || collectionFilter !== 'all') && (
         <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-3">
           <p className="text-sm text-gray-600">
             Showing <span className="font-semibold text-kid-primary">{filteredAndSortedCards.length}</span>{' '}
             of <span className="font-semibold">{cards.length}</span> cards
+            {collectionFilter !== 'all' && (
+              <>
+                {' '}
+                ({collectionFilter === 'have' ? 'owned' : 'needed'})
+              </>
+            )}
             {selectedRarity && (
               <>
                 {' '}
