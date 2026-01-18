@@ -20,6 +20,7 @@ import {
   CurrencyDollarIcon,
   ShoppingCartIcon,
   LightBulbIcon,
+  ArrowTrendingDownIcon,
 } from '@heroicons/react/24/solid';
 import { BackLink } from '@/components/ui/BackLink';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -838,6 +839,45 @@ export default function MyWishlistPage() {
             </div>
           </div>
         )}
+
+        {/* Budget Alternatives Call-out - Show when there are expensive cards */}
+        {(() => {
+          // Calculate how many cards have budget alternatives (price >= $5)
+          const expensiveCards = Array.from(cardData.values()).filter((card) => {
+            const price = getCardMarketPrice(card);
+            return price !== null && price >= 5;
+          });
+          const expensiveCount = expensiveCards.length;
+
+          if (expensiveCount === 0 || isLoadingCards) return null;
+
+          return (
+            <div className="mx-auto mb-6 max-w-lg">
+              <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-md">
+                    <ArrowTrendingDownIcon className="h-5 w-5 text-white" aria-hidden="true" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-800">
+                      Save Money on {expensiveCount} Card{expensiveCount !== 1 ? 's' : ''}!
+                    </p>
+                    <p className="mt-1 text-xs text-gray-600">
+                      Look for the green &quot;Save up to X%&quot; buttons on your expensive cards to find
+                      budget-friendly alternatives of the same Pokemon.
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                        <LightBulbIcon className="h-3 w-3" />
+                        {expensiveCount} card{expensiveCount !== 1 ? 's' : ''} with alternatives
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Share Link Section */}
         {profileId && totalCount > 0 && (

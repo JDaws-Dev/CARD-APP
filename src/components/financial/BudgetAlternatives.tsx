@@ -340,17 +340,24 @@ export function BudgetAlternativesBadge({ card, onClick, className }: BudgetAlte
   // Only show for expensive cards (>= $5)
   if (price === null || price < 5) return null;
 
+  // Estimate potential savings based on price tier
+  // Higher priced cards typically have more alternatives with bigger savings
+  const estimatedSavings = price >= 50 ? 60 : price >= 20 ? 50 : price >= 10 ? 40 : 30;
+
   return (
     <button
       onClick={onClick}
       className={cn(
-        'inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 transition hover:from-blue-200 hover:to-indigo-200',
+        'group relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all',
+        'bg-gradient-to-r from-emerald-400 to-teal-500 text-white shadow-md',
+        'hover:from-emerald-500 hover:to-teal-600 hover:shadow-lg hover:scale-105',
+        'animate-pulse hover:animate-none',
         className
       )}
-      aria-label={`Find budget alternatives for ${card.name}`}
+      aria-label={`Find budget alternatives for ${card.name} - Save up to ${estimatedSavings}%`}
     >
-      <LightBulbIcon className="h-3.5 w-3.5" />
-      <span>Find cheaper</span>
+      <ArrowTrendingDownIcon className="h-4 w-4" />
+      <span>Save up to {estimatedSavings}%</span>
     </button>
   );
 }

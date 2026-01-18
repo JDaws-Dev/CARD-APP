@@ -1385,3 +1385,11 @@
 **Files:** src/app/my-wishlist/page.tsx
 **Commit:** c2e0c7a
 ---
+## CD-9ck.4 - Wishlist: Make budget alternatives more discoverable
+**Status:** Completed
+**Changes:** Enhanced BudgetAlternativesBadge to show "Save up to X%" with prominent green styling and pulse animation. Added call-out section at top of wishlist page showing count of cards with budget alternatives.
+**Files:** 
+- src/components/financial/BudgetAlternatives.tsx
+- src/app/my-wishlist/page.tsx
+**Commit:** (pending)
+---
