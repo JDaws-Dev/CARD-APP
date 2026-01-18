@@ -1423,3 +1423,9 @@
 **Files:** src/hooks/useHidePrices.ts (new), src/components/collection/CardDetailModal.tsx (modified)
 **Commit:** a4e7863
 ---
+## CD-0mz.4 - Sub-task 4: Hide prices in wishlist pages
+**Status:** Completed
+**Changes:** Implemented hide prices functionality for both my-wishlist page and shared wishlist view. Added useHidePrices hook, hid individual card prices, total wishlist value, buy links, and budget alternatives section when hidePrices setting is enabled. Modified getWishlistByToken query to return hidePrices from profile settings.
+**Files:** src/app/my-wishlist/page.tsx, src/app/wishlist/[token]/page.tsx, convex/wishlist.ts
+**Commit:** 936bd8b
+---
