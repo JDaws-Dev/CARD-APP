@@ -1029,3 +1029,9 @@
 **Files:** src/components/ui/VariantBadge.tsx, convex/dataPopulation.ts
 **Commit:** 5ee2eb4
 ---
+## CD-5yk.8 - Lorcana: Add variant detection for foil and enchanted versions
+**Status:** Completed
+**Changes:** Implemented Lorcana variant detection based on foil pricing. Added LorcanaVariant type (normal, foil), LORCANA_VARIANT_CONFIG with visual styling, and updated dataPopulation to populate availableVariants array. Lorcana's Enchanted/Promo are separate cards, not variants.
+**Files:** convex/dataPopulation.ts, src/components/ui/VariantBadge.tsx
+**Commit:** 84046cd
+---
