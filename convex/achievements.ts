@@ -63,7 +63,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
   // Collector Milestone Badges
   first_catch: {
     type: 'collector_milestone',
-    name: 'First Catch',
+    name: 'First Card',
     description: 'Add your first card',
     threshold: 1,
     icon: '🎯',
@@ -79,7 +79,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
   },
   rising_trainer: {
     type: 'collector_milestone',
-    name: 'Rising Trainer',
+    name: 'Rising Collector',
     description: 'Collect 50 cards',
     threshold: 50,
     icon: '🌟',
@@ -87,7 +87,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
   },
   pokemon_trainer: {
     type: 'collector_milestone',
-    name: 'Pokemon Trainer',
+    name: 'Card Champion',
     description: 'Collect 100 cards',
     threshold: 100,
     icon: '💫',
@@ -103,7 +103,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, BadgeDefinition> = {
   },
   pokemon_master: {
     type: 'collector_milestone',
-    name: 'Pokemon Master',
+    name: 'Grand Champion',
     description: 'Collect 500 cards',
     threshold: 500,
     icon: '👑',
@@ -528,12 +528,12 @@ export const awardAchievement = mutation({
 
 // Milestone badge thresholds
 const MILESTONE_BADGES = [
-  { key: 'first_catch', threshold: 1, name: 'First Catch' },
+  { key: 'first_catch', threshold: 1, name: 'First Card' },
   { key: 'starter_collector', threshold: 10, name: 'Starter Collector' },
-  { key: 'rising_trainer', threshold: 50, name: 'Rising Trainer' },
-  { key: 'pokemon_trainer', threshold: 100, name: 'Pokemon Trainer' },
+  { key: 'rising_trainer', threshold: 50, name: 'Rising Collector' },
+  { key: 'pokemon_trainer', threshold: 100, name: 'Card Champion' },
   { key: 'elite_collector', threshold: 250, name: 'Elite Collector' },
-  { key: 'pokemon_master', threshold: 500, name: 'Pokemon Master' },
+  { key: 'pokemon_master', threshold: 500, name: 'Grand Champion' },
   { key: 'legendary_collector', threshold: 1000, name: 'Legendary Collector' },
 ] as const;
 

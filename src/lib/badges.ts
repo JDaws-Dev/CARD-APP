@@ -82,7 +82,7 @@ export const BADGE_DEFINITIONS: Record<string, BadgeDefinition> = {
   // Collector Milestone Badges
   first_catch: {
     type: 'collector_milestone',
-    name: 'First Catch',
+    name: 'First Card',
     description: 'Add your first card',
     threshold: 1,
     icon: '🎯',
@@ -98,7 +98,7 @@ export const BADGE_DEFINITIONS: Record<string, BadgeDefinition> = {
   },
   rising_trainer: {
     type: 'collector_milestone',
-    name: 'Rising Trainer',
+    name: 'Rising Collector',
     description: 'Collect 50 cards',
     threshold: 50,
     icon: '🌟',
@@ -106,7 +106,7 @@ export const BADGE_DEFINITIONS: Record<string, BadgeDefinition> = {
   },
   pokemon_trainer: {
     type: 'collector_milestone',
-    name: 'Pokemon Trainer',
+    name: 'Card Champion',
     description: 'Collect 100 cards',
     threshold: 100,
     icon: '💫',
@@ -122,7 +122,7 @@ export const BADGE_DEFINITIONS: Record<string, BadgeDefinition> = {
   },
   pokemon_master: {
     type: 'collector_milestone',
-    name: 'Pokemon Master',
+    name: 'Grand Champion',
     description: 'Collect 500 cards',
     threshold: 500,
     icon: '👑',

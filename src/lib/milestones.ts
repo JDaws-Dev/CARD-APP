@@ -84,7 +84,7 @@ export const COLLECTION_MILESTONES: readonly MilestoneDefinition[] = [
     key: 'milestone_500',
     name: 'Master Collector',
     description: 'Collected 500 cards',
-    celebrationMessage: "500 cards! Incredible! You're a true Pokemon Master Collector!",
+    celebrationMessage: "500 cards! Incredible! You're a true Master Collector!",
     icon: '🏆',
     confettiType: 'rainbow',
   },

@@ -95,7 +95,7 @@ const BADGE_DEFINITIONS: Record<
 > = {
   // Collector Milestones
   first_catch: {
-    name: 'First Catch',
+    name: 'First Card',
     description: 'Add your first card',
     threshold: 1,
     color: '#A8A878',
@@ -111,7 +111,7 @@ const BADGE_DEFINITIONS: Record<
     tier: 'bronze',
   },
   rising_trainer: {
-    name: 'Rising Trainer',
+    name: 'Rising Collector',
     description: 'Collect 50 cards',
     threshold: 50,
     color: '#6890F0',
@@ -119,7 +119,7 @@ const BADGE_DEFINITIONS: Record<
     tier: 'silver',
   },
   pokemon_trainer: {
-    name: 'Pokemon Trainer',
+    name: 'Card Champion',
     description: 'Collect 100 cards',
     threshold: 100,
     color: '#A040A0',
@@ -135,7 +135,7 @@ const BADGE_DEFINITIONS: Record<
     tier: 'gold',
   },
   pokemon_master: {
-    name: 'Pokemon Master',
+    name: 'Grand Champion',
     description: 'Collect 500 cards',
     threshold: 500,
     color: '#F8D030',

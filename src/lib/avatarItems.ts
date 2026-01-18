@@ -166,7 +166,7 @@ export const HAT_ITEMS: AvatarItem[] = [
   {
     id: 'hat_master',
     name: 'Master Crown',
-    description: 'The ultimate headwear for Pokemon Masters.',
+    description: 'The ultimate headwear for Grand Champions.',
     category: 'hat',
     rarity: 'legendary',
     icon: TrophyIcon,

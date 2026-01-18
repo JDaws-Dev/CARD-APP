@@ -42,7 +42,7 @@ const MILESTONE_DEFINITIONS: MilestoneDefinition[] = [
   {
     key: 'first_catch',
     threshold: 1,
-    title: 'First Catch!',
+    title: 'First Card!',
     subtitle: 'Your collection has begun!',
     icon: StarIcon,
     gradient: 'from-emerald-400 to-teal-500',
@@ -62,7 +62,7 @@ const MILESTONE_DEFINITIONS: MilestoneDefinition[] = [
   {
     key: 'rising_trainer',
     threshold: 50,
-    title: 'Rising Trainer!',
+    title: 'Rising Collector!',
     subtitle: '50 cards and counting!',
     icon: BoltIcon,
     gradient: 'from-purple-400 to-pink-500',
@@ -72,7 +72,7 @@ const MILESTONE_DEFINITIONS: MilestoneDefinition[] = [
   {
     key: 'pokemon_trainer',
     threshold: 100,
-    title: 'Pokemon Trainer!',
+    title: 'Card Champion!',
     subtitle: 'An amazing 100 cards!',
     icon: TrophyIcon,
     gradient: 'from-amber-400 to-orange-500',
@@ -92,7 +92,7 @@ const MILESTONE_DEFINITIONS: MilestoneDefinition[] = [
   {
     key: 'pokemon_master',
     threshold: 500,
-    title: 'Pokemon Master!',
+    title: 'Grand Champion!',
     subtitle: 'A legendary 500 cards!',
     icon: RocketLaunchIcon,
     gradient: 'from-yellow-400 via-amber-400 to-orange-500',
