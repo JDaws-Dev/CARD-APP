@@ -450,3 +450,9 @@
 **Files:** src/app/dashboard/error.tsx, src/app/dashboard/__tests__/page.test.tsx
 **Commit:** b9d98ce
 ---
+## CD-bo7 - Landing Page - Update hero for multi-TCG
+**Status:** Completed
+**Changes:** Updated hero heading from "Track Your Trading Cards Like a Pro!" to "Track Your Trading Card Collection" for multi-TCG branding
+**Files:** src/app/page.tsx
+**Commit:** (pending)
+---

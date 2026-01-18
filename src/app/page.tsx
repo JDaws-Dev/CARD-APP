@@ -139,10 +139,8 @@ export default function Home() {
           <h1 className="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 sm:mb-6 sm:text-5xl md:text-6xl lg:text-7xl">
             Track Your{' '}
             <span className="bg-gradient-to-r from-kid-primary via-purple-500 to-kid-secondary bg-clip-text text-transparent">
-              Trading Cards
+              Trading Card Collection
             </span>
-            <br />
-            Like a Pro!
           </h1>
 
           {/* Tagline */}
