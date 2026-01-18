@@ -1129,3 +1129,9 @@
 **Files:** src/components/header/MobileBottomNav.tsx, src/components/layout/AppHeader.tsx
 **Commit:** b449369
 ---
+## CD-cxz.1 - Trade UX: Show card images and names in trade selection (giving cards)
+**Status:** Completed
+**Changes:** Updated TradeLoggingModal to show card images and names in collection selection. Changed query to getCollectionWithDetails, redesigned selector as 3-column visual grid with card thumbnails, added images to selected cards list.
+**Files:** src/components/trades/TradeLoggingModal.tsx
+**Commit:** e6d33df
+---
