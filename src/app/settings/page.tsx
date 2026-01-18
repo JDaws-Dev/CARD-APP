@@ -20,6 +20,7 @@ import { ReducedMotionToggle } from '@/components/layout/ReducedMotionToggle';
 import { FocusModeToggle } from '@/components/layout/FocusModeToggle';
 import { GameSettingsToggle } from '@/components/settings/GameSettingsToggle';
 import { SleepModeSettings } from '@/components/settings/SleepModeSettings';
+import { HidePricesSettings } from '@/components/settings/HidePricesSettings';
 import { PinProtectionWrapper } from '@/components/settings/PinProtectionWrapper';
 
 export default function SettingsPage() {
@@ -279,6 +280,31 @@ export default function SettingsPage() {
                 Set quiet hours to encourage healthy screen time habits.
               </p>
               <SleepModeSettings />
+            </section>
+
+            {/* Hide Prices Settings - Parent controlled */}
+            <section
+              className="mt-6 rounded-2xl border-2 border-amber-200 bg-white p-6 shadow-sm dark:border-amber-700/50 dark:bg-slate-800"
+              aria-labelledby="hide-prices-settings-heading"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h3
+                    id="hide-prices-settings-heading"
+                    className="text-lg font-semibold text-gray-900 dark:text-white"
+                  >
+                    Price Visibility
+                  </h3>
+                  <LockClosedIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                </div>
+                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/50 dark:text-amber-400">
+                  Parent Only
+                </span>
+              </div>
+              <p className="mb-4 text-sm text-gray-600 dark:text-slate-400">
+                Control whether your children can see card prices and market values.
+              </p>
+              <HidePricesSettings />
             </section>
           </PinProtectionWrapper>
         </div>
