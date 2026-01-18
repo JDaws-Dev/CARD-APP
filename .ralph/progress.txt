@@ -315,3 +315,9 @@
 **Files:** src/components/collection/SetDetailClient.tsx
 **Commit:** 5e5876c
 ---
+## CD-4d7.1 - Update collection page to use game selector
+**Status:** Completed
+**Changes:** Added useGameSelector hook to collection page, replaced hardcoded "pokemon" with primaryGame.id for ScannerButton and ChatButton, updated subtitle to show dynamic game name
+**Files:** src/app/collection/page.tsx
+**Commit:** 9cd89b8
+---
