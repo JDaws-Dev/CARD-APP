@@ -27,6 +27,7 @@ import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
 import { FamilyLeaderboard } from '@/components/family/FamilyLeaderboard';
 import { TradeSuggestionEngine } from '@/components/family/TradeSuggestionEngine';
 import { SharedWishlistViewer } from '@/components/family/SharedWishlistViewer';
+import { TradeAdvisor } from '@/components/ai/TradeAdvisor';
 
 // Context for pricing visibility
 const PricingVisibilityContext = createContext<boolean>(true);
@@ -426,6 +427,9 @@ export function ParentDashboard({ familyId }: ParentDashboardProps) {
 
         {/* Trade Suggestion Engine */}
         <TradeSuggestionEngine familyId={familyId} maxSuggestions={10} />
+
+        {/* AI Trade Advisor */}
+        <TradeAdvisor familyId={familyId} maxSuggestions={5} />
 
         {/* Shared Wishlist Viewer */}
         <SharedWishlistViewer familyId={familyId} />
