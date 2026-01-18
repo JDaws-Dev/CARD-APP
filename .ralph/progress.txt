@@ -850,3 +850,9 @@
 **Files:** src/components/landing/GameCardShowcase.tsx
 **Commit:** dab9a32
 ---
+## CD-3me - Fix dashboard to update content when game selector changes
+**Status:** Completed
+**Changes:** Made dashboard fully reactive to game selector changes by adding gameSlug filtering to getRandomCards and getNewlyAddedCards queries, passing gameSlug to child components, and removing hardcoded Pokemon reference
+**Files:** convex/collections.ts, src/components/dashboard/FeaturedCardsPreview.tsx, src/components/dashboard/RecentCardsPreview.tsx, src/components/dashboard/KidDashboard.tsx, src/components/dashboard/ParentDashboard.tsx
+**Commit:** b051c83 (changes were already committed)
+---
