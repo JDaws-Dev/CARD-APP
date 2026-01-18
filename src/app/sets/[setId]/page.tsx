@@ -208,11 +208,7 @@ export default function SetDetailPage({ params }: SetDetailPageProps) {
 
             {/* Scanner Button */}
             <div className="sm:ml-auto">
-              <ScannerButton
-                gameSlug={gameSlug}
-                variant="primary"
-                label="Scan Card"
-              />
+              <ScannerButton variant="primary" label="Scan Card" />
             </div>
           </div>
 

@@ -59,7 +59,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Floating Chat Button */}
-      <ChatButton gameSlug={primaryGame.id} />
+      <ChatButton />
     </main>
   );
 }

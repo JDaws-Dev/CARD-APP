@@ -119,11 +119,7 @@ export default function MyCollectionPage() {
             </div>
             {/* Primary actions - Scanner is most important */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <ScannerButton
-                gameSlug={primaryGame.id}
-                variant="primary"
-                label="Scan Card"
-              />
+              <ScannerButton variant="primary" label="Scan Card" />
               {/* Secondary actions hidden on mobile, shown on desktop */}
               <div className="hidden items-center gap-2 sm:flex">
                 <Link
@@ -211,7 +207,7 @@ export default function MyCollectionPage() {
       </div>
 
       {/* Floating Chat Button */}
-      <ChatButton gameSlug={primaryGame.id} />
+      <ChatButton />
     </main>
   );
 }
