@@ -23,6 +23,7 @@ import { SleepModeProvider } from '@/components/providers/SleepModeProvider';
 import { SleepModeOverlay } from '@/components/family/SleepModeOverlay';
 import { AuthAwareHeader } from '@/components/layout/AuthAwareHeader';
 import { AuthAwareFooter } from '@/components/layout/AuthAwareFooter';
+import { AuthAwareMobileGameBar } from '@/components/layout/AuthAwareMobileGameBar';
 import { LiveRegionProvider } from '@/components/accessibility/LiveRegion';
 import './globals.css';
 
@@ -74,10 +75,11 @@ export default function RootLayout({
                                                   </a>
                                                   <div className="flex min-h-screen flex-col">
                                                     <AuthAwareHeader />
-                                                    <main id="main-content" className="flex-1">
+                                                    <main id="main-content" className="flex-1 pb-24 lg:pb-0">
                                                       {children}
                                                     </main>
                                                     <AuthAwareFooter />
+                                                    <AuthAwareMobileGameBar />
                                                   </div>
                                                 </LiveRegionProvider>
                                               </SleepModeProvider>
