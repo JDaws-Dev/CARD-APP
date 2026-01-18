@@ -341,18 +341,17 @@ export default function Home() {
 
           <div className="grid gap-4 sm:gap-6 md:grid-cols-3 md:gap-8">
             {/* Snap to Add Feature */}
-            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
-              <div className="mb-3 inline-flex rounded-xl bg-violet-500/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
-                <CameraIcon className="h-6 w-6 text-violet-500 sm:h-8 sm:w-8" />
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-50 to-blue-50 p-5 transition-all hover:-translate-y-1 hover:shadow-xl sm:rounded-3xl sm:p-8">
+              <div className="mb-3 inline-flex rounded-xl bg-cyan-500/10 p-2 sm:mb-4 sm:rounded-2xl sm:p-3">
+                <CameraIcon className="h-6 w-6 text-cyan-500 sm:h-8 sm:w-8" />
               </div>
               <h3 className="mb-2 text-lg font-bold text-gray-900 sm:mb-3 sm:text-xl">
                 Snap to Add
               </h3>
               <p className="text-sm text-gray-600 sm:text-base">
-                Point your camera at a card and we&apos;ll add it to your collection instantly! No more
-                searching through thousands of cards.
+                Take a photo of any card and watch it get added to your collection instantly!
               </p>
-              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-violet-500/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
+              <div className="absolute -bottom-2 -right-2 h-20 w-20 rounded-full bg-cyan-500/5 transition-all group-hover:scale-150 sm:h-24 sm:w-24" />
             </div>
 
             {/* Ask Your Collection Feature */}
