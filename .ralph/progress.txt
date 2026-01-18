@@ -931,3 +931,12 @@
 **Files:** src/components/dashboard/KidDashboard.tsx, FeaturedCardsPreview.tsx, RecentCardsPreview.tsx
 **Commit:** e31a63e
 ---
+## CD-4ka.3 - Make gamification elements more prominent on dashboard
+**Status:** Completed
+**Changes:** 
+- Added 5 new CSS animations: animate-fire-dance (dramatic fire effect), animate-level-pulse (pulsing level badge), animate-xp-shimmer (XP bar shimmer), animate-achievement-ring (expanding achievement ring), animate-badge-shine (sweeping shine effect)
+- Enhanced GamificationHero component with larger cards (rounded-3xl), bigger fire icon (h-20 container with h-12 icon), text-5xl streak count, 48-hour badge celebration window
+- All animations respect accessibility modes (prefers-reduced-motion, low-stim, reduce-motion)
+**Files:** src/app/globals.css, src/components/dashboard/KidDashboard.tsx
+**Commit:** ade4488, e31a63e
+---
