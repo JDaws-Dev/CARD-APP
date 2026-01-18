@@ -402,13 +402,13 @@ function ProfileStep({
 // ============================================================================
 
 interface FirstCardsStepProps {
-  onContinue: () => void;
+  onBrowseSets: () => void;
   onSkip: () => void;
   onBack: () => void;
   primaryGameName?: string;
 }
 
-function FirstCardsStep({ onContinue, onSkip, onBack, primaryGameName }: FirstCardsStepProps) {
+function FirstCardsStep({ onBrowseSets, onSkip, onBack, primaryGameName }: FirstCardsStepProps) {
   const stats = getFirstCardsStats();
 
   return (
@@ -508,7 +508,7 @@ function FirstCardsStep({ onContinue, onSkip, onBack, primaryGameName }: FirstCa
           </button>
           <button
             type="button"
-            onClick={onContinue}
+            onClick={onBrowseSets}
             className={cn(
               'inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 px-6 py-3 font-semibold text-white shadow-md transition-all',
               'hover:-translate-y-0.5 hover:shadow-lg',
@@ -721,11 +721,13 @@ export function OnboardingFlow({ onComplete, initialStep }: OnboardingFlowProps)
     router.push('/sets');
   }, [handleFinalComplete, router]);
 
-  // Handle first cards step
-  const handleFirstCardsComplete = useCallback(() => {
-    handleCompleteStep('first-cards');
-  }, [handleCompleteStep]);
+  // Handle first cards step - Browse Sets navigates to sets page
+  const handleBrowseSets = useCallback(() => {
+    handleFinalComplete();
+    router.push('/sets');
+  }, [handleFinalComplete, router]);
 
+  // Skip just completes the step and moves to completion screen
   const handleFirstCardsSkip = useCallback(() => {
     handleCompleteStep('first-cards');
   }, [handleCompleteStep]);
@@ -813,7 +815,7 @@ export function OnboardingFlow({ onComplete, initialStep }: OnboardingFlowProps)
           {/* First Cards Step */}
           {progress.currentStep === 'first-cards' && (
             <FirstCardsStep
-              onContinue={handleFirstCardsComplete}
+              onBrowseSets={handleBrowseSets}
               onSkip={handleFirstCardsSkip}
               onBack={() => handleBack('first-cards')}
               primaryGameName={primaryGame?.shortName}
