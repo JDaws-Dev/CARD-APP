@@ -580,3 +580,9 @@
 **Files:** src/components/collection/CollectionView.tsx, src/components/collection/CardDetailModal.tsx
 **Commit:** 1385d5e
 ---
+## CD-0id - Fix hardcoded pokemon in VirtualTrophyRoom.tsx
+**Status:** Completed
+**Changes:** Updated VirtualTrophyRoom.tsx to use game selector context instead of hardcoded 'pokemon' when adding cards to wishlist. Added useGameSelector import, called hook to get primaryGame, and used primaryGame.id for gameSlug.
+**Files:** src/components/virtual/VirtualTrophyRoom.tsx
+**Commit:** 847f888
+---
