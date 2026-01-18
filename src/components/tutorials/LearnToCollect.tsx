@@ -12,6 +12,7 @@ import {
 } from '@/lib/tutorialContent';
 import { getStepExamples, guideHasExamples } from '@/lib/tutorialExamples';
 import { TutorialExampleCards } from './TutorialExampleCards';
+import { AIQuiz } from '../ai/AIQuiz';
 import {
   BookOpenIcon,
   CheckCircleIcon,
@@ -524,6 +525,7 @@ function GuideViewer({ guide, initialStep = 0, onComplete, onBack }: GuideViewer
 export function LearnToCollect() {
   const [progress, setProgress] = useState<TutorialProgress>(loadProgress);
   const [activeGuide, setActiveGuide] = useState<string | null>(null);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
 
   const categories = getAllTutorialCategories();
   const allGuides = getAllTutorialGuides();
@@ -619,6 +621,31 @@ export function LearnToCollect() {
         )}
       </div>
 
+      {/* AI Quiz Section */}
+      <div className="rounded-2xl border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50 p-6">
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+          <div className="flex items-center gap-3 text-center sm:text-left">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-md">
+              <SparklesIcon className="h-6 w-6 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Test Your Knowledge</h2>
+              <p className="text-sm text-gray-600">
+                AI-powered quiz about your card collection
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsQuizOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 px-6 py-3 font-semibold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
+          >
+            <SparklesIcon className="h-5 w-5" aria-hidden="true" />
+            Quiz Me!
+          </button>
+        </div>
+      </div>
+
       {/* Category sections */}
       {categories.map((category) => {
         const categoryGuides = category.guides
@@ -659,6 +686,9 @@ export function LearnToCollect() {
           </li>
         </ul>
       </div>
+
+      {/* AI Quiz Modal */}
+      <AIQuiz isOpen={isQuizOpen} onClose={() => setIsQuizOpen(false)} />
     </div>
   );
 }
