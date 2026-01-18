@@ -535,3 +535,14 @@
 **Files:** src/components/ai/ScannerButton.tsx, src/components/ai/ChatButton.tsx (both already correct)
 **Commit:** No changes needed - work was already complete
 ---
+## CD-4d7.4 - Update ScannerButton and ChatButton to use game selector
+**Status:** Completed
+**Changes:** Updated ScannerButton and ChatButton components to use useGameSelector hook instead of gameSlug prop. Cleaned up all call sites in collection/page.tsx, dashboard/page.tsx, and sets/[setId]/page.tsx to remove the now-unnecessary prop.
+**Files:** 
+- src/components/ai/ScannerButton.tsx
+- src/components/ai/ChatButton.tsx
+- src/app/collection/page.tsx
+- src/app/dashboard/page.tsx
+- src/app/sets/[setId]/page.tsx
+**Commits:** 34bc8f3, b3bb936
+---
