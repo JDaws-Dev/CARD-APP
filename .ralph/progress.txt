@@ -405,3 +405,12 @@
 - src/components/virtual/VirtualTrophyRoom.tsx
 **Commit:** 5dcd4de
 ---
+## CD-7k0 - Remove Pack Simulator from Dashboard - doesn't fit real card collecting focus
+**Status:** Completed
+**Changes:** Removed virtual pack opening simulator from dashboard. Deleted PackOpeningSimulator component (673 lines) and its tests. Dashboard now focuses on real collection tracking only.
+**Files:** 
+- Modified: src/components/dashboard/KidDashboard.tsx
+- Deleted: src/components/virtual/PackOpeningSimulator.tsx
+- Deleted: src/components/virtual/__tests__/PackOpeningSimulator.test.tsx
+**Commit:** 402dd7c
+---
