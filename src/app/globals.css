@@ -369,6 +369,118 @@ body {
   animation: streak-glow 2s ease-in-out infinite;
 }
 
+/* Enhanced fire icon animation - more dramatic for kids */
+@keyframes fire-dance {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 8px rgba(251, 146, 60, 0.6));
+  }
+  20% {
+    transform: scale(1.15) rotate(-4deg);
+    filter: drop-shadow(0 0 12px rgba(251, 146, 60, 0.8));
+  }
+  40% {
+    transform: scale(1.08) rotate(3deg);
+    filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.7));
+  }
+  60% {
+    transform: scale(1.12) rotate(-2deg);
+    filter: drop-shadow(0 0 14px rgba(251, 146, 60, 0.9));
+  }
+  80% {
+    transform: scale(1.05) rotate(1deg);
+    filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.7));
+  }
+}
+
+.animate-fire-dance {
+  animation: fire-dance 1.2s ease-in-out infinite;
+}
+
+/* Level badge pulse - makes level feel more rewarding */
+@keyframes level-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+  }
+}
+
+.animate-level-pulse {
+  animation: level-pulse 2s ease-in-out infinite;
+}
+
+/* XP bar fill animation - smooth and satisfying */
+@keyframes xp-fill-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-xp-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.3) 100%
+  );
+  background-size: 200% 100%;
+  animation: xp-fill-shimmer 2s ease-in-out infinite;
+}
+
+/* Achievement celebration ring effect */
+@keyframes achievement-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.animate-achievement-ring {
+  animation: achievement-ring 1.5s ease-out infinite;
+}
+
+/* Achievement badge shine effect */
+@keyframes badge-shine {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(200%) rotate(45deg);
+  }
+}
+
+.animate-badge-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-badge-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: badge-shine 2s ease-in-out infinite;
+}
+
 .animate-sparkle-rotate {
   animation: sparkle-rotate 3s linear infinite;
 }
@@ -567,6 +679,11 @@ body {
   .animate-streak-glow,
   .animate-page-turn-right,
   .animate-page-turn-left,
+  .animate-fire-dance,
+  .animate-level-pulse,
+  .animate-xp-shimmer,
+  .animate-achievement-ring,
+  .animate-badge-shine,
   .new-badge-shimmer {
     animation: none !important;
   }
@@ -658,6 +775,11 @@ body {
 .low-stim-no-animations .animate-just-pulled-pop,
 .low-stim-no-animations .animate-streak-flame,
 .low-stim-no-animations .animate-streak-glow,
+.low-stim-no-animations .animate-fire-dance,
+.low-stim-no-animations .animate-level-pulse,
+.low-stim-no-animations .animate-xp-shimmer,
+.low-stim-no-animations .animate-achievement-ring,
+.low-stim-no-animations .animate-badge-shine,
 .low-stim-no-animations .new-badge-shimmer,
 .low-stim-no-animations .animate-pulse,
 .low-stim-no-animations .animate-bounce,
@@ -1129,6 +1251,11 @@ body {
 .reduce-motion .animate-just-pulled-pop,
 .reduce-motion .animate-streak-flame,
 .reduce-motion .animate-streak-glow,
+.reduce-motion .animate-fire-dance,
+.reduce-motion .animate-level-pulse,
+.reduce-motion .animate-xp-shimmer,
+.reduce-motion .animate-achievement-ring,
+.reduce-motion .animate-badge-shine,
 .reduce-motion .new-badge-shimmer,
 .reduce-motion .animate-pulse,
 .reduce-motion .animate-bounce,

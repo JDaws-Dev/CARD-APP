@@ -925,3 +925,9 @@
 **Files:** src/components/dashboard/KidDashboard.tsx
 **Commit:** e2284b8
 ---
+## CD-4ka.8 - Review dashboard mobile responsiveness and kid-friendly UX
+**Status:** Completed
+**Changes:** Improved touch targets (44-56px), reduced text density on mobile, made cards responsive, added tactile feedback
+**Files:** src/components/dashboard/KidDashboard.tsx, FeaturedCardsPreview.tsx, RecentCardsPreview.tsx
+**Commit:** e31a63e
+---
