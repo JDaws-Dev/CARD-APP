@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useMemo, useState, useEffect } from 'react';
+import { Suspense, useMemo, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
@@ -18,10 +18,49 @@ import {
 
 type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
+/**
+ * SetImage - Image component with error fallback for set thumbnails
+ */
+function SetImage({
+  src,
+  alt,
+  width,
+  height,
+  className,
+  fallback,
+}: {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  className?: string;
+  fallback: React.ReactNode;
+}) {
+  const [hasError, setHasError] = useState(false);
+
+  const handleError = useCallback(() => {
+    setHasError(true);
+  }, []);
+
+  if (hasError || !src) {
+    return <>{fallback}</>;
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      className={className}
+      onError={handleError}
+    />
+  );
+}
+
 function SetsPageContent() {
   const searchParams = useSearchParams();
   const { primaryGame, isLoading: gameLoading } = useGameSelector();
-  const [sampleCards, setSampleCards] = useState<Record<string, string>>({});
   // Default to 'available' for simpler browsing (shows recent/purchasable sets)
   const [availabilityFilter, setAvailabilityFilter] = useState<AvailabilityFilterValue>('available');
 
@@ -45,39 +84,16 @@ function SetsPageContent() {
     return sets.map((s) => s.setId);
   }, [sets, gameSlug]);
 
-  // Fetch sample cards for the first few sets that need them
-  // We use getCachedCardsInSet for the first set to get a sample card
-  const firstSetNeedingSample = setIdsNeedingSampleCards[0];
-  const firstSetCards = useQuery(
-    api.dataPopulation.getCachedCardsInSet,
-    gameSlug && firstSetNeedingSample
-      ? { gameSlug, setId: firstSetNeedingSample }
-      : 'skip'
-  );
-
-  // Use filterCardsByGame to get cards for multiple sets at once
-  const allCards = useQuery(
-    api.dataPopulation.filterCardsByGame,
+  // Use the dedicated getSampleCardsBySet query to efficiently fetch one sample card per set
+  const sampleCardsResult = useQuery(
+    api.dataPopulation.getSampleCardsBySet,
     gameSlug && setIdsNeedingSampleCards.length > 0
-      ? { gameSlug, limit: 500 }
+      ? { gameSlug, setIds: setIdsNeedingSampleCards }
       : 'skip'
   );
 
-  // Build sample cards map from allCards
-  useEffect(() => {
-    if (!allCards?.cards || !setIdsNeedingSampleCards.length) return;
-
-    const newSampleCards: Record<string, string> = {};
-    const neededSets = new Set(setIdsNeedingSampleCards);
-
-    for (const card of allCards.cards) {
-      if (neededSets.has(card.setId) && card.imageSmall && !newSampleCards[card.setId]) {
-        newSampleCards[card.setId] = card.imageSmall;
-      }
-    }
-
-    setSampleCards(newSampleCards);
-  }, [allCards, setIdsNeedingSampleCards]);
+  // Sample cards map from query result
+  const sampleCards = sampleCardsResult ?? {};
 
   const isLoading = gameLoading || sets === undefined;
 
@@ -180,35 +196,50 @@ function SetsPageContent() {
                     'dark:bg-slate-800 dark:hover:bg-slate-750'
                   )}
                 >
-                  {/* Set logo/image */}
+                  {/* Set logo/image with error fallback */}
                   <div className="relative mb-3 flex h-20 items-center justify-center overflow-hidden rounded-lg">
-                    {useLogo ? (
-                      <Image
-                        src={set.logoUrl!}
-                        alt={set.name}
-                        width={120}
-                        height={80}
-                        className="max-h-full w-auto object-contain"
-                      />
-                    ) : sampleCardUrl ? (
-                      <Image
-                        src={sampleCardUrl}
-                        alt={set.name}
-                        width={80}
-                        height={112}
-                        className="h-full w-auto object-contain"
-                      />
-                    ) : (
-                      <div
-                        className={cn(
-                          'flex h-full w-full items-center justify-center text-2xl font-bold text-white bg-gradient-to-br',
-                          game?.gradientFrom || 'from-indigo-500',
-                          game?.gradientTo || 'to-purple-500'
-                        )}
-                      >
-                        {set.name.charAt(0)}
-                      </div>
-                    )}
+                    {(() => {
+                      // Gradient fallback for when no image is available or image fails to load
+                      const gradientFallback = (
+                        <div
+                          className={cn(
+                            'flex h-full w-full items-center justify-center text-2xl font-bold text-white bg-gradient-to-br',
+                            game?.gradientFrom || 'from-indigo-500',
+                            game?.gradientTo || 'to-purple-500'
+                          )}
+                        >
+                          {set.name.charAt(0)}
+                        </div>
+                      );
+
+                      if (useLogo) {
+                        return (
+                          <SetImage
+                            src={set.logoUrl!}
+                            alt={set.name}
+                            width={120}
+                            height={80}
+                            className="max-h-full w-auto object-contain"
+                            fallback={gradientFallback}
+                          />
+                        );
+                      }
+
+                      if (sampleCardUrl) {
+                        return (
+                          <SetImage
+                            src={sampleCardUrl}
+                            alt={set.name}
+                            width={80}
+                            height={112}
+                            className="h-full w-auto object-contain"
+                            fallback={gradientFallback}
+                          />
+                        );
+                      }
+
+                      return gradientFallback;
+                    })()}
                   </div>
 
                   {/* Set info */}

@@ -790,7 +790,7 @@
 **Status:** Completed
 **Changes:** Fixed Trophy Room to filter cards by selected game. Added gameSlug parameter to getMostValuableCards Convex query with filter logic. Updated VirtualTrophyRoom component to pass the current game context and show game-specific empty state messages.
 **Files:** convex/collections.ts, src/components/virtual/VirtualTrophyRoom.tsx
-**Commit:** (pending)
+**Commit:** 9a523ae
 ---
 ## CD-wm5 - Add toggle filter for set cards: Have / Need / All
 **Status:** Completed
@@ -951,4 +951,13 @@
 **Changes:** Added availability toggle filter to Browse Sets page allowing users to filter between "Available Sets" (recently released, still in print) and "All Sets" (complete collection). Implemented per-game availability windows: Pokemon 2yr, Yu-Gi-Oh 3yr, One Piece 2.5yr, Lorcana 3yr. Default shows available sets for simpler browsing experience.
 **Files:** src/components/sets/AvailabilityFilter.tsx (new), src/app/sets/page.tsx (modified)
 **Commit:** 37eb57d
+---
+## CD-8kr - Fix missing set/deck images - verify API image URLs
+**Status:** Completed
+**Changes:** 
+- Investigated set image availability across all 4 TCG APIs
+- Created SetImage component with error handling fallback
+- Image fallback chain: Pokemon logo → Sample card image → Gradient placeholder
+**Files:** src/app/sets/page.tsx (added SetImage component)
+**Commit:** 9a523ae
 ---
