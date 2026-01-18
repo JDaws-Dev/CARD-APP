@@ -123,10 +123,16 @@ export default function Home() {
         />
 
         <div className="relative mx-auto max-w-4xl text-center">
-          {/* Badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm backdrop-blur">
-            <SparklesIcon className="h-5 w-5 text-kid-primary" />
-            <span className="text-sm font-medium text-gray-700">Made for young collectors</span>
+          {/* Badges */}
+          <div className="mb-6 flex flex-wrap items-center justify-center gap-3">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm backdrop-blur">
+              <SparklesIcon className="h-5 w-5 text-kid-primary" />
+              <span className="text-sm font-medium text-gray-700">Made for young collectors</span>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-100 to-purple-100 px-4 py-2 shadow-sm">
+              <CameraIcon className="h-5 w-5 text-violet-500" />
+              <span className="text-sm font-medium text-violet-700">AI-Powered Scanning</span>
+            </div>
           </div>
 
           {/* Heading */}
@@ -146,8 +152,8 @@ export default function Home() {
 
           {/* Subheading */}
           <p className="mx-auto mb-6 max-w-2xl text-base text-gray-600 sm:mb-8 sm:text-lg md:text-xl">
-            The fun and easy way for kids to organize their collection, earn badges, and share
-            wishlists with family!
+            Snap a photo to add cards instantly! The fun and easy way for kids to organize their
+            collection, earn badges, and share wishlists with family.
           </p>
 
           {/* CTA Buttons */}
