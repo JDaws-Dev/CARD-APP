@@ -16,6 +16,7 @@ import {
   PlusIcon,
   MinusIcon,
   CheckIcon,
+  MagnifyingGlassPlusIcon,
 } from '@heroicons/react/24/outline';
 import {
   HeartIcon as HeartIconSolid,
@@ -222,6 +223,58 @@ function CardAddedCelebration({
           Added!
         </div>
         <p className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm text-white/80">
+          Tap anywhere to close
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Card Close-Up Modal Component for detailed viewing
+function CardCloseUpModal({
+  card,
+  onClose,
+}: {
+  card: PokemonCard;
+  onClose: () => void;
+}) {
+  // Handle click anywhere to dismiss
+  const handleClick = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
+  // Handle escape key to dismiss
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/70"
+      onClick={handleClick}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${card.name} close-up view. Click to dismiss.`}
+    >
+      <div className="relative">
+        {/* Enlarged card image using imageLarge */}
+        <div className="relative h-[420px] w-[300px] overflow-hidden rounded-xl shadow-2xl sm:h-[560px] sm:w-[400px]">
+          <CardImage
+            src={card.images.large || card.images.small}
+            alt={card.name}
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
+        {/* Close hint */}
+        <p className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm text-white/80">
           Tap anywhere to close
         </p>
       </div>
@@ -453,6 +506,9 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
 
   // State for card added celebration animation
   const [celebrationCard, setCelebrationCard] = useState<PokemonCard | null>(null);
+
+  // State for card close-up modal
+  const [closeUpCard, setCloseUpCard] = useState<PokemonCard | null>(null);
 
   // Convex queries and mutations
   const collection = useQuery(
@@ -866,6 +922,19 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
               )}
             </button>
           )}
+
+          {/* Magnifying Glass Button for close-up view */}
+          <button
+            className="absolute bottom-1 left-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-400 opacity-0 shadow-md transition-all hover:bg-white hover:text-kid-primary focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kid-primary focus-visible:ring-offset-1 group-hover:opacity-100"
+            onClick={(e) => {
+              e.stopPropagation();
+              setCloseUpCard(card);
+            }}
+            aria-label={`View ${card.name} close-up`}
+            title="View close-up"
+          >
+            <MagnifyingGlassPlusIcon className="h-4 w-4" aria-hidden={true} />
+          </button>
         </div>
 
         {/* Card Info */}
@@ -1138,6 +1207,14 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
         <CardAddedCelebration
           card={celebrationCard}
           onAnimationEnd={() => setCelebrationCard(null)}
+        />
+      )}
+
+      {/* Card Close-Up Modal */}
+      {closeUpCard && (
+        <CardCloseUpModal
+          card={closeUpCard}
+          onClose={() => setCloseUpCard(null)}
         />
       )}
     </div>
