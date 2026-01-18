@@ -432,3 +432,9 @@
 **Files:** src/app/wishlist/[token]/page.tsx, src/app/my-wishlist/page.tsx
 **Commit:** 0287b6f
 ---
+## CD-49w - Extract hardcoded game card URLs to config
+**Status:** Completed
+**Changes:** Extracted all hardcoded Pokemon TCG image URLs from 5 mini-game components into centralized config file with helper functions for URL construction
+**Files:** src/lib/miniGamesConfig.ts (new), src/components/games/*.tsx (5 files updated)
+**Commit:** c9bbdfb
+---
