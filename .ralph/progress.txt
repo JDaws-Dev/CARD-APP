@@ -480,3 +480,9 @@
 **Files:** src/app/page.tsx (lines 211-268), src/components/icons/tcg/index.tsx, src/lib/gameSelector.ts
 **Commit:** Already committed in f092955
 ---
+## CD-3zd - Add CSP headers for security
+**Status:** Completed
+**Changes:** Added Content Security Policy and security headers to next.config.js. CSP includes directives for scripts, styles, images (all TCG domains), fonts, connections (Convex), and frame protection. Also added X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, and Permissions-Policy headers.
+**Files:** next.config.js
+**Commit:** (pending)
+---
