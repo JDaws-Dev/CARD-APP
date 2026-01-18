@@ -89,12 +89,12 @@ export default function BrowsePage() {
         const response = await fetch(`/api/filter?${params.toString()}`);
 
         if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || 'Failed to filter cards');
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to filter cards');
         }
 
-        const cards = await response.json();
-        setResults(cards);
+        const responseData = await response.json();
+        setResults(responseData.data || []);
       } catch (err) {
         console.error('Filter error:', err);
         setError(err instanceof Error ? err.message : 'Failed to filter cards');
