@@ -18,7 +18,7 @@ import {
   BookOpenIcon,
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
-import { FireIcon, StarIcon, BoltIcon } from '@heroicons/react/24/solid';
+import { FireIcon, StarIcon, BoltIcon, TrophyIcon as TrophyIconSolid } from '@heroicons/react/24/solid';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ActivityFeed, ActivityFeedSkeleton } from '@/components/activity/ActivityFeed';
 import { StreakCounter } from '@/components/gamification/StreakCounter';
@@ -278,6 +278,184 @@ function StreakCalendarPreview({ className }: StreakCalendarPreviewProps) {
 }
 
 // ============================================================================
+// GAMIFICATION HERO SECTION
+// ============================================================================
+
+interface GamificationHeroProps {
+  className?: string;
+}
+
+function GamificationHero({ className }: GamificationHeroProps) {
+  const { profileId, isLoading: profileLoading } = useCurrentProfile();
+
+  const streakProgress = useQuery(
+    api.achievements.getStreakProgress,
+    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+  );
+
+  const achievements = useQuery(
+    api.achievements.getAchievements,
+    profileId ? { profileId: profileId as Id<'profiles'> } : 'skip'
+  );
+
+  if (profileLoading || streakProgress === undefined || achievements === undefined) {
+    return (
+      <div className={cn('grid gap-4 sm:grid-cols-2', className)}>
+        <div className="animate-pulse rounded-2xl bg-gradient-to-br from-orange-100 to-amber-50 p-6">
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 rounded-2xl bg-white/50" />
+            <div className="flex-1">
+              <div className="mb-2 h-8 w-24 rounded bg-white/50" />
+              <div className="h-4 w-32 rounded bg-white/50" />
+            </div>
+          </div>
+        </div>
+        <div className="animate-pulse rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-50 p-6">
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 rounded-2xl bg-white/50" />
+            <div className="flex-1">
+              <div className="mb-2 h-8 w-24 rounded bg-white/50" />
+              <div className="h-4 w-32 rounded bg-white/50" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentStreak = streakProgress.currentStreak ?? 0;
+  const isHotStreak = currentStreak >= 7;
+  const isOnFire = currentStreak >= 14;
+
+  // Get recent badge for celebration
+  const recentBadge = achievements
+    .filter((a) => a.earnedAt !== null)
+    .sort((a, b) => (b.earnedAt ?? 0) - (a.earnedAt ?? 0))[0];
+
+  // Check if badge was earned recently (within 24 hours)
+  const badgeIsRecent = recentBadge?.earnedAt && Date.now() - recentBadge.earnedAt < 24 * 60 * 60 * 1000;
+
+  return (
+    <div className={cn('grid gap-4 sm:grid-cols-2', className)}>
+      {/* Enhanced Streak Display */}
+      <Link
+        href="/streak"
+        className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 p-5 shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl"
+      >
+        {/* Animated background particles for hot streaks */}
+        {isHotStreak && (
+          <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+            <div className="absolute left-4 top-4 h-2 w-2 animate-ping rounded-full bg-yellow-300/40" style={{ animationDelay: '0s' }} />
+            <div className="absolute right-8 top-6 h-1.5 w-1.5 animate-ping rounded-full bg-orange-300/40" style={{ animationDelay: '0.5s' }} />
+            <div className="absolute bottom-8 left-8 h-2 w-2 animate-ping rounded-full bg-pink-300/40" style={{ animationDelay: '1s' }} />
+            <div className="absolute bottom-4 right-4 h-1.5 w-1.5 animate-ping rounded-full bg-yellow-300/40" style={{ animationDelay: '1.5s' }} />
+          </div>
+        )}
+
+        {/* Background pattern */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: '16px 16px',
+          }}
+          aria-hidden="true"
+        />
+
+        <div className="relative flex items-center gap-4">
+          {/* Large animated fire icon */}
+          <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-white/20 shadow-lg backdrop-blur-sm">
+            <FireIcon
+              className={cn(
+                'h-10 w-10 text-white drop-shadow-lg',
+                isHotStreak && 'animate-streak-flame'
+              )}
+              aria-hidden="true"
+            />
+            {isOnFire && (
+              <>
+                <SparklesIcon
+                  className="animate-sparkle absolute -right-2 -top-2 h-5 w-5 text-yellow-300 drop-shadow"
+                  aria-hidden="true"
+                />
+                <SparklesIcon
+                  className="animate-sparkle absolute -bottom-1 -left-1 h-4 w-4 text-yellow-300 drop-shadow"
+                  style={{ animationDelay: '0.5s' }}
+                  aria-hidden="true"
+                />
+              </>
+            )}
+          </div>
+
+          <div className="flex-1">
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-bold text-white drop-shadow-lg">
+                {currentStreak}
+              </span>
+              <span className="text-lg font-semibold text-white/90">
+                day{currentStreak !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <p className="text-sm font-medium text-white/80">
+              {currentStreak === 0
+                ? 'Start your streak today!'
+                : currentStreak < 7
+                  ? 'Keep collecting daily!'
+                  : currentStreak < 14
+                    ? 'Amazing streak!'
+                    : "You're on fire!"}
+            </p>
+          </div>
+
+          {/* Arrow indicator */}
+          <ArrowRightIcon className="h-5 w-5 flex-shrink-0 text-white/60 transition-transform group-hover:translate-x-1 group-hover:text-white" />
+        </div>
+
+        {/* Next milestone hint */}
+        {streakProgress.nextBadge && (
+          <div className="relative mt-3 flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 backdrop-blur-sm">
+            <TrophyIconSolid className="h-4 w-4 text-yellow-300" aria-hidden="true" />
+            <span className="text-xs font-medium text-white/90">
+              {streakProgress.nextBadge.daysNeeded} more day{streakProgress.nextBadge.daysNeeded !== 1 ? 's' : ''} for{' '}
+              <span className="font-semibold">{streakProgress.nextBadge.name}</span>
+            </span>
+          </div>
+        )}
+      </Link>
+
+      {/* Enhanced Level/XP Display */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-5 shadow-lg">
+        {/* Background pattern */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: '16px 16px',
+          }}
+          aria-hidden="true"
+        />
+
+        <div className="relative">
+          <LevelDisplay variant="full" className="!bg-transparent !p-0 !shadow-none" />
+        </div>
+
+        {/* Recent badge celebration */}
+        {badgeIsRecent && recentBadge && (
+          <div className="relative mt-3 flex items-center gap-2 rounded-xl bg-white/20 px-3 py-2 backdrop-blur-sm">
+            <div className="flex h-6 w-6 animate-pulse items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow">
+              <StarIcon className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-xs font-medium text-white/90">
+              New badge earned! <span className="font-semibold">{recentBadge.achievementKey}</span>
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // KID DASHBOARD SKELETON
 // ============================================================================
 
@@ -480,6 +658,9 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
         </div>
       </div>
 
+      {/* Gamification Hero - Prominent streak and level display */}
+      <GamificationHero />
+
       {/* Stats Grid */}
       <div
         className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4"
@@ -572,14 +753,11 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Left: Progress Cards */}
         <div className="space-y-4 lg:col-span-2">
-          {/* Level Progress */}
-          <LevelDisplay variant="full" />
+          {/* Badge Progress - Moved higher for prominence */}
+          <BadgeProgressPreview />
 
           {/* Milestone Progress */}
           <MilestoneProgress />
-
-          {/* Badge Progress */}
-          <BadgeProgressPreview />
 
           {/* Family Collection Goal */}
           {profile?.familyId && (
