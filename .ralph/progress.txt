@@ -1484,3 +1484,9 @@
 - Deleted: src/components/collection/CollectionSnapshotShare.tsx
 **Commit:** d5a25fb
 ---
+## CD-fuj.2 - Add Buy button UI to card detail modal
+**Status:** Completed
+**Changes:** Added "Buy This Card" button to CardDetailModal Quick Actions section with optional buyUrl prop, new tab behavior, and conditional rendering when URL unavailable
+**Files:** src/components/collection/CardDetailModal.tsx
+**Commit:** 5c1eedd
+---
