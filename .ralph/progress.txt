@@ -1459,3 +1459,13 @@
 **Files:** convex/auth.ts, src/components/auth/AuthForm.tsx, .env.example
 **Commit:** d456507
 ---
+## CD-fuj.1 - Research TCGPlayer affiliate program and API
+**Status:** Completed
+**Changes:** Researched TCGPlayer affiliate program details including:
+- Impact Affiliate Network (3.5% commission, 48-hour first-click attribution)
+- URL structure for all 4 supported games (no API needed - search URLs work)
+- Sample URLs documented for Pokemon, Yu-Gi-Oh, One Piece, and Lorcana
+- Affiliate link format documented
+**Files:** No code changes - research task documented in beads issue notes
+**Commit:** N/A (research only)
+---
