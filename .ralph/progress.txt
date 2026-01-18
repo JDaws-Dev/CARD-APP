@@ -546,3 +546,9 @@
 - src/app/sets/[setId]/page.tsx
 **Commits:** 34bc8f3, b3bb936
 ---
+## CD-4d7.5 - Update wishlist and compare pages to use game selector
+**Status:** Completed
+**Changes:** Updated compare page and DuplicateFinder to use game selector. Backend APIs already support gameSlug filtering, so we pass the selected game to filter comparisons server-side. Public wishlist page intentionally not changed (read-only share page shows all games).
+**Files:** src/components/collection/DuplicateFinder.tsx, src/app/compare/page.tsx
+**Commit:** d9c35f7
+---
