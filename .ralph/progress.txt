@@ -654,3 +654,16 @@
 **Files:** src/components/layout/AppHeader.tsx
 **Commit:** 4a3b897
 ---
+## CD-nxw - Redesign header - add logo, make it sleek and modern
+**Status:** Completed
+**Changes:** Redesigned the header with a modern, sleek look featuring:
+- New CardDexLogo SVG with layered card stack effect and animated sparkle accent
+- Glass-morphism styling (backdrop-blur-xl, translucent backgrounds)
+- Game theme integration with dynamic colors (CSS variables)
+- Prominent "CardDex" branding with game subtitle
+- Pill-style navigation container with smooth hover states
+- Rounded corners (rounded-xl/2xl) throughout
+- Consistent styling across AppHeader, MarketingHeader, and skeleton
+**Files:** src/components/layout/AppHeader.tsx, src/components/layout/MarketingHeader.tsx, src/components/layout/AuthAwareHeader.tsx, src/components/header/MobileBottomNav.tsx
+**Commits:** fe73745, 4a3b897, 9628027
+---
