@@ -8,18 +8,12 @@ import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import { CollectionView } from '@/components/collection/CollectionView';
 import { ExportChecklistButton } from '@/components/collection/ExportChecklist';
-import { CollectionSnapshotShare } from '@/components/collection/CollectionSnapshotShare';
 import Link from 'next/link';
 import type { Id } from '../../../convex/_generated/dataModel';
 import {
   Square3Stack3DIcon,
-  ArrowsRightLeftIcon,
-  TrophyIcon,
-  ArrowLeftIcon,
   ArrowRightIcon,
-  HeartIcon,
   CalendarDaysIcon,
-  CameraIcon,
 } from '@heroicons/react/24/outline';
 import { ScannerButton } from '@/components/ai/ScannerButton';
 import { ChatButton } from '@/components/ai/ChatButton';
@@ -114,16 +108,8 @@ export default function MyCollectionPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-indigo-50 to-purple-50 px-4 py-8">
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeftIcon className="h-4 w-4" />
-            Back to Home
-          </Link>
-
+        {/* Header - simplified */}
+        <div className="mb-6 sm:mb-8">
           <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">My Collection</h1>
@@ -131,42 +117,25 @@ export default function MyCollectionPage() {
                 All your collected {primaryGame.shortName} cards in one place
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Primary actions - Scanner is most important */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <ScannerButton
                 gameSlug={primaryGame.id}
                 variant="primary"
                 label="Scan Card"
               />
-              <Link
-                href="/timeline"
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-400 to-purple-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-indigo-500 hover:to-purple-600"
-              >
-                <CalendarDaysIcon className="h-5 w-5" />
-                Timeline
-              </Link>
-              <Link
-                href="/my-wishlist"
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-rose-500 hover:to-pink-600"
-              >
-                <HeartIcon className="h-5 w-5" />
-                My Wishlist
-              </Link>
-              <Link
-                href="/badges"
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:from-amber-500 hover:to-orange-600"
-              >
-                <TrophyIcon className="h-5 w-5" />
-                Trophy Case
-              </Link>
-              <Link
-                href="/compare"
-                className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-kid-primary"
-              >
-                <ArrowsRightLeftIcon className="h-5 w-5" />
-                Compare Collections
-              </Link>
-              <CollectionSnapshotShare />
-              <ExportChecklistButton collection={collection} stats={stats} />
+              {/* Secondary actions hidden on mobile, shown on desktop */}
+              <div className="hidden items-center gap-2 sm:flex">
+                <Link
+                  href="/timeline"
+                  className="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
+                  title="Collection Timeline"
+                >
+                  <CalendarDaysIcon className="h-5 w-5" />
+                  <span className="hidden md:inline">Timeline</span>
+                </Link>
+                <ExportChecklistButton collection={collection} stats={stats} />
+              </div>
             </div>
           </div>
         </div>

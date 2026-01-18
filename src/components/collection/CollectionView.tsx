@@ -20,7 +20,6 @@ import {
   Squares2X2Icon,
   ViewColumnsIcon,
 } from '@heroicons/react/24/solid';
-import { RandomCardButton } from './RandomCardButton';
 import { DigitalBinder, DigitalBinderButton } from '@/components/virtual/DigitalBinder';
 import { CardDetailModal } from './CardDetailModal';
 import { VariantFilter, VARIANT_CATEGORIES, type VariantCategoryId } from '@/components/filter/VariantFilter';
@@ -619,11 +618,10 @@ export function CollectionView({ collection }: CollectionViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Action buttons - Random Card and Binder View */}
+      {/* Action buttons - Binder View (hidden on mobile) */}
       {cardData.size > 0 && (
-        <div className="flex flex-wrap items-center justify-end gap-3">
+        <div className="hidden flex-wrap items-center justify-end gap-3 md:flex">
           <DigitalBinderButton onClick={() => setIsBinderOpen(true)} />
-          <RandomCardButton collection={collection} cardData={cardData} />
         </div>
       )}
 

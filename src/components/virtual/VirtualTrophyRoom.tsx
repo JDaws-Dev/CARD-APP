@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Image from 'next/image';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -11,6 +11,8 @@ import { useReducedMotion } from '@/components/providers/ReducedMotionProvider';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { TrophyIcon, SparklesIcon, CurrencyDollarIcon, StarIcon } from '@heroicons/react/24/solid';
 import { Square3Stack3DIcon } from '@heroicons/react/24/outline';
+import { CardDetailModal } from '@/components/collection/CardDetailModal';
+import type { PokemonCard } from '@/lib/pokemon-tcg';
 
 // Rarity glow color mapping
 const RARITY_GLOW_COLORS: Record<string, string> = {
@@ -52,17 +54,21 @@ interface TrophySlotProps {
   };
   rank: number;
   reducedMotion: boolean;
+  onClick?: () => void;
 }
 
-function TrophySlot({ card, rank, reducedMotion }: TrophySlotProps) {
+function TrophySlot({ card, rank, reducedMotion, onClick }: TrophySlotProps) {
   const [isHovered, setIsHovered] = useState(false);
   const glowColor = getGlowColor(card.rarity);
 
   return (
-    <div
-      className="group relative flex flex-col items-center"
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative flex flex-col items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 rounded-lg"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      aria-label={`View ${card.name} details - ranked #${rank}, valued at $${card.totalValue.toFixed(2)}`}
     >
       {/* Rank badge */}
       <div
@@ -137,7 +143,7 @@ function TrophySlot({ card, rank, reducedMotion }: TrophySlotProps) {
         </div>
         {card.rarity && <p className="mt-0.5 truncate text-[10px] text-gray-500">{card.rarity}</p>}
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -205,11 +211,48 @@ interface VirtualTrophyRoomProps {
 export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { isReduced: prefersReducedMotion } = useReducedMotion();
+  const [selectedCard, setSelectedCard] = useState<(PokemonCard & { quantity: number; collectionId: string }) | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const valuableCards = useQuery(
     api.collections.getMostValuableCards,
     profileId ? { profileId: profileId as Id<'profiles'>, limit } : 'skip'
   );
+
+  // Check if selected card is on wishlist
+  const wishlistStatus = useQuery(
+    api.wishlist.isOnWishlist,
+    selectedCard && profileId
+      ? { profileId: profileId as Id<'profiles'>, cardId: selectedCard.id }
+      : 'skip'
+  );
+
+  // Mutations for modal actions
+  const removeCardMutation = useMutation(api.collections.removeCard);
+  const addToWishlistMutation = useMutation(api.wishlist.addToWishlist);
+  const updateQuantityMutation = useMutation(api.collections.updateQuantity);
+
+  // Handle card click to open detail modal
+  const handleCardClick = useCallback(async (card: { cardId: string; name: string; imageSmall: string }) => {
+    // Fetch full card data from API
+    try {
+      const response = await fetch('/api/cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardIds: [card.cardId] }),
+      });
+      if (response.ok) {
+        const json = await response.json();
+        const fullCard = json.data?.[0];
+        if (fullCard) {
+          setSelectedCard({ ...fullCard, quantity: 1, collectionId: card.cardId });
+          setIsDetailModalOpen(true);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch card details:', err);
+    }
+  }, []);
 
   // Loading state
   if (profileLoading || valuableCards === undefined) {
@@ -224,7 +267,7 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
   // Calculate total value
   const totalValue = valuableCards.reduce((sum, card) => sum + card.totalValue, 0);
 
-  // Split cards into two rows for display
+  // Split cards into rows - show 3 on mobile, 5 on desktop
   const topRow = valuableCards.slice(0, 5);
   const bottomRow = valuableCards.slice(5, 10);
 
@@ -263,14 +306,15 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
           <div className="absolute right-8 top-8 h-16 w-16 rounded-full bg-gradient-to-br from-orange-400 to-transparent blur-2xl" />
         </div>
 
-        {/* Top row - first 5 cards */}
-        <div className="mb-8 grid grid-cols-5 gap-2 sm:gap-4">
+        {/* Top row - first 3 cards on mobile, 5 on desktop */}
+        <div className="mb-8 grid grid-cols-3 gap-3 sm:grid-cols-5 sm:gap-4">
           {topRow.map((card, index) => (
             <TrophySlot
               key={card.cardId + card.variant}
               card={card}
               rank={index + 1}
               reducedMotion={prefersReducedMotion}
+              onClick={() => handleCardClick(card)}
             />
           ))}
         </div>
@@ -280,15 +324,16 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
           <div className="absolute left-1/2 top-0 h-1 w-3/4 -translate-x-1/2 rounded-full bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
         </div>
 
-        {/* Bottom row - cards 6-10 */}
+        {/* Bottom row - cards 6-10 (hidden on mobile to avoid clutter) */}
         {bottomRow.length > 0 && (
-          <div className="grid grid-cols-5 gap-2 sm:gap-4">
+          <div className="hidden grid-cols-5 gap-4 sm:grid">
             {bottomRow.map((card, index) => (
               <TrophySlot
                 key={card.cardId + card.variant}
                 card={card}
                 rank={index + 6}
                 reducedMotion={prefersReducedMotion}
+                onClick={() => handleCardClick(card)}
               />
             ))}
             {/* Empty slots if less than 5 cards in bottom row */}
@@ -311,6 +356,50 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
       <p className="mt-4 text-center text-xs text-gray-400">
         Cards are ranked by market value. Add more valuable cards to fill your trophy room!
       </p>
+
+      {/* Card Detail Modal */}
+      <CardDetailModal
+        card={selectedCard}
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedCard(null);
+        }}
+        onPrevious={() => {}}
+        onNext={() => {}}
+        hasPrevious={false}
+        hasNext={false}
+        onRemoveCard={async (cardId) => {
+          if (!profileId || !selectedCard) return;
+          await removeCardMutation({
+            profileId: profileId as Id<'profiles'>,
+            cardId,
+            cardName: selectedCard.name,
+            setName: selectedCard.set.name,
+          });
+          setIsDetailModalOpen(false);
+          setSelectedCard(null);
+        }}
+        onAddToWishlist={async (cardId) => {
+          if (!profileId) return;
+          await addToWishlistMutation({
+            profileId: profileId as Id<'profiles'>,
+            cardId,
+            gameSlug: 'pokemon',
+          });
+        }}
+        onEditQuantity={async (cardId, newQuantity) => {
+          if (!profileId) return;
+          await updateQuantityMutation({
+            profileId: profileId as Id<'profiles'>,
+            cardId,
+            quantity: newQuantity,
+          });
+        }}
+        isOnWishlist={wishlistStatus?.onWishlist ?? false}
+        isRemoving={false}
+        isAddingToWishlist={false}
+      />
     </div>
   );
 }
