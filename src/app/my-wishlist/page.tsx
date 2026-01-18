@@ -4,8 +4,8 @@ import { useQuery, useMutation, useConvexAuth } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { CardImage } from '@/components/ui/CardImage';
 import { api } from '../../../convex/_generated/api';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import {
@@ -332,12 +332,11 @@ function WishlistCard({
 
       {/* Card Image */}
       <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg">
-        <Image
+        <CardImage
           src={cardData.images.small}
           alt={cardData.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-          className="object-contain"
         />
       </div>
 

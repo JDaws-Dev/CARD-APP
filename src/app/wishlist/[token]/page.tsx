@@ -3,8 +3,8 @@
 import { useQuery } from 'convex/react';
 import { useParams } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { CardImage } from '@/components/ui/CardImage';
 import { api } from '../../../../convex/_generated/api';
 import { HeartIcon, StarIcon, GiftIcon, LinkIcon, CheckIcon } from '@heroicons/react/24/solid';
 import { HeartIcon as HeartIconOutline } from '@heroicons/react/24/outline';
@@ -144,12 +144,11 @@ function WishlistCard({ item, cardData, showGame }: { item: WishlistItem; cardDa
 
       {/* Card Image */}
       <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg">
-        <Image
+        <CardImage
           src={cardData.images.small}
           alt={cardData.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-          className="object-contain"
         />
       </div>
 
