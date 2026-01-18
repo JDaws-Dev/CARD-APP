@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { CardStoryModal } from '@/components/ai/CardStoryModal';
 import { CardImage } from '@/components/ui/CardImage';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
@@ -111,6 +111,49 @@ export function CardDetailModal({
   // State for CardStoryModal
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
 
+  // Touch/swipe handling refs
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const SWIPE_THRESHOLD = 50; // Minimum swipe distance in pixels
+  const SWIPE_ANGLE_THRESHOLD = 30; // Max vertical deviation in degrees
+
+  // Handle touch start
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  // Handle touch end for swipe navigation
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (touchStartX.current === null || touchStartY.current === null) return;
+
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaX = touchEndX - touchStartX.current;
+      const deltaY = touchEndY - touchStartY.current;
+
+      // Check if it's a horizontal swipe (not too much vertical movement)
+      const angle = Math.abs(Math.atan2(deltaY, deltaX) * (180 / Math.PI));
+      const isHorizontalSwipe = angle < SWIPE_ANGLE_THRESHOLD || angle > (180 - SWIPE_ANGLE_THRESHOLD);
+
+      if (isHorizontalSwipe && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+        if (deltaX > 0 && hasPrevious && onPrevious) {
+          // Swipe right -> previous card
+          onPrevious();
+        } else if (deltaX < 0 && hasNext && onNext) {
+          // Swipe left -> next card
+          onNext();
+        }
+      }
+
+      // Reset touch state
+      touchStartX.current = null;
+      touchStartY.current = null;
+    },
+    [hasPrevious, hasNext, onPrevious, onNext]
+  );
+
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -163,6 +206,8 @@ export function CardDetailModal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
       onClick={onClose}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       role="dialog"
       aria-modal="true"
       aria-label={`${card.name} card details`}
@@ -437,9 +482,10 @@ export function CardDetailModal({
         </div>
       </div>
 
-      {/* Keyboard hint */}
+      {/* Navigation hint */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-4 py-2 text-xs text-white/50">
-        Use arrow keys to navigate, ESC to close
+        <span className="hidden sm:inline">Use arrow keys to navigate, ESC to close</span>
+        <span className="sm:hidden">Swipe to navigate, tap outside to close</span>
       </div>
 
       {/* Card Story Modal */}
