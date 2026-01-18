@@ -1065,3 +1065,13 @@
 **Files:** src/lib/rarityExplainer.ts
 **Commit:** 2a6bfca
 ---
+## CD-cie - Trade Logging UI - Record real-life card trades
+**Status:** Completed
+**Changes:** Implemented trade logging modal and trade history components for recording real-life card trades. Added Trade button to collection page, showing trade history in sidebar.
+**Files:**
+- src/components/trades/TradeLoggingModal.tsx (new)
+- src/components/trades/TradeHistory.tsx (new)
+- src/components/trades/index.ts (new)
+- src/app/collection/page.tsx (modified)
+**Commit:** 0008945
+---
