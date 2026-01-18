@@ -74,6 +74,8 @@ export interface PokemonCard {
     id: string;
     name: string;
   };
+  /** Available card variants (e.g., 'normal', 'holofoil', 'reverseHolofoil') from cachedCards */
+  availableVariants?: string[];
 }
 
 // =============================================================================

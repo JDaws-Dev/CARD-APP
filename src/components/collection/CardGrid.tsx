@@ -83,17 +83,31 @@ const VARIANT_CONFIG: Record<
   },
 };
 
-// Get available variants from a card's tcgplayer prices
+// Get available variants from a card's availableVariants field or tcgplayer prices
 function getAvailableVariants(card: PokemonCard): CardVariant[] {
+  // First check availableVariants field (from cachedCards)
+  if (card.availableVariants && card.availableVariants.length > 0) {
+    // Filter to only known variant types
+    const knownVariants = card.availableVariants.filter(
+      (v): v is CardVariant =>
+        v === 'normal' ||
+        v === 'holofoil' ||
+        v === 'reverseHolofoil' ||
+        v === '1stEditionHolofoil' ||
+        v === '1stEditionNormal'
+    );
+    return knownVariants.length > 0 ? knownVariants : ['normal'];
+  }
+
+  // Fallback to tcgplayer prices (for direct API calls)
   const prices = card.tcgplayer?.prices;
-  if (!prices) return ['normal']; // Default to normal if no price data
+  if (!prices) return ['normal'];
 
   const variants: CardVariant[] = [];
   if (prices.normal) variants.push('normal');
   if (prices.holofoil) variants.push('holofoil');
   if (prices.reverseHolofoil) variants.push('reverseHolofoil');
 
-  // If no variants found, default to normal
   return variants.length > 0 ? variants : ['normal'];
 }
 

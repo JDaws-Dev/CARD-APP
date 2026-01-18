@@ -819,3 +819,9 @@
 **Files:** None modified - decomposition only
 **Commit:** N/A - no code changes
 ---
+## CD-5yk.3 - Pokemon: Ensure variant data is properly extracted and displayed
+**Status:** Completed
+**Changes:** Fixed getAvailableVariants() function to read from card.availableVariants field (from cachedCards) instead of only checking tcgplayer.prices. Added availableVariants field to PokemonCard interface.
+**Files:** src/lib/pokemon-tcg.ts, src/components/collection/VirtualCardGrid.tsx, src/components/collection/CardGrid.tsx
+**Commit:** (pending)
+---
