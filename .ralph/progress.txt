@@ -140,3 +140,9 @@
 **Files:** src/components/ai/CardStoryModal.tsx (new file)
 **Commit:** 7a3dfb2
 ---
+## CD-8k7 - AI-024: Add 'Tell me about this card!' button
+**Status:** Completed
+**Changes:** Added SparklesIcon button in CardDetailModal Quick Actions section that opens CardStoryModal. Button uses kid-friendly gradient styling with proper accessibility (aria-label).
+**Files:** src/components/collection/CardDetailModal.tsx
+**Commit:** 9e5aa09
+---
