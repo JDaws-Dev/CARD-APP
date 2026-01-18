@@ -1194,3 +1194,9 @@
 **Files:** src/app/layout.tsx, src/app/opengraph-image.tsx (new), src/app/twitter-image.tsx (new)
 **Commit:** db98573
 ---
+## CD-d9o - SEO - Create sitemap and robots.txt
+**Status:** Completed
+**Changes:** Created robots.txt file with proper SEO directives. Sitemap was already implemented as a dynamic route at src/app/sitemap.xml/route.ts
+**Files:** public/robots.txt (created)
+**Commit:** f4af8d6
+---
