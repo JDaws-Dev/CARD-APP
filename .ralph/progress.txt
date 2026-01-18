@@ -979,3 +979,14 @@
 **Files:** claude/PARENT_CHILD_ARCHITECTURE.md (Sections 11-12 added)
 **Commit:** 4d35e88
 ---
+## CD-bhw.4 - Design UI/UX wireframes for login experiences
+**Status:** Completed
+**Changes:** Added comprehensive Section 12 "UI/UX Wireframes for Login Experiences" with:
+- Landing page wireframes (desktop and mobile)
+- Parent onboarding flow (5-step wizard)
+- Kid PIN login experience (entry, errors, success)
+- View switching UX (parent/kid/individual)
+- Navigation differences by account type
+**Files:** claude/PARENT_CHILD_ARCHITECTURE.md
+**Commit:** See below
+---
