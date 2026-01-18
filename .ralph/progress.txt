@@ -682,3 +682,9 @@
 - src/components/layout/AuthAwareMobileGameBar.tsx (updated)
 **Commit:** Changes were already included in commit 9628027
 ---
+## CD-1om - Fix header branding - CardDex name not visible
+**Status:** Completed
+**Changes:** Fixed invisible CardDex brand text by replacing Tailwind gradient class combination with inline styles. The bg-game-gradient class wasn't working correctly with bg-clip-text/text-transparent. Used explicit CSS properties with fallback colors.
+**Files:** src/components/layout/AppHeader.tsx
+**Commit:** 00bf141
+---
