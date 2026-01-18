@@ -8,6 +8,7 @@ import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/components/providers/ReducedMotionProvider';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { TrophyIcon, SparklesIcon, CurrencyDollarIcon, StarIcon } from '@heroicons/react/24/solid';
 import { Square3Stack3DIcon } from '@heroicons/react/24/outline';
@@ -211,6 +212,7 @@ interface VirtualTrophyRoomProps {
 export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { isReduced: prefersReducedMotion } = useReducedMotion();
+  const { primaryGame } = useGameSelector();
   const [selectedCard, setSelectedCard] = useState<(PokemonCard & { quantity: number; collectionId: string }) | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
@@ -385,7 +387,7 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
           await addToWishlistMutation({
             profileId: profileId as Id<'profiles'>,
             cardId,
-            gameSlug: 'pokemon',
+            gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana',
           });
         }}
         onEditQuantity={async (cardId, newQuantity) => {
