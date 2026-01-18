@@ -74,10 +74,6 @@ vi.mock('@/components/collection/ExportChecklist', () => ({
   ExportChecklistButton: () => <button data-testid="export-button">Export</button>,
 }));
 
-vi.mock('@/components/collection/CollectionSnapshotShare', () => ({
-  CollectionSnapshotShare: () => <button data-testid="share-button">Share</button>,
-}));
-
 vi.mock('@/components/virtual/VirtualTrophyRoom', () => ({
   default: () => <div data-testid="trophy-room">Trophy Room</div>,
 }));

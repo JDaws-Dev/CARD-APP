@@ -1475,3 +1475,12 @@
 **Files:** src/lib/displayName.ts, src/components/dashboard/KidDashboard.tsx, src/components/onboarding/OnboardingFlow.tsx, src/lib/__tests__/displayName.test.ts
 **Commit:** c3478e5
 ---
+## CD-krt - Remove share snapshot button and evaluate dashboard top section
+**Status:** Completed
+**Changes:** Removed Share Snapshot button from dashboard, deleted orphaned CollectionSnapshotShare component (541 lines), updated test mocks, documented dashboard top section layout
+**Files:**
+- Modified: src/components/dashboard/KidDashboard.tsx
+- Modified: src/app/collection/__tests__/page.test.tsx
+- Deleted: src/components/collection/CollectionSnapshotShare.tsx
+**Commit:** (pending)
+---

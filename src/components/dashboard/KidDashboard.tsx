@@ -25,7 +25,6 @@ import { StreakCounter } from '@/components/gamification/StreakCounter';
 import { LevelDisplay } from '@/components/gamification/LevelSystem';
 import { MilestoneProgress } from '@/components/gamification/MilestoneCelebration';
 import { StreakCalendar, StreakCalendarSkeleton } from '@/components/gamification/StreakCalendar';
-import { CollectionSnapshotShare } from '@/components/collection/CollectionSnapshotShare';
 import { cn } from '@/lib/utils';
 import { FamilyCollectionGoal } from '@/components/family/FamilyCollectionGoal';
 import { FamilyLeaderboard } from '@/components/family/FamilyLeaderboard';
@@ -715,9 +714,9 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
           </div>
         </div>
 
-        {/* Streak encouragement and share */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          {currentStreak > 0 && (
+        {/* Streak encouragement */}
+        {currentStreak > 0 && (
+          <div className="mt-4">
             <div className="flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2">
               <FireIcon className="h-5 w-5 text-orange-300" aria-hidden="true" />
               <span className="text-sm">
@@ -730,11 +729,8 @@ export function KidDashboard({ gameSlug, gameName }: KidDashboardProps) {
                       : `Incredible ${currentStreak} day streak! You're a legend!`}
               </span>
             </div>
-          )}
-          <div className="flex items-center gap-2">
-            <CollectionSnapshotShare className="bg-white/20 hover:bg-white/30" />
           </div>
-        </div>
+        )}
       </div>
 
       {/* Gamification Hero - Prominent streak and level display */}
