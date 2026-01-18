@@ -574,3 +574,9 @@
 **Files:** src/components/sets/SetsList.tsx, src/components/achievements/TrophyCase.tsx, src/app/globals.css
 **Commit:** e5f5e13
 ---
+## CD-4d7.6 - Update remaining pages to use game selector
+**Status:** Completed
+**Changes:** Updated CollectionView.tsx and CardDetailModal.tsx to use useGameSelector hook instead of hardcoded 'pokemon' values
+**Files:** src/components/collection/CollectionView.tsx, src/components/collection/CardDetailModal.tsx
+**Commit:** 1385d5e
+---

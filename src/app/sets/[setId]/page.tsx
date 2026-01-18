@@ -11,7 +11,8 @@ import { SetDetailClient } from '@/components/collection/SetDetailClient';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/utils';
-import { GAMES } from '@/lib/gameSelector';
+import { GAMES, type GameId } from '@/lib/gameSelector';
+import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 
 type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
@@ -21,7 +22,9 @@ interface SetDetailPageProps {
 
 export default function SetDetailPage({ params }: SetDetailPageProps) {
   const searchParams = useSearchParams();
-  const gameSlug = (searchParams.get('game') || 'pokemon') as GameSlug;
+  const { primaryGame } = useGameSelector();
+  // Use game from URL params if provided, otherwise fall back to the user's primary game
+  const gameSlug = (searchParams.get('game') || primaryGame?.id) as GameSlug;
   const game = GAMES.find((g) => g.id === gameSlug);
 
   // Get sets for this game to find the current set
