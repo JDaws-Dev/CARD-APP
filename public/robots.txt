@@ -1,0 +1,26 @@
+# robots.txt for KidCollect
+# https://kidcollect.app
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://kidcollect.app/sitemap.xml
+
+# Disallow private/authenticated routes
+Disallow: /dashboard
+Disallow: /collection
+Disallow: /my-wishlist
+Disallow: /profile
+Disallow: /settings
+Disallow: /streak
+Disallow: /parent-dashboard
+Disallow: /onboarding
+Disallow: /timeline
+Disallow: /badges
+Disallow: /compare
+Disallow: /search
+
+# Disallow API routes
+Disallow: /api/
