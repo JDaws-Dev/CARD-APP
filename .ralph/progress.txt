@@ -786,3 +786,9 @@
 **Files:** src/components/ai/CollectionChat.tsx, convex/ai/openai.ts
 **Commit:** bfb4902
 ---
+## CD-owm - Fix Trophy Room to filter by selected game
+**Status:** Completed
+**Changes:** Fixed Trophy Room to filter cards by selected game. Added gameSlug parameter to getMostValuableCards Convex query with filter logic. Updated VirtualTrophyRoom component to pass the current game context and show game-specific empty state messages.
+**Files:** convex/collections.ts, src/components/virtual/VirtualTrophyRoom.tsx
+**Commit:** (pending)
+---

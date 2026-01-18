@@ -1190,6 +1190,7 @@ export const getCollectionValue = query({
 export const getMostValuableCards = query({
   args: {
     profileId: v.id('profiles'),
+    gameSlug: v.optional(gameSlugValidator),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -1218,14 +1219,15 @@ export const getMostValuableCards = query({
       )
     );
 
-    // Build a price and name map
-    const cardDataMap = new Map<string, { price: number; name: string; imageSmall: string }>();
+    // Build a price, name, and game slug map
+    const cardDataMap = new Map<string, { price: number; name: string; imageSmall: string; gameSlug: string }>();
     for (const cachedCard of cachedCards) {
       if (cachedCard && typeof cachedCard.priceMarket === 'number' && cachedCard.priceMarket > 0) {
         cardDataMap.set(cachedCard.cardId, {
           price: cachedCard.priceMarket,
           name: cachedCard.name,
           imageSmall: cachedCard.imageSmall,
+          gameSlug: cachedCard.gameSlug,
         });
       }
     }
@@ -1244,6 +1246,10 @@ export const getMostValuableCards = query({
     for (const card of collectionCards) {
       const cardData = cardDataMap.get(card.cardId);
       if (cardData) {
+        // Skip cards that don't match the game filter
+        if (args.gameSlug && cardData.gameSlug !== args.gameSlug) {
+          continue;
+        }
         valuedCards.push({
           cardId: card.cardId,
           name: cardData.name,

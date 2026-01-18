@@ -178,7 +178,7 @@ export function TrophyRoomSkeleton() {
 }
 
 // Empty state component
-function EmptyTrophyRoom() {
+function EmptyTrophyRoom({ gameName }: { gameName: string }) {
   return (
     <div className="rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-6 shadow-sm">
       <div className="mb-6 flex items-center gap-3">
@@ -187,7 +187,7 @@ function EmptyTrophyRoom() {
         </div>
         <div>
           <h3 className="font-bold text-gray-800">Trophy Room</h3>
-          <p className="text-sm text-gray-500">Your most valuable cards</p>
+          <p className="text-sm text-gray-500">Your most valuable {gameName} cards</p>
         </div>
       </div>
 
@@ -195,7 +195,7 @@ function EmptyTrophyRoom() {
         <Square3Stack3DIcon className="mb-4 h-16 w-16 text-amber-300" />
         <h4 className="mb-2 text-lg font-semibold text-gray-700">No treasures yet!</h4>
         <p className="max-w-sm text-center text-sm text-gray-500">
-          Add cards with market prices to your collection to see them displayed here in your
+          Add {gameName} cards with market prices to your collection to see them displayed here in your
           personal trophy room.
         </p>
       </div>
@@ -218,7 +218,7 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
 
   const valuableCards = useQuery(
     api.collections.getMostValuableCards,
-    profileId ? { profileId: profileId as Id<'profiles'>, limit } : 'skip'
+    profileId ? { profileId: profileId as Id<'profiles'>, gameSlug: primaryGame.id as 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana', limit } : 'skip'
   );
 
   // Check if selected card is on wishlist
@@ -263,7 +263,7 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
 
   // Empty state
   if (!valuableCards || valuableCards.length === 0) {
-    return <EmptyTrophyRoom />;
+    return <EmptyTrophyRoom gameName={primaryGame.shortName} />;
   }
 
   // Calculate total value
