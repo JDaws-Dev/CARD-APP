@@ -1570,3 +1570,9 @@
 **Files:** src/components/trades/TradeLoggingModal.tsx
 **Commit:** 16620bd
 ---
+## CD-3ov - Trade screen needs search/filter by set and card name
+**Status:** Completed
+**Changes:** Added search input and set filter dropdown to both sides of the trade modal (collection selector and receive selector). Collection filtering is client-side, receive filtering uses the /api/filter endpoint.
+**Files:** src/components/trades/TradeLoggingModal.tsx
+**Commit:** 16620bd
+---
