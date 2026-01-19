@@ -1576,3 +1576,9 @@
 **Files:** src/components/trades/TradeLoggingModal.tsx
 **Commit:** 16620bd
 ---
+## CD-xvx - Search/filter API returns empty set names for non-Pokemon games
+**Status:** Completed
+**Changes:** Added set name enrichment to search and filter API routes using getSetNamesByIds to populate set.name for all games
+**Files:** src/app/api/search/route.ts, src/app/api/filter/route.ts
+**Commit:** 6db3192
+---
