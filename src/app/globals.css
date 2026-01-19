@@ -595,6 +595,13 @@ body {
   .text-game-text {
     color: var(--game-text);
   }
+  /* Opacity variants for game text - Tailwind's /80 syntax doesn't work with CSS vars */
+  .text-game-text-80 {
+    color: rgba(var(--game-text-rgb), 0.8);
+  }
+  .text-game-text-60 {
+    color: rgba(var(--game-text-rgb), 0.6);
+  }
 
   /* Game-themed border colors */
   .border-game-primary {

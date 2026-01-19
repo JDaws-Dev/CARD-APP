@@ -165,7 +165,7 @@ export function AppHeader() {
             <span className="text-game-gradient text-xl font-black tracking-tight transition-all duration-300 sm:text-2xl">
               CardDex
             </span>
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-game-text/80 transition-colors duration-300 sm:text-[11px]">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-game-text-80 transition-colors duration-300 sm:text-[11px]">
               {primaryGame?.shortName || 'TCG'} Collection
             </span>
           </div>
