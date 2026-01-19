@@ -30,7 +30,7 @@ export function ChatButton({ className }: ChatButtonProps) {
       <button
         onClick={handleOpen}
         className={cn(
-          'fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-game-gradient text-white shadow-lg shadow-game transition hover:scale-105 hover:shadow-xl focus-game',
+          'fixed bottom-24 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-game-gradient text-white shadow-lg shadow-game transition hover:scale-105 hover:shadow-xl focus-game',
           'md:h-16 md:w-16 lg:bottom-6',
           isOpen && 'hidden',
           className
