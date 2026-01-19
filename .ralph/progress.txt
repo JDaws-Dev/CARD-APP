@@ -1654,3 +1654,9 @@
 **Files:** src/app/globals.css, src/components/layout/AppHeader.tsx
 **Commit:** 9e45c39
 ---
+## CD-88qe - Game selector shows all games even when user hasn't enabled them in settings
+**Status:** Completed
+**Changes:** Modified GameSwitcher to use enabledGames from useGameSelector() instead of getAllGames(), ensuring the dropdown only shows user-enabled games
+**Files:** src/components/header/GameSwitcher.tsx
+**Commit:** 62d9820
+---
