@@ -5,7 +5,7 @@ import { useQuery } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeftIcon } from '@heroicons/react/24/solid';
+import { ArrowLeftIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
 import { ScannerButton } from '@/components/ai/ScannerButton';
 import { SetDetailClient } from '@/components/collection/SetDetailClient';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
@@ -15,6 +15,8 @@ import { GAMES, type GameId } from '@/lib/gameSelector';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import { JsonLD } from '@/components/JsonLD';
 import { generateBreadcrumbListSchema } from '@/lib/structured-data';
+import { useCurrentProfile } from '@/hooks/useCurrentProfile';
+import type { Id } from '../../../../convex/_generated/dataModel';
 
 type GameSlug = 'pokemon' | 'yugioh' | 'onepiece' | 'lorcana';
 
@@ -38,6 +40,14 @@ export default function SetDetailPage({ params }: SetDetailPageProps) {
     setId: params.setId,
   });
 
+  const { profileId } = useCurrentProfile();
+
+  // Get collection data for this set (for header stats)
+  const collection = useQuery(
+    api.collections.getCollectionBySet,
+    profileId ? { profileId: profileId as Id<'profiles'>, setId: params.setId } : 'skip'
+  );
+
   // Debug logging
   console.log('[SetDetailPage] Query params:', { gameSlug, setId: params.setId });
   console.log('[SetDetailPage] cards result:', cards?.length ?? 'undefined', 'cards');
@@ -45,6 +55,11 @@ export default function SetDetailPage({ params }: SetDetailPageProps) {
 
   const currentSet = sets?.find((s) => s.setId === params.setId);
   const isLoading = sets === undefined || cards === undefined;
+
+  // Calculate collection stats for header
+  const totalCards = cards?.length ?? 0;
+  const ownedCards = collection?.length ?? 0;
+  const percentComplete = totalCards > 0 ? Math.round((ownedCards / totalCards) * 100) : 0;
 
   // Transform cards to match the expected format
   const transformedCards = cards?.map((card) => {
@@ -195,16 +210,37 @@ export default function SetDetailPage({ params }: SetDetailPageProps) {
               </div>
             )}
 
-            <div className="text-center sm:text-left">
-              <h1
-                className={cn(
-                  'text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent',
-                  game?.gradientFrom || 'from-indigo-500',
-                  game?.gradientTo || 'to-purple-500'
+            <div className="flex-1 text-center sm:text-left">
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-start">
+                <h1
+                  className={cn(
+                    'text-2xl sm:text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent',
+                    game?.gradientFrom || 'from-indigo-500',
+                    game?.gradientTo || 'to-purple-500'
+                  )}
+                >
+                  {currentSet.name}
+                </h1>
+                {/* Inline Progress Stats */}
+                {profileId && totalCards > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-sm font-semibold',
+                      percentComplete === 100
+                        ? 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700'
+                        : 'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300'
+                    )}>
+                      {percentComplete === 100 && (
+                        <CheckCircleIcon className="h-4 w-4 text-amber-500" />
+                      )}
+                      {ownedCards}/{totalCards}
+                      <span className="text-xs font-medium text-gray-500 dark:text-slate-400">
+                        ({percentComplete}%)
+                      </span>
+                    </span>
+                  </div>
                 )}
-              >
-                {currentSet.name}
-              </h1>
+              </div>
               <p className="text-gray-500 dark:text-slate-400">{currentSet.series}</p>
             </div>
 

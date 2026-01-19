@@ -19,7 +19,7 @@ import {
   type CardTypeCategoryId,
 } from '@/components/filter/CardTypeFilter';
 import type { GameId } from '@/lib/gameSelector';
-import { ChevronDownIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, SparklesIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import type { Id } from '../../../convex/_generated/dataModel';
 import {
@@ -111,6 +111,7 @@ export function SetDetailClient({ set, cards, gameSlug = 'pokemon' }: SetDetailC
   const [selectedType, setSelectedType] = useState<CardTypeCategoryId | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('number');
   const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>('all');
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   const { profileId } = useCurrentProfile();
   const { hidePrices } = useHidePrices();
@@ -382,173 +383,167 @@ export function SetDetailClient({ set, cards, gameSlug = 'pokemon' }: SetDetailC
     return sorted;
   }, [cards, collectionFilter, selectedRarity, selectedType, sortBy, ownedCardIds, wishlistCardIds, recentlyAddedTimes, gameSlug]);
 
+  // Count active filters
+  const activeFilterCount = (selectedRarity ? 1 : 0) + (selectedType ? 1 : 0);
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedRarity(null);
+    setSelectedType(null);
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Filter and Sort Controls */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:gap-4">
-        {/* Top row on mobile: Show cards + Sort by */}
-        <div className="flex items-end justify-between gap-2 sm:contents">
-          {/* Collection Filter Toggle (Have/Need/All) */}
-          <div className="flex-shrink-0">
-            <label className="mb-1 block text-xs font-medium text-gray-500">
-              Show cards
-            </label>
-            <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 shadow-sm">
-              {(['all', 'have', 'need'] as const).map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setCollectionFilter(filter)}
-                  className={cn(
-                    'px-2 py-1 text-xs font-medium rounded-md transition-all sm:px-3 sm:py-1.5 sm:text-sm',
-                    collectionFilter === filter
-                      ? 'bg-kid-primary text-white shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  )}
-                >
-                  {filter === 'all' && `All (${collectionCounts.all})`}
-                  {filter === 'have' && `Have (${collectionCounts.have})`}
-                  {filter === 'need' && `Need (${collectionCounts.need})`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Sort Dropdown */}
-          <div className="flex-shrink-0">
-            <label htmlFor="sort-select" className="mb-1 block text-xs font-medium text-gray-500">
-              Sort by
-            </label>
-            <div className="relative">
-              <select
-                id="sort-select"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className={cn(
-                  'appearance-none rounded-lg border border-gray-200 bg-white py-1 pl-2 pr-7 text-xs font-medium text-gray-700 shadow-sm transition sm:py-2 sm:pl-3 sm:pr-10 sm:text-sm',
-                  'hover:border-gray-300 focus:border-kid-primary focus:outline-none focus:ring-2 focus:ring-kid-primary/20'
-                )}
-              >
-                {availableSortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400 sm:right-3 sm:h-4 sm:w-4" />
-            </div>
-          </div>
-        </div>
-
-        {/* Rarity Filter - full width on mobile, flex-1 on desktop */}
-        <div className="w-full min-w-0 sm:flex-1">
-          <RarityFilter
-            selectedRarity={selectedRarity}
-            onRarityChange={setSelectedRarity}
-            rarityCounts={rarityCounts}
-          />
-        </div>
-
-        {/* Card Type Filter - full width on mobile, flex-1 on desktop */}
-        <div className="w-full min-w-0 sm:flex-1">
-          <CardTypeFilter
-            gameId={gameSlug}
-            selectedType={selectedType}
-            onTypeChange={setSelectedType}
-            typeCounts={typeCounts}
-          />
-        </div>
-      </div>
-
-      {/* Set Completion Progress */}
-      <div className="rounded-xl bg-white p-4 shadow-md dark:bg-slate-800">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                {completionMode === 'variants' ? 'Master Set Progress' : 'Set Progress'}
-              </span>
-              <span className="text-sm font-bold text-kid-primary">
-                {completionProgress.percentComplete}%
-              </span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
-              <div
-                className={cn(
-                  'h-full rounded-full transition-all duration-500',
-                  completionProgress.isComplete
-                    ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400'
-                    : 'bg-gradient-to-r from-kid-primary to-kid-secondary'
-                )}
-                style={{ width: `${completionProgress.percentComplete}%` }}
-              />
-            </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-              {completionProgress.isComplete
-                ? completionMode === 'variants'
-                  ? 'Master set complete! You have every variant!'
-                  : 'Set complete! You have every card!'
-                : `${completionProgress.cardsNeeded} ${completionMode === 'variants' ? 'variants' : 'cards'} needed`}
-            </p>
-          </div>
-          {/* Completion Mode Toggle */}
-          <button
-            onClick={handleToggleCompletionMode}
-            className={cn(
-              'flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-all',
-              completionMode === 'variants'
-                ? 'border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 hover:from-amber-100 hover:to-yellow-100'
-                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
-            )}
-            title={
-              completionMode === 'variants'
-                ? 'Currently counting all variants (Master Set mode). Click to switch to unique cards only.'
-                : 'Currently counting unique cards only. Click to switch to Master Set mode (all variants).'
-            }
-          >
-            <SparklesIcon
+    <div className="space-y-4">
+      {/* Compact Controls Row */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Collection Filter Toggle (All/Have/Need) */}
+        <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 shadow-sm">
+          {(['all', 'have', 'need'] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setCollectionFilter(filter)}
               className={cn(
-                'h-4 w-4',
-                completionMode === 'variants' ? 'text-amber-500' : 'text-gray-400'
+                'px-2 py-1 text-xs font-medium rounded-md transition-all sm:px-3 sm:py-1.5 sm:text-sm',
+                collectionFilter === filter
+                  ? 'bg-kid-primary text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               )}
-            />
-            <span className="hidden sm:inline">
-              {completionMode === 'variants' ? 'Master Set' : 'Unique Cards'}
-            </span>
-          </button>
+            >
+              {filter === 'all' && `All (${collectionCounts.all})`}
+              {filter === 'have' && `Have (${collectionCounts.have})`}
+              {filter === 'need' && `Need (${collectionCounts.need})`}
+            </button>
+          ))}
         </div>
+
+        {/* Filter Button */}
+        <button
+          onClick={() => setFiltersExpanded(!filtersExpanded)}
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-all',
+            filtersExpanded || activeFilterCount > 0
+              ? 'border-kid-primary bg-kid-primary/5 text-kid-primary'
+              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+          )}
+        >
+          <FunnelIcon className="h-4 w-4" />
+          <span>Filter</span>
+          {activeFilterCount > 0 && (
+            <span className="rounded-full bg-kid-primary px-1.5 py-0.5 text-xs text-white">
+              {activeFilterCount}
+            </span>
+          )}
+          <ChevronDownIcon
+            className={cn(
+              'h-4 w-4 transition-transform',
+              filtersExpanded && 'rotate-180'
+            )}
+          />
+        </button>
+
+        {/* Clear Filters (when active) */}
+        {activeFilterCount > 0 && (
+          <button
+            onClick={clearAllFilters}
+            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs font-medium text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+          >
+            <XMarkIcon className="h-3.5 w-3.5" />
+            Clear
+          </button>
+        )}
+
+        {/* Sort Dropdown */}
+        <div className="relative ml-auto">
+          <select
+            id="sort-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            className={cn(
+              'appearance-none rounded-lg border border-gray-200 bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-gray-700 shadow-sm transition',
+              'hover:border-gray-300 focus:border-kid-primary focus:outline-none focus:ring-2 focus:ring-kid-primary/20'
+            )}
+          >
+            {availableSortOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        </div>
+
+        {/* Completion Mode Toggle */}
+        <button
+          onClick={handleToggleCompletionMode}
+          className={cn(
+            'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-all',
+            completionMode === 'variants'
+              ? 'border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 hover:from-amber-100 hover:to-yellow-100'
+              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+          )}
+          title={
+            completionMode === 'variants'
+              ? 'Currently counting all variants (Master Set mode). Click to switch to unique cards only.'
+              : 'Currently counting unique cards only. Click to switch to Master Set mode (all variants).'
+          }
+        >
+          <SparklesIcon
+            className={cn(
+              'h-4 w-4',
+              completionMode === 'variants' ? 'text-amber-500' : 'text-gray-400'
+            )}
+          />
+          <span className="hidden sm:inline">
+            {completionMode === 'variants' ? 'Master' : 'Unique'}
+          </span>
+        </button>
       </div>
 
-      {/* Filtered Card Count Indicator */}
+      {/* Expandable Filter Panel */}
+      {filtersExpanded && (
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Rarity Filter */}
+            <RarityFilter
+              selectedRarity={selectedRarity}
+              onRarityChange={setSelectedRarity}
+              rarityCounts={rarityCounts}
+              showHelp={false}
+            />
+
+            {/* Card Type Filter */}
+            <CardTypeFilter
+              gameId={gameSlug}
+              selectedType={selectedType}
+              onTypeChange={setSelectedType}
+              typeCounts={typeCounts}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Active Filter Summary (when filters applied) */}
       {(selectedRarity || selectedType || collectionFilter !== 'all') && (
-        <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-3">
-          <p className="text-sm text-gray-600">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span>
             Showing <span className="font-semibold text-kid-primary">{filteredAndSortedCards.length}</span>{' '}
-            of <span className="font-semibold">{cards.length}</span> cards
-            {collectionFilter !== 'all' && (
-              <>
-                {' '}
-                ({collectionFilter === 'have' ? 'owned' : 'needed'})
-              </>
-            )}
-            {selectedType && (
-              <>
-                {' '}
-                &middot;{' '}
-                <span className="font-semibold">
-                  {getCardTypesForGame(gameSlug).find((c) => c.id === selectedType)?.label}
-                </span>
-              </>
-            )}
-            {selectedRarity && (
-              <>
-                {' '}
-                &middot;{' '}
-                <span className="font-semibold">
-                  {RARITY_CATEGORIES.find((c) => c.id === selectedRarity)?.label}
-                </span>
-              </>
-            )}
-          </p>
+            of {cards.length} cards
+          </span>
+          {collectionFilter !== 'all' && (
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs">
+              {collectionFilter === 'have' ? 'Owned' : 'Needed'}
+            </span>
+          )}
+          {selectedType && (
+            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+              {getCardTypesForGame(gameSlug).find((c) => c.id === selectedType)?.label}
+            </span>
+          )}
+          {selectedRarity && (
+            <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-700">
+              {RARITY_CATEGORIES.find((c) => c.id === selectedRarity)?.label}
+            </span>
+          )}
         </div>
       )}
 
