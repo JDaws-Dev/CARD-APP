@@ -10,6 +10,7 @@ import type { Id } from '../../../convex/_generated/dataModel';
 import { MagnifyingGlassIcon, MinusIcon, PlusIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { SearchResultsSkeleton } from '@/components/ui/Skeleton';
 import { CardImage } from '@/components/ui/CardImage';
+import { useCollectionToast } from '@/components/providers/CollectionToastProvider';
 
 interface SearchResultsProps {
   cards: PokemonCard[];
@@ -18,6 +19,7 @@ interface SearchResultsProps {
 
 export function SearchResults({ cards, isLoading }: SearchResultsProps) {
   const { profileId } = useCurrentProfile();
+  const { showCollectionToast } = useCollectionToast();
 
   const collection = useQuery(
     api.collections.getCollection,
@@ -35,13 +37,14 @@ export function SearchResults({ cards, isLoading }: SearchResultsProps) {
     });
   }
 
-  const handleToggleCard = async (cardId: string) => {
+  const handleToggleCard = async (cardId: string, cardName: string) => {
     if (!profileId) return;
 
     if (ownedCards.has(cardId)) {
       await removeCard({ profileId: profileId as Id<'profiles'>, cardId });
     } else {
       await addCard({ profileId: profileId as Id<'profiles'>, cardId });
+      showCollectionToast(cardName, 1);
     }
   };
 
@@ -101,11 +104,11 @@ export function SearchResults({ cards, isLoading }: SearchResultsProps) {
                   ? 'ring-2 ring-kid-success ring-offset-2'
                   : 'opacity-80 hover:opacity-100 hover:shadow-md'
               )}
-              onClick={() => handleToggleCard(card.id)}
+              onClick={() => handleToggleCard(card.id, card.name)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  handleToggleCard(card.id);
+                  handleToggleCard(card.id, card.name);
                 }
               }}
             >

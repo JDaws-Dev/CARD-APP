@@ -25,6 +25,7 @@ import { VariantFilter, VARIANT_CATEGORIES, type VariantCategoryId } from '@/com
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useHidePrices } from '@/hooks/useHidePrices';
 import { getCardPurchaseUrlWithAffiliate } from '@/lib/affiliateLinks';
+import { useCollectionToast } from '@/components/providers/CollectionToastProvider';
 
 // Sort options for the collection
 type SortOption = 'set' | 'dateAdded' | 'value';
@@ -160,6 +161,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
   const { profileId } = useCurrentProfile();
   const { primaryGame } = useGameSelector();
   const { hidePrices } = useHidePrices();
+  const { showCollectionToast } = useCollectionToast();
 
   // Filter out value sort option when hidePrices is enabled
   const availableSortOptions = useMemo(() => {
@@ -579,6 +581,8 @@ export function CollectionView({ collection }: CollectionViewProps) {
           variant,
           quantity: 1,
         });
+        // Show success toast with card name
+        showCollectionToast(selectedCard.name, 1);
         // Update local state immediately
         setSelectedCard((prev) => {
           if (!prev) return null;
@@ -591,7 +595,7 @@ export function CollectionView({ collection }: CollectionViewProps) {
         console.error('Failed to add variant:', err);
       }
     },
-    [profileId, selectedCard, addCardMutation]
+    [profileId, selectedCard, addCardMutation, showCollectionToast]
   );
 
   // Variant-specific remove handler

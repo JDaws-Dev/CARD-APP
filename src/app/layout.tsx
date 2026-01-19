@@ -13,6 +13,7 @@ import { ReducedMotionProvider } from '@/components/providers/ReducedMotionProvi
 import { FocusModeProvider } from '@/components/providers/FocusModeProvider';
 import { CelebrationProvider } from '@/components/ui/CelebrationAnimation';
 import { LevelUpProvider } from '@/components/gamification/LevelSystem';
+import { CollectionToastProvider } from '@/components/providers/CollectionToastProvider';
 import { MilestoneProvider } from '@/components/gamification/MilestoneCelebration';
 import { SetCompletionProvider } from '@/components/gamification/SetCompletionCelebration';
 import { GraceDayProvider } from '@/components/providers/GraceDayProvider';
@@ -80,8 +81,9 @@ export default function RootLayout({
                             <KidModeProvider>
                               <CelebrationProvider>
                                 <LevelUpProvider>
-                                  <MilestoneProvider>
-                                    <SetCompletionProvider>
+                                  <CollectionToastProvider>
+                                    <MilestoneProvider>
+                                      <SetCompletionProvider>
                                       <GraceDayProvider>
                                         <DailyStampProvider>
                                           <ComebackProvider>
@@ -110,8 +112,9 @@ export default function RootLayout({
                                           </ComebackProvider>
                                         </DailyStampProvider>
                                       </GraceDayProvider>
-                                    </SetCompletionProvider>
-                                  </MilestoneProvider>
+                                      </SetCompletionProvider>
+                                    </MilestoneProvider>
+                                  </CollectionToastProvider>
                                 </LevelUpProvider>
                               </CelebrationProvider>
                             </KidModeProvider>

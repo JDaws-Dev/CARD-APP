@@ -29,6 +29,7 @@ import { MapIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { CardGridSkeleton, StatsBarSkeleton } from '@/components/ui/Skeleton';
 import { IconLegend } from './IconLegend';
 import { useLevelUp } from '@/components/gamification/LevelSystem';
+import { useCollectionToast } from '@/components/providers/CollectionToastProvider';
 import { useKidMode } from '@/components/providers/KidModeProvider';
 import { useSetCompletionTracker } from '@/components/gamification/SetCompletionCelebration';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
@@ -336,6 +337,7 @@ interface CardGridProps {
 export function CardGrid({ cards, setId, setName }: CardGridProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { showXPGain } = useLevelUp();
+  const { showCollectionToast } = useCollectionToast();
   const { features, isKidMode } = useKidMode();
   const { primaryGame } = useGameSelector();
   const { hidePrices } = useHidePrices();
@@ -442,6 +444,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
             setName,
             variant: availableVariants[0],
           });
+          showCollectionToast(card.name, 1);
           showXPGain(2, 'New card!');
         } else {
           // In simplified mode, clicking an owned card removes it
@@ -465,6 +468,8 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
           setName,
           variant: availableVariants[0],
         });
+        // Show success toast with card name
+        showCollectionToast(card.name, 1);
         // Show XP gain notification for new unique cards
         showXPGain(2, 'New card!');
         return;
@@ -488,7 +493,7 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
       }
       setSelectedCard(card);
     },
-    [profileId, ownedCards, addCard, removeCard, setName, showXPGain, features.showVariantSelector]
+    [profileId, ownedCards, addCard, removeCard, setName, showXPGain, showCollectionToast, features.showVariantSelector]
   );
 
   // Add variant handler
@@ -503,12 +508,14 @@ export function CardGrid({ cards, setId, setName }: CardGridProps) {
         setName,
         variant,
       });
+      // Show success toast with card name
+      showCollectionToast(cardName, 1);
       // Show XP gain notification for new unique cards
       if (isNewCard) {
         showXPGain(2, 'New card!');
       }
     },
-    [profileId, addCard, setName, ownedCards, showXPGain]
+    [profileId, addCard, setName, ownedCards, showXPGain, showCollectionToast]
   );
 
   // Remove variant handler

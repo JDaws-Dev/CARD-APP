@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/VariantBadge';
 import { IconLegend } from './IconLegend';
 import { useLevelUp } from '@/components/gamification/LevelSystem';
+import { useCollectionToast } from '@/components/providers/CollectionToastProvider';
 import { useKidMode } from '@/components/providers/KidModeProvider';
 import { useSetCompletionTracker } from '@/components/gamification/SetCompletionCelebration';
 import { useGameSelector } from '@/components/providers/GameSelectorProvider';
@@ -461,6 +462,7 @@ interface VirtualCardGridProps {
 export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps) {
   const { profileId, isLoading: profileLoading } = useCurrentProfile();
   const { showXPGain } = useLevelUp();
+  const { showCollectionToast } = useCollectionToast();
   const { features } = useKidMode();
   const { primaryGame } = useGameSelector();
   const { hidePrices } = useHidePrices();
@@ -620,6 +622,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
             variant: availableVariants[0],
           });
           setCelebrationCard(card);
+          showCollectionToast(card.name, 1);
           showXPGain(2, 'New card!');
         } else {
           removeCard({
@@ -643,6 +646,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
           variant: availableVariants[0],
         });
         setCelebrationCard(card);
+        showCollectionToast(card.name, 1);
         showXPGain(2, 'New card!');
         return;
       }
@@ -663,7 +667,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
       }
       setSelectedCard(card);
     },
-    [profileId, ownedCards, addCard, removeCard, setName, showXPGain, features.showVariantSelector]
+    [profileId, ownedCards, addCard, removeCard, setName, showXPGain, showCollectionToast, features.showVariantSelector]
   );
 
   // Add variant handler
@@ -678,6 +682,8 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
         setName,
         variant,
       });
+      // Show success toast with card name
+      showCollectionToast(cardName, 1);
       if (isNewCard) {
         // Find the card for celebration animation
         const cardForCelebration = cards.find((c) => c.id === cardId);
@@ -687,7 +693,7 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
         showXPGain(2, 'New card!');
       }
     },
-    [profileId, addCard, setName, ownedCards, showXPGain, cards]
+    [profileId, addCard, setName, ownedCards, showXPGain, showCollectionToast, cards]
   );
 
   // Remove variant handler
