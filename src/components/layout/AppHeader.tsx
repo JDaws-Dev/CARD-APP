@@ -376,10 +376,10 @@ export function AppHeader() {
           </div>
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button - 44px minimum touch target for accessibility */}
         <button
           type="button"
-          className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary focus-visible:ring-offset-2 lg:hidden ${
+          className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary focus-visible:ring-offset-2 lg:hidden ${
             mobileMenuOpen
               ? 'bg-game-gradient text-white shadow-md'
               : 'text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800'
@@ -390,9 +390,9 @@ export function AppHeader() {
           aria-controls="app-mobile-menu"
         >
           {mobileMenuOpen ? (
-            <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+            <XMarkIcon className="h-6 w-6" aria-hidden="true" />
           ) : (
-            <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+            <Bars3Icon className="h-6 w-6" aria-hidden="true" />
           )}
         </button>
       </nav>
@@ -407,7 +407,7 @@ export function AppHeader() {
         >
           {/* Navigation links */}
           <div className="px-3 py-3">
-            <div className="grid grid-cols-5 gap-1 rounded-2xl bg-gray-100/80 p-1 dark:bg-slate-800/80">
+            <div className="grid grid-cols-5 gap-1.5 rounded-2xl bg-gray-100/80 p-1.5 dark:bg-slate-800/80">
               {appNavLinks.map((link) => {
                 const Icon = link.icon;
                 const isActive = pathname === link.href;
@@ -415,7 +415,7 @@ export function AppHeader() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
+                    className={`flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
                       isActive
                         ? 'bg-white text-game-primary shadow-sm dark:bg-slate-700'
                         : 'text-gray-600 hover:bg-white/50 dark:text-slate-300 dark:hover:bg-slate-700/50'
@@ -424,7 +424,7 @@ export function AppHeader() {
                     aria-current={isActive ? 'page' : undefined}
                     role="menuitem"
                   >
-                    <Icon className={`h-5 w-5 ${isActive ? 'scale-110' : ''}`} aria-hidden="true" />
+                    <Icon className={`h-6 w-6 ${isActive ? 'scale-110' : ''}`} aria-hidden="true" />
                     <span className="text-[10px] font-medium leading-tight">{link.label.split(' ').pop()}</span>
                   </Link>
                 );
@@ -450,47 +450,47 @@ export function AppHeader() {
             <GameSwitcher />
           </div>
 
-          {/* Mobile profile links */}
+          {/* Mobile profile links - 44px minimum touch targets */}
           <div className="border-t border-gray-100/60 px-4 py-3 dark:border-slate-700/60">
             <div className="space-y-1">
               <Link
                 href="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
+                className={`flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
                   pathname === '/profile'
                     ? 'bg-game-gradient-subtle text-game-primary'
                     : 'text-gray-700 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50'
                 }`}
                 role="menuitem"
               >
-                <UserCircleIcon className="h-5 w-5" aria-hidden="true" />
+                <UserCircleIcon className="h-6 w-6" aria-hidden="true" />
                 My Profile
               </Link>
               <Link
                 href="/learn"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
+                className={`flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
                   pathname === '/learn'
                     ? 'bg-game-gradient-subtle text-game-primary'
                     : 'text-gray-700 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50'
                 }`}
                 role="menuitem"
               >
-                <Square3Stack3DIcon className="h-5 w-5" aria-hidden="true" />
+                <Square3Stack3DIcon className="h-6 w-6" aria-hidden="true" />
                 Learn to Collect
               </Link>
               {isParent && (
                 <Link
                   href="/parent-dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
+                  className={`flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
                     pathname === '/parent-dashboard'
                       ? 'bg-game-gradient-subtle text-game-primary'
                       : 'text-gray-700 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50'
                   }`}
                   role="menuitem"
                 >
-                  <UserGroupIcon className="h-5 w-5" aria-hidden="true" />
+                  <UserGroupIcon className="h-6 w-6" aria-hidden="true" />
                   <span className="flex flex-col">
                     <span>Parent Dashboard</span>
                     <span className="text-[10px] font-normal text-purple-600 dark:text-purple-400">
@@ -502,20 +502,20 @@ export function AppHeader() {
             </div>
           </div>
 
-          {/* Mobile Quick Settings */}
+          {/* Mobile Quick Settings - 44px minimum touch targets */}
           <div className="border-t border-gray-100/60 px-4 py-3 dark:border-slate-700/60">
             <div className="mb-2 flex items-center gap-1.5 px-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
               <Cog6ToothIcon className="h-3 w-3" />
               Quick Settings
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between rounded-xl bg-gray-50/80 px-3 py-2.5 dark:bg-slate-800/50">
+              <div className="flex min-h-[44px] items-center justify-between rounded-xl bg-gray-50/80 px-3 py-2.5 dark:bg-slate-800/50">
                 <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
                   Dark Mode
                 </span>
                 <DarkModeToggle />
               </div>
-              <div className="flex items-center justify-between rounded-xl bg-gray-50/80 px-3 py-2.5 dark:bg-slate-800/50">
+              <div className="flex min-h-[44px] items-center justify-between rounded-xl bg-gray-50/80 px-3 py-2.5 dark:bg-slate-800/50">
                 <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
                   Kid Mode
                 </span>
@@ -524,30 +524,30 @@ export function AppHeader() {
               <Link
                 href="/settings"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
+                className={`flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary ${
                   pathname === '/settings'
                     ? 'bg-game-gradient-subtle text-game-primary'
                     : 'text-gray-700 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50'
                 }`}
                 role="menuitem"
               >
-                <Cog6ToothIcon className="h-5 w-5" aria-hidden="true" />
+                <Cog6ToothIcon className="h-6 w-6" aria-hidden="true" />
                 All Settings
               </Link>
             </div>
           </div>
 
-          {/* Sign out button */}
+          {/* Sign out button - 44px minimum touch target */}
           <div className="border-t border-gray-100/60 px-4 py-4 dark:border-slate-700/60">
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 signOut();
               }}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200/80 px-4 py-3 text-sm font-medium text-gray-600 transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary dark:border-slate-600/80 dark:text-slate-300 dark:hover:border-red-800 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-gray-200/80 px-4 py-3 text-sm font-medium text-gray-600 transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-game-primary dark:border-slate-600/80 dark:text-slate-300 dark:hover:border-red-800 dark:hover:bg-red-900/20 dark:hover:text-red-400"
               role="menuitem"
             >
-              <ArrowRightOnRectangleIcon className="h-4 w-4" aria-hidden="true" />
+              <ArrowRightOnRectangleIcon className="h-5 w-5" aria-hidden="true" />
               Sign Out
             </button>
           </div>
