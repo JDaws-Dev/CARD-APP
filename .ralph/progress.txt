@@ -1648,3 +1648,9 @@
 **Files:** src/app/sets/[setId]/page.tsx, src/components/collection/SetDetailClient.tsx
 **Commit:** 811efc9
 ---
+## CD-o60a - CRITICAL: One Piece theme has white-on-white text in header - completely unreadable
+**Status:** Completed
+**Changes:** Fixed text-game-text/80 class not working because Tailwind's opacity modifier doesn't work with CSS custom properties. Added explicit opacity variant classes (text-game-text-80, text-game-text-60) using rgba() with RGB CSS variables.
+**Files:** src/app/globals.css, src/components/layout/AppHeader.tsx
+**Commit:** 9e45c39
+---
