@@ -1007,24 +1007,6 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
 
   return (
     <div>
-      {/* Collection Progress Bar */}
-      <div className="mb-4 rounded-2xl bg-white p-4 shadow-md">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-600">Collection Progress</span>
-          <span className="text-lg font-bold text-kid-primary">
-            {ownedCount} / {totalCount} cards
-          </span>
-        </div>
-        <div className="progress-bar mt-2">
-          <div className="progress-bar-fill" style={{ width: `${progressPercent}%` }} />
-        </div>
-        {ownedCount === 0 && (
-          <p className="mt-2 text-center text-sm text-gray-500">
-            Start tapping cards below to add them to your collection!
-          </p>
-        )}
-      </div>
-
       {/* Stats Bar */}
       <div className="mb-4 rounded-xl bg-white p-3 shadow-sm sm:mb-6 sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
