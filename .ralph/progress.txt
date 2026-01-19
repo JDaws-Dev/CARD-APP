@@ -1588,3 +1588,9 @@
 **Files:** src/components/collection/CardDetailModal.tsx
 **Commit:** 7ae582e
 ---
+## CD-4fm - Shared wishlist loses gameSlug - multi-game wishlists break
+**Status:** Completed
+**Changes:** Added gameSlug to getWishlistByTokenWithAffiliateLinks enriched return object so shared wishlists preserve game context for multi-game wishlists
+**Files:** convex/wishlist.ts
+**Commit:** 748ff72
+---
