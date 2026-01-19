@@ -582,7 +582,7 @@ describe('GET /api/filter', () => {
       });
       expect(card.set).toEqual({
         id: 'sv1',
-        name: '',
+        name: expect.any(String),
       });
       expect(card.gameSlug).toBe('pokemon');
     });
@@ -715,6 +715,35 @@ describe('GET /api/filter', () => {
       expect(response.status).toBe(200);
       expect(data.data).toEqual([]);
       expect(data.count).toBe(0);
+    });
+
+    it('includes set names from getSetNamesByIds query', async () => {
+      // First call returns cards, second call returns set names
+      mockQuery
+        .mockResolvedValueOnce(createFilterResult([mockPokemonCard1]))
+        .mockResolvedValueOnce({ sv1: 'Scarlet & Violet' });
+
+      const request = createRequest('/api/filter?setId=sv1');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.data).toHaveLength(1);
+      expect(data.data[0].set.name).toBe('Scarlet & Violet');
+    });
+
+    it('includes set names for non-Pokemon games', async () => {
+      // Test One Piece set names
+      mockQuery
+        .mockResolvedValueOnce(createFilterResult([mockOnePieceCard]))
+        .mockResolvedValueOnce({ OP01: 'Romance Dawn' });
+
+      const request = createRequest('/api/filter?type=Red&game=onepiece');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.data[0].set.name).toBe('Romance Dawn');
     });
   });
 

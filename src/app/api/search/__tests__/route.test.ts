@@ -540,6 +540,36 @@ describe('GET /api/search', () => {
       expect(data.data).toEqual([]);
       expect(data.count).toBe(0);
     });
+
+    it('includes set names from getSetNamesByIds query', async () => {
+      // First call returns cards, second call returns set names
+      mockQuery
+        .mockResolvedValueOnce([mockPokemonCard1, mockPokemonCard2])
+        .mockResolvedValueOnce({ sv1: 'Scarlet & Violet', sv2: 'Paldea Evolved' });
+
+      const request = createRequest('/api/search?q=Pikachu');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.data).toHaveLength(2);
+      expect(data.data[0].set.name).toBe('Scarlet & Violet');
+      expect(data.data[1].set.name).toBe('Paldea Evolved');
+    });
+
+    it('includes set names for all game types', async () => {
+      // Test Yu-Gi-Oh! set names
+      mockQuery
+        .mockResolvedValueOnce([mockYugiohCard])
+        .mockResolvedValueOnce({ LOB: 'Legend of Blue Eyes White Dragon' });
+
+      const request = createRequest('/api/search?q=Dragon&game=yugioh');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.data[0].set.name).toBe('Legend of Blue Eyes White Dragon');
+    });
   });
 
   describe('error handling', () => {
