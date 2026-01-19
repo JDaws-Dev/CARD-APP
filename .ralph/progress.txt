@@ -1638,3 +1638,13 @@
 **Files:** src/components/collection/VirtualCardGrid.tsx
 **Commit:** 21bc9c8
 ---
+
+# Ralph Session 2026-01-19 09:26:22
+# Scope: Working on: **all open issues**
+
+## CD-9i82 - Set detail page too busy - simplify and declutter UI
+**Status:** Completed
+**Changes:** Simplified the set detail page by collapsing filters by default, removing duplicate progress bar, adding inline stats to header, and consolidating controls into a compact row
+**Files:** src/app/sets/[setId]/page.tsx, src/components/collection/SetDetailClient.tsx
+**Commit:** 811efc9
+---
