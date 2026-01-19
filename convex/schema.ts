@@ -543,6 +543,18 @@ export default defineSchema({
     // Price Visibility (Parent Control)
     hidePrices: v.optional(v.boolean()), // If true, hide all price-related content for this profile (default: false = show prices)
 
+    // Parent-Controlled Feature Flags (per profile)
+    // These provide granular control over what features are visible/enabled
+    showPrices: v.optional(v.boolean()), // Show monetary values (default: true for parent, false for child)
+    showVariantSelector: v.optional(v.boolean()), // Show holo/reverse holo selection (default: true)
+    showCollectionValue: v.optional(v.boolean()), // Show total collection value (default: true for parent, false for child)
+    gamificationLevel: v.optional(
+      v.union(v.literal('simple'), v.literal('full'))
+    ), // 'simple' = just collecting, 'full' = XP, badges, streaks (default: 'full')
+    aiChatEnabled: v.optional(v.boolean()), // Enable AI chat assistant (default: true)
+    showRarityInfo: v.optional(v.boolean()), // Show rarity labels and filters (default: true)
+    showMarketData: v.optional(v.boolean()), // Show price trends and market info (default: true for parent, false for child)
+
     // Metadata
     updatedAt: v.number(), // Unix timestamp of last update
     updatedBy: v.optional(v.id('profiles')), // Which profile last updated settings
