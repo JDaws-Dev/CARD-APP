@@ -1604,3 +1604,15 @@
 **Files:** src/components/layout/AppHeader.tsx
 **Commit:** f5efd87
 ---
+## CD-q6u - No success feedback when adding cards to collection
+**Status:** Completed
+**Changes:** Created CollectionToastProvider that shows toast notification with card name and quantity when cards are added to collection. Toast auto-dismisses after 3 seconds.
+**Files:** 
+- src/components/providers/CollectionToastProvider.tsx (NEW)
+- src/app/layout.tsx
+- src/components/collection/CardGrid.tsx
+- src/components/collection/VirtualCardGrid.tsx
+- src/components/collection/CollectionView.tsx
+- src/components/search/SearchResults.tsx
+**Commit:** d2a7b8f
+---
