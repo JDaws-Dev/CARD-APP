@@ -50,8 +50,8 @@ export default function SearchPage() {
           throw new Error(data.error || 'Failed to search');
         }
 
-        const cards = await response.json();
-        setResults(cards);
+        const { data: cards } = await response.json();
+        setResults(cards || []);
       } catch (err) {
         console.error('Search error:', err);
         setError(err instanceof Error ? err.message : 'Failed to search cards');
