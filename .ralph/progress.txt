@@ -1616,3 +1616,9 @@
 - src/components/search/SearchResults.tsx
 **Commit:** d2a7b8f
 ---
+## CD-62r.1 - Add granular feature flag fields to Convex schema
+**Status:** Completed
+**Changes:** Added 7 new feature flag fields to profileSettings table in convex/schema.ts: showPrices, showVariantSelector, showCollectionValue, gamificationLevel, aiChatEnabled, showRarityInfo, showMarketData
+**Files:** convex/schema.ts
+**Commit:** 7f2c099
+---
