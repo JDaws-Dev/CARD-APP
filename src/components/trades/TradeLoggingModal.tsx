@@ -96,6 +96,16 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
   const [isSearching, setIsSearching] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<CardVariant>('normal');
 
+  // Filter state for collection selector (Cards I Gave)
+  const [collectionSearchQuery, setCollectionSearchQuery] = useState('');
+  const [collectionSetFilter, setCollectionSetFilter] = useState('');
+
+  // Filter state for search selector (Cards I Received)
+  const [receiveSetFilter, setReceiveSetFilter] = useState('');
+
+  // Available sets for filters
+  const [availableSets, setAvailableSets] = useState<{ id: string; name: string }[]>([]);
+
   // Summary for success state
   const [tradeSummary, setTradeSummary] = useState<{
     cardsGivenCount: number;
@@ -108,6 +118,20 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
     received: { imageSmall: string; cardName: string }[];
     partner?: string;
   } | null>(null);
+
+  // Fetch available sets when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetch(`/api/sets?game=${primaryGame.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.data) {
+            setAvailableSets(data.data.map((s: { id: string; name: string }) => ({ id: s.id, name: s.name })));
+          }
+        })
+        .catch(console.error);
+    }
+  }, [isOpen, primaryGame.id]);
 
   // Reset state when modal opens (and pre-fill if provided)
   useEffect(() => {
@@ -122,6 +146,9 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
       setSelectedVariant('normal');
       setTradeSummary(null);
       setCelebrationCards(null);
+      setCollectionSearchQuery('');
+      setCollectionSetFilter('');
+      setReceiveSetFilter('');
 
       // Pre-fill the "Cards I Gave" if a prefilled card was provided
       if (prefilledGiveCard) {
@@ -160,24 +187,48 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, flowState, selectionMode, onClose]);
 
-  // Search for cards
+  // Search for cards (uses filter API when set is selected, search API otherwise)
   const handleSearch = useCallback(async () => {
-    if (!searchQuery.trim()) return;
+    // At least one of searchQuery or receiveSetFilter must be provided
+    if (!searchQuery.trim() && !receiveSetFilter) return;
 
     setIsSearching(true);
     try {
-      const response = await fetch(
-        `/api/search?q=${encodeURIComponent(searchQuery)}&limit=10&game=${primaryGame.id}`
-      );
-      if (!response.ok) throw new Error('Search failed');
-      const data = await response.json();
-      setSearchResults(data.cards || []);
+      let response: Response;
+
+      if (receiveSetFilter || searchQuery.trim()) {
+        // Use filter API which supports setId + name combination
+        const params = new URLSearchParams({ game: primaryGame.id, limit: '20' });
+        if (receiveSetFilter) params.set('setId', receiveSetFilter);
+        if (searchQuery.trim()) params.set('name', searchQuery.trim());
+
+        response = await fetch(`/api/filter?${params}`);
+        if (!response.ok) throw new Error('Filter failed');
+        const data = await response.json();
+        // Transform filter API response to match search API format
+        const cards = (data.data || []).map((card: { id: string; name: string; set: { id: string; name: string }; number: string; images: { small: string; large: string } }) => ({
+          id: card.id,
+          name: card.name,
+          set: { name: card.set.name || card.set.id },
+          number: card.number,
+          images: card.images,
+        }));
+        setSearchResults(cards);
+      } else {
+        // Fallback to search API
+        response = await fetch(
+          `/api/search?q=${encodeURIComponent(searchQuery)}&limit=20&game=${primaryGame.id}`
+        );
+        if (!response.ok) throw new Error('Search failed');
+        const data = await response.json();
+        setSearchResults(data.cards || []);
+      }
     } catch {
       setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
-  }, [searchQuery, primaryGame.id]);
+  }, [searchQuery, receiveSetFilter, primaryGame.id]);
 
   // Add card to give list (from collection)
   const handleAddCardToGive = useCallback(
@@ -363,6 +414,35 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
     return map;
   }, [collection]);
 
+  // Get unique sets from collection for filter dropdown
+  const collectionSets = useMemo(() => {
+    const sets = new Set<string>();
+    collectionCardsMap.forEach((card) => {
+      if (card.setId) sets.add(card.setId);
+    });
+    return Array.from(sets).sort();
+  }, [collectionCardsMap]);
+
+  // Filtered collection cards based on search and set filter
+  const filteredCollectionCards = useMemo(() => {
+    const cards = Array.from(collectionCardsMap.values());
+
+    return cards.filter((card) => {
+      // Filter by set
+      if (collectionSetFilter && card.setId !== collectionSetFilter) {
+        return false;
+      }
+      // Filter by name search
+      if (collectionSearchQuery.trim()) {
+        const query = collectionSearchQuery.toLowerCase().trim();
+        if (!card.name.toLowerCase().includes(query)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [collectionCardsMap, collectionSetFilter, collectionSearchQuery]);
+
   // Calculate available quantity for a card (excluding already selected)
   const getAvailableQuantity = useCallback(
     (cardId: string, variant: CardVariant) => {
@@ -390,11 +470,39 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
             setSelectionMode(null);
             setSearchQuery('');
             setSearchResults([]);
+            setCollectionSearchQuery('');
+            setCollectionSetFilter('');
           }}
           className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-200"
         >
           Done
         </button>
+      </div>
+
+      {/* Search and filter controls */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={collectionSearchQuery}
+            onChange={(e) => setCollectionSearchQuery(e.target.value)}
+            placeholder="Search by card name..."
+            className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-kid-primary focus:outline-none focus:ring-1 focus:ring-kid-primary"
+          />
+        </div>
+        <select
+          value={collectionSetFilter}
+          onChange={(e) => setCollectionSetFilter(e.target.value)}
+          className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-kid-primary focus:outline-none focus:ring-1 focus:ring-kid-primary"
+        >
+          <option value="">All Sets</option>
+          {collectionSets.map((setId) => (
+            <option key={setId} value={setId}>
+              {availableSets.find((s) => s.id === setId)?.name || setId}
+            </option>
+          ))}
+        </select>
       </div>
 
       {collection === undefined ? (
@@ -405,10 +513,14 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
         <div className="rounded-xl bg-gray-50 p-6 text-center">
           <p className="text-gray-500">No cards in your collection yet.</p>
         </div>
+      ) : filteredCollectionCards.length === 0 ? (
+        <div className="rounded-xl bg-gray-50 p-6 text-center">
+          <p className="text-gray-500">No cards match your search.</p>
+        </div>
       ) : (
         <div className="max-h-80 overflow-y-auto">
           <div className="grid grid-cols-3 gap-2">
-            {Array.from(collectionCardsMap.values()).map((cardGroup) => {
+            {filteredCollectionCards.map((cardGroup) => {
               const variants = Array.from(cardGroup.variants.entries());
               return variants.map(([variant, quantity]) => {
                 const available = getAvailableQuantity(cardGroup.cardId, variant as CardVariant);
@@ -503,6 +615,7 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
             setSelectionMode(null);
             setSearchQuery('');
             setSearchResults([]);
+            setReceiveSetFilter('');
           }}
           className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-200"
         >
@@ -510,7 +623,7 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
         </button>
       </div>
 
-      {/* Search input */}
+      {/* Search input and set filter */}
       <div className="flex gap-2">
         <div className="relative flex-1">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
@@ -526,11 +639,27 @@ export function TradeLoggingModal({ isOpen, onClose, onSuccess, prefilledGiveCar
         </div>
         <button
           onClick={handleSearch}
-          disabled={isSearching || !searchQuery.trim()}
+          disabled={isSearching || (!searchQuery.trim() && !receiveSetFilter)}
           className="rounded-lg bg-kid-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-kid-primary/90 disabled:opacity-50"
         >
           {isSearching ? <ArrowPathIcon className="h-5 w-5 animate-spin" /> : 'Search'}
         </button>
+      </div>
+
+      {/* Set filter dropdown */}
+      <div>
+        <select
+          value={receiveSetFilter}
+          onChange={(e) => setReceiveSetFilter(e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-kid-primary focus:outline-none focus:ring-1 focus:ring-kid-primary"
+        >
+          <option value="">All Sets</option>
+          {availableSets.map((set) => (
+            <option key={set.id} value={set.id}>
+              {set.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Variant selector */}
