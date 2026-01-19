@@ -522,6 +522,7 @@ export const getWishlistByTokenWithAffiliateLinks = query({
         return {
           cardId: item.cardId,
           isPriority: item.isPriority,
+          gameSlug: item.gameSlug,
           // Card data from cache
           name: cachedCard?.name,
           setId: cachedCard?.setId,
