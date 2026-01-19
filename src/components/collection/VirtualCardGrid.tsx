@@ -20,21 +20,18 @@ import {
 } from '@heroicons/react/24/outline';
 import {
   HeartIcon as HeartIconSolid,
-  TrophyIcon,
   StarIcon as StarIconSolid,
   CurrencyDollarIcon,
   SparklesIcon,
   CheckCircleIcon,
   BoltIcon,
 } from '@heroicons/react/24/solid';
-import { MapIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { CardGridSkeleton, StatsBarSkeleton } from '@/components/ui/Skeleton';
 import {
   VariantBadgeGroup,
   VARIANT_CONFIG,
   type CardVariant,
 } from '@/components/ui/VariantBadge';
-import { IconLegend } from './IconLegend';
 import { useLevelUp } from '@/components/gamification/LevelSystem';
 import { useCollectionToast } from '@/components/providers/CollectionToastProvider';
 import { useKidMode } from '@/components/providers/KidModeProvider';
@@ -102,20 +99,6 @@ function formatPrice(price: number): string {
   } else {
     return `$${Math.round(price)}`;
   }
-}
-
-// Crown icon for Set Champion
-function CrownIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M2.5 19h19v3h-19v-3zM22.07 7.63l-3.07 7.37h-14l-3.07-7.37 4.07 2.37 6-6 6 6 4.07-2.37z" />
-    </svg>
-  );
 }
 
 // Sparkle icon component for "NEW" badge
@@ -1007,96 +990,6 @@ export function VirtualCardGrid({ cards, setId, setName }: VirtualCardGridProps)
 
   return (
     <div>
-      {/* Stats Bar */}
-      <div className="mb-4 rounded-xl bg-white p-3 shadow-sm sm:mb-6 sm:p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-          {/* Stats */}
-          <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-4">
-            <div className="text-center">
-              <div className="text-xl font-bold text-kid-primary sm:text-2xl">{ownedCount}</div>
-              <div className="text-xs text-gray-500">Owned</div>
-            </div>
-            <div className="hidden h-8 w-px bg-gray-200 sm:block" />
-            <div className="text-center">
-              <div className="text-xl font-bold text-gray-400 sm:text-2xl">
-                {totalCount - ownedCount}
-              </div>
-              <div className="text-xs text-gray-500">Needed</div>
-            </div>
-            <div className="hidden h-8 w-px bg-gray-200 sm:block" />
-            <div className="text-center">
-              <div className="text-xl font-bold text-kid-secondary sm:text-2xl">
-                {progressPercent}%
-              </div>
-              <div className="text-xs text-gray-500">Complete</div>
-            </div>
-          </div>
-
-          {/* Progress and Priority */}
-          <div className="flex w-full flex-wrap items-center justify-center gap-3 border-t border-gray-100 pt-3 sm:w-auto sm:justify-end sm:gap-4 sm:border-0 sm:pt-0">
-            {/* Priority Stars Indicator */}
-            {priorityCount && priorityCount.count > 0 && (
-              <div className="flex items-center gap-1.5" title="Priority wishlist items">
-                <div className="flex items-center">
-                  {Array.from({ length: priorityCount.max }).map((_, i) => (
-                    <span
-                      key={i}
-                      className={cn(
-                        'h-4 w-4',
-                        i < priorityCount.count ? 'text-amber-400' : 'text-gray-200'
-                      )}
-                    >
-                      {i < priorityCount.count ? (
-                        <StarIconSolid className="h-4 w-4" />
-                      ) : (
-                        <StarIconOutline className="h-4 w-4" />
-                      )}
-                    </span>
-                  ))}
-                </div>
-                <span className="text-xs text-gray-500">Priority</span>
-              </div>
-            )}
-
-            {/* Progress indicator */}
-            {progressPercent >= 25 && (
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-sm">
-                  {progressPercent >= 100 ? (
-                    <CrownIcon className="h-5 w-5" />
-                  ) : progressPercent >= 75 ? (
-                    <TrophyIcon className="h-5 w-5" />
-                  ) : progressPercent >= 50 ? (
-                    <MapIcon className="h-5 w-5" />
-                  ) : (
-                    <GlobeAltIcon className="h-5 w-5" />
-                  )}
-                </span>
-                <span className="text-sm font-medium text-gray-600">
-                  {progressPercent >= 100
-                    ? 'Set Champion!'
-                    : progressPercent >= 75
-                      ? 'Set Master'
-                      : progressPercent >= 50
-                        ? 'Set Adventurer'
-                        : 'Set Explorer'}
-                </span>
-              </div>
-            )}
-
-            {/* Icon Help Legend */}
-            <IconLegend />
-          </div>
-        </div>
-      </div>
-
-      {/* Virtual Scroll Indicator */}
-      {useVirtualScrolling && (
-        <div className="mb-2 flex items-center justify-center gap-2 text-xs text-gray-400">
-          <BoltIcon className="h-3 w-3" aria-hidden="true" />
-          <span>Optimized scrolling for {cards.length} cards</span>
-        </div>
-      )}
 
       {/* Card Grid Container */}
       <div
