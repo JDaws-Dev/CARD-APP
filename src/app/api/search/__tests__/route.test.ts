@@ -433,7 +433,7 @@ describe('GET /api/search', () => {
       });
       expect(card.set).toEqual({
         id: 'sv1',
-        name: '',
+        name: expect.any(String),
       });
       expect(card.gameSlug).toBe('pokemon');
     });

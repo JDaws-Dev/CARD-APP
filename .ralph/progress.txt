@@ -1582,3 +1582,9 @@
 **Files:** src/app/api/search/route.ts, src/app/api/filter/route.ts
 **Commit:** 6db3192
 ---
+## CD-nbn - Multi-game variant handling broken - Yu-Gi-Oh/One Piece/Lorcana cards don't show variants correctly
+**Status:** Completed
+**Changes:** Fixed CardDetailModal to properly handle variants for all TCGs (Pokemon, Yu-Gi-Oh!, One Piece, Lorcana). Updated getVariantPrice to dynamically access prices by variant key instead of hardcoded Pokemon variants. Replaced hardcoded Market Prices section with dynamic rendering for all games.
+**Files:** src/components/collection/CardDetailModal.tsx
+**Commit:** 7ae582e
+---
