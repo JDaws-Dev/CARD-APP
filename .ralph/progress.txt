@@ -1532,3 +1532,13 @@
 **Files:** src/components/sets/AvailabilityFilter.tsx
 **Commit:** e723d80
 ---
+## CD-7bh - Card variant selector missing - no way to toggle between holofoil/reverse holo/regular versions
+**Status:** Completed (already implemented)
+**Changes:** No code changes required - verified existing implementation fulfills all requirements
+**Files:** 
+- src/components/collection/VirtualCardGrid.tsx (VariantBadgeGroup display)
+- src/components/ui/VariantBadge.tsx (Badge styling)
+- src/components/collection/CardGrid.tsx (VariantSelector popup)
+- convex/dataPopulation.ts (availableVariants population)
+**Commit:** N/A - implementation already existed
+---
