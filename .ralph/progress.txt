@@ -1622,3 +1622,9 @@
 **Files:** convex/schema.ts
 **Commit:** 7f2c099
 ---
+## CD-w9sx - Card images failing to load in Destined Rivals set - showing placeholder icons
+**Status:** Completed
+**Changes:** Fixed CardImage component to immediately display fallback placeholder for empty/invalid image URLs instead of showing loading skeleton indefinitely. Added detection for empty/whitespace src strings on initialization and during prop changes.
+**Files:** src/components/ui/CardImage.tsx, src/components/ui/__tests__/CardImage.test.tsx
+**Commit:** a8627e8
+---
