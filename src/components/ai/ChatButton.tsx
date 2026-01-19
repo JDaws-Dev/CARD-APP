@@ -26,11 +26,12 @@ export function ChatButton({ className }: ChatButtonProps) {
   return (
     <>
       {/* Floating Chat Button - uses game theme colors */}
+      {/* Positioned above MobileBottomNav (h-20 = 80px) on mobile, normal position on desktop */}
       <button
         onClick={handleOpen}
         className={cn(
-          'fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-game-gradient text-white shadow-lg shadow-game transition hover:scale-105 hover:shadow-xl focus-game',
-          'md:h-16 md:w-16',
+          'fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-game-gradient text-white shadow-lg shadow-game transition hover:scale-105 hover:shadow-xl focus-game',
+          'md:h-16 md:w-16 lg:bottom-6',
           isOpen && 'hidden',
           className
         )}
@@ -53,10 +54,10 @@ export function ChatButton({ className }: ChatButtonProps) {
           <div
             className={cn(
               'fixed z-50 overflow-hidden rounded-2xl shadow-2xl',
-              // Mobile: full-width panel at bottom
-              'inset-x-4 bottom-4 max-h-[80vh]',
-              // Desktop: fixed size panel in bottom-right
-              'md:inset-auto md:bottom-6 md:right-6 md:h-[500px] md:w-[380px]'
+              // Mobile: full-width panel above MobileBottomNav (h-20 = 80px + 16px padding = 96px)
+              'inset-x-4 bottom-24 max-h-[70vh]',
+              // Desktop: fixed size panel in bottom-right (no bottom nav)
+              'lg:inset-auto lg:bottom-6 lg:right-6 lg:h-[500px] lg:w-[380px] lg:max-h-none'
             )}
             role="dialog"
             aria-modal="true"

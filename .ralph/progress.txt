@@ -1512,3 +1512,13 @@
 **Files:** N/A (research task - notes added to issue)
 **Commit:** N/A (no code changes)
 ---
+
+# Ralph Session 2026-01-18 23:26:50
+# Scope: Working on: **all open issues**
+
+## CD-ykd - Fix missing chat button - floating chat button not visible on dashboard/collection pages
+**Status:** Completed
+**Changes:** Fixed ChatButton positioning to appear above MobileBottomNav on mobile (bottom-24) while maintaining original position on desktop (lg:bottom-6). Also updated chat panel positioning with matching breakpoints.
+**Files:** src/components/ai/ChatButton.tsx
+**Commit:** See below
+---
