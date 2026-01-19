@@ -198,6 +198,57 @@ describe('CardImage', () => {
       expect(img).toHaveAttribute('alt', 'Second Card');
     });
   });
+
+  it('immediately shows fallback for empty src string', () => {
+    render(<CardImage src="" alt="Empty Card" />);
+
+    const img = screen.getByRole('img');
+    // Should immediately use fallback, not empty string
+    expect(img.getAttribute('src')).toContain('data:image/svg+xml');
+    // Should mark as unavailable
+    expect(img).toHaveAttribute('alt', 'Empty Card (image unavailable)');
+  });
+
+  it('immediately shows fallback for whitespace-only src string', () => {
+    render(<CardImage src="   " alt="Whitespace Card" />);
+
+    const img = screen.getByRole('img');
+    expect(img.getAttribute('src')).toContain('data:image/svg+xml');
+    expect(img).toHaveAttribute('alt', 'Whitespace Card (image unavailable)');
+  });
+
+  it('transitions from valid src to empty src correctly', async () => {
+    const validSrc = 'https://example.com/card.png';
+    const { rerender } = render(<CardImage src={validSrc} alt="Card" />);
+
+    expect(screen.getByRole('img')).toHaveAttribute('src', validSrc);
+
+    // Rerender with empty src
+    rerender(<CardImage src="" alt="Card" />);
+
+    await waitFor(() => {
+      const img = screen.getByRole('img');
+      expect(img.getAttribute('src')).toContain('data:image/svg+xml');
+      expect(img).toHaveAttribute('alt', 'Card (image unavailable)');
+    });
+  });
+
+  it('transitions from empty src to valid src correctly', async () => {
+    const validSrc = 'https://example.com/card.png';
+    const { rerender } = render(<CardImage src="" alt="Card" />);
+
+    // Should start with fallback
+    expect(screen.getByRole('img').getAttribute('src')).toContain('data:image/svg+xml');
+
+    // Rerender with valid src
+    rerender(<CardImage src={validSrc} alt="Card" />);
+
+    await waitFor(() => {
+      const img = screen.getByRole('img');
+      expect(img).toHaveAttribute('src', validSrc);
+      expect(img).toHaveAttribute('alt', 'Card');
+    });
+  });
 });
 
 describe('CardBack', () => {

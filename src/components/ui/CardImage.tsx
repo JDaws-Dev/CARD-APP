@@ -86,9 +86,11 @@ export function CardImage({
   onLoad,
   draggable = false,
 }: CardImageProps) {
-  const [imageSrc, setImageSrc] = useState(src);
-  const [hasError, setHasError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // If src is empty/falsy, immediately use fallback and skip loading state
+  const hasValidSrc = Boolean(src && src.trim());
+  const [imageSrc, setImageSrc] = useState(hasValidSrc ? src : fallbackSrc);
+  const [hasError, setHasError] = useState(!hasValidSrc);
+  const [isLoading, setIsLoading] = useState(hasValidSrc);
 
   // Track the previous src prop to detect when it actually changes
   const prevSrcRef = useRef(src);
@@ -97,13 +99,21 @@ export function CardImage({
   // Reset error state when src changes to allow new image to load
   useEffect(() => {
     // Only reset when the src prop itself changes, not when imageSrc changes internally
-    if (src && src !== prevSrcRef.current) {
+    if (src !== prevSrcRef.current) {
       prevSrcRef.current = src;
-      setImageSrc(src);
-      setHasError(false);
-      setIsLoading(true);
+      const newSrcIsValid = Boolean(src && src.trim());
+      if (newSrcIsValid) {
+        setImageSrc(src);
+        setHasError(false);
+        setIsLoading(true);
+      } else {
+        // Empty/invalid src - immediately use fallback
+        setImageSrc(fallbackSrc);
+        setHasError(true);
+        setIsLoading(false);
+      }
     }
-  }, [src]);
+  }, [src, fallbackSrc]);
 
   const handleError = useCallback(() => {
     if (!hasError) {
