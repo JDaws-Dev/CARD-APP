@@ -56,21 +56,19 @@ function getAvailableVariants(card: PokemonCard): CardVariant[] {
   return variants.length > 0 ? variants : ['normal'];
 }
 
-// Get price for a specific variant
+// Get price for a specific variant - works with all games
 function getVariantPrice(card: PokemonCard, variant: CardVariant): number | null {
   const prices = card.tcgplayer?.prices;
   if (!prices) return null;
 
-  switch (variant) {
-    case 'normal':
-      return prices.normal?.market ?? null;
-    case 'holofoil':
-      return prices.holofoil?.market ?? null;
-    case 'reverseHolofoil':
-      return prices.reverseHolofoil?.market ?? null;
-    default:
-      return null;
+  // Dynamically access price by variant key - works for all games
+  // The prices object is keyed by variant name (e.g., 'normal', 'holofoil', 'common', 'rare', etc.)
+  const variantPrice = prices[variant as keyof typeof prices];
+  if (variantPrice && typeof variantPrice === 'object' && 'market' in variantPrice) {
+    return (variantPrice as { market?: number }).market ?? null;
   }
+
+  return null;
 }
 
 interface CardWithQuantity extends PokemonCard {
@@ -477,37 +475,29 @@ export function CardDetailModal({
             </div>
           )}
 
-          {/* All Prices Summary - hidden when hidePrices is enabled */}
-          {!hidePrices && card.tcgplayer?.prices && (
+          {/* All Prices Summary - dynamically shows prices for all available variants */}
+          {!hidePrices && card.tcgplayer?.prices && availableVariants.length > 0 && (
             <div className="mb-4 rounded-xl bg-white/5 p-3">
               <div className="mb-2 text-xs font-medium uppercase tracking-wide text-white/50">
                 Market Prices
               </div>
               <div className="flex flex-wrap gap-2">
-                {card.tcgplayer.prices.normal?.market && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-gray-500/30 px-2.5 py-1 text-sm">
-                    <span className="text-white/70">Normal:</span>
-                    <span className="font-medium text-emerald-400">
-                      ${card.tcgplayer.prices.normal.market.toFixed(2)}
+                {availableVariants.map((variant) => {
+                  const price = getVariantPrice(card, variant);
+                  if (price === null) return null;
+                  const config = getVariantConfig(variant);
+                  return (
+                    <span
+                      key={variant}
+                      className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-sm"
+                    >
+                      <span className="text-white/70">{config.label}:</span>
+                      <span className="font-medium text-emerald-400">
+                        ${price.toFixed(2)}
+                      </span>
                     </span>
-                  </span>
-                )}
-                {card.tcgplayer.prices.holofoil?.market && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/30 px-2.5 py-1 text-sm">
-                    <span className="text-white/70">Holo:</span>
-                    <span className="font-medium text-purple-300">
-                      ${card.tcgplayer.prices.holofoil.market.toFixed(2)}
-                    </span>
-                  </span>
-                )}
-                {card.tcgplayer.prices.reverseHolofoil?.market && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/30 px-2.5 py-1 text-sm">
-                    <span className="text-white/70">Reverse:</span>
-                    <span className="font-medium text-cyan-300">
-                      ${card.tcgplayer.prices.reverseHolofoil.market.toFixed(2)}
-                    </span>
-                  </span>
-                )}
+                  );
+                })}
               </div>
             </div>
           )}
