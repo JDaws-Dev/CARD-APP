@@ -94,7 +94,8 @@ export function AvailabilityFilter({ value, onChange, counts }: AvailabilityFilt
  * Uses different cutoff dates per game:
  * - Pokemon: Sets typically stay in print ~2 years
  * - Yu-Gi-Oh: Core sets available longer (~3 years)
- * - One Piece: Newer TCG (started 2022), most sets still available
+ * - One Piece: Newer TCG with high demand, sets stay available ~4 years
+ *              (includes main boosters OP01+ and reprints via PRB sets)
  * - Lorcana: Newest TCG (started 2023), all sets likely still available
  *
  * @param releaseDate - The set's release date string
@@ -123,8 +124,9 @@ export function isSetAvailable(
       // Yu-Gi-Oh core sets available longer
       return yearsDiff <= 3;
     case 'onepiece':
-      // One Piece started in 2022, most sets still available
-      return yearsDiff <= 2.5;
+      // One Piece TCG has high demand, sets stay available longer (~4 years)
+      // This includes all main boosters (OP01+) and reprints via PRB sets
+      return yearsDiff <= 4;
     case 'lorcana':
       // Lorcana started in 2023, all sets likely still available
       return yearsDiff <= 3;
