@@ -12,6 +12,7 @@ import { useGameSelector } from '@/components/providers/GameSelectorProvider';
 import { useHidePrices } from '@/hooks/useHidePrices';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { TrophyIcon, SparklesIcon, CurrencyDollarIcon, StarIcon } from '@heroicons/react/24/solid';
+import { getCardPurchaseUrlWithAffiliate } from '@/lib/affiliateLinks';
 import { Square3Stack3DIcon } from '@heroicons/react/24/outline';
 import { CardDetailModal } from '@/components/collection/CardDetailModal';
 import type { PokemonCard } from '@/lib/pokemon-tcg';
@@ -410,6 +411,10 @@ export function VirtualTrophyRoom({ className, limit = 10 }: VirtualTrophyRoomPr
         isOnWishlist={wishlistStatus?.onWishlist ?? false}
         isRemoving={false}
         isAddingToWishlist={false}
+        buyUrl={selectedCard ? getCardPurchaseUrlWithAffiliate(
+          { name: selectedCard.name, tcgplayer: selectedCard.tcgplayer, set: selectedCard.set },
+          primaryGame.id
+        ).affiliateUrl : null}
       />
     </div>
   );

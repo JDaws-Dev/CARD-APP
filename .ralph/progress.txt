@@ -1496,3 +1496,13 @@
 **Files:** src/lib/affiliateLinks.ts, src/lib/__tests__/affiliateLinks.test.ts
 **Commit:** 099d2d9
 ---
+
+# Ralph Session 2026-01-18 21:05:48
+# Scope: Working on: **all open issues**
+
+## CD-fuj.4 - Wire up Buy button to TCGPlayer affiliate URLs
+**Status:** Completed
+**Changes:** Wired up Buy button UI to TCGPlayer affiliate URL builder. Added buyUrl prop to CardDetailModal in CollectionView.tsx and VirtualTrophyRoom.tsx using getCardPurchaseUrlWithAffiliate() function.
+**Files:** src/components/collection/CollectionView.tsx, src/components/virtual/VirtualTrophyRoom.tsx
+**Commit:** (pending)
+---

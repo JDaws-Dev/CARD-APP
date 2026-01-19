@@ -24,6 +24,7 @@ import { CardDetailModal } from './CardDetailModal';
 import { VariantFilter, VARIANT_CATEGORIES, type VariantCategoryId } from '@/components/filter/VariantFilter';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useHidePrices } from '@/hooks/useHidePrices';
+import { getCardPurchaseUrlWithAffiliate } from '@/lib/affiliateLinks';
 
 // Sort options for the collection
 type SortOption = 'set' | 'dateAdded' | 'value';
@@ -888,6 +889,10 @@ export function CollectionView({ collection }: CollectionViewProps) {
         isOnWishlist={wishlistStatus?.onWishlist ?? false}
         isRemoving={isRemoving}
         isAddingToWishlist={isAddingToWishlist}
+        buyUrl={selectedCard ? getCardPurchaseUrlWithAffiliate(
+          { name: selectedCard.name, tcgplayer: selectedCard.tcgplayer, set: selectedCard.set },
+          primaryGame.id
+        ).affiliateUrl : null}
       />
     </div>
   );
