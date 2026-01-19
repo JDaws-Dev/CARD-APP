@@ -1522,3 +1522,13 @@
 **Files:** src/components/ai/ChatButton.tsx
 **Commit:** See below
 ---
+
+# Ralph Session 2026-01-19 05:06:12
+# Scope: Working on: **all open issues**
+
+## CD-rbg - One Piece sets show empty for 'Available' filter - need to verify availability logic
+**Status:** Completed
+**Changes:** Increased One Piece TCG availability window from 2.5 years to 4 years to account for high demand and reprint sets (PRB-01, PRB-02). Also populated One Piece set data (66 sets) into the database.
+**Files:** src/components/sets/AvailabilityFilter.tsx
+**Commit:** e723d80
+---
