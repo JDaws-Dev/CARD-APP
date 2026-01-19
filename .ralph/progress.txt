@@ -1558,3 +1558,9 @@
 **Files:** src/components/ai/CardScanner.tsx
 **Commit:** 0e88a8e
 ---
+## CD-roo - Card scanner does not add card to collection
+**Status:** Completed (fix was already applied in commit 0e88a8e)
+**Changes:** CardScanner now always calls onCardIdentified callback to transition to SnapToAddFlow, enabling users to add cards via confirmation or manual search
+**Files:** src/components/ai/CardScanner.tsx
+**Commit:** 0e88a8e
+---
