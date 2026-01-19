@@ -1506,3 +1506,9 @@
 **Files:** src/components/collection/CollectionView.tsx, src/components/virtual/VirtualTrophyRoom.tsx
 **Commit:** (pending)
 ---
+## CD-82k - Research eBay API for card listings integration
+**Status:** Completed
+**Changes:** Completed research on eBay Browse API capabilities, Partner Network affiliate program, and integration feasibility. Recommendation: DO NOT INTEGRATE for now due to lower commission rates (1-4% vs TCGPlayer's ~5%), card matching complexity, and maintenance burden. TCGPlayer remains the better primary marketplace. Technical approach documented for future reference if needed.
+**Files:** N/A (research task - notes added to issue)
+**Commit:** N/A (no code changes)
+---
