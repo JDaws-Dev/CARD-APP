@@ -34,13 +34,14 @@ function MobileGamePicker({
   onClose,
   currentGameId,
   onSelectGame,
+  availableGames,
 }: {
   isOpen: boolean;
   onClose: () => void;
   currentGameId: GameId;
   onSelectGame: (gameId: GameId) => void;
+  availableGames: ReturnType<typeof getAllGames>;
 }) {
-  const allGames = getAllGames();
   const [animatingGameId, setAnimatingGameId] = useState<GameId | null>(null);
 
   // Handle escape key to close
@@ -104,7 +105,7 @@ function MobileGamePicker({
       {/* Game Grid - optimized for thumb reach */}
       <div className="flex flex-1 flex-col items-center justify-center px-4 pb-8 sm:px-6">
         <div className="grid w-full max-w-lg grid-cols-2 gap-4 sm:gap-5">
-          {allGames.map((game) => {
+          {availableGames.map((game) => {
             const GameIcon = getIconComponent(game.id);
             const isActive = game.id === currentGameId;
             const isAnimating = game.id === animatingGameId;
@@ -179,14 +180,15 @@ function DesktopGamePicker({
   currentGameId,
   onSelectGame,
   dropdownRef,
+  availableGames,
 }: {
   isOpen: boolean;
   onClose: () => void;
   currentGameId: GameId;
   onSelectGame: (gameId: GameId) => void;
   dropdownRef: React.RefObject<HTMLDivElement | null>;
+  availableGames: ReturnType<typeof getAllGames>;
 }) {
-  const allGames = getAllGames();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -209,7 +211,7 @@ function DesktopGamePicker({
         <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
           Switch Game
         </p>
-        {allGames.map((game) => {
+        {availableGames.map((game) => {
           const GameIcon = getIconComponent(game.id);
           const isActive = game.id === currentGameId;
           return (
@@ -247,7 +249,7 @@ function DesktopGamePicker({
 }
 
 export function GameSwitcher() {
-  const { primaryGame, setPrimaryGame, isLoading } = useGameSelector();
+  const { primaryGame, setPrimaryGame, isLoading, enabledGames } = useGameSelector();
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -316,6 +318,7 @@ export function GameSwitcher() {
           onClose={handleClose}
           currentGameId={primaryGame.id}
           onSelectGame={handleSelectGame}
+          availableGames={enabledGames}
         />
       )}
 
@@ -327,6 +330,7 @@ export function GameSwitcher() {
           currentGameId={primaryGame.id}
           onSelectGame={handleSelectGame}
           dropdownRef={dropdownRef}
+          availableGames={enabledGames}
         />
       )}
     </div>
