@@ -1542,3 +1542,9 @@
 - convex/dataPopulation.ts (availableVariants population)
 **Commit:** N/A - implementation already existed
 ---
+## CD-5d4 - Search function broken - TypeError t.map is not a function
+**Status:** Completed
+**Changes:** Fixed search page to properly extract `data` array from API response. The API returns `{ data: [...], ... }` but page was expecting a direct array.
+**Files:** src/app/search/page.tsx
+**Commit:** 7a8072d
+---
