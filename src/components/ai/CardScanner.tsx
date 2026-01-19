@@ -251,16 +251,24 @@ export function CardScanner({
       setScanResult(result);
       setState('result');
 
-      if (result.identified && onCardIdentified) {
+      // Always call onCardIdentified to transition to SnapToAddFlow
+      // SnapToAddFlow handles both identified and unidentified cards
+      if (onCardIdentified) {
         onCardIdentified(result);
       }
     } catch (err) {
       console.error('Scan error:', err);
-      setScanResult({
+      const errorResult: CardScanResult = {
         identified: false,
         error: 'Something went wrong while scanning. Please try again!',
-      });
+      };
+      setScanResult(errorResult);
       setState('result');
+
+      // Also transition to SnapToAddFlow for error cases so user can search manually
+      if (onCardIdentified) {
+        onCardIdentified(errorResult);
+      }
     }
   }, [capturedImage, profileId, family?.id, scanCard, gameSlug, onCardIdentified]);
 
