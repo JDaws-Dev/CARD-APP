@@ -152,6 +152,23 @@ export async function GET(request: NextRequest) {
       offset,
     });
 
+    // Collect unique set IDs to fetch set names
+    const uniqueSetIds = [
+      ...new Set(
+        result.cards.map(
+          (card: { setId: string }) => card.setId
+        )
+      ),
+    ];
+
+    // Fetch set names from cachedSets table
+    const setNames: Record<string, string> =
+      uniqueSetIds.length > 0
+        ? await client.query(api.dataPopulation.getSetNamesByIds, {
+            setIds: uniqueSetIds,
+          })
+        : {};
+
     // Transform cards to standard API response format
     const transformedCards = result.cards.map(
       (card: {
@@ -193,7 +210,7 @@ export async function GET(request: NextRequest) {
           : undefined,
         set: {
           id: card.setId,
-          name: '', // Set name not stored in cachedCards
+          name: setNames[card.setId] || '',
         },
         gameSlug: card.gameSlug,
         availableVariants: card.availableVariants,
